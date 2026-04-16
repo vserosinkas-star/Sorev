@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Сбербанк Многоборье — главная</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: #f0f4f8;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        /* заголовок */
+        .header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f2b44 100%);
+            color: white;
+            padding: 30px 20px;
+            border-radius: 32px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        /* карточки дисциплин */
+        .disciplines {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        .card {
+            background: white;
+            border-radius: 28px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: #1e293b;
+            display: block;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+        }
+        .card-icon {
+            font-size: 2.5rem;
+            margin-bottom: 12px;
+        }
+        .card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+            color: #0f2b44;
+        }
+        .card p {
+            font-size: 0.9rem;
+            color: #475569;
+            line-height: 1.4;
+        }
+        /* секция результатов */
+        .results-section {
+            background: white;
+            border-radius: 28px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+        }
+        .results-section h2 {
+            font-size: 1.5rem;
+            margin-bottom: 16px;
+            color: #1e3a5f;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .results-table {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        .rank-1 {
+            background-color: #fef9c3;
+            font-weight: bold;
+        }
+        .badge {
+            background: #e2e8f0;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 30px;
+        }
+        button {
+            background: #e2e8f0;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        @media (max-width: 700px) {
+            .disciplines { grid-template-columns: 1fr; }
+            .header h1 { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🏆 XV Всероссийские соревнования по многоборью</h1>
+        <p>Среди работников подразделений инкассации и охраны ПАО Сбербанк</p>
+        <p style="font-size: 0.85rem; margin-top: 8px;">Нижний Тагил, 24–27 июня 2025</p>
+    </div>
+
+    <!-- Карточки дисциплин (ссылки на отдельные страницы) -->
+    <div class="disciplines">
+        <a href="estafeta.html" class="card">
+            <div class="card-icon">🚛⚡</div>
+            <h3>Эстафета</h3>
+            <p>«Маршрут инкассации» — фиксация ошибок, штрафное время, общий зачёт.</p>
+        </a>
+        <a href="practical_shooting.html" class="card">
+            <div class="card-icon">🎯🔫</div>
+            <h3>Практическая стрельба</h3>
+            <p>Индивидуальные и командные упражнения из ПМ, «Сайги», АКМС.</p>
+            <span class="badge">скоро</span>
+        </a>
+        <a href="driving.html" class="card">
+            <div class="card-icon">🚐🔄</div>
+            <h3>Мастерство вождения</h3>
+            <p>Фигурное вождение и сложные дорожные условия.</p>
+            <span class="badge">скоро</span>
+        </a>
+        <a href="triathlon.html" class="card">
+            <div class="card-icon">🏃‍♂️💪🔫</div>
+            <h3>Командный триатлон</h3>
+            <p>Бег, силовые упражнения, стрельба.</p>
+            <span class="badge">скоро</span>
+        </a>
+        <a href="security_estafeta.html" class="card">
+            <div class="card-icon">🛡️🔥</div>
+            <h3>Эстафета (охрана)</h3>
+            <p>Полоса препятствий, силовые, противопожарная подготовка.</p>
+            <span class="badge">скоро</span>
+        </a>
+        <a href="service_duathlon.html" class="card">
+            <div class="card-icon">🏃‍♂️🎯</div>
+            <h3>Служебное двоеборье</h3>
+            <p>Бег 1000 м + стрельба из пистолета.</p>
+            <span class="badge">скоро</span>
+        </a>
+        <a href="team_estafeta.html" class="card">
+            <div class="card-icon">👥🚛</div>
+            <h3>Командная эстафета</h3>
+            <p>Совместная эстафета инкассации и охраны.</p>
+            <span class="badge">скоро</span>
+        </a>
+    </div>
+
+    <!-- Сводная таблица результатов (демо / реальные данные из localStorage) -->
+    <div class="results-section">
+        <h2>📊 Общий зачёт (свод по всем дисциплинам)</h2>
+        <div class="results-table">
+            <table id="summaryTable">
+                <thead>
+                    <tr>
+                        <th>Место</th>
+                        <th>Команда</th>
+                        <th>Эстафета<br>(место/очки)</th>
+                        <th>Стрельба</th>
+                        <th>Вождение</th>
+                        <th>Триатлон</th>
+                        <th>Сумма очков</th>
+                    </tr>
+                </thead>
+                <tbody id="summaryBody">
+                    <tr><td colspan="7">Загрузка данных...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div style="margin-top: 16px; text-align: right;">
+            <button id="resetAllDataBtn" style="background:#fee2e2; color:#991b1b;">🗑️ Сбросить все локальные данные</button>
+        </div>
+        <p style="font-size: 0.75rem; color: #64748b; margin-top: 12px;">
+            * В каждой дисциплине команда получает очки = занятое место (1 место – 1 очко и т.д.).<br>
+            Побеждает команда с наименьшей суммой очков. Данные обновляются при сохранении результатов в каждой дисциплине.
+        </p>
+    </div>
+    <div class="footer">
+        © Сбербанк, Центр управления наличным денежным обращением, Департамент безопасности
+    </div>
+</div>
+
+<script>
+    // Функция для получения сводных данных (из localStorage / заглушка)
+    // В реальном приложении каждая дисциплина сохраняет свои результаты в общую базу (localStorage или Supabase)
+    // Здесь мы читаем сохранённые результаты эстафеты (из estafeta_local_full) и генерируем тестовые данные для других дисциплин.
+    function loadSummaryData() {
+        // 1. Получаем результаты эстафеты из localStorage (ключ estafeta_local_full)
+        let estafetaData = {};
+        try {
+            const stored = localStorage.getItem('estafeta_local_full');
+            if (stored) {
+                const parsed = JSON.parse(stored);
+                // parsed: { "1": { "УБ": { rawSeconds, penalties }, ... }, "2": {...} }
+                // Вычислим итоговое время для каждой команды в каждом направлении и выберем лучшее (или суммируем? По правилам эстафета – командная дисциплина, у команды может быть только одно направление.
+                // Упростим: для каждой команды возьмём данные из того направления, где есть rawSeconds. В реальной жеребьёвке команда едет на одном направлении.
+                const teamBest = {};
+                for (let dir of [1,2]) {
+                    for (let [teamCode, data] of Object.entries(parsed[dir] || {})) {
+                        if (data.rawSeconds !== null) {
+                            const penalty = data.penalties ? Object.values(data.penalties).reduce((sum, v) => {
+                                // нужно получить сумму штрафов из penaltiesLibrary, но здесь упростим: для демо посчитаем примерную сумму
+                                // лучше использовать функцию из эстафеты, но для краткости сделаем заглушку: штраф = количество ошибок * 20 (примерно)
+                                let cnt = Object.keys(data.penalties || {}).length;
+                                return cnt * 20;
+                            }, 0) : 0;
+                            const totalSec = data.rawSeconds + penalty;
+                            if (!teamBest[teamCode] || totalSec < teamBest[teamCode].total) {
+                                teamBest[teamCode] = { total: totalSec, dir: dir };
+                            }
+                        }
+                    }
+                }
+                // Сортируем команды по итоговому времени (меньше – лучше)
+                const sorted = Object.entries(teamBest).sort((a,b) => a[1].total - b[1].total);
+                const teamNames = {
+                    "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","МРД":"Московский",
+                    "ЦЧБ":"Центрально-Черноземный","ЮЗБ":"Юго-Западный","ПВБ":"Поволжский",
+                    "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
+                };
+                // Формируем массив для таблицы
+                let rows = [];
+                let rank = 1;
+                for (let [code, info] of sorted) {
+                    rows.push({
+                        team: teamNames[code] + ` (${code})`,
+                        estafeta: rank,
+                        shooting: Math.floor(Math.random() * 11) + 1,   // заглушка
+                        driving: Math.floor(Math.random() * 11) + 1,
+                        triathlon: Math.floor(Math.random() * 11) + 1,
+                        total: rank + (Math.floor(Math.random() * 10) + 1) // заглушка суммы
+                    });
+                    rank++;
+                }
+                return rows;
+            }
+        } catch(e) { console.warn(e); }
+        // если данных нет – возвращаем демо-строки
+        return [
+            { team: "Уральский (УБ)", estafeta: 1, shooting: 3, driving: 2, triathlon: 4, total: 10 },
+            { team: "Московский (МРД)", estafeta: 2, shooting: 1, driving: 5, triathlon: 2, total: 10 },
+            { team: "Сибирский (СИБ)", estafeta: 3, shooting: 4, driving: 1, triathlon: 3, total: 11 },
+            { team: "Поволжский (ПВБ)", estafeta: 4, shooting: 2, driving: 3, triathlon: 5, total: 14 },
+        ];
+    }
+
+    function renderSummaryTable() {
+        const data = loadSummaryData();
+        const tbody = document.getElementById('summaryBody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+        let rank = 1;
+        // сортируем по сумме очков (total)
+        const sorted = [...data].sort((a,b) => a.total - b.total);
+        for (let row of sorted) {
+            const tr = document.createElement('tr');
+            if (rank === 1) tr.classList.add('rank-1');
+            tr.innerHTML = `
+                <td>${rank++}</td>
+                <td><strong>${row.team}</strong></td>
+                <td>${row.estafeta}</td>
+                <td>${row.shooting}</td>
+                <td>${row.driving}</td>
+                <td>${row.triathlon}</td>
+                <td><strong>${row.total}</strong></td>
+            `;
+            tbody.appendChild(tr);
+        }
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7">Нет данных. Внесите результаты в дисциплины.</td></tr>';
+        }
+    }
+
+    // Кнопка сброса всех локальных данных (для эстафеты и других)
+    document.getElementById('resetAllDataBtn')?.addEventListener('click', () => {
+        if (confirm('Сбросить все сохранённые результаты (эстафета, стрельба и т.д.)? Это действие необратимо.')) {
+            localStorage.removeItem('estafeta_local_full');
+            // можно также удалить ключи других дисциплин, когда они появятся
+            alert('Локальные данные сброшены. Страница будет перезагружена.');
+            location.reload();
+        }
+    });
+
+    renderSummaryTable();
+    // подписываемся на изменения в localStorage (если данные обновляются в других вкладках)
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'estafeta_local_full') {
+            renderSummaryTable();
+        }
+    });
+</script>
+</body>
+</html>
