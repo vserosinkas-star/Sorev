@@ -54,6 +54,26 @@
             font-size: 1rem;
             background: white;
         }
+        .stage-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .stage-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #1e293b;
+        }
+        .stage-btn.active {
+            background: #1e3a8a;
+            color: white;
+        }
         .participant-card {
             background: #f9fafb;
             border-radius: 24px;
@@ -71,25 +91,6 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 10px;
-        }
-        .stage-selector {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin: 15px 0;
-        }
-        .stage-btn {
-            background: #e2e8f0;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-        .stage-btn.active {
-            background: #1e3a8a;
-            color: white;
         }
         .penalties-grid {
             display: grid;
@@ -202,7 +203,7 @@
         }
         @media (max-width: 700px) {
             .penalties-grid { grid-template-columns: 1fr; }
-            .stage-selector { flex-direction: column; }
+            .stage-buttons { flex-direction: column; }
             button { width: 100%; }
         }
     </style>
@@ -233,6 +234,9 @@
             </select>
         </div>
 
+        <!-- Единые кнопки выбора этапа (как в эстафете) -->
+        <div id="stageButtonsContainer" class="stage-buttons"></div>
+
         <!-- Карточка участника 1 -->
         <div id="participant1Card" class="participant-card" style="display: none;">
             <div class="participant-title">
@@ -246,7 +250,6 @@
                 </div>
                 <button id="saveTime1Btn" class="btn-secondary">Сохранить время</button>
             </div>
-            <div class="stage-selector" id="stageSelector1"></div>
             <div id="penaltiesContainer1"></div>
             <div style="display: flex; gap: 10px; margin-top: 12px;">
                 <button id="saveStage1Btn">💾 Сохранить ошибки этапа</button>
@@ -272,7 +275,6 @@
                 </div>
                 <button id="saveTime2Btn" class="btn-secondary">Сохранить время</button>
             </div>
-            <div class="stage-selector" id="stageSelector2"></div>
             <div id="penaltiesContainer2"></div>
             <div style="display: flex; gap: 10px; margin-top: 12px;">
                 <button id="saveStage2Btn">💾 Сохранить ошибки этапа</button>
@@ -302,12 +304,10 @@
     // 1. БИБЛИОТЕКА ОШИБОК (на основе Excel-файлов)
     // --------------------------------------------------------------
     const penaltiesLibrary = [
-        // === Перенос сумки ===
         { id: "perenos_1", category: "Перенос сумки", desc: "Некорректное обращение с сумкой-баул (уронил/бросил)", sec: 20 },
         { id: "perenos_2", category: "Перенос сумки", desc: "2 раза уронил/бросил", sec: 40 },
         { id: "perenos_3", category: "Перенос сумки", desc: "3 раза уронил/бросил", sec: 60 },
         { id: "perenos_4", category: "Перенос сумки", desc: "Перенос сумки двумя руками (помощь второй рукой)", sec: 20 },
-        // === Загрузка в СТС ===
         { id: "zagruz_1", category: "Загрузка в СТС", desc: "Некорректное обращение с сумкой-баул (уронил/бросил)", sec: 20 },
         { id: "zagruz_2", category: "Загрузка в СТС", desc: "Не перенесены сумки-баул в накопитель СТС", sec: 20 },
         { id: "zagruz_3", category: "Загрузка в СТС", desc: "Не перенесены мешки с мелочью в накопитель СТС", sec: 20 },
@@ -316,7 +316,6 @@
         { id: "zagruz_6", category: "Загрузка в СТС", desc: "Сумка-баул взята одним участником", sec: 20 },
         { id: "zagruz_7", category: "Загрузка в СТС", desc: "Сумка-баул транспортируется одним участником", sec: 20 },
         { id: "zagruz_8", category: "Загрузка в СТС", desc: "Не выполнено упражнение «загрузка БЦ в СТС»", sec: 120 },
-        // === Бум ===
         { id: "boom_1", category: "Бум", desc: "Сумка-баул транспортируется одним участником", sec: 20 },
         { id: "boom_2", category: "Бум", desc: "Уронили/бросили сумку на буме", sec: 20 },
         { id: "boom_3", category: "Бум", desc: "После падения не начали упражнение сначала", sec: 20 },
@@ -324,14 +323,12 @@
         { id: "boom_5", category: "Бум", desc: "Сумка-баул транспортируется одним (от стола)", sec: 20 },
         { id: "boom_6", category: "Бум", desc: "Некорректное обращение с сумкой (уронил/бросил)", sec: 20 },
         { id: "boom_7", category: "Бум", desc: "Не выполнено упражнение «бум»", sec: 120 },
-        // === Барьер ===
         { id: "barrier_1", category: "Барьер", desc: "Перенос сумки двумя руками", sec: 20 },
         { id: "barrier_2", category: "Барьер", desc: "Сумка-баул одним участником", sec: 20 },
         { id: "barrier_3", category: "Барьер", desc: "Не установка сумки двумя участниками", sec: 20 },
         { id: "barrier_4", category: "Барьер", desc: "Уронил/бросил сумку", sec: 20 },
         { id: "barrier_5", category: "Барьер", desc: "Сумка-баул транспортируется одним (от стола)", sec: 20 },
         { id: "barrier_6", category: "Барьер", desc: "Не выполнено упражнение «барьер»", sec: 120 },
-        // === Кантовка колеса и кувалда ===
         { id: "kant_1", category: "Кантовка колеса и кувалда", desc: "Перенос сумки двумя руками", sec: 20 },
         { id: "kant_2", category: "Кантовка колеса и кувалда", desc: "Сумка-баул одним участником", sec: 20 },
         { id: "kant_3", category: "Кантовка колеса и кувалда", desc: "Не установка сумки двумя", sec: 20 },
@@ -346,7 +343,6 @@
         { id: "kant_12", category: "Кантовка колеса и кувалда", desc: "Сумка-баул транспортируется одним (от стола)", sec: 20 },
         { id: "kant_13", category: "Кантовка колеса и кувалда", desc: "Повтор переноса двумя руками", sec: 20 },
         { id: "kant_14", category: "Кантовка колеса и кувалда", desc: "Повтор уронил/бросил", sec: 20 },
-        // === Стрельба ===
         { id: "shoot_1", category: "Стрельба", desc: "Сумка-баул одним участником (от стола)", sec: 20 },
         { id: "shoot_2", category: "Стрельба", desc: "Перенос сумки двумя руками", sec: 20 },
         { id: "shoot_3", category: "Стрельба", desc: "Уронил/бросил сумку", sec: 20 },
@@ -372,7 +368,6 @@
         { id: "shoot_23", category: "Стрельба", desc: "5 процедурок", sec: 50 },
         { id: "shoot_24", category: "Стрельба", desc: "6 процедурок", sec: 60 },
         { id: "shoot_25", category: "Стрельба", desc: "Не выполнено упражнение «стрельба»", sec: 120 },
-        // === Препятствие ===
         { id: "prep_1", category: "Препятствие", desc: "Сумка-баул одним участником (от стола)", sec: 20 },
         { id: "prep_2", category: "Препятствие", desc: "Перенос сумки двумя руками", sec: 20 },
         { id: "prep_3", category: "Препятствие", desc: "Уронил/бросил сумку", sec: 20 },
@@ -382,7 +377,6 @@
         { id: "prep_7", category: "Препятствие", desc: "Повтор: двумя руками", sec: 20 },
         { id: "prep_8", category: "Препятствие", desc: "Повтор: уронил", sec: 20 },
         { id: "prep_9", category: "Препятствие", desc: "Не выполнено упражнение «препятствие»", sec: 120 },
-        // === Горка ===
         { id: "gorka_1", category: "Горка", desc: "Сумка-баул одним (от стола)", sec: 20 },
         { id: "gorka_2", category: "Горка", desc: "Перенос двумя руками", sec: 20 },
         { id: "gorka_3", category: "Горка", desc: "Уронил/бросил", sec: 20 },
@@ -392,7 +386,6 @@
         { id: "gorka_7", category: "Горка", desc: "Повтор: двумя руками", sec: 20 },
         { id: "gorka_8", category: "Горка", desc: "Повтор: уронил", sec: 20 },
         { id: "gorka_9", category: "Горка", desc: "Не выполнено упражнение «горка»", sec: 120 },
-        // === Покрышки ===
         { id: "tire_1", category: "Покрышки", desc: "Сумка-баул одним (от стола)", sec: 20 },
         { id: "tire_2", category: "Покрышки", desc: "Перенос двумя руками", sec: 20 },
         { id: "tire_3", category: "Покрышки", desc: "Уронил/бросил", sec: 20 },
@@ -403,7 +396,6 @@
         { id: "tire_8", category: "Покрышки", desc: "Повтор: двумя руками", sec: 20 },
         { id: "tire_9", category: "Покрышки", desc: "Повтор: уронил", sec: 20 },
         { id: "tire_10", category: "Покрышки", desc: "Не выполнено упражнение «покрышки»", sec: 120 },
-        // === Медицина ===
         { id: "med_1", category: "Медицина", desc: "Сумка-баул одним (от стола)", sec: 20 },
         { id: "med_2", category: "Медицина", desc: "Перенос двумя руками", sec: 20 },
         { id: "med_3", category: "Медицина", desc: "Уронил/бросил сумку", sec: 20 },
@@ -420,9 +412,7 @@
         { id: "med_14", category: "Медицина", desc: "Не выполнено упражнение «медицина»", sec: 120 }
     ];
 
-    // Список всех этапов (уникальные категории)
     const stages = [...new Set(penaltiesLibrary.map(p => p.category))];
-    // Список команд
     const teamCodes = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
     const teamNames = {
         "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","МРД":"Московский",
@@ -430,18 +420,13 @@
         "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
     };
 
-    // Структура данных: teamsTriathlon[teamCode] = { participant1: { name, rawSeconds, penalties: { id: true } }, participant2: {...} }
     let teamsTriathlon = {};
 
-    // Инициализация localStorage
     function loadData() {
         const stored = localStorage.getItem("triathlon_data");
         if (stored) {
-            try {
-                teamsTriathlon = JSON.parse(stored);
-            } catch(e) {}
+            try { teamsTriathlon = JSON.parse(stored); } catch(e) {}
         }
-        // Инициализация отсутствующих команд
         for (let code of teamCodes) {
             if (!teamsTriathlon[code]) {
                 teamsTriathlon[code] = {
@@ -459,19 +444,15 @@
     }
     function saveData() {
         localStorage.setItem("triathlon_data", JSON.stringify(teamsTriathlon));
-        // Также обновим общий ключ для главной страницы (чтобы сводная таблица видела)
         localStorage.setItem("triathlon_results", JSON.stringify(teamsTriathlon));
     }
 
-    // Текущее состояние судьи
     let currentTeam = null;
-    let currentStage = stages[0]; // первый этап
-    // Для каждого участника храним временные ошибки (до сохранения)
+    let currentStage = stages[0];
     let tempPenalties1 = {};
     let tempPenalties2 = {};
     let unsaved1 = false, unsaved2 = false;
 
-    // DOM элементы
     const teamSelect = document.getElementById('teamSelect');
     const p1Card = document.getElementById('participant1Card');
     const p2Card = document.getElementById('participant2Card');
@@ -479,8 +460,6 @@
     const p2Name = document.getElementById('participant2Name');
     const rawTime1 = document.getElementById('rawTime1');
     const rawTime2 = document.getElementById('rawTime2');
-    const stageSelector1 = document.getElementById('stageSelector1');
-    const stageSelector2 = document.getElementById('stageSelector2');
     const penaltiesContainer1 = document.getElementById('penaltiesContainer1');
     const penaltiesContainer2 = document.getElementById('penaltiesContainer2');
     const saveStage1Btn = document.getElementById('saveStage1Btn');
@@ -490,7 +469,6 @@
     const saveTime1Btn = document.getElementById('saveTime1Btn');
     const saveTime2Btn = document.getElementById('saveTime2Btn');
 
-    // Вспомогательные функции
     function formatTime(sec) {
         if (sec === null || isNaN(sec)) return "—";
         const m = Math.floor(sec / 60);
@@ -501,16 +479,12 @@
         if (!str.trim()) return null;
         let parts = str.split(':');
         let minutes = 0, seconds = 0;
-        if (parts.length === 2) {
-            minutes = parseInt(parts[0]);
-            seconds = parseFloat(parts[1]);
-        } else if (parts.length === 1) {
-            seconds = parseFloat(parts[0]);
-        } else return null;
+        if (parts.length === 2) { minutes = parseInt(parts[0]); seconds = parseFloat(parts[1]); }
+        else if (parts.length === 1) { seconds = parseFloat(parts[0]); }
+        else return null;
         if (isNaN(minutes) || isNaN(seconds)) return null;
         return minutes * 60 + seconds;
     }
-
     function getPenaltySum(penObj) {
         let sum = 0;
         for (let id in penObj) if (penObj[id]) {
@@ -520,7 +494,6 @@
         return sum;
     }
 
-    // Загрузка данных текущей команды в UI
     function loadTeamUI() {
         if (!currentTeam) {
             p1Card.style.display = 'none';
@@ -534,11 +507,10 @@
         p2Name.value = team.participant2.name || "";
         rawTime1.value = team.participant1.rawSeconds !== null ? formatTime(team.participant1.rawSeconds) : "";
         rawTime2.value = team.participant2.rawSeconds !== null ? formatTime(team.participant2.rawSeconds) : "";
-        // Загружаем временные ошибки из сохранённых
-        const stagePenaltyIds = penaltiesLibrary.filter(p => p.category === currentStage).map(p => p.id);
+        const stageIds = penaltiesLibrary.filter(p => p.category === currentStage).map(p => p.id);
         tempPenalties1 = {};
         tempPenalties2 = {};
-        for (let id of stagePenaltyIds) {
+        for (let id of stageIds) {
             if (team.participant1.penalties[id]) tempPenalties1[id] = true;
             if (team.participant2.penalties[id]) tempPenalties2[id] = true;
         }
@@ -550,19 +522,19 @@
         renderOverallTable();
     }
 
-    // Отрисовка кнопок выбора этапа
-    function renderStageSelectors() {
+    function renderStageButtons() {
+        const container = document.getElementById('stageButtonsContainer');
         let html = '';
         for (let stage of stages) {
             html += `<button class="stage-btn ${currentStage === stage ? 'active' : ''}" data-stage="${stage}">${stage}</button>`;
         }
-        stageSelector1.innerHTML = html;
-        stageSelector2.innerHTML = html;
-        document.querySelectorAll('#stageSelector1 .stage-btn, #stageSelector2 .stage-btn').forEach(btn => {
+        container.innerHTML = html;
+        document.querySelectorAll('.stage-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                currentStage = btn.getAttribute('data-stage');
-                renderStageSelectors();
-                // Перезагрузить временные ошибки для обоих участников (сбросить несохранённые)
+                const newStage = btn.getAttribute('data-stage');
+                if (newStage === currentStage) return;
+                currentStage = newStage;
+                renderStageButtons();
                 if (currentTeam) {
                     const team = teamsTriathlon[currentTeam];
                     const stageIds = penaltiesLibrary.filter(p => p.category === currentStage).map(p => p.id);
@@ -577,6 +549,11 @@
                     updatePenaltiesUI(2);
                     updateSummary(1);
                     updateSummary(2);
+                } else {
+                    tempPenalties1 = {};
+                    tempPenalties2 = {};
+                    updatePenaltiesUI(1);
+                    updatePenaltiesUI(2);
                 }
             });
         });
@@ -603,7 +580,6 @@
         }
         html += '</div>';
         container.innerHTML = html;
-        // обработчики
         for (let p of stagePen) {
             const cb = document.getElementById(`chk_${p.id}_${participant}`);
             if (cb) {
@@ -624,7 +600,6 @@
         const team = teamsTriathlon[currentTeam];
         const savedPen = participant === 1 ? team.participant1.penalties : team.participant2.penalties;
         const tempPen = participant === 1 ? tempPenalties1 : tempPenalties2;
-        // штраф других этапов
         let otherSum = 0;
         for (let id in savedPen) if (savedPen[id] && tempPen[id] === undefined) {
             let p = penaltiesLibrary.find(p => p.id === id);
@@ -644,7 +619,6 @@
     }
 
     function updateStageBadge(participant) {
-        // можно добавить индикатор несохранённых изменений
         const unsaved = participant === 1 ? unsaved1 : unsaved2;
         const btnContainer = participant === 1 ? saveStage1Btn.parentNode : saveStage2Btn.parentNode;
         let badge = btnContainer.querySelector('.unsaved-badge');
@@ -658,7 +632,7 @@
         } else if (badge) badge.remove();
     }
 
-    async function saveStage(participant) {
+    function saveStage(participant) {
         if (!currentTeam) { alert('Выберите команду'); return; }
         const team = teamsTriathlon[currentTeam];
         const target = participant === 1 ? team.participant1 : team.participant2;
@@ -677,7 +651,6 @@
 
     function resetStage(participant) {
         if (!currentTeam) return;
-        const team = teamsTriathlon[currentTeam];
         const stageIds = penaltiesLibrary.filter(p => p.category === currentStage).map(p => p.id);
         const tempPen = participant === 1 ? tempPenalties1 : tempPenalties2;
         for (let id of stageIds) delete tempPen[id];
@@ -748,12 +721,10 @@
         }
     }
 
-    // Обработчики
     teamSelect.addEventListener('change', () => {
         currentTeam = teamSelect.value || null;
-        if (currentTeam) {
-            loadTeamUI();
-        } else {
+        if (currentTeam) loadTeamUI();
+        else {
             p1Card.style.display = 'none';
             p2Card.style.display = 'none';
         }
@@ -775,10 +746,8 @@
     saveTime1Btn.addEventListener('click', () => saveRawTime(1));
     saveTime2Btn.addEventListener('click', () => saveRawTime(2));
 
-    // Инициализация
     loadData();
-    renderStageSelectors();
-    // если нет выбранной команды, показываем пустые карточки
+    renderStageButtons();
     if (!currentTeam) {
         p1Card.style.display = 'none';
         p2Card.style.display = 'none';
