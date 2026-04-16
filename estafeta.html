@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Эстафета</title>
+    <title>Эстафета — выбор этапа кнопками</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
@@ -20,6 +20,9 @@
         .reset-team-btn { background: #475569; }
         .stage-info { background: #eef2ff; border-radius: 16px; padding: 12px 20px; margin: 15px 0; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
         .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; }
+        .stage-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
+        .stage-btn { background: #e2e8f0; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; font-size: 0.85rem; font-weight: 500; color: #1e293b; }
+        .stage-btn.active { background: #1e3a8a; color: white; }
         .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin: 20px 0; }
         .penalty-card { background: #f9fafb; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
         .penalty-card input { width: 24px; height: 24px; margin: 0; }
@@ -61,34 +64,23 @@
                 <label>🏦 Территориальный банк</label>
                 <select id="teamSelect">
                     <option value="">-- выбрать --</option>
-                    <option value="УБ">Уральский банк (УБ)</option>
-                    <option value="ДВБ">Дальневосточный банк (ДВБ)</option>
-                    <option value="ББ">Байкальский банк (ББ)</option>
+                    <option value="УБ">Уральский (УБ)</option>
+                    <option value="ДВБ">Дальневосточный (ДВБ)</option>
+                    <option value="ББ">Байкальский (ББ)</option>
                     <option value="МРД">Московский (МРД)</option>
-                    <option value="ЦЧБ">Центрально-Черноземный банк (ЦЧБ)</option>
-                    <option value="ЮЗБ">Юго-Западный банк (ЮЗБ)</option>
-                    <option value="ПВБ">Поволжский банк (ПВБ)</option>
-                    <option value="СИБ">Сибирский банк (СИБ)</option>
-                    <option value="СРБ">Среднерусский банк (СРБ)</option>
-                    <option value="СЗБ">Северо-Западный банк (СЗБ)</option>
-                    <option value="ВВБ">Волго-Вятский банк (ВВБ)</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <label>⚙️ Этап соревнования</label>
-                <select id="stageSelect">
-                    <option value="Получение имущества">1. Получение имущества</option>
-                    <option value="Получение банковских ценностей">2. Получение банковских ценностей</option>
-                    <option value="Прокол шины">3. Прокол шины</option>
-                    <option value="Змейка + инкассация объекта">4. Змейка + инкассация объекта</option>
-                    <option value="Стрельба">5. Стрельба</option>
-                    <option value="Пожар+ВСП">6. Пожар + ВСП</option>
-                    <option value="Медицина/Преступник">7. Медицина / Преступник</option>
-                    <option value="Связь">8. Связь (радио/ИВР)</option>
-                    <option value="Наручники">9. Наручники</option>
+                    <option value="ЦЧБ">Центрально-Черноземный (ЦЧБ)</option>
+                    <option value="ЮЗБ">Юго-Западный (ЮЗБ)</option>
+                    <option value="ПВБ">Поволжский (ПВБ)</option>
+                    <option value="СИБ">Сибирский (СИБ)</option>
+                    <option value="СРБ">Среднерусский (СРБ)</option>
+                    <option value="СЗБ">Северо-Западный (СЗБ)</option>
+                    <option value="ВВБ">Волго-Вятский (ВВБ)</option>
                 </select>
             </div>
         </div>
+
+        <!-- Кнопки выбора этапа -->
+        <div id="stageButtonsContainer" class="stage-buttons"></div>
 
         <div class="judge-controls" style="margin-top: 0;">
             <div class="control-group" style="min-width: 220px;">
@@ -122,7 +114,7 @@
         <h3>🏆 Общий зачёт</h3>
         <table id="resultsTable">
             <thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
-            <tbody id="resultsBody"><tr><td colspan="6">Загрузка данных...</td></tr></tbody>
+            <tbody id="resultsBody"><tr><td colspan="6">Загрузка数据...</td></tr></tbody>
         </table>
     </div>
 </div>
@@ -142,9 +134,22 @@
             "СИБ": "Сибирский", "СРБ": "Среднерусский", "СЗБ": "Северо-Западный", "ВВБ": "Волго-Вятский"
         };
         
+        // Все этапы эстафеты (порядок важен)
+        const stages = [
+            "Получение имущества",
+            "Получение банковских ценностей",
+            "Прокол шины",
+            "Змейка + инкассация объекта",
+            "Стрельба",
+            "Пожар+ВСП",
+            "Медицина/Преступник",
+            "Связь",
+            "Наручники"
+        ];
+        
         // ПОЛНЫЙ СПИСОК ОШИБОК (все этапы)
         const penaltiesLibrary = [
-            // === Получение имущества (полный список) ===
+            // === Получение имущества ===
             { id: "prop_door", category: "Получение имущества", desc: "Не закрыты двери/дверь СТС в «гараже»", sec: 30 },
             { id: "prop_sk", category: "Получение имущества", desc: "СК не получен", sec: 20 },
             { id: "prop_yellow_key", category: "Получение имущества", desc: "Жёлтый ИК-ключ СК не получен", sec: 20 },
@@ -163,36 +168,53 @@
             { id: "prop_no_radio_start", category: "Получение имущества", desc: "Не доложили по радио о начале движения", sec: 30 },
             { id: "prop_bad_sk", category: "Получение имущества", desc: "Некорректное обращение с СК (уронил/кинул)", sec: 50 },
             { id: "prop_belt", category: "Получение имущества", desc: "Бригада не пристегнута ремнями", sec: 30 },
-            { id: "prop_cone_1", category: "Получение имущества", desc: "СТС вышел за габарит / наезд на 1 конус", sec: 5 },
+            { id: "prop_cone_1", category: "Получение имущества", desc: "Наезд на 1 конус", sec: 5 },
             { id: "prop_cone_2", category: "Получение имущества", desc: "Наезд на 2 конуса", sec: 10 },
             { id: "prop_cone_3", category: "Получение имущества", desc: "Наезд на 3 конуса", sec: 15 },
             { id: "prop_cone_4", category: "Получение имущества", desc: "Наезд на 4 и более конуса", sec: 20 },
             { id: "prop_tumbler", category: "Получение имущества", desc: "Тумблер выбора деактивационного ключа не переведён в жёлтое", sec: 30 },
-            // === Наручники (полный список) ===
+            // === Получение банковских ценностей ===
+            { id: "bank_belt", category: "Получение банковских ценностей", desc: "Не пристегнуты ремни", sec: 30 },
+            { id: "bank_cone", category: "Получение банковских ценностей", desc: "Наезд на конус", sec: 5 },
+            { id: "bank_door_open", category: "Получение банковских ценностей", desc: "Не закрыты двери в боксе", sec: 30 },
+            { id: "bank_scan", category: "Получение банковских ценностей", desc: "Не произвёл имитацию сканирования ТСД", sec: 20 },
+            // === Прокол шины ===
+            { id: "puncture_belt", category: "Прокол шины", desc: "Не пристегнуты", sec: 30 },
+            { id: "puncture_no_report", category: "Прокол шины", desc: "Не сообщил о поломке", sec: 30 },
+            { id: "puncture_jack", category: "Прокол шины", desc: "Неправильная установка домкрата", sec: 30 },
+            // === Змейка + инкассация объекта ===
+            { id: "snake_cone", category: "Змейка + инкассация объекта", desc: "Сбит конус", sec: 5 },
+            { id: "snake_no_radio", category: "Змейка + инкассация объекта", desc: "Инкассатор без радиостанции", sec: 30 },
+            { id: "snake_docs", category: "Змейка + инкассация объекта", desc: "Не предъявил документы", sec: 30 },
+            // === Стрельба ===
+            { id: "shoot_belt", category: "Стрельба", desc: "Не пристегнуты", sec: 30 },
+            { id: "shoot_position", category: "Стрельба", desc: "СТС не на стоп-линии", sec: 30 },
+            { id: "shoot_miss", category: "Стрельба", desc: "Не сбита мишень", sec: 10 },
+            // === Пожар+ВСП ===
+            { id: "fire_belt", category: "Пожар+ВСП", desc: "Не пристегнуты", sec: 30 },
+            { id: "fire_ext", category: "Пожар+ВСП", desc: "Не достал огнетушитель", sec: 30 },
+            { id: "fire_evac", category: "Пожар+ВСП", desc: "Не все ценности эвакуированы", sec: 30 },
+            // === Медицина/Преступник ===
+            { id: "med_belt", category: "Медицина/Преступник", desc: "Не пристегнуты", sec: 30 },
+            { id: "med_tourniquet", category: "Медицина/Преступник", desc: "Неправильное наложение турникета", sec: 50 },
+            { id: "med_stretcher", category: "Медицина/Преступник", desc: "Неправильная транспортировка", sec: 30 },
+            // === Связь ===
+            { id: "radio_drop", category: "Связь", desc: "Уронил радиостанцию", sec: 30 },
+            { id: "ivr_drop", category: "Связь", desc: "Уронил ИВР", sec: 30 },
+            // === Наручники ===
             { id: "handcuff_belt", category: "Наручники", desc: "Бригада не пристегнута ремнями", sec: 30 },
             { id: "handcuff_no_warning", category: "Наручники", desc: "Не предупредил: «Стой, применяю спецсредство - наручники»", sec: 10 },
             { id: "handcuff_loose", category: "Наручники", desc: "Наручники не надежно зафиксировали конечность", sec: 30 },
             { id: "handcuff_no_report", category: "Наручники", desc: "Не осуществил доклад «Наручники надеты»", sec: 10 },
             { id: "handcuff_no_radio_exit", category: "Наручники", desc: "Инкассатор не связался по радио о выходе", sec: 30 },
             { id: "handcuff_boarding_no_confirm", category: "Наручники", desc: "Посадка в СТС без подтверждения водителя", sec: 30 },
-            { id: "handcuff_driver_no_confirm", category: "Наручники", desc: "Водитель не подтвердил возможность выхода", sec: 30 },
-            // Остальные этапы (базовый набор, можно дополнить)
-            { id: "bank_belt", category: "Получение банковских ценностей", desc: "Не пристегнуты ремни", sec: 30 },
-            { id: "bank_cone", category: "Получение банковских ценностей", desc: "Наезд на конус", sec: 5 },
-            { id: "puncture_belt", category: "Прокол шины", desc: "Не пристегнуты", sec: 30 },
-            { id: "puncture_no_report", category: "Прокол шины", desc: "Не сообщил о поломке", sec: 30 },
-            { id: "snake_cone", category: "Змейка + инкассация объекта", desc: "Сбит конус", sec: 5 },
-            { id: "shoot_belt", category: "Стрельба", desc: "Не пристегнуты", sec: 30 },
-            { id: "shoot_miss", category: "Стрельба", desc: "Не сбита мишень", sec: 10 },
-            { id: "fire_belt", category: "Пожар+ВСП", desc: "Не пристегнуты", sec: 30 },
-            { id: "med_tourniquet", category: "Медицина/Преступник", desc: "Неправильный жгут", sec: 50 },
-            { id: "radio_drop", category: "Связь", desc: "Уронил радиостанцию", sec: 30 }
+            { id: "handcuff_driver_no_confirm", category: "Наручники", desc: "Водитель не подтвердил возможность выхода", sec: 30 }
         ];
         
         // ---------- СОСТОЯНИЕ ----------
         let currentDirection = null;
         let currentTeam = null;
-        let currentStage = "Получение имущества";
+        let currentStage = stages[0];
         let tempPenalties = {};
         let hasUnsavedChanges = false;
         
@@ -225,7 +247,7 @@
             return sum;
         }
         
-        // ---------- РАБОТА С SUPABASE С ПОВТОРНЫМИ ПОПЫТКАМИ ----------
+        // ---------- РАБОТА С SUPABASE ----------
         async function fetchWithRetry(fn, retries = 3, delay = 1000) {
             for (let i = 0; i < retries; i++) {
                 try {
@@ -282,13 +304,13 @@
                 for (let r of rows) {
                     let tr = document.createElement('tr');
                     if (r.total !== null && rank === 1) tr.classList.add('rank-1');
-                    tr.innerHTML = `<td>${r.total !== null ? rank++ : '—'}</td><td><strong>${r.name}</strong> (${r.team})</td><td>${r.dir}</td><td>${r.raw !== null ? formatTime(r.raw) : '—'}</td><td>${r.penalty}</td><td>${r.total !== null ? formatTime(r.total) : '—'}</td>`;
+                    tr.innerHTML = `<td>${r.total !== null ? rank++ : '—'}<td><strong>${r.name}</strong> (${r.team})</td><td>${r.dir}</td><td>${r.raw !== null ? formatTime(r.raw) : '—'}</td><td>${r.penalty}</td><td>${r.total !== null ? formatTime(r.total) : '—'}</td>`;
                     tbody.appendChild(tr);
                 }
-                if (rows.length === 0) tbody.innerHTML = '<tr><td colspan="6">Нет данных. Внесите результаты через форму судьи.</td></tr>';
+                if (rows.length === 0) tbody.innerHTML = '<tr><td colspan="6">Нет данных. Внесите результаты.</td></tr>';
             } catch (err) {
                 console.error(err);
-                document.getElementById('resultsBody').innerHTML = `<tr><td colspan="6">Ошибка загрузки: ${err.message}. Проверьте интернет.</td></tr>`;
+                document.getElementById('resultsBody').innerHTML = `<tr><td colspan="6">Ошибка загрузки: ${err.message}</td></tr>`;
             }
         }
         
@@ -432,11 +454,46 @@
         
         function resetTemp() { refreshCurrentTeamData(); }
         
-        // ---------- ОБРАБОТЧИКИ ----------
+        // ---------- ОТРИСОВКА КНОПОК ЭТАПОВ ----------
+        function renderStageButtons() {
+            const container = document.getElementById('stageButtonsContainer');
+            let html = '';
+            for (let stage of stages) {
+                html += `<button class="stage-btn ${currentStage === stage ? 'active' : ''}" data-stage="${stage}">${stage}</button>`;
+            }
+            container.innerHTML = html;
+            // обработчики
+            document.querySelectorAll('.stage-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const newStage = btn.getAttribute('data-stage');
+                    if (newStage === currentStage) return;
+                    currentStage = newStage;
+                    renderStageButtons(); // обновить активную кнопку
+                    // Перезагрузить временные ошибки для нового этапа
+                    if (currentDirection && currentTeam) {
+                        // Загружаем сохранённые ошибки для этого этапа
+                        refreshCurrentTeamData(); // перезагружает tempPenalties из БД
+                    } else {
+                        tempPenalties = {};
+                        hasUnsavedChanges = false;
+                        renderPenalties();
+                        updateBadge();
+                    }
+                    // Обновить строку информации
+                    let span = document.querySelector('#stageInfo span:first-child');
+                    if (span && currentDirection && currentTeam) {
+                        let teamName = document.getElementById('teamSelect').options[document.getElementById('teamSelect').selectedIndex]?.text || currentTeam;
+                        span.innerText = `📍 Направление ${currentDirection}, команда ${teamName} | Этап: ${currentStage}`;
+                    }
+                });
+            });
+        }
+        
+        // ---------- ОБРАБОТЧИКИ ВЫБОРА НАПРАВЛЕНИЯ И КОМАНДЫ ----------
         async function onSelectionChange() {
             currentDirection = document.getElementById('directionSelect').value ? parseInt(document.getElementById('directionSelect').value) : null;
             currentTeam = document.getElementById('teamSelect').value || null;
-            currentStage = document.getElementById('stageSelect').value;
+            // currentStage остаётся прежним
             if (currentDirection && currentTeam) await refreshCurrentTeamData();
             else {
                 document.getElementById('penaltiesContainer').innerHTML = '<div style="grid-column:1/-1; text-align:center;">⚠️ Выберите направление и банк</div>';
@@ -451,24 +508,22 @@
             } else if (span) span.innerText = '✅ Выберите направление, банк и этап';
         }
         
-        // ---------- ИНИЦИАЛИЗАЦИЯ С ПРОВЕРКОЙ ПОДКЛЮЧЕНИЯ ----------
+        // ---------- ИНИЦИАЛИЗАЦИЯ ----------
         async function init() {
             let statusDiv = document.getElementById('connectionStatus');
             statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения к Supabase...</span>';
             try {
-                // Пробуем получить количество записей (быстрый тест)
                 let { error } = await supabaseClient.from('estafeta_results').select('count', { count: 'exact', head: true });
                 if (error) throw error;
                 statusDiv.innerHTML = '<span class="status-ok">✅ Подключено к Supabase</span>';
             } catch (err) {
                 console.error(err);
-                statusDiv.innerHTML = `<span class="status-error">❌ Ошибка: ${err.message}. Проверьте интернет или настройки CORS в Supabase (разрешите "*"). Данные будут сохранены только локально.</span>`;
-                // Показываем предупреждение, но продолжаем работу (данные будут только в памяти)
+                statusDiv.innerHTML = `<span class="status-error">❌ Ошибка: ${err.message}. Данные будут только локально.</span>`;
             }
             await loadAllResults();
+            renderStageButtons();
             document.getElementById('directionSelect').addEventListener('change', onSelectionChange);
             document.getElementById('teamSelect').addEventListener('change', onSelectionChange);
-            document.getElementById('stageSelect').addEventListener('change', onSelectionChange);
             document.getElementById('saveStageBtn').addEventListener('click', saveStage);
             document.getElementById('resetStageBtn').addEventListener('click', resetTemp);
             document.getElementById('saveRawTimeBtn').addEventListener('click', saveRawTime);
