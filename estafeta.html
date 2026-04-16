@@ -511,11 +511,11 @@
         // ---------- ИНИЦИАЛИЗАЦИЯ ----------
         async function init() {
             let statusDiv = document.getElementById('connectionStatus');
-            statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения к Supabase...</span>';
+            statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>';
             try {
                 let { error } = await supabaseClient.from('estafeta_results').select('count', { count: 'exact', head: true });
                 if (error) throw error;
-                statusDiv.innerHTML = '<span class="status-ok">✅ Подключено к Supabase</span>';
+                statusDiv.innerHTML = '<span class="status-ok">✅ Подключено</span>';
             } catch (err) {
                 console.error(err);
                 statusDiv.innerHTML = `<span class="status-error">❌ Ошибка: ${err.message}. Данные будут только локально.</span>`;
