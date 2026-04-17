@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Командная эстафета — судейская панель (Supabase)</title>
+    <title>Командная эстафета</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
@@ -563,11 +563,11 @@
         async function init() {
             loadLocalCache();
             const statusDiv = document.getElementById('connectionStatus');
-            statusDiv.innerHTML = '<span class="status-ok">⏳ Проверка подключения к Supabase...</span>';
+            statusDiv.innerHTML = '<span class="status-ok">⏳ Проверка подключения...</span>';
             try {
                 let { error } = await supabaseClient.from('team_estafeta_results').select('count', { count: 'exact', head: true });
                 if (error) throw error;
-                statusDiv.innerHTML = '<span class="status-ok">✅ Подключено к Supabase</span>';
+                statusDiv.innerHTML = '<span class="status-ok">✅ Подключено</span>';
                 connectionWarningShown = false;
             } catch (err) {
                 statusDiv.innerHTML = '<span class="status-warning">⚠️ Офлайн-режим (данные только локально)</span>';
