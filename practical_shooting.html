@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Практическая стрельба — итоговые результаты</title>
+    <style>
+        * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f0f4f8; margin: 0; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #1e3a5f, #0f2b44); color: white; padding: 20px; border-radius: 28px; margin-bottom: 30px; text-align: center; }
+        .section-title { font-size: 1.4rem; margin: 30px 0 15px; color: #1e3a5f; border-left: 5px solid #1e3a8a; padding-left: 15px; }
+        .results-table { overflow-x: auto; background: white; border-radius: 24px; padding: 4px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; font-size: 0.9rem; }
+        th { background: #f8fafc; font-weight: 700; color: #1e293b; }
+        .rank-1 { background-color: #fef9c3; font-weight: bold; }
+        .team-name { text-align: left; font-weight: 600; }
+        .footer { text-align: center; margin-top: 30px; font-size: 0.8rem; color: #64748b; }
+        @media (max-width: 700px) { th, td { font-size: 0.75rem; padding: 6px 4px; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🎯 Практическая стрельба</h1>
+        <p>Итоговые результаты (личные и командные) на основе данных соревнований</p>
+    </div>
+
+    <!-- Командное первенство -->
+    <div class="section-title">🏆 Командное первенство (практическая стрельба)</div>
+    <div class="results-table" id="teamStandings"></div>
+
+    <!-- Личное первенство инкассация -->
+    <div class="section-title">👤 Личное первенство (инкассация)</div>
+    <div class="results-table" id="individualInc"></div>
+
+    <!-- Личное первенство охрана -->
+    <div class="section-title">👤 Личное первенство (охрана)</div>
+    <div class="results-table" id="individualSec"></div>
+
+    <!-- Личное первенство общее -->
+    <div class="section-title">👥 Личное первенство (общее)</div>
+    <div class="results-table" id="individualTotal"></div>
+
+    <!-- Рейтинг ТБ по стрельбе инкассация -->
+    <div class="section-title">🏢 Рейтинг территориальных банков (стрельба инкассация)</div>
+    <div class="results-table" id="teamRatingInc"></div>
+
+    <!-- Рейтинг ТБ по стрельбе охрана -->
+    <div class="section-title">🏢 Рейтинг территориальных банков (стрельба охрана)</div>
+    <div class="results-table" id="teamRatingSec"></div>
+
+    <div class="footer">Данные основаны на официальных протоколах соревнований 2025 года</div>
+</div>
+
+<script>
+    // --------------------------------------------------------------
+    // 1. ДАННЫЕ УЧАСТНИКОВ (инкассация)
+    // --------------------------------------------------------------
+    const incParticipants = [
+        { name: "Артемкин Николай Николаевич", teamCode: "СРБ", totalScore: 145 },
+        { name: "Вереитинов Андрей Владимирович", teamCode: "СРБ", totalScore: 145 },
+        { name: "Костеринн Алексей Сергеевич", teamCode: "СРБ", totalScore: 145 },
+        { name: "Гребенников Павел Витальевич", teamCode: "СЗБ", totalScore: 216 },
+        { name: "Морозов Константин Михайлович", teamCode: "СЗБ", totalScore: 216 },
+        { name: "Шелковников Максим Евгеньевич", teamCode: "СЗБ", totalScore: 216 },
+        { name: "Колесников Денис Андреевич", teamCode: "ДВБ", totalScore: 210 },
+        { name: "Кабалык Евгений Леонидович", teamCode: "ДВБ", totalScore: 210 },
+        { name: "Федоров Юрий Александрович", teamCode: "ДВБ", totalScore: 210 },
+        { name: "Веретенников Денис Николаевич", teamCode: "ЦЧБ", totalScore: 221 },
+        { name: "Кунаковских Олег Анатольевич", teamCode: "ЦЧБ", totalScore: 221 },
+        { name: "Фельдшеров Матвей Николаевич", teamCode: "ЦЧБ", totalScore: 221 },
+        { name: "Горбунов Виталий Андреевич", teamCode: "ББ", totalScore: 291 },
+        { name: "Березовский Василий Александрович", teamCode: "ББ", totalScore: 291 },
+        { name: "Макогон Антон Сергеевич", teamCode: "ББ", totalScore: 291 },
+        { name: "Ермолаев Андрей Сергеевич", teamCode: "СИБ", totalScore: 225 },
+        { name: "Шейнфельд Никита Александрович", teamCode: "СИБ", totalScore: 225 },
+        { name: "Матюшкин Дмитрий Александрович", teamCode: "СИБ", totalScore: 225 },
+        { name: "Беккер Василий Андреевич", teamCode: "ВВБ", totalScore: 265 },
+        { name: "Михайлов Иван Владимирович", teamCode: "ВВБ", totalScore: 265 },
+        { name: "Тезин Александр Сергеевич", teamCode: "ВВБ", totalScore: 265 },
+        { name: "Гриднев Виктор Геннадьевич", teamCode: "ПВБ", totalScore: 240 },
+        { name: "Сернов Александр Сергеевич", teamCode: "ПВБ", totalScore: 240 },
+        { name: "Полодичук Дмитрий Львович", teamCode: "ПВБ", totalScore: 240 },
+        { name: "Кочиев Матвей Аслангиреевич", teamCode: "ЮЗБ", totalScore: 265 },
+        { name: "Рамонов Руслан Рафикович", teamCode: "ЮЗБ", totalScore: 265 },
+        { name: "Полещук Сергей Львович", teamCode: "ЮЗБ", totalScore: 265 },
+        { name: "Марамыгин Марк Юрьевич", teamCode: "УБ", totalScore: 345 },
+        { name: "Кудрешов Евгений Вячеславович", teamCode: "УБ", totalScore: 345 },
+        { name: "Савинов Денис Вячеславович", teamCode: "УБ", totalScore: 345 },
+        { name: "Зуев Иван Андреевич", teamCode: "МРД", totalScore: 381 },
+        { name: "Стёпин Сергей Валерьевич", teamCode: "МРД", totalScore: 381 },
+        { name: "Борисовский Денис Михайлович", teamCode: "МРД", totalScore: 381 }
+    ];
+
+    // --------------------------------------------------------------
+    // 2. ДАННЫЕ УЧАСТНИКОВ (охрана)
+    // --------------------------------------------------------------
+    const secParticipants = [
+        { name: "Стукалов Александр Александрович", teamCode: "СРБ", totalScore: 178 },
+        { name: "Мухин Алексей Николаевич", teamCode: "СРБ", totalScore: 178 },
+        { name: "Рудак Александр Александрович", teamCode: "СРБ", totalScore: 178 },
+        { name: "Ольховский Станислав Иванович", teamCode: "СЗБ", totalScore: 413 },
+        { name: "Артемьев Александр Владимирович", teamCode: "СЗБ", totalScore: 413 },
+        { name: "Семенихин Юрий Анатольевич", teamCode: "СЗБ", totalScore: 413 },
+        { name: "Шевыряев Евгений Викторович", teamCode: "ПВБ", totalScore: 437 },
+        { name: "Покровский Вениамин Александрович", teamCode: "ПВБ", totalScore: 437 },
+        { name: "Щербина Алексей Юрьевич", teamCode: "ПВБ", totalScore: 437 },
+        { name: "Ткаченко Дмитрий Андреевич", teamCode: "МРД", totalScore: 470 },
+        { name: "Сарсенбаев Назар Юрьевич", teamCode: "МРД", totalScore: 470 },
+        { name: "Гавриличев Павел Артемович", teamCode: "МРД", totalScore: 470 },
+        { name: "Иванов Михаил Михайлович", teamCode: "ЦЧБ", totalScore: 320 },
+        { name: "Чеботарев Алексей Анатольевич", teamCode: "ЦЧБ", totalScore: 320 },
+        { name: "Горяйнов Александр Михайлович", teamCode: "ЦЧБ", totalScore: 320 },
+        { name: "Бузынин Николай Николаевич", teamCode: "ВВБ", totalScore: 188 },
+        { name: "Нармамбетов Артур Маратович", teamCode: "ВВБ", totalScore: 188 },
+        { name: "Баженов Владимир Вадимович", teamCode: "ВВБ", totalScore: 188 },
+        { name: "Ершов Иван Сергеевич", teamCode: "ББ", totalScore: 249 },
+        { name: "Какора Анатолий Сергеевич", teamCode: "ББ", totalScore: 249 },
+        { name: "Каратаев Алексей Владимирович", teamCode: "ББ", totalScore: 249 },
+        { name: "Дмитриев Евгений Владимирович", teamCode: "ЮЗБ", totalScore: 277 },
+        { name: "Смольняков Олег Валерьевич", teamCode: "ЮЗБ", totalScore: 277 },
+        { name: "Фёдоров Игорь Владимирович", teamCode: "ЮЗБ", totalScore: 277 },
+        { name: "Нестеров Владимир Владимирович", teamCode: "ДВБ", totalScore: 573 },
+        { name: "Степанов Андрей Сергеевич", teamCode: "ДВБ", totalScore: 573 },
+        { name: "Гончаров Дмитрий Александрович", teamCode: "ДВБ", totalScore: 573 },
+        { name: "Ярославцев Роман Владимирович", teamCode: "УБ", totalScore: 277 },
+        { name: "Гумеров Ильфат Зуфарович", teamCode: "УБ", totalScore: 277 },
+        { name: "Ямгурчин Радик Равилевич", teamCode: "УБ", totalScore: 277 },
+        { name: "Чубченко Виктор Константинович", teamCode: "СИБ", totalScore: 230 },
+        { name: "Татаркин Артём Константинович", teamCode: "СИБ", totalScore: 230 },
+        { name: "Шавкин Дамир Дмитриевич", teamCode: "СИБ", totalScore: 230 }
+    ];
+
+    // Сопоставление кодов ТБ с названиями
+    const teamNames = {
+        "УБ": "Уральский", "ДВБ": "Дальневосточный", "ББ": "Байкальский", "МРД": "Московский",
+        "ЦЧБ": "Центрально-Черноземный", "ЮЗБ": "Юго-Западный", "ПВБ": "Поволжский",
+        "СИБ": "Сибирский", "СРБ": "Среднерусский", "СЗБ": "Северо-Западный", "ВВБ": "Волго-Вятский"
+    };
+    const teamCodes = Object.keys(teamNames);
+
+    // Сортировка и назначение мест
+    function sortAndRank(participants) {
+        const sorted = [...participants].sort((a,b) => a.totalScore - b.totalScore);
+        let rank = 1;
+        for (let i = 0; i < sorted.length; i++) {
+            if (i > 0 && sorted[i].totalScore === sorted[i-1].totalScore) {
+                sorted[i].position = sorted[i-1].position;
+            } else {
+                sorted[i].position = rank;
+            }
+            rank++;
+        }
+        return sorted;
+    }
+
+    // Расчёт командного первенства (сумма личных мест по ТБ)
+    function calculateTeamStandings(participants) {
+        const stats = {};
+        for (let p of participants) {
+            if (!stats[p.teamCode]) stats[p.teamCode] = { sumScores: 0, count: 0 };
+            stats[p.teamCode].sumScores += p.totalScore;
+            stats[p.teamCode].count++;
+        }
+        const standings = [];
+        for (let code of teamCodes) {
+            const stat = stats[code];
+            const sumPersonal = stat ? stat.sumScores : 0;
+            const sumTeam = 0; // командные упражнения отсутствуют
+            const total = sumPersonal + sumTeam;
+            standings.push({
+                code: code,
+                name: teamNames[code],
+                sumPersonal: sumPersonal,
+                sumTeam: sumTeam,
+                total: total
+            });
+        }
+        return standings.sort((a,b) => a.total - b.total);
+    }
+
+    // Рейтинг ТБ по сумме личных мест
+    function calculateTeamRating(participants) {
+        const stats = {};
+        for (let p of participants) {
+            if (!stats[p.teamCode]) stats[p.teamCode] = { sumScores: 0, count: 0 };
+            stats[p.teamCode].sumScores += p.totalScore;
+            stats[p.teamCode].count++;
+        }
+        const rating = [];
+        for (let code of teamCodes) {
+            const stat = stats[code];
+            if (stat && stat.count > 0) {
+                rating.push({
+                    code: code,
+                    name: teamNames[code],
+                    sumScores: stat.sumScores,
+                    count: stat.count
+                });
+            }
+        }
+        return rating.sort((a,b) => a.sumScores - b.sumScores);
+    }
+
+    // ---- Отрисовка командного первенства ----
+    function renderTeamStandings() {
+        const standings = calculateTeamStandings(incParticipants);
+        let html = `<table style="min-width:500px;">
+            <thead><tr><th>Место</th><th>Территориальный банк</th><th>Сумма личных мест</th><th>Сумма командных мест</th><th>Общая сумма</th></tr></thead><tbody>`;
+        let rank = 1;
+        for (let t of standings) {
+            if (t.sumPersonal === 0) continue;
+            const rowClass = (rank === 1) ? 'class="rank-1"' : '';
+            html += `<tr ${rowClass}>
+                <td class="rank-cell">${rank}</td>
+                <td class="team-name">${t.name} (${t.code})</td>
+                <td>${t.sumPersonal}</td>
+                <td>${t.sumTeam}</td>
+                <td><strong>${t.total}</strong></td>
+            </tr>`;
+            rank++;
+        }
+        html += `</tbody></table>`;
+        document.getElementById('teamStandings').innerHTML = html;
+    }
+
+    // ---- Отрисовка личного зачёта инкассации ----
+    function renderIndividualInc() {
+        const sorted = sortAndRank(incParticipants);
+        let html = `<table style="min-width:600px;">
+            <thead><tr><th>Место</th><th>ФИО</th><th>Территориальный банк</th><th>Сумма мест</th></tr></thead><tbody>`;
+        for (let p of sorted) {
+            const rowClass = (p.position === 1) ? 'class="rank-1"' : '';
+            html += `<tr ${rowClass}>
+                <td class="rank-cell">${p.position}</td>
+                <td class="team-name">${p.name}</td>
+                <td>${teamNames[p.teamCode]} (${p.teamCode})</td>
+                <td>${p.totalScore}</td>
+            </tr>`;
+        }
+        html += `</tbody></table>`;
+        document.getElementById('individualInc').innerHTML = html;
+    }
+
+    // ---- Отрисовка личного зачёта охраны ----
+    function renderIndividualSec() {
+        const sorted = sortAndRank(secParticipants);
+        let html = `<table style="min-width:600px;">
+            <thead><tr><th>Место</th><th>ФИО</th><th>Территориальный банк</th><th>Сумма мест</th></tr></thead><tbody>`;
+        for (let p of sorted) {
+            const rowClass = (p.position === 1) ? 'class="rank-1"' : '';
+            html += `<tr ${rowClass}>
+                <td class="rank-cell">${p.position}</td>
+                <td class="team-name">${p.name}</td>
+                <td>${teamNames[p.teamCode]} (${p.teamCode})</td>
+                <td>${p.totalScore}</td>
+            </tr>`;
+        }
+        html += `</tbody></table>`;
+        document.getElementById('individualSec').innerHTML = html;
+    }
+
+    // ---- Отрисовка общего личного зачёта ----
+    function renderIndividualTotal() {
+        const allParticipants = [...incParticipants.map(p => ({ ...p, type: "inc" })), ...secParticipants.map(p => ({ ...p, type: "sec" }))];
+        const sorted = allParticipants.sort((a,b) => a.totalScore - b.totalScore);
+        let rank = 1;
+        for (let i = 0; i < sorted.length; i++) {
+            if (i > 0 && sorted[i].totalScore === sorted[i-1].totalScore) {
+                sorted[i].position = sorted[i-1].position;
+            } else {
+                sorted[i].position = rank;
+            }
+            rank++;
+        }
+        let html = `<table style="min-width:700px;">
+            <thead><tr><th>Место</th><th>ФИО</th><th>Территориальный банк</th><th>Тип</th><th>Сумма мест</th></tr></thead><tbody>`;
+        for (let p of sorted) {
+            const typeLabel = p.type === "inc" ? "Инкассация" : "Охрана";
+            const rowClass = (p.position === 1) ? 'class="rank-1"' : '';
+            html += `<tr ${rowClass}>
+                <td class="rank-cell">${p.position}</td>
+                <td class="team-name">${p.name}</td>
+                <td>${teamNames[p.teamCode]} (${p.teamCode})</td>
+                <td>${typeLabel}</td>
+                <td>${p.totalScore}</td>
+            </tr>`;
+        }
+        html += `</tbody></table>`;
+        document.getElementById('individualTotal').innerHTML = html;
+    }
+
+    // ---- Рейтинг ТБ по стрельбе (инкассация) ----
+    function renderTeamRatingInc() {
+        const rating = calculateTeamRating(incParticipants);
+        let html = `<table style="min-width:400px;">
+            <thead><tr><th>Место</th><th>Территориальный банк</th><th>Сумма личных мест</th><th>Кол-во участников</th></tr></thead><tbody>`;
+        let rank = 1;
+        for (let t of rating) {
+            const rowClass = (rank === 1) ? 'class="rank-1"' : '';
+            html += `<tr ${rowClass}>
+                <td class="rank-cell">${rank}</td>
+                <td class="team-name">${t.name} (${t.code})</td>
+                <td>${t.sumScores}</td>
+                <td>${t.count}</td>
+            </tr>`;
+            rank++;
+        }
+        if (rating.length === 0) html += `<tr><td colspan="4">Нет данных</td></tr>`;
+        html += `</tbody></table>`;
+        document.getElementById('teamRatingInc').innerHTML = html;
+    }
+
+    // ---- Рейтинг ТБ по стрельбе (охрана) ----
+    function renderTeamRatingSec() {
+        const rating = calculateTeamRating(secParticipants);
+        let html = `<table style="min-width:400px;">
+            <thead><tr><th>Место</th><th>Территориальный банк</th><th>Сумма личных мест</th><th>Кол-во участников</th></tr></thead><tbody>`;
+        let rank = 1;
+        for (let t of rating) {
+            const rowClass = (rank === 1) ? 'class="rank-1"' : '';
+            html += `<tr ${rowClass}>
+                <td class="rank-cell">${rank}</td>
+                <td class="team-name">${t.name} (${t.code})</td>
+                <td>${t.sumScores}</td>
+                <td>${t.count}</td>
+            </tr>`;
+            rank++;
+        }
+        if (rating.length === 0) html += `<tr><td colspan="4">Нет данных</td></tr>`;
+        html += `</tbody></table>`;
+        document.getElementById('teamRatingSec').innerHTML = html;
+    }
+
+    // Запуск всех рендеров
+    renderTeamStandings();
+    renderIndividualInc();
+    renderIndividualSec();
+    renderIndividualTotal();
+    renderTeamRatingInc();
+    renderTeamRatingSec();
+</script>
+</body>
+</html>
