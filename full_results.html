@@ -65,7 +65,7 @@
         <div class="section">
             <h2>🏃‍♂️ Командный триатлон — результаты участников</h2>
             <div class="table-wrapper" id="detailed-triathlon"><div class="loading">Загрузка...</div></div>
-            <div class="subnote">* Указано итоговое время каждого участника с учётом штрафов и сумма команды.</div>
+            <div class="subnote">* Для каждого участника показаны чистое время, штраф и итог. Сумма команды — сложение итогов.</div>
         </div>
 
         <div class="section">
@@ -102,7 +102,7 @@
         </div>
     </div>
 
-    <footer>Данные обновляются автоматически. Триатлон и мастерство вождения читаются из localStorage.<br>© Сбербанк, Департамент безопасности, ЦУНДО</footer>
+    <footer>Данные обновляются автоматически. Триатлон загружается из Supabase, мастерство вождения — из localStorage.<br>© Сбербанк, Департамент безопасности, ЦУНДО</footer>
 </div>
 
 <script>
@@ -148,7 +148,6 @@
         let securityEstafetaData = [...defaultSecurityEstafeta];
         let serviceDuathlonData = [...defaultServiceDuathlon];
 
-        let triathlonTeams = {};
         let drivingResults = {};
 
         // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
@@ -206,31 +205,54 @@
             return best;
         }
 
-        // ---------- ТРИАТЛОН (localStorage) ----------
-        function loadTriathlonData() {
-            const stored = localStorage.getItem("triathlon_data");
-            if (stored) try { triathlonTeams = JSON.parse(stored); } catch(e) {}
-            for (let code of teamCodes) {
-                if (!triathlonTeams[code]) triathlonTeams[code] = { participant1: { name: "", rawSeconds: null, penalties: {} }, participant2: { name: "", rawSeconds: null, penalties: {} } };
+        // ---------- ТРИАТЛОН (Supabase) ----------
+        async function loadTriathlonFromSupabase() {
+            try {
+                const { data, error } = await supabaseClient.from('triathlon_results').select('*');
+                if (error) throw error;
+                const teams = {};
+                for (let row of data) {
+                    let code = row.team_code;
+                    if (code === 'YB') code = 'УБ';
+                    if (!teams[code]) {
+                        teams[code] = { p1: null, p2: null };
+                    }
+                    const participantKey = row.participant_number === 1 ? 'p1' : 'p2';
+                    teams[code][participantKey] = {
+                        name: row.name || "",
+                        rawSeconds: row.raw_seconds,
+                        penalties: row.penalties || {}
+                    };
+                }
+                for (let code of teamCodes) {
+                    if (!teams[code]) teams[code] = { p1: null, p2: null };
+                }
+                return teams;
+            } catch(e) {
+                console.warn("Ошибка загрузки триатлона из Supabase:", e);
+                return {};
             }
         }
 
-        function getTeamTriathlonTotal(code) {
-            const team = triathlonTeams[code];
-            if (!team) return null;
-            const p1 = team.participant1, p2 = team.participant2;
+        async function getTeamTriathlonTotal(code) {
+            const teams = await loadTriathlonFromSupabase();
+            const team = teams[code];
+            if (!team || !team.p1 || !team.p2) return null;
+            const p1 = team.p1, p2 = team.p2;
             if (!p1.rawSeconds || !p2.rawSeconds) return null;
             const pen1 = p1.penalties ? Object.values(p1.penalties).filter(v=>v===true).length * 20 : 0;
             const pen2 = p2.penalties ? Object.values(p2.penalties).filter(v=>v===true).length * 20 : 0;
             return (p1.rawSeconds + pen1) + (p2.rawSeconds + pen2);
         }
 
-        function getTriathlonDetails() {
+        async function getTriathlonDetails() {
+            const teams = await loadTriathlonFromSupabase();
             const res = [];
             for (let code of teamCodes) {
-                const team = triathlonTeams[code];
-                if (!team) continue;
-                const p1 = team.participant1, p2 = team.participant2;
+                const team = teams[code];
+                if (!team || (!team.p1 && !team.p2)) continue;
+                const p1 = team.p1 || { name: "", rawSeconds: null, penalties: {} };
+                const p2 = team.p2 || { name: "", rawSeconds: null, penalties: {} };
                 if (!p1.rawSeconds && !p2.rawSeconds) continue;
                 const pen1 = p1.penalties ? Object.values(p1.penalties).filter(v=>v===true).length * 20 : 0;
                 const pen2 = p2.penalties ? Object.values(p2.penalties).filter(v=>v===true).length * 20 : 0;
@@ -240,7 +262,9 @@
                 res.push({
                     code, name: teamNames[code],
                     name1: p1.name || "—", name2: p2.name || "—",
-                    total1, penalty1: pen1, total2, penalty2: pen2,
+                    raw1: p1.rawSeconds, raw2: p2.rawSeconds,
+                    penalty1: pen1, penalty2: pen2,
+                    total1, total2,
                     teamTotal
                 });
             }
@@ -254,10 +278,10 @@
             return res;
         }
 
-        function getTriathlonPlaces() {
+        async function getTriathlonPlaces() {
             const totals = {};
             for (let code of teamCodes) {
-                let t = getTeamTriathlonTotal(code);
+                let t = await getTeamTriathlonTotal(code);
                 if (t !== null) totals[code] = t;
             }
             return computePlaces(totals);
@@ -346,7 +370,7 @@
 
         async function computeTeamStandings() {
             const estafetaTimes = await loadBestEstafetaTimes();
-            const triPlaces = getTriathlonPlaces();
+            const triPlaces = await getTriathlonPlaces();
             const drivingPlaces = getDrivingPlaces();
             const estPlaces = computePlaces(estafetaTimes);
             const standings = [];
@@ -364,7 +388,7 @@
             return standings;
         }
 
-        // ---------- РЕНДЕР ТАБЛИЦ (гарантированно таблицы, а не текст) ----------
+        // ---------- РЕНДЕР ТАБЛИЦ ----------
         async function renderTeamStandings(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -377,11 +401,14 @@
                 html += `<tr ${rowClass}>
                             <td>${rank++}</td>
                             <td><strong>${s.name} (${s.code})</strong></td>
-                            <td>${s.est}</td><td>${s.tri}</td><td>${s.drv}</td><td>${s.shoot}</td>
+                            <td>${s.est}${s.est === teamCodes.length+1 ? '*' : ''}</td>
+                            <td>${s.tri}${s.tri === teamCodes.length+1 ? '*' : ''}</td>
+                            <td>${s.drv}${s.drv === teamCodes.length+1 ? '*' : ''}</td>
+                            <td>${s.shoot}${s.shoot === teamCodes.length+1 ? '*' : ''}</td>
                             <td><strong>${s.total}</strong></td>
                          </tr>`;
             }
-            html += '</tbody></table>';
+            html += '</tbody><tr><div class="subnote">* — команда не участвовала в дисциплине (место присвоено автоматически)</div>';
             container.innerHTML = html;
         }
 
@@ -399,37 +426,49 @@
                 const rowClass = (row.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
                             <td>${row.place}</td>
-                            <td><strong>${row.team_name}</strong> (${row.team_code})</td>
+                            <td><strong>${row.team_name}</strong> (${row.team_code})</strong></td>
                             <td>${row.direction}</td>
-                            <td>${formatTime(row.raw_seconds)}</td>
-                            <td>${row.penalty}</td>
-                            <td>${formatTime(row.total_seconds)}</td>
-                         </tr>`;
+                            <td>${formatTime(row.raw_seconds)}</strong></td>
+                            <td>${row.penalty}</strong></td>
+                            <td>${formatTime(row.total_seconds)}</strong></td>
+                          </tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
         }
 
-        function renderTriathlon(containerId) {
+        async function renderTriathlon(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
-            const details = getTriathlonDetails();
+            container.innerHTML = '<div class="loading">Загрузка...</div>';
+            const details = await getTriathlonDetails();
             if (details.length === 0) {
                 container.innerHTML = '<div class="loading">Нет данных триатлона.</div>';
                 return;
             }
-            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Время 1 (чистое+штраф)</th><th>Участник 2</th><th>Время 2 (чистое+штраф)</th><th>Сумма команды</th></tr></thead><tbody>';
+            let html = '<table><thead>
+                            <tr>
+                                <th>Место</th><th>Команда</th>
+                                <th>Участник 1</th><th>Чистое время 1</th><th>Штраф 1 (сек)</th><th>Итог 1</th>
+                                <th>Участник 2</th><th>Чистое время 2</th><th>Штраф 2 (сек)</th><th>Итог 2</th>
+                                <th>Сумма команды</th>
+                            </tr>
+                        </thead><tbody>';
             for (let d of details) {
                 const rowClass = (d.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
                             <td>${d.place}</td>
                             <td><strong>${d.name} (${d.code})</strong></td>
                             <td>${d.name1}</td>
-                            <td>${d.total1 ? formatTime(d.total1) : '—'} (штр ${d.penalty1})</td>
+                            <td>${d.raw1 !== null ? formatTime(d.raw1) : '—'}</td>
+                            <td>${d.penalty1}</td>
+                            <td>${d.total1 !== null ? formatTime(d.total1) : '—'}</td>
                             <td>${d.name2}</td>
-                            <td>${d.total2 ? formatTime(d.total2) : '—'} (штр ${d.penalty2})</td>
-                            <td><strong>${d.teamTotal ? formatTime(d.teamTotal) : '—'}</strong></td>
-                         </tr>`;
+                            <td>${d.raw2 !== null ? formatTime(d.raw2) : '—'}</td>
+                            <td>${d.penalty2}</td>
+                            <td>${d.total2 !== null ? formatTime(d.total2) : '—'}</td>
+                            <td><strong>${d.teamTotal !== null ? formatTime(d.teamTotal) : '—'}</strong></td>
+                          </tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
@@ -443,17 +482,17 @@
                 container.innerHTML = '<div class="loading">Нет данных мастерства вождения.</div>';
                 return;
             }
-            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Участник</th><th>Фигурное вождение (итог)</th><th>Вождение в СДУ (итог)</th><th>Общее время</th></tr></thead><tbody>';
+            let html = '<tr><thead><tr><th>Место</th><th>Команда</th><th>Участник</th><th>Фигурное вождение (итог)</th><th>Вождение в СДУ (итог)</th><th>Общее время</th></tr></thead><tbody>';
             for (let d of details) {
                 const rowClass = (d.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
                             <td>${d.place}</td>
                             <td><strong>${d.name} (${d.code})</strong></td>
                             <td>${d.participant}</td>
-                            <td>${d.figure_total ? formatTime(d.figure_total) : '—'} (штр ${d.figure_penalty})</td>
-                            <td>${d.sdu_total ? formatTime(d.sdu_total) : '—'} (штр ${d.sdu_penalty})</td>
+                            <td>${d.figure_total ? formatTime(d.figure_total) : '—'} (штр ${d.figure_penalty})</strong></td>
+                            <td>${d.sdu_total ? formatTime(d.sdu_total) : '—'} (штр ${d.sdu_penalty})</strong></td>
                             <td><strong>${d.total ? formatTime(d.total) : '—'}</strong></td>
-                         </tr>`;
+                          </tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
@@ -482,14 +521,14 @@
             let rank = 1;
             for (let [code, total] of entries) {
                 const rowClass = (rank === 1) ? 'class="rank-1"' : '';
-                html += `<tr ${rowClass}><td>${rank++}</td><td><strong>${teamNames[code]} (${code})</strong></td><td>${formatTime(total)}</td></tr>`;
+                html += `<tr ${rowClass}><td>${rank++}</td><td><strong>${teamNames[code]} (${code})</strong></td><td>${formatTime(total)}</strong></td></tr>`;
             }
             if (entries.length === 0) html += '<tr><td colspan="3">Нет данных</td></tr>';
             html += '</tbody></table>';
             container.innerHTML = html;
         }
 
-        // Охрана (заглушки)
+        // ---------- ОХРАНА (заглушки) ----------
         function loadSecurityData() {
             const sec = localStorage.getItem("security_estafeta");
             if (sec) try { securityEstafetaData = JSON.parse(sec); } catch(e) {}
@@ -510,22 +549,21 @@
         function renderServiceDuathlon(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
-            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Участник</th><th>Результат</th></tr></thead><tbody>';
+            let html = '<tr><thead><tr><th>Место</th><th>Команда</th><th>Участник</th><th>Результат</th></tr></thead><tbody>';
             for (let row of serviceDuathlonData) {
                 const rowClass = (row.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}><td>${row.place}</td><td>${row.team}</td><td>${row.name}</td><td>${row.result}</td></tr>`;
             }
-            html += '</tbody></table>';
+            html += '</tbody></tr>';
             container.innerHTML = html;
         }
 
         // ---------- ОБНОВЛЕНИЕ ----------
         async function refreshInkasso() {
-            loadTriathlonData();
             loadDrivingData();
             await renderTeamStandings('team-standings-inkasso');
             await renderDetailedEstafeta('detailed-estafeta');
-            renderTriathlon('detailed-triathlon');
+            await renderTriathlon('detailed-triathlon');
             renderDriving('detailed-driving');
             renderIndividual('individual-pistol');
             await renderTeamEstafeta('team-estafeta-common');
@@ -563,7 +601,7 @@
         document.getElementById('refreshInkassoBtn').addEventListener('click', refreshInkasso);
         document.getElementById('refreshOhranaBtn').addEventListener('click', refreshOhrana);
         window.addEventListener('storage', (e) => {
-            if (e.key === 'triathlon_data' || e.key === 'driving_data') refreshInkasso();
+            if (e.key === 'driving_data') refreshInkasso();
             if (e.key === 'security_estafeta' || e.key === 'service_duathlon') refreshOhrana();
         });
 
