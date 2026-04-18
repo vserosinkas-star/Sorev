@@ -147,7 +147,6 @@
         let individualData = [...defaultIndividual];
         let securityEstafetaData = [...defaultSecurityEstafeta];
         let serviceDuathlonData = [...defaultServiceDuathlon];
-
         let drivingResults = {};
 
         // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
@@ -203,7 +202,7 @@
             return best;
         }
 
-        // ---------- ТРИАТЛОН (Supabase с fallback на localStorage) ----------
+        // ---------- ТРИАТЛОН (Supabase) ----------
         async function loadTriathlonFromSupabase() {
             try {
                 const { data, error } = await supabaseClient.from('triathlon_results').select('*');
@@ -403,13 +402,15 @@
             return standings;
         }
 
-        // ---------- РЕНДЕР ТАБЛИЦ ----------
+        // ---------- РЕНДЕР ТАБЛИЦ (исправленный, с правильной структурой) ----------
         async function renderTeamStandings(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
             container.innerHTML = '<div class="loading">Загрузка...</div>';
             const standings = await computeTeamStandings();
-            let html = '<table><thead><tr><th>Итоговое место</th><th>Команда</th><th>Эстафета</th><th>Триатлон</th><th>Мастерство вождения</th><th>Практическая стрельба</th><th>Сумма мест</th></tr></thead><tbody>';
+            let html = '<table><thead><tr>' +
+                '<th>Итоговое место</th><th>Команда</th><th>Эстафета</th><th>Триатлон</th><th>Мастерство вождения</th><th>Практическая стрельба</th><th>Сумма мест</th>' +
+            '</tr></thead><tbody>';
             let rank = 1;
             for (let s of standings) {
                 const rowClass = (rank === 1) ? 'class="rank-1"' : '';
@@ -423,7 +424,7 @@
                     '<td><strong>' + s.total + '</strong></td>' +
                 '</tr>';
             }
-            html += '</tbody><tr>';
+            html += '</tbody></table>';
             container.innerHTML = html;
         }
 
@@ -436,7 +437,9 @@
                 container.innerHTML = '<div class="loading">Нет данных эстафеты.</div>';
                 return;
             }
-            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead><tbody>';
+            let html = '<table><thead><tr>' +
+                '<th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th>' +
+            '</tr></thead><tbody>';
             for (let row of rows) {
                 const rowClass = (row.place === 1) ? 'class="rank-1"' : '';
                 html += '<tr ' + rowClass + '>' +
@@ -461,12 +464,12 @@
                 container.innerHTML = '<div class="loading">Нет данных триатлона.</div>';
                 return;
             }
-            let html = '<td><thead><tr>' +
+            let html = '<table><thead><tr>' +
                 '<th>Место</th><th>Команда</th>' +
                 '<th>Участник 1</th><th>Чистое время 1</th><th>Штраф 1 (сек)</th><th>Итог 1</th>' +
                 '<th>Участник 2</th><th>Чистое время 2</th><th>Штраф 2 (сек)</th><th>Итог 2</th>' +
                 '<th>Сумма команды</th>' +
-            '</thead><tbody>';
+            '</tr></thead><tbody>';
             for (let d of details) {
                 const rowClass = (d.place === 1) ? 'class="rank-1"' : '';
                 html += '<tr ' + rowClass + '>' +
@@ -495,7 +498,9 @@
                 container.innerHTML = '<div class="loading">Нет данных мастерства вождения.</div>';
                 return;
             }
-            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Участник</th><th>Фигурное вождение (итог)</th><th>Вождение в СДУ (итог)</th><th>Общее время</th></tr></thead><tbody>';
+            let html = '<table><thead><tr>' +
+                '<th>Место</th><th>Команда</th><th>Участник</th><th>Фигурное вождение (итог)</th><th>Вождение в СДУ (итог)</th><th>Общее время</th>' +
+            '</tr></thead><tbody>';
             for (let d of details) {
                 const rowClass = (d.place === 1) ? 'class="rank-1"' : '';
                 html += '<tr ' + rowClass + '>' +
@@ -535,7 +540,7 @@
             const data = await loadTeamEstafeta();
             const entries = Object.entries(data).filter(([_, t]) => t && t>0);
             entries.sort((a,b) => a[1] - b[1]);
-            let html = '<td><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th></tr></thead><tbody>';
+            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th></tr></thead><tbody>';
             let rank = 1;
             for (let [code, total] of entries) {
                 const rowClass = (rank === 1) ? 'class="rank-1"' : '';
@@ -560,7 +565,7 @@
         function renderSecurityEstafeta(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
-            let html = '<tr><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th><th>Штраф</th></tr></thead><tbody>';
+            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th><th>Штраф</th></tr></thead><tbody>';
             for (let row of securityEstafetaData) {
                 const rowClass = (row.place === 1) ? 'class="rank-1"' : '';
                 html += '<tr ' + rowClass + '>' +
