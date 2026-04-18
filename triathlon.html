@@ -141,12 +141,12 @@
 </div>
 
 <script>
-    // ---------- НАСТРОЙКИ SUPABASE ----------
+    // ---------- НАСТРОЙКИ SUPABASE (переименовано в supabaseClient) ----------
     const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ---------- БИБЛИОТЕКА ОШИБОК (полная, из вашего файла) ----------
+    // ---------- БИБЛИОТЕКА ОШИБОК (полная) ----------
     const penaltiesLibrary = [
         { id: "perenos_1", category: "Перенос сумки", desc: "Некорректное обращение с сумкой-баул (уронил/бросил)", sec: 20 },
         { id: "perenos_2", category: "Перенос сумки", desc: "2 раза уронил/бросил", sec: 40 },
@@ -318,15 +318,15 @@
         return sum;
     }
 
-    // ---------- РАБОТА С SUPABASE ----------
+    // ---------- РАБОТА С SUPABASE (используем supabaseClient) ----------
     async function loadAllFromSupabase() {
         try {
-            const { data, error } = await supabase.from('triathlon_results').select('*');
+            const { data, error } = await supabaseClient.from('triathlon_results').select('*');
             if (error) throw error;
             const newTeams = {};
             for (let row of data) {
                 let code = row.team_code;
-                if (code === 'YB') code = 'УБ'; // преобразование для старых записей
+                if (code === 'YB') code = 'УБ';
                 if (!newTeams[code]) {
                     newTeams[code] = {
                         participant1: { name: "", rawSeconds: null, penalties: {} },
@@ -358,7 +358,7 @@
     async function saveParticipant(teamCode, participantNumber, name, rawSeconds, penalties) {
         let dbCode = teamCode;
         try {
-            const { error } = await supabase.from('triathlon_results').upsert({
+            const { error } = await supabaseClient.from('triathlon_results').upsert({
                 team_code: dbCode,
                 participant_number: participantNumber,
                 name: name,
@@ -377,7 +377,7 @@
         await saveParticipant(teamCode, 2, team.participant2.name, team.participant2.rawSeconds, team.participant2.penalties);
     }
 
-    // ---------- UI ЛОГИКА (как в triathlon (1).html, но с синхронизацией) ----------
+    // ---------- UI ЛОГИКА ----------
     async function loadTeamUI() {
         if (!currentTeam) {
             p1Card.style.display = 'none';
@@ -561,7 +561,7 @@
     }
 
     async function renderOverallTable() {
-        await loadAllFromSupabase(); // обновляем данные
+        await loadAllFromSupabase();
         let rows = [];
         for (let code of teamCodes) {
             const team = teamsTriathlon[code];
@@ -592,7 +592,7 @@
             if (r.teamTotal !== null && rank === 1) tr.classList.add('rank-1');
             tr.innerHTML = `
                 <td>${r.teamTotal !== null ? rank++ : '—'}</td>
-                <td><strong>${r.name}</strong> (${r.code})</td>
+                <td><strong>${r.name}</strong> (${r.code})</strong></td>
                 <td>${r.name1}</td>
                 <td>${r.raw1 !== null ? formatTime(r.raw1) : '—'}</td>
                 <td>${r.pen1}</td>
@@ -641,7 +641,7 @@
         const statusDiv = document.getElementById('connectionStatus');
         statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>';
         try {
-            let { error } = await supabase.from('triathlon_results').select('count', { count: 'exact', head: true });
+            let { error } = await supabaseClient.from('triathlon_results').select('count', { count: 'exact', head: true });
             if (error) throw error;
             statusDiv.innerHTML = '<span class="status-ok">✅ Подключено к Supabase</span>';
         } catch (err) {
