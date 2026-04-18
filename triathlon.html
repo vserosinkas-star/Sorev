@@ -142,6 +142,27 @@
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw'
     );
 
+    // Соответствие между кодами в БД (латиница) и отображаемыми кодами (русские)
+    const dbToDisplayCode = {
+        'YB': 'УБ',
+        'УБ': 'УБ',
+        'СИБ': 'СИБ',
+        'СРБ': 'СРБ'
+    };
+    const displayToDbCode = {
+        'УБ': 'YB',
+        'ДВБ': 'ДВБ',
+        'ББ': 'ББ',
+        'МРД': 'МРД',
+        'ЦЧБ': 'ЦЧБ',
+        'ЮЗБ': 'ЮЗБ',
+        'ПВБ': 'ПВБ',
+        'СИБ': 'СИБ',
+        'СРБ': 'СРБ',
+        'СЗБ': 'СЗБ',
+        'ВВБ': 'ВВБ'
+    };
+
     const teamCodes = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
     const teamNames = {
         "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","МРД":"Московский",
@@ -200,21 +221,27 @@
             if (error) throw error;
             const newTeams = {};
             for (let row of data) {
-                const code = row.team_code;
-                if (!newTeams[code]) newTeams[code] = {
-                    participant1: { name: "", rawSeconds: null, penalties: {} },
-                    participant2: { name: "", rawSeconds: null, penalties: {} }
-                };
+                let code = row.team_code;
+                // Преобразуем латинский код YB в русский УБ для отображения
+                if (code === 'YB') code = 'УБ';
+                if (!newTeams[code]) {
+                    newTeams[code] = {
+                        participant1: { name: "", rawSeconds: null, penalties: {} },
+                        participant2: { name: "", rawSeconds: null, penalties: {} }
+                    };
+                }
                 const target = row.participant_number === 1 ? newTeams[code].participant1 : newTeams[code].participant2;
                 target.name = row.name || "";
                 target.rawSeconds = row.raw_seconds;
                 target.penalties = row.penalties || {};
             }
             for (let code of teamCodes) {
-                if (!newTeams[code]) newTeams[code] = {
-                    participant1: { name: "", rawSeconds: null, penalties: {} },
-                    participant2: { name: "", rawSeconds: null, penalties: {} }
-                };
+                if (!newTeams[code]) {
+                    newTeams[code] = {
+                        participant1: { name: "", rawSeconds: null, penalties: {} },
+                        participant2: { name: "", rawSeconds: null, penalties: {} }
+                    };
+                }
             }
             teamsTriathlon = newTeams;
             localStorage.setItem("triathlon_data", JSON.stringify(teamsTriathlon));
@@ -226,9 +253,11 @@
     }
 
     async function saveParticipant(teamCode, participantNumber, name, rawSeconds, penalties) {
+        // При сохранении преобразуем русский код в латинский для БД
+        let dbCode = displayToDbCode[teamCode] || teamCode;
         try {
             await supabaseClient.from('triathlon_results').upsert({
-                team_code: teamCode,
+                team_code: dbCode,
                 participant_number: participantNumber,
                 name: name,
                 raw_seconds: rawSeconds,
