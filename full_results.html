@@ -54,10 +54,14 @@
             <div class="table-wrapper" id="team-standings-inkasso"><div class="loading">Загрузка...</div></div>
             <div class="subnote">* Побеждает команда с наименьшей суммой мест. Места пересчитываются автоматически из результатов дисциплин.</div>
         </div>
+        
+        <!-- Таблица эстафеты с нормальным отображением -->
         <div class="section">
-            <h2>🏅 Дисциплины инкассации (места команд)</h2>
-            <div class="table-wrapper" id="disciplines-inkasso"><div class="loading">Загрузка...</div></div>
+            <h2>🏅 Эстафета — подробные результаты</h2>
+            <div class="table-wrapper" id="detailed-estafeta"><div class="loading">Загрузка...</div></div>
+            <div class="subnote">* Время указано в формате чч:мм:сс.сс или мм:сс.сс. Штраф = количество ошибок × 20 сек.</div>
         </div>
+
         <div class="section">
             <h2>🔫 Личное первенство (стрельба из пистолета)</h2>
             <div class="table-wrapper" id="individual-pistol"><div class="loading">Загрузка...</div></div>
@@ -103,18 +107,14 @@
             "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
         };
 
-        // ---------- ДАННЫЕ ПО УМОЛЧАНИЮ (из Excel) ----------
-        const defaultDriving = {  // Мастерство вождения (места команд)
-            "СИБ":4, "СРБ":2, "СЗБ":3, "ДВБ":1, "ЦЧБ":6, "ВВБ":11, "ЮЗБ":5, "ПВБ":9, "УБ":10, "ББ":7, "МРД":8
-        };
-        const defaultShooting = {  // Практическая стрельба (места команд)
-            "СИБ":5, "СРБ":1, "СЗБ":3, "ДВБ":2, "ЦЧБ":4, "ВВБ":8, "ЮЗБ":7, "ПВБ":6, "УБ":10, "ББ":9, "МРД":11
-        };
+        // ---------- ДАННЫЕ ПО УМОЛЧАНИЮ ----------
+        const defaultDriving = { "СИБ":4, "СРБ":2, "СЗБ":3, "ДВБ":1, "ЦЧБ":6, "ВВБ":11, "ЮЗБ":5, "ПВБ":9, "УБ":10, "ББ":7, "МРД":8 };
+        const defaultShooting = { "СИБ":5, "СРБ":1, "СЗБ":3, "ДВБ":2, "ЦЧБ":4, "ВВБ":8, "ЮЗБ":7, "ПВБ":6, "УБ":10, "ББ":9, "МРД":11 };
         const defaultIndividual = [
             { place:1, team:"Среднерусский", name:"Артемкин Николай Николаевич", result:"02:48,45" },
             { place:2, team:"Сибирский", name:"(участник)", result:"02:51,44" },
             { place:3, team:"МРД ЦУНДО", name:"(участник)", result:"02:54,76" },
-            { place:4, team:"Среднерусский", name:"Вереитинов Андрей Владимирович", result:"02:56,13" },
+            { place:4, team:"Среднерусский", name:"Веретинов Андрей Владимирович", result:"02:56,13" },
             { place:5, team:"Юго-Западный", name:"Кочиев Матвей Аслангиреевич", result:"02:58,31" },
             { place:6, team:"Волго-Вятский", name:"Беккер Василий Андреевич", result:"03:13,91" },
             { place:7, team:"Сибирский", name:"Матюшкин Дмитрий Александрович", result:"03:22,22" },
@@ -136,19 +136,14 @@
             { place:4, team:"Волго-Вятский", name:"Беккер В.А.", result:"03:55,0 + 22/25" }
         ];
 
-        // ---------- ГЛОБАЛЬНЫЕ ХРАНИЛИЩА ----------
-        let estafetaTimes = {};       // { teamCode: bestTotalSeconds }
-        let triathlonTimes = {};      // { teamCode: totalSeconds }
-        let teamEstafetaTimes = {};   // { teamCode: totalSeconds }
         let drivingPlaces = { ...defaultDriving };
         let shootingPlaces = { ...defaultShooting };
         let individualData = [...defaultIndividual];
         let securityEstafetaData = [...defaultSecurityEstafeta];
         let serviceDuathlonData = [...defaultServiceDuathlon];
 
-        // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
         function formatTime(sec) {
-            if (sec === null || isNaN(sec) || sec === undefined) return "—";
+            if (sec === null || isNaN(sec) || sec === undefined || sec === 0) return "—";
             let h = Math.floor(sec / 3600);
             let m = Math.floor((sec % 3600) / 60);
             let s = (sec % 60).toFixed(2);
@@ -156,28 +151,58 @@
             return `${m}:${s.toString().padStart(2,'0')}:${s.toString().padStart(5,'0')}`;
         }
 
-        // Загрузка эстафеты из Supabase (таблица estafeta_results)
-        async function loadEstafeta() {
+        // Загрузка эстафеты из Supabase
+        async function loadDetailedEstafeta() {
             try {
-                const { data, error } = await supabaseClient.from('estafeta_results').select('team_code, raw_seconds, penalties');
+                const { data, error } = await supabaseClient.from('estafeta_results').select('team_code, direction, raw_seconds, penalties');
                 if (error) throw error;
-                const best = {};
+                const rows = [];
                 for (let row of data) {
+                    // Если нет чистого времени или оно 0 — пропускаем (не показываем в таблице)
+                    if (!row.raw_seconds || row.raw_seconds === 0) continue;
                     let penalty = 0;
                     if (row.penalties && typeof row.penalties === 'object') {
-                        // считаем количество отмеченных ошибок (каждая по 20 сек, как в судейской панели)
                         const cnt = Object.values(row.penalties).filter(v => v === true).length;
                         penalty = cnt * 20;
                     }
-                    let total = (row.raw_seconds !== null ? row.raw_seconds : 0) + penalty;
-                    let team = row.team_code;
-                    if (!best[team] || total < best[team]) best[team] = total;
+                    const raw = row.raw_seconds;
+                    const total = raw + penalty;
+                    rows.push({
+                        team_code: row.team_code,
+                        team_name: teamNames[row.team_code] || row.team_code,
+                        direction: row.direction,
+                        raw_seconds: raw,
+                        penalty: penalty,
+                        total_seconds: total
+                    });
                 }
-                return best;
-            } catch(e) { console.warn("Ошибка загрузки эстафеты:", e); return {}; }
+                // Сортировка по итоговому времени
+                rows.sort((a,b) => a.total_seconds - b.total_seconds);
+                let rank = 1;
+                for (let i = 0; i < rows.length; i++) {
+                    if (i > 0 && Math.abs(rows[i].total_seconds - rows[i-1].total_seconds) < 0.01) {
+                        rows[i].place = rows[i-1].place;
+                    } else {
+                        rows[i].place = rank;
+                    }
+                    rank++;
+                }
+                return rows;
+            } catch(e) { console.warn("Ошибка загрузки эстафеты:", e); return []; }
         }
 
-        // Загрузка триатлона из localStorage
+        // Загрузка лучших времен для командного первенства
+        async function loadBestEstafetaTimes() {
+            const rows = await loadDetailedEstafeta();
+            const best = {};
+            for (let row of rows) {
+                if (!best[row.team_code] || row.total_seconds < best[row.team_code]) {
+                    best[row.team_code] = row.total_seconds;
+                }
+            }
+            return best;
+        }
+
         function loadTriathlon() {
             const stored = localStorage.getItem("triathlon_data");
             if (!stored) return {};
@@ -191,8 +216,8 @@
                         const raw2 = team.participant2.rawSeconds;
                         const pen1 = team.participant1.penalties ? Object.values(team.participant1.penalties).filter(v=>v===true).length * 20 : 0;
                         const pen2 = team.participant2.penalties ? Object.values(team.participant2.penalties).filter(v=>v===true).length * 20 : 0;
-                        const total1 = (raw1 !== null && raw1 !== undefined) ? raw1 + pen1 : null;
-                        const total2 = (raw2 !== null && raw2 !== undefined) ? raw2 + pen2 : null;
+                        const total1 = (raw1 !== null && raw1 !== undefined && raw1 !== 0) ? raw1 + pen1 : null;
+                        const total2 = (raw2 !== null && raw2 !== undefined && raw2 !== 0) ? raw2 + pen2 : null;
                         if (total1 !== null && total2 !== null) result[code] = total1 + total2;
                     }
                 }
@@ -200,26 +225,25 @@
             } catch(e) { return {}; }
         }
 
-        // Загрузка командной эстафеты из Supabase
         async function loadTeamEstafeta() {
             try {
                 const { data, error } = await supabaseClient.from('team_estafeta_results').select('team_code, raw_seconds, penalties');
                 if (error) throw error;
                 const result = {};
                 for (let row of data) {
+                    if (!row.raw_seconds || row.raw_seconds === 0) continue;
                     let penalty = 0;
                     if (row.penalties && typeof row.penalties === 'object') {
                         const cnt = Object.values(row.penalties).filter(v=>v===true).length;
                         penalty = cnt * 20;
                     }
-                    let total = (row.raw_seconds !== null ? row.raw_seconds : 0) + penalty;
+                    let total = row.raw_seconds + penalty;
                     result[row.team_code] = total;
                 }
                 return result;
             } catch(e) { console.warn("Ошибка загрузки командной эстафеты:", e); return {}; }
         }
 
-        // Загрузка данных охраны из localStorage
         function loadSecurityData() {
             const sec = localStorage.getItem("security_estafeta");
             if (sec) try { securityEstafetaData = JSON.parse(sec); } catch(e) {}
@@ -227,9 +251,8 @@
             if (du) try { serviceDuathlonData = JSON.parse(du); } catch(e) {}
         }
 
-        // Получение мест по результатам (меньше времени — лучше)
         function computePlaces(resultsObj) {
-            const entries = Object.entries(resultsObj).filter(([_, time]) => time !== null && !isNaN(time));
+            const entries = Object.entries(resultsObj).filter(([_, time]) => time !== null && !isNaN(time) && time > 0);
             entries.sort((a,b) => a[1] - b[1]);
             const places = {};
             let rank = 1;
@@ -239,14 +262,12 @@
                 else places[code] = rank;
                 rank++;
             }
-            // Для команд без данных ставим максимальное место + 1
             for (let code of teamCodes) if (!places[code]) places[code] = teamCodes.length + 1;
             return places;
         }
 
-        // Пересчёт командного первенства (сумма мест по 4 дисциплинам)
         async function computeTeamStandings() {
-            const estafeta = await loadEstafeta();
+            const estafeta = await loadBestEstafetaTimes();
             const triathlon = loadTriathlon();
             const estPlaces = computePlaces(estafeta);
             const triPlaces = computePlaces(triathlon);
@@ -263,7 +284,6 @@
             return standings;
         }
 
-        // Рендер командного первенства
         async function renderTeamStandings(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -274,44 +294,46 @@
             for (let s of standings) {
                 const rowClass = (rank === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
-                            <td>${rank++}</td>
-                            <td><strong>${s.name} (${s.code})</strong></td>
-                            <td>${s.est}</td><td>${s.tri}</td><td>${s.drv}</td><td>${s.shoot}</td>
-                            <td><strong>${s.total}</strong></td>
-                         </tr>`;
+                             <td>${rank++}</td>
+                             <td><strong>${s.name} (${s.code})</strong></td>
+                             <td>${s.est}</td><td>${s.tri}</td><td>${s.drv}</td><td>${s.shoot}</td>
+                             <td><strong>${s.total}</strong></td>
+                          </tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
         }
 
-        // Рендер таблицы дисциплин
-        async function renderDisciplines(containerId) {
+        // Рендер таблицы эстафеты (нормальный вид)
+        async function renderDetailedEstafeta(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
             container.innerHTML = '<div class="loading">Загрузка...</div>';
-            const estafeta = await loadEstafeta();
-            const triathlon = loadTriathlon();
-            const estPlaces = computePlaces(estafeta);
-            const triPlaces = computePlaces(triathlon);
-            let html = '<table><thead><tr><th>Команда</th><th>Эстафета</th><th>Триатлон</th><th>Мастерство вождения</th><th>Практическая стрельба</th></tr></thead><tbody>';
-            for (let code of teamCodes) {
-                html += `<tr>
-                            <td><strong>${teamNames[code]} (${code})</strong></td>
-                            <td>${estPlaces[code] || '—'}</td>
-                            <td>${triPlaces[code] || '—'}</td>
-                            <td>${drivingPlaces[code] || '—'}</td>
-                            <td>${shootingPlaces[code] || '—'}</td>
+            const rows = await loadDetailedEstafeta();
+            if (rows.length === 0) {
+                container.innerHTML = '<div class="loading">Нет данных эстафеты. Внесите результаты на странице эстафеты.</div>';
+                return;
+            }
+            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead><tbody>';
+            for (let row of rows) {
+                const rowClass = (row.place === 1) ? 'class="rank-1"' : '';
+                html += `<tr ${rowClass}>
+                             <td>${row.place}</td>
+                             <td><strong>${row.team_name}</strong> (${row.team_code})</td>
+                             <td>${row.direction}</td>
+                             <td>${formatTime(row.raw_seconds)}</td>
+                             <td>${row.penalty}</td>
+                             <td>${formatTime(row.total_seconds)}</td>
                          </tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
         }
 
-        // Личное первенство
         function renderIndividual(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
-            let html = '<td><thead><tr><th>Место</th><th>Команда</th><th>ФИО</th><th>Суммарный результат</th></tr></thead><tbody>';
+            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>ФИО</th><th>Суммарный результат</th></tr></thead><tbody>';
             for (let p of individualData) {
                 const rowClass = (p.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}><td>${p.place}</td><td>${p.team}</td><td>${p.name}</td><td>${p.result}</td></tr>`;
@@ -320,26 +342,24 @@
             container.innerHTML = html;
         }
 
-        // Командная эстафета (общая)
         async function renderTeamEstafeta(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
             container.innerHTML = '<div class="loading">Загрузка...</div>';
             const data = await loadTeamEstafeta();
-            const entries = Object.entries(data).filter(([_, t]) => t !== null && !isNaN(t));
+            const entries = Object.entries(data).filter(([_, t]) => t !== null && !isNaN(t) && t > 0);
             entries.sort((a,b) => a[1] - b[1]);
             let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th></tr></thead><tbody>';
             let rank = 1;
             for (let [code, total] of entries) {
                 const rowClass = (rank === 1) ? 'class="rank-1"' : '';
-                html += `<tr ${rowClass}><td>${rank++}</td><td>${teamNames[code]} (${code})</strong></td><td>${formatTime(total)}</strong></td></tr>`;
+                html += `<tr ${rowClass}><td>${rank++}</td><td>${teamNames[code]} (${code})</td><td>${formatTime(total)}</td></tr>`;
             }
             if (entries.length === 0) html += '<tr><td colspan="3">Нет данных. Внесите результаты в командную эстафету.</td></tr>';
             html += '</tbody></table>';
             container.innerHTML = html;
         }
 
-        // Эстафета охраны
         function renderSecurityEstafeta(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -352,7 +372,6 @@
             container.innerHTML = html;
         }
 
-        // Служебное двоеборье
         function renderServiceDuathlon(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -365,15 +384,13 @@
             container.innerHTML = html;
         }
 
-        // Обновление всей страницы (инкассация)
         async function refreshInkasso() {
             await renderTeamStandings('team-standings-inkasso');
-            await renderDisciplines('disciplines-inkasso');
+            await renderDetailedEstafeta('detailed-estafeta');
             renderIndividual('individual-pistol');
             await renderTeamEstafeta('team-estafeta-common');
         }
 
-        // Обновление охраны
         async function refreshOhrana() {
             loadSecurityData();
             renderSecurityEstafeta('security-estafeta');
@@ -381,7 +398,6 @@
             await renderTeamEstafeta('team-estafeta-common-ohrana');
         }
 
-        // Переключение вкладок
         function initTabs() {
             const btns = document.querySelectorAll('.tab-btn');
             const inkassoPane = document.getElementById('inkasso-pane');
@@ -404,17 +420,14 @@
             });
         }
 
-        // Кнопки обновления
         document.getElementById('refreshInkassoBtn').addEventListener('click', refreshInkasso);
         document.getElementById('refreshOhranaBtn').addEventListener('click', refreshOhrana);
 
-        // Слушаем изменения localStorage
         window.addEventListener('storage', (e) => {
             if (e.key === 'triathlon_data') refreshInkasso();
             if (e.key === 'security_estafeta' || e.key === 'service_duathlon') refreshOhrana();
         });
 
-        // Первичная загрузка
         await refreshInkasso();
         await refreshOhrana();
         initTabs();
