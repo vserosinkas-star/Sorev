@@ -136,12 +136,12 @@
 </div>
 
 <script>
-    // ---------- НАСТРОЙКИ SUPABASE (только одна переменная) ----------
-    const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Инициализация Supabase
+    const supabaseClient = window.supabase.createClient(
+        'https://vwxgqnlxrcqqzdrlujjb.supabase.co',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw'
+    );
 
-    // ---------- ДАННЫЕ КОМАНД ----------
     const teamCodes = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
     const teamNames = {
         "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","МРД":"Московский",
@@ -170,7 +170,6 @@
     const saveTime1Btn = document.getElementById('saveTime1Btn');
     const saveTime2Btn = document.getElementById('saveTime2Btn');
 
-    // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
     function formatTime(sec) {
         if (sec === null || isNaN(sec)) return "—";
         const m = Math.floor(sec / 60);
@@ -191,51 +190,44 @@
 
     function getPenaltySum(penObj) {
         let sum = 0;
-        for (let id in penObj) if (penObj[id]) sum += 20; // каждый штраф 20 сек
+        for (let id in penObj) if (penObj[id]) sum += 20;
         return sum;
     }
 
-    // ---------- РАБОТА С SUPABASE ----------
     async function loadAllFromSupabase() {
         try {
-            const { data, error } = await supabase.from('triathlon_results').select('*');
+            const { data, error } = await supabaseClient.from('triathlon_results').select('*');
             if (error) throw error;
             const newTeams = {};
             for (let row of data) {
                 const code = row.team_code;
-                if (!newTeams[code]) {
-                    newTeams[code] = {
-                        participant1: { name: "", rawSeconds: null, penalties: {} },
-                        participant2: { name: "", rawSeconds: null, penalties: {} }
-                    };
-                }
+                if (!newTeams[code]) newTeams[code] = {
+                    participant1: { name: "", rawSeconds: null, penalties: {} },
+                    participant2: { name: "", rawSeconds: null, penalties: {} }
+                };
                 const target = row.participant_number === 1 ? newTeams[code].participant1 : newTeams[code].participant2;
                 target.name = row.name || "";
                 target.rawSeconds = row.raw_seconds;
                 target.penalties = row.penalties || {};
             }
             for (let code of teamCodes) {
-                if (!newTeams[code]) {
-                    newTeams[code] = {
-                        participant1: { name: "", rawSeconds: null, penalties: {} },
-                        participant2: { name: "", rawSeconds: null, penalties: {} }
-                    };
-                }
+                if (!newTeams[code]) newTeams[code] = {
+                    participant1: { name: "", rawSeconds: null, penalties: {} },
+                    participant2: { name: "", rawSeconds: null, penalties: {} }
+                };
             }
             teamsTriathlon = newTeams;
             localStorage.setItem("triathlon_data", JSON.stringify(teamsTriathlon));
-            return true;
-        } catch (e) {
-            console.error("Ошибка загрузки из Supabase:", e);
+        } catch(e) {
+            console.error("Ошибка загрузки:", e);
             const stored = localStorage.getItem("triathlon_data");
             if (stored) teamsTriathlon = JSON.parse(stored);
-            return false;
         }
     }
 
-    async function saveParticipantToSupabase(teamCode, participantNumber, name, rawSeconds, penalties) {
+    async function saveParticipant(teamCode, participantNumber, name, rawSeconds, penalties) {
         try {
-            await supabase.from('triathlon_results').upsert({
+            await supabaseClient.from('triathlon_results').upsert({
                 team_code: teamCode,
                 participant_number: participantNumber,
                 name: name,
@@ -246,14 +238,13 @@
         } catch(e) { console.error(e); }
     }
 
-    async function syncTeamToSupabase(teamCode) {
+    async function syncTeam(teamCode) {
         const team = teamsTriathlon[teamCode];
         if (!team) return;
-        await saveParticipantToSupabase(teamCode, 1, team.participant1.name, team.participant1.rawSeconds, team.participant1.penalties);
-        await saveParticipantToSupabase(teamCode, 2, team.participant2.name, team.participant2.rawSeconds, team.participant2.penalties);
+        await saveParticipant(teamCode, 1, team.participant1.name, team.participant1.rawSeconds, team.participant1.penalties);
+        await saveParticipant(teamCode, 2, team.participant2.name, team.participant2.rawSeconds, team.participant2.penalties);
     }
 
-    // ---------- UI ЛОГИКА ----------
     async function loadTeamUI() {
         if (!currentTeam) {
             p1Card.style.display = 'none';
@@ -269,8 +260,7 @@
         rawTime2.value = team.participant2.rawSeconds !== null ? formatTime(team.participant2.rawSeconds) : "";
         tempPenalties1 = { ...team.participant1.penalties };
         tempPenalties2 = { ...team.participant2.penalties };
-        unsaved1 = false;
-        unsaved2 = false;
+        unsaved1 = false; unsaved2 = false;
         updatePenaltiesUI(1);
         updatePenaltiesUI(2);
         updateSummary(1);
@@ -281,7 +271,6 @@
     function updatePenaltiesUI(participant) {
         const container = participant === 1 ? document.getElementById('penaltiesContainer1') : document.getElementById('penaltiesContainer2');
         const tempPen = participant === 1 ? tempPenalties1 : tempPenalties2;
-        // Демо-список ошибок (можно расширить)
         const demoErrors = [
             { id: "err1", desc: "Некорректное обращение с сумкой-баул (уронил/бросил)", sec: 20 },
             { id: "err2", desc: "Перенос сумки двумя руками", sec: 20 }
@@ -291,10 +280,7 @@
             const checked = tempPen[err.id] === true;
             html += `<div class="penalty-card">
                         <input type="checkbox" id="chk_${err.id}_${participant}" data-id="${err.id}" ${checked ? 'checked' : ''}>
-                        <label for="chk_${err.id}_${participant}">
-                            <span>${err.desc}</span>
-                            <span class="penalty-sec">+${err.sec} сек</span>
-                        </label>
+                        <label><span>${err.desc}</span><span class="penalty-sec">+${err.sec} сек</span></label>
                      </div>`;
         }
         html += '</div>';
@@ -349,7 +335,7 @@
         const target = participant === 1 ? team.participant1 : team.participant2;
         const tempPen = participant === 1 ? tempPenalties1 : tempPenalties2;
         target.penalties = { ...tempPen };
-        await syncTeamToSupabase(currentTeam);
+        await syncTeam(currentTeam);
         if (participant === 1) unsaved1 = false;
         else unsaved2 = false;
         updateStageBadge(participant);
@@ -378,14 +364,14 @@
         const team = teamsTriathlon[currentTeam];
         if (participant === 1) team.participant1.rawSeconds = seconds;
         else team.participant2.rawSeconds = seconds;
-        await syncTeamToSupabase(currentTeam);
+        await syncTeam(currentTeam);
         updateSummary(participant);
         await renderOverallTable();
         alert(`Время участника ${participant} сохранено`);
     }
 
     async function renderOverallTable() {
-        await loadAllFromSupabase(); // обновляем данные перед рендером
+        await loadAllFromSupabase();
         const rows = [];
         let hasData = false;
         for (let code of teamCodes) {
@@ -422,32 +408,29 @@
                 <td>${r.teamTotal !== null ? rank++ : '—'}</td>
                 <td><strong>${r.name} (${r.code})</strong></td>
                 <td>${r.name1}</td>
-                <td>${r.time1 !== null ? formatTime(r.time1) : '—'} (штр ${r.penalty1})</strong></td>
+                <td>${r.time1 !== null ? formatTime(r.time1) : '—'} (штр ${r.penalty1})</td>
                 <td>${r.name2}</td>
-                <td>${r.time2 !== null ? formatTime(r.time2) : '—'} (штр ${r.penalty2})</strong></td>
+                <td>${r.time2 !== null ? formatTime(r.time2) : '—'} (штр ${r.penalty2})</td>
                 <td><strong>${r.teamTotal !== null ? formatTime(r.teamTotal) : '—'}</strong></td>
             `;
             tbody.appendChild(tr);
         }
     }
 
-    // ---------- ОБРАБОТЧИКИ СОБЫТИЙ ----------
+    // Обработчики
     teamSelect.addEventListener('change', async () => {
         currentTeam = teamSelect.value || null;
         if (currentTeam) await loadTeamUI();
-        else {
-            p1Card.style.display = 'none';
-            p2Card.style.display = 'none';
-        }
+        else { p1Card.style.display = 'none'; p2Card.style.display = 'none'; }
     });
     p1Name.addEventListener('change', async () => {
         if (currentTeam) teamsTriathlon[currentTeam].participant1.name = p1Name.value;
-        await syncTeamToSupabase(currentTeam);
+        await syncTeam(currentTeam);
         await renderOverallTable();
     });
     p2Name.addEventListener('change', async () => {
         if (currentTeam) teamsTriathlon[currentTeam].participant2.name = p2Name.value;
-        await syncTeamToSupabase(currentTeam);
+        await syncTeam(currentTeam);
         await renderOverallTable();
     });
     saveStage1Btn.addEventListener('click', () => saveStage(1));
@@ -457,16 +440,16 @@
     saveTime1Btn.addEventListener('click', () => saveRawTime(1));
     saveTime2Btn.addEventListener('click', () => saveRawTime(2));
 
-    // ---------- ИНИЦИАЛИЗАЦИЯ ----------
+    // Запуск
     async function init() {
         const statusDiv = document.getElementById('connectionStatus');
         statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>';
         try {
-            const { error } = await supabase.from('triathlon_results').select('count', { count: 'exact', head: true });
+            const { error } = await supabaseClient.from('triathlon_results').select('count', { count: 'exact', head: true });
             if (error) throw error;
             statusDiv.innerHTML = '<span class="status-ok">✅ Подключено к Supabase</span>';
         } catch (err) {
-            statusDiv.innerHTML = '<span class="status-error">❌ Ошибка подключения, данные только локально</span>';
+            statusDiv.innerHTML = '<span class="status-error">❌ Ошибка подключения</span>';
             console.error(err);
         }
         await loadAllFromSupabase();
