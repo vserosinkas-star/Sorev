@@ -10,13 +10,28 @@
         body { background: #f0f4f8; margin: 0; padding: 20px; }
         .container { max-width: 1400px; margin: 0 auto; }
         .header { background: linear-gradient(135deg, #1e3a5f, #0f2b44); color: white; padding: 20px; border-radius: 28px; margin-bottom: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 1.6rem; }
         .judge-panel { background: white; border-radius: 28px; padding: 20px 24px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .control-group { margin-bottom: 20px; }
         .control-group label { font-weight: 600; display: block; margin-bottom: 6px; color: #1e3a5f; }
         select, input { width: 100%; padding: 12px; border-radius: 16px; border: 1px solid #cbd5e1; font-size: 1rem; background: white; }
-        button { background: #1e3a8a; color: white; border: none; padding: 10px 18px; border-radius: 40px; font-weight: 600; cursor: pointer; }
+        .stage-buttons { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+        .stage-btn { background: #e2e8f0; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; font-size: 0.85rem; font-weight: 500; color: #1e293b; }
+        .stage-btn.active { background: #1e3a8a; color: white; }
+        .participant-card { background: #f9fafb; border-radius: 24px; padding: 16px; margin-top: 20px; border: 1px solid #e2e8f0; }
+        .participant-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; color: #0f2b44; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin: 15px 0; }
+        .penalty-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+        .penalty-card input { width: 22px; height: 22px; margin: 0; }
+        .penalty-card label { flex: 1; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .penalty-sec { background: #e2e8f0; padding: 2px 8px; border-radius: 30px; font-size: 0.75rem; font-weight: 600; }
+        .time-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; margin: 15px 0; }
+        .time-row .control-group { flex: 1; margin-bottom: 0; }
+        button { background: #1e3a8a; color: white; border: none; padding: 10px 18px; border-radius: 40px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         button:hover { background: #1e40af; }
         .btn-secondary { background: #475569; }
+        .btn-warning { background: #f97316; }
+        .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: bold; margin-left: 12px; }
         .summary-bar { background: #f1f5f9; border-radius: 20px; padding: 16px; margin-top: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; font-weight: 600; }
         .results-table { background: white; border-radius: 24px; overflow-x: auto; padding: 4px; margin-top: 30px; }
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
@@ -26,11 +41,7 @@
         .status-ok { background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 30px; display: inline-block; }
         .status-error { background: #fee2e2; color: #991b1b; }
         .status-warning { background: #fed7aa; color: #9b4a0c; }
-        .participant-card { background: #f9fafb; border-radius: 24px; padding: 16px; margin-top: 20px; border: 1px solid #e2e8f0; }
-        .participant-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; color: #0f2b44; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .time-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; margin: 15px 0; }
-        .time-row .control-group { flex: 1; margin-bottom: 0; }
-        @media (max-width: 700px) { button { width: 100%; } }
+        @media (max-width: 700px) { .penalties-grid { grid-template-columns: 1fr; } .stage-buttons { flex-direction: column; } button { width: 100%; } }
     </style>
 </head>
 <body>
@@ -60,6 +71,8 @@
             </select>
         </div>
 
+        <div id="stageButtonsContainer" class="stage-buttons"></div>
+
         <div id="participant1Card" class="participant-card" style="display: none;">
             <div class="participant-title">
                 <span>👤 Участник 1</span>
@@ -71,6 +84,11 @@
                     <input type="text" id="rawTime1" placeholder="например 9:31.08">
                 </div>
                 <button id="saveTime1Btn" class="btn-secondary">Сохранить время</button>
+            </div>
+            <div id="penaltiesContainer1"></div>
+            <div style="display: flex; gap: 10px; margin-top: 12px;">
+                <button id="saveStage1Btn">💾 Сохранить ошибки этапа</button>
+                <button id="resetStage1Btn" class="btn-warning">🗑️ Сбросить этап</button>
             </div>
             <div class="summary-bar">
                 <span>Штраф: <span id="penaltySum1">0</span> сек</span>
@@ -91,6 +109,11 @@
                 </div>
                 <button id="saveTime2Btn" class="btn-secondary">Сохранить время</button>
             </div>
+            <div id="penaltiesContainer2"></div>
+            <div style="display: flex; gap: 10px; margin-top: 12px;">
+                <button id="saveStage2Btn">💾 Сохранить ошибки этапа</button>
+                <button id="resetStage2Btn" class="btn-warning">🗑️ Сбросить этап</button>
+            </div>
             <div class="summary-bar">
                 <span>Штраф: <span id="penaltySum2">0</span> сек</span>
                 <span>Чистое время: <span id="rawDisplay2">—</span></span>
@@ -103,7 +126,7 @@
         <h3>🏆 Общий зачёт (командный триатлон)</h3>
         <table id="resultsTable">
             <thead>
-                <tr><th>Место</th><th>Команда</th><th>Участник 1 (ФИО)</th><th>Время 1 (чистое+штраф)</th><th>Участник 2 (ФИО)</th><th>Время 2 (чистое+штраф)</th><th>Суммарное время</th></tr>
+                <tr><th>Место</th><th>Команда</th><th>Участник 1 (ФИО)</th><th>Время 1</th><th>Участник 2 (ФИО)</th><th>Время 2</th><th>Суммарное время</th></tr>
             </thead>
             <tbody id="resultsBody">
                 <tr><td colspan="7">Загрузка данных...</td></tr>
@@ -113,11 +136,12 @@
 </div>
 
 <script>
-    // Supabase credentials
+    // ---------- НАСТРОЙКИ SUPABASE (только одна переменная) ----------
     const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // ---------- ДАННЫЕ КОМАНД ----------
     const teamCodes = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
     const teamNames = {
         "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","МРД":"Московский",
@@ -125,10 +149,28 @@
         "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
     };
 
+    let teamsTriathlon = {};
     let currentTeam = null;
-    let participantsData = {}; // { teamCode: { participant1: { name, rawSeconds, penalties }, participant2: ... } }
+    let currentStage = "Перенос сумки";
+    let tempPenalties1 = {}, tempPenalties2 = {};
+    let unsaved1 = false, unsaved2 = false;
 
-    // Функция форматирования времени (секунды -> мм:сс.сс)
+    // DOM элементы
+    const teamSelect = document.getElementById('teamSelect');
+    const p1Card = document.getElementById('participant1Card');
+    const p2Card = document.getElementById('participant2Card');
+    const p1Name = document.getElementById('participant1Name');
+    const p2Name = document.getElementById('participant2Name');
+    const rawTime1 = document.getElementById('rawTime1');
+    const rawTime2 = document.getElementById('rawTime2');
+    const saveStage1Btn = document.getElementById('saveStage1Btn');
+    const resetStage1Btn = document.getElementById('resetStage1Btn');
+    const saveStage2Btn = document.getElementById('saveStage2Btn');
+    const resetStage2Btn = document.getElementById('resetStage2Btn');
+    const saveTime1Btn = document.getElementById('saveTime1Btn');
+    const saveTime2Btn = document.getElementById('saveTime2Btn');
+
+    // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
     function formatTime(sec) {
         if (sec === null || isNaN(sec)) return "—";
         const m = Math.floor(sec / 60);
@@ -136,7 +178,6 @@
         return `${m}:${s.toString().padStart(5,'0')}`;
     }
 
-    // Функция парсинга времени из строки мм:сс.сс
     function parseTime(str) {
         if (!str.trim()) return null;
         let parts = str.split(':');
@@ -148,59 +189,53 @@
         return minutes * 60 + seconds;
     }
 
-    // Получение суммы штрафов (пока просто 0, но можно добавить логику)
-    function getPenaltySum(penalties) {
-        if (!penalties) return 0;
-        // Если penalties - объект, считаем количество true * 20
-        if (typeof penalties === 'object') {
-            let cnt = 0;
-            for (let key in penalties) if (penalties[key] === true) cnt++;
-            return cnt * 20;
-        }
-        return 0;
+    function getPenaltySum(penObj) {
+        let sum = 0;
+        for (let id in penObj) if (penObj[id]) sum += 20; // каждый штраф 20 сек
+        return sum;
     }
 
-    // Загрузка всех данных из Supabase
-    async function loadData() {
+    // ---------- РАБОТА С SUPABASE ----------
+    async function loadAllFromSupabase() {
         try {
             const { data, error } = await supabase.from('triathlon_results').select('*');
             if (error) throw error;
-            // Преобразуем в удобную структуру
-            const newData = {};
+            const newTeams = {};
             for (let row of data) {
-                const team = row.team_code;
-                if (!newData[team]) {
-                    newData[team] = {
+                const code = row.team_code;
+                if (!newTeams[code]) {
+                    newTeams[code] = {
                         participant1: { name: "", rawSeconds: null, penalties: {} },
                         participant2: { name: "", rawSeconds: null, penalties: {} }
                     };
                 }
-                const part = row.participant_number === 1 ? 'participant1' : 'participant2';
-                newData[team][part].name = row.name || "";
-                newData[team][part].rawSeconds = row.raw_seconds;
-                newData[team][part].penalties = row.penalties || {};
+                const target = row.participant_number === 1 ? newTeams[code].participant1 : newTeams[code].participant2;
+                target.name = row.name || "";
+                target.rawSeconds = row.raw_seconds;
+                target.penalties = row.penalties || {};
             }
-            // Добавляем отсутствующие команды (чтобы в таблице были все)
             for (let code of teamCodes) {
-                if (!newData[code]) {
-                    newData[code] = {
+                if (!newTeams[code]) {
+                    newTeams[code] = {
                         participant1: { name: "", rawSeconds: null, penalties: {} },
                         participant2: { name: "", rawSeconds: null, penalties: {} }
                     };
                 }
             }
-            participantsData = newData;
+            teamsTriathlon = newTeams;
+            localStorage.setItem("triathlon_data", JSON.stringify(teamsTriathlon));
             return true;
         } catch (e) {
-            console.error("Ошибка загрузки:", e);
+            console.error("Ошибка загрузки из Supabase:", e);
+            const stored = localStorage.getItem("triathlon_data");
+            if (stored) teamsTriathlon = JSON.parse(stored);
             return false;
         }
     }
 
-    // Сохранение данных участника в Supabase
-    async function saveParticipant(teamCode, participantNumber, name, rawSeconds, penalties) {
+    async function saveParticipantToSupabase(teamCode, participantNumber, name, rawSeconds, penalties) {
         try {
-            const { error } = await supabase.from('triathlon_results').upsert({
+            await supabase.from('triathlon_results').upsert({
                 team_code: teamCode,
                 participant_number: participantNumber,
                 name: name,
@@ -208,53 +243,153 @@
                 penalties: penalties,
                 updated_at: new Date().toISOString()
             }, { onConflict: 'team_code, participant_number' });
-            if (error) throw error;
-            return true;
-        } catch (e) {
-            console.error("Ошибка сохранения:", e);
-            return false;
-        }
+        } catch(e) { console.error(e); }
     }
 
-    // Обновление UI для выбранной команды
-    async function refreshTeamUI() {
+    async function syncTeamToSupabase(teamCode) {
+        const team = teamsTriathlon[teamCode];
+        if (!team) return;
+        await saveParticipantToSupabase(teamCode, 1, team.participant1.name, team.participant1.rawSeconds, team.participant1.penalties);
+        await saveParticipantToSupabase(teamCode, 2, team.participant2.name, team.participant2.rawSeconds, team.participant2.penalties);
+    }
+
+    // ---------- UI ЛОГИКА ----------
+    async function loadTeamUI() {
         if (!currentTeam) {
-            document.getElementById('participant1Card').style.display = 'none';
-            document.getElementById('participant2Card').style.display = 'none';
+            p1Card.style.display = 'none';
+            p2Card.style.display = 'none';
             return;
         }
-        const team = participantsData[currentTeam];
-        if (!team) return;
-        // Участник 1
-        document.getElementById('participant1Name').value = team.participant1.name || "";
-        document.getElementById('rawTime1').value = team.participant1.rawSeconds !== null ? formatTime(team.participant1.rawSeconds) : "";
-        const pen1 = getPenaltySum(team.participant1.penalties);
-        const total1 = team.participant1.rawSeconds !== null ? team.participant1.rawSeconds + pen1 : null;
-        document.getElementById('penaltySum1').innerText = pen1;
-        document.getElementById('rawDisplay1').innerText = team.participant1.rawSeconds !== null ? formatTime(team.participant1.rawSeconds) : "—";
-        document.getElementById('totalDisplay1').innerText = total1 !== null ? formatTime(total1) : "—";
-        // Участник 2
-        document.getElementById('participant2Name').value = team.participant2.name || "";
-        document.getElementById('rawTime2').value = team.participant2.rawSeconds !== null ? formatTime(team.participant2.rawSeconds) : "";
-        const pen2 = getPenaltySum(team.participant2.penalties);
-        const total2 = team.participant2.rawSeconds !== null ? team.participant2.rawSeconds + pen2 : null;
-        document.getElementById('penaltySum2').innerText = pen2;
-        document.getElementById('rawDisplay2').innerText = team.participant2.rawSeconds !== null ? formatTime(team.participant2.rawSeconds) : "—";
-        document.getElementById('totalDisplay2').innerText = total2 !== null ? formatTime(total2) : "—";
-        // Показать карточки
-        document.getElementById('participant1Card').style.display = 'block';
-        document.getElementById('participant2Card').style.display = 'block';
+        p1Card.style.display = 'block';
+        p2Card.style.display = 'block';
+        const team = teamsTriathlon[currentTeam];
+        p1Name.value = team.participant1.name || "";
+        p2Name.value = team.participant2.name || "";
+        rawTime1.value = team.participant1.rawSeconds !== null ? formatTime(team.participant1.rawSeconds) : "";
+        rawTime2.value = team.participant2.rawSeconds !== null ? formatTime(team.participant2.rawSeconds) : "";
+        tempPenalties1 = { ...team.participant1.penalties };
+        tempPenalties2 = { ...team.participant2.penalties };
+        unsaved1 = false;
+        unsaved2 = false;
+        updatePenaltiesUI(1);
+        updatePenaltiesUI(2);
+        updateSummary(1);
+        updateSummary(2);
+        renderOverallTable();
     }
 
-    // Рендер общей таблицы
+    function updatePenaltiesUI(participant) {
+        const container = participant === 1 ? document.getElementById('penaltiesContainer1') : document.getElementById('penaltiesContainer2');
+        const tempPen = participant === 1 ? tempPenalties1 : tempPenalties2;
+        // Демо-список ошибок (можно расширить)
+        const demoErrors = [
+            { id: "err1", desc: "Некорректное обращение с сумкой-баул (уронил/бросил)", sec: 20 },
+            { id: "err2", desc: "Перенос сумки двумя руками", sec: 20 }
+        ];
+        let html = '<div class="penalties-grid">';
+        for (let err of demoErrors) {
+            const checked = tempPen[err.id] === true;
+            html += `<div class="penalty-card">
+                        <input type="checkbox" id="chk_${err.id}_${participant}" data-id="${err.id}" ${checked ? 'checked' : ''}>
+                        <label for="chk_${err.id}_${participant}">
+                            <span>${err.desc}</span>
+                            <span class="penalty-sec">+${err.sec} сек</span>
+                        </label>
+                     </div>`;
+        }
+        html += '</div>';
+        container.innerHTML = html;
+        for (let err of demoErrors) {
+            const cb = document.getElementById(`chk_${err.id}_${participant}`);
+            if (cb) {
+                cb.onchange = () => {
+                    if (cb.checked) tempPen[err.id] = true;
+                    else delete tempPen[err.id];
+                    if (participant === 1) unsaved1 = true;
+                    else unsaved2 = true;
+                    updateSummary(participant);
+                    updateStageBadge(participant);
+                };
+            }
+        }
+    }
+
+    function updateSummary(participant) {
+        if (!currentTeam) return;
+        const team = teamsTriathlon[currentTeam];
+        const savedPen = participant === 1 ? team.participant1.penalties : team.participant2.penalties;
+        const tempPen = participant === 1 ? tempPenalties1 : tempPenalties2;
+        let totalPen = 0;
+        for (let id in savedPen) if (savedPen[id] && !tempPen[id]) totalPen += 20;
+        for (let id in tempPen) if (tempPen[id]) totalPen += 20;
+        const raw = participant === 1 ? team.participant1.rawSeconds : team.participant2.rawSeconds;
+        const total = raw !== null ? raw + totalPen : null;
+        document.getElementById(`penaltySum${participant}`).innerText = totalPen;
+        document.getElementById(`rawDisplay${participant}`).innerText = raw !== null ? formatTime(raw) : '—';
+        document.getElementById(`totalDisplay${participant}`).innerText = total !== null ? formatTime(total) : '—';
+    }
+
+    function updateStageBadge(participant) {
+        const unsaved = participant === 1 ? unsaved1 : unsaved2;
+        const btnContainer = participant === 1 ? saveStage1Btn.parentNode : saveStage2Btn.parentNode;
+        let badge = btnContainer.querySelector('.unsaved-badge');
+        if (unsaved && currentTeam) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'unsaved-badge';
+                badge.innerText = '⚠️ есть изменения';
+                btnContainer.appendChild(badge);
+            }
+        } else if (badge) badge.remove();
+    }
+
+    async function saveStage(participant) {
+        if (!currentTeam) { alert('Выберите команду'); return; }
+        const team = teamsTriathlon[currentTeam];
+        const target = participant === 1 ? team.participant1 : team.participant2;
+        const tempPen = participant === 1 ? tempPenalties1 : tempPenalties2;
+        target.penalties = { ...tempPen };
+        await syncTeamToSupabase(currentTeam);
+        if (participant === 1) unsaved1 = false;
+        else unsaved2 = false;
+        updateStageBadge(participant);
+        updateSummary(participant);
+        await renderOverallTable();
+        alert(`Ошибки этапа сохранены (участник ${participant})`);
+    }
+
+    function resetStage(participant) {
+        if (!currentTeam) return;
+        if (participant === 1) tempPenalties1 = {};
+        else tempPenalties2 = {};
+        if (participant === 1) unsaved1 = false;
+        else unsaved2 = false;
+        updatePenaltiesUI(participant);
+        updateSummary(participant);
+        updateStageBadge(participant);
+    }
+
+    async function saveRawTime(participant) {
+        if (!currentTeam) { alert('Выберите команду'); return; }
+        const input = participant === 1 ? rawTime1 : rawTime2;
+        const rawStr = input.value.trim();
+        let seconds = rawStr === "" ? null : parseTime(rawStr);
+        if (rawStr !== "" && seconds === null) { alert('Неверный формат времени (мм:сс.сс)'); return; }
+        const team = teamsTriathlon[currentTeam];
+        if (participant === 1) team.participant1.rawSeconds = seconds;
+        else team.participant2.rawSeconds = seconds;
+        await syncTeamToSupabase(currentTeam);
+        updateSummary(participant);
+        await renderOverallTable();
+        alert(`Время участника ${participant} сохранено`);
+    }
+
     async function renderOverallTable() {
-        const tbody = document.getElementById('resultsBody');
-        tbody.innerHTML = '<tr><td colspan="7">Загрузка данных...</td></tr>';
-        await loadData(); // перезагружаем свежие данные
+        await loadAllFromSupabase(); // обновляем данные перед рендером
         const rows = [];
-        let hasAnyData = false;
+        let hasData = false;
         for (let code of teamCodes) {
-            const team = participantsData[code];
+            const team = teamsTriathlon[code];
             if (!team) continue;
             const raw1 = team.participant1.rawSeconds;
             const raw2 = team.participant2.rawSeconds;
@@ -263,19 +398,20 @@
             const total1 = raw1 !== null ? raw1 + pen1 : null;
             const total2 = raw2 !== null ? raw2 + pen2 : null;
             const teamTotal = (total1 !== null && total2 !== null) ? total1 + total2 : null;
-            if (teamTotal !== null) hasAnyData = true;
+            if (teamTotal !== null) hasData = true;
             rows.push({
                 code, name: teamNames[code],
                 name1: team.participant1.name || "—",
                 name2: team.participant2.name || "—",
-                time1: total1, time2: total2, teamTotal,
-                penalty1: pen1, penalty2: pen2
+                time1: total1, time2: total2,
+                teamTotal, penalty1: pen1, penalty2: pen2
             });
         }
-        rows.sort((a,b) => (a.teamTotal ?? Infinity) - (b.teamTotal ?? Infinity));
+        rows.sort((a,b) => (a.teamTotal || Infinity) - (b.teamTotal || Infinity));
+        const tbody = document.getElementById('resultsBody');
         tbody.innerHTML = '';
-        if (!hasAnyData) {
-            tbody.innerHTML = '<tr><td colspan="7">⚠️ Нет данных. Добавьте результаты через интерфейс выше.</td></tr>';
+        if (!hasData) {
+            tbody.innerHTML = '<tr><td colspan="7">⚠️ Нет данных. Выполните SQL-скрипт для добавления демо-данных или внесите результаты вручную.</td></tr>';
             return;
         }
         let rank = 1;
@@ -286,67 +422,57 @@
                 <td>${r.teamTotal !== null ? rank++ : '—'}</td>
                 <td><strong>${r.name} (${r.code})</strong></td>
                 <td>${r.name1}</td>
-                <td>${r.time1 !== null ? formatTime(r.time1) : '—'} (штр ${r.penalty1})</td>
+                <td>${r.time1 !== null ? formatTime(r.time1) : '—'} (штр ${r.penalty1})</strong></td>
                 <td>${r.name2}</td>
-                <td>${r.time2 !== null ? formatTime(r.time2) : '—'} (штр ${r.penalty2})</td>
+                <td>${r.time2 !== null ? formatTime(r.time2) : '—'} (штр ${r.penalty2})</strong></td>
                 <td><strong>${r.teamTotal !== null ? formatTime(r.teamTotal) : '—'}</strong></td>
             `;
             tbody.appendChild(tr);
         }
     }
 
-    // Обработчики сохранения
-    async function saveParticipantData(participantNum) {
-        if (!currentTeam) { alert("Выберите команду"); return; }
-        const team = participantsData[currentTeam];
-        const partKey = participantNum === 1 ? 'participant1' : 'participant2';
-        const nameInput = document.getElementById(`participant${participantNum}Name`);
-        const timeInput = document.getElementById(`rawTime${participantNum}`);
-        const newName = nameInput.value;
-        const rawStr = timeInput.value.trim();
-        let newRawSeconds = rawStr === "" ? null : parseTime(rawStr);
-        if (rawStr !== "" && newRawSeconds === null) { alert("Неверный формат времени (мм:сс.сс)"); return; }
-        team[partKey].name = newName;
-        team[partKey].rawSeconds = newRawSeconds;
-        // Сохраняем в Supabase (штрафы пока не трогаем)
-        await saveParticipant(currentTeam, participantNum, newName, newRawSeconds, team[partKey].penalties);
-        await refreshTeamUI();
+    // ---------- ОБРАБОТЧИКИ СОБЫТИЙ ----------
+    teamSelect.addEventListener('change', async () => {
+        currentTeam = teamSelect.value || null;
+        if (currentTeam) await loadTeamUI();
+        else {
+            p1Card.style.display = 'none';
+            p2Card.style.display = 'none';
+        }
+    });
+    p1Name.addEventListener('change', async () => {
+        if (currentTeam) teamsTriathlon[currentTeam].participant1.name = p1Name.value;
+        await syncTeamToSupabase(currentTeam);
         await renderOverallTable();
-        alert(`Данные участника ${participantNum} сохранены`);
-    }
+    });
+    p2Name.addEventListener('change', async () => {
+        if (currentTeam) teamsTriathlon[currentTeam].participant2.name = p2Name.value;
+        await syncTeamToSupabase(currentTeam);
+        await renderOverallTable();
+    });
+    saveStage1Btn.addEventListener('click', () => saveStage(1));
+    resetStage1Btn.addEventListener('click', () => resetStage(1));
+    saveStage2Btn.addEventListener('click', () => saveStage(2));
+    resetStage2Btn.addEventListener('click', () => resetStage(2));
+    saveTime1Btn.addEventListener('click', () => saveRawTime(1));
+    saveTime2Btn.addEventListener('click', () => saveRawTime(2));
 
-    // Инициализация
+    // ---------- ИНИЦИАЛИЗАЦИЯ ----------
     async function init() {
         const statusDiv = document.getElementById('connectionStatus');
         statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>';
         try {
-            let { error } = await supabase.from('triathlon_results').select('count', { count: 'exact', head: true });
+            const { error } = await supabase.from('triathlon_results').select('count', { count: 'exact', head: true });
             if (error) throw error;
             statusDiv.innerHTML = '<span class="status-ok">✅ Подключено к Supabase</span>';
         } catch (err) {
-            statusDiv.innerHTML = '<span class="status-error">❌ Ошибка подключения</span>';
+            statusDiv.innerHTML = '<span class="status-error">❌ Ошибка подключения, данные только локально</span>';
             console.error(err);
         }
-        await loadData();
+        await loadAllFromSupabase();
         await renderOverallTable();
-        // Скрыть карточки до выбора команды
-        document.getElementById('participant1Card').style.display = 'none';
-        document.getElementById('participant2Card').style.display = 'none';
-        // Слушатели
-        document.getElementById('teamSelect').addEventListener('change', async (e) => {
-            currentTeam = e.target.value || null;
-            if (currentTeam) {
-                await refreshTeamUI();
-            } else {
-                document.getElementById('participant1Card').style.display = 'none';
-                document.getElementById('participant2Card').style.display = 'none';
-            }
-        });
-        document.getElementById('saveTime1Btn').addEventListener('click', () => saveParticipantData(1));
-        document.getElementById('saveTime2Btn').addEventListener('click', () => saveParticipantData(2));
-        // При изменении имени сразу сохраняем? Лучше по кнопке, но можно и по потери фокуса.
-        document.getElementById('participant1Name').addEventListener('change', () => saveParticipantData(1));
-        document.getElementById('participant2Name').addEventListener('change', () => saveParticipantData(2));
+        p1Card.style.display = 'none';
+        p2Card.style.display = 'none';
     }
     init();
 </script>
