@@ -48,7 +48,7 @@
 <div class="container">
     <div class="header">
         <h1>🏃‍♂️ Командный триатлон — фиксация нарушений</h1>
-        <p>Бег, силовые упражнения, стрельба (данные синхронизируются с Supabase)</p>
+        <p>Бег, силовые упражнения, стрельба (данные синхронизируются)</p>
     </div>
 
     <div class="judge-panel">
@@ -288,14 +288,13 @@
     const saveTime2Btn = document.getElementById('saveTime2Btn');
 
     // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
-    function formatTime(sec) {
-        if (sec === null || isNaN(sec)) return "—";
-        let h = Math.floor(sec / 3600);
-        let m = Math.floor((sec % 3600) / 60);
-        let s = (sec % 60).toFixed(2);
-        if (h > 0) return `${h}:${m.toString().padStart(2,'0')}:${s.toString().padStart(5,'0')}`;
-        return `${m}:${s.toString().padStart(2,'0')}:${s.toString().padStart(5,'0')}`;
-    }
+function formatTime(sec) {
+    if (sec === null || isNaN(sec)) return "—";
+    let minutes = Math.floor(sec / 60);
+    let seconds = (sec % 60).toFixed(2);
+    // Формат: м:сс.сс (без ведущего нуля для минут)
+    return `${minutes}:${seconds.toString().padStart(5, '0')}`;
+}
 
     function parseTime(str) {
         if (!str.trim()) return null;
@@ -643,7 +642,7 @@
         try {
             let { error } = await supabaseClient.from('triathlon_results').select('count', { count: 'exact', head: true });
             if (error) throw error;
-            statusDiv.innerHTML = '<span class="status-ok">✅ Подключено к Supabase</span>';
+            statusDiv.innerHTML = '<span class="status-ok">✅ Подключено</span>';
         } catch (err) {
             statusDiv.innerHTML = '<span class="status-error">❌ Ошибка подключения, данные только локально</span>';
         }
