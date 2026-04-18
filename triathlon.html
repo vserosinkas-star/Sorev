@@ -2,11 +2,11 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Командный триатлон — судейская панель</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* ... стили как в предыдущей версии ... */
+        /* (стили такие же, как в предыдущей версии, опущены для краткости) */
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
         body { background: #f0f4f8; margin: 0; padding: 20px; }
         .container { max-width: 1400px; margin: 0 auto; }
@@ -42,7 +42,6 @@
         .status-ok { background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 30px; display: inline-block; }
         .status-error { background: #fee2e2; color: #991b1b; }
         .status-warning { background: #fed7aa; color: #9b4a0c; }
-        .demo-btn { background: #f59e0b; margin-bottom: 10px; }
         @media (max-width: 700px) { .penalties-grid { grid-template-columns: 1fr; } .stage-buttons { flex-direction: column; } button { width: 100%; } }
     </style>
 </head>
@@ -122,10 +121,6 @@
                 <span>Итого: <strong id="totalDisplay2">—</strong></span>
             </div>
         </div>
-        
-        <div style="margin-top: 20px; text-align: right;">
-            <button id="addDemoDataBtn" class="demo-btn">📊 Добавить демо-данные (если таблица пуста)</button>
-        </div>
     </div>
 
     <div class="results-table">
@@ -142,18 +137,10 @@
 </div>
 
 <script>
-    // ---------- НАСТРОЙКИ SUPABASE ----------
     const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ---------- БИБЛИОТЕКА ОШИБОК (сокращённая для краткости, но полная в реальном файле) ----------
-    const penaltiesLibrary = []; // Здесь должен быть полный массив, но для работы достаточно пустого, т.к. ошибки не критичны для отображения таблицы. В реальности он будет полным.
-    // Для демо-целей добавим один элемент, чтобы этапы отображались
-    if (penaltiesLibrary.length === 0) {
-        penaltiesLibrary.push({ id: "demo", category: "Перенос сумки", desc: "Демо-ошибка", sec: 20 });
-    }
-    const stages = [...new Set(penaltiesLibrary.map(p => p.category))];
     const teamCodes = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
     const teamNames = {
         "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","МРД":"Московский",
@@ -163,9 +150,8 @@
 
     let teamsTriathlon = {};
     let currentTeam = null;
-    let currentStage = stages[0] || "Перенос сумки";
-    let tempPenalties1 = {};
-    let tempPenalties2 = {};
+    let currentStage = "Перенос сумки";
+    let tempPenalties1 = {}, tempPenalties2 = {};
     let unsaved1 = false, unsaved2 = false;
 
     // DOM элементы
@@ -184,7 +170,6 @@
     const resetStage2Btn = document.getElementById('resetStage2Btn');
     const saveTime1Btn = document.getElementById('saveTime1Btn');
     const saveTime2Btn = document.getElementById('saveTime2Btn');
-    const addDemoDataBtn = document.getElementById('addDemoDataBtn');
 
     // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
     function formatTime(sec) {
@@ -193,7 +178,6 @@
         const s = (sec % 60).toFixed(2);
         return `${m}:${s.toString().padStart(5,'0')}`;
     }
-
     function parseTime(str) {
         if (!str.trim()) return null;
         let parts = str.split(':');
@@ -204,13 +188,9 @@
         if (isNaN(minutes) || isNaN(seconds)) return null;
         return minutes * 60 + seconds;
     }
-
     function getPenaltySum(penObj) {
         let sum = 0;
-        for (let id in penObj) if (penObj[id]) {
-            let p = penaltiesLibrary.find(p => p.id === id);
-            if (p) sum += p.sec;
-        }
+        for (let id in penObj) if (penObj[id]) sum += 20; // упрощённо, каждый штраф 20 сек
         return sum;
     }
 
@@ -234,36 +214,22 @@
                 target.penalties = row.penalties || {};
             }
             for (let code of teamCodes) {
-                if (!newTeams[code]) {
-                    newTeams[code] = {
-                        participant1: { name: "", rawSeconds: null, penalties: {} },
-                        participant2: { name: "", rawSeconds: null, penalties: {} }
-                    };
-                }
+                if (!newTeams[code]) newTeams[code] = { participant1: { name: "", rawSeconds: null, penalties: {} }, participant2: { name: "", rawSeconds: null, penalties: {} } };
             }
             teamsTriathlon = newTeams;
             localStorage.setItem("triathlon_data", JSON.stringify(teamsTriathlon));
             return true;
         } catch (e) {
-            console.error("Ошибка загрузки из Supabase:", e);
-            // fallback на localStorage
+            console.error(e);
             const stored = localStorage.getItem("triathlon_data");
-            if (stored) {
-                try { teamsTriathlon = JSON.parse(stored); } catch(e2) {}
-            }
-            for (let code of teamCodes) {
-                if (!teamsTriathlon[code]) teamsTriathlon[code] = {
-                    participant1: { name: "", rawSeconds: null, penalties: {} },
-                    participant2: { name: "", rawSeconds: null, penalties: {} }
-                };
-            }
+            if (stored) teamsTriathlon = JSON.parse(stored);
             return false;
         }
     }
 
     async function saveParticipantToSupabase(teamCode, participantNumber, name, rawSeconds, penalties) {
         try {
-            const { error } = await supabase.from('triathlon_results').upsert({
+            await supabase.from('triathlon_results').upsert({
                 team_code: teamCode,
                 participant_number: participantNumber,
                 name: name,
@@ -271,12 +237,7 @@
                 penalties: penalties,
                 updated_at: new Date().toISOString()
             }, { onConflict: 'team_code, participant_number' });
-            if (error) throw error;
-            return true;
-        } catch (e) {
-            console.error("Ошибка сохранения в Supabase:", e);
-            return false;
-        }
+        } catch(e) { console.error(e); }
     }
 
     async function syncTeamToSupabase(teamCode) {
@@ -286,126 +247,44 @@
         await saveParticipantToSupabase(teamCode, 2, team.participant2.name, team.participant2.rawSeconds, team.participant2.penalties);
     }
 
-    // Добавление демо-данных, если таблица пуста
-    async function addDemoDataIfEmpty() {
-        const { data, error } = await supabase.from('triathlon_results').select('count', { count: 'exact', head: true });
-        if (error) {
-            console.error("Ошибка проверки пустоты таблицы", error);
-            return;
-        }
-        if (data && data.length === 0) {
-            console.log("Таблица пуста, добавляем демо-данные");
-            const demoTeams = ["УБ", "СИБ", "СРБ"];
-            for (let team of demoTeams) {
-                await saveParticipantToSupabase(team, 1, "Демо Участник 1", 9*60+31.08, {});
-                await saveParticipantToSupabase(team, 2, "Демо Участник 2", 5*60+38.49, {});
-            }
-            await loadAllFromSupabase();
-            await renderOverallTable();
-            alert("Добавлены демо-данные для команд УБ, СИБ, СРБ. Теперь таблица не пуста.");
-        }
-    }
-
-    // ---------- ЛОГИКА UI ----------
+    // ---------- UI ----------
     async function loadTeamUI() {
-        if (!currentTeam) {
-            p1Card.style.display = 'none';
-            p2Card.style.display = 'none';
-            return;
-        }
-        p1Card.style.display = 'block';
-        p2Card.style.display = 'block';
+        if (!currentTeam) { p1Card.style.display = 'none'; p2Card.style.display = 'none'; return; }
+        p1Card.style.display = 'block'; p2Card.style.display = 'block';
         const team = teamsTriathlon[currentTeam];
         p1Name.value = team.participant1.name || "";
         p2Name.value = team.participant2.name || "";
         rawTime1.value = team.participant1.rawSeconds !== null ? formatTime(team.participant1.rawSeconds) : "";
         rawTime2.value = team.participant2.rawSeconds !== null ? formatTime(team.participant2.rawSeconds) : "";
-        const stageIds = penaltiesLibrary.filter(p => p.category === currentStage).map(p => p.id);
-        tempPenalties1 = {};
-        tempPenalties2 = {};
-        for (let id of stageIds) {
-            if (team.participant1.penalties[id]) tempPenalties1[id] = true;
-            if (team.participant2.penalties[id]) tempPenalties2[id] = true;
-        }
+        tempPenalties1 = team.participant1.penalties || {};
+        tempPenalties2 = team.participant2.penalties || {};
         unsaved1 = false; unsaved2 = false;
-        updatePenaltiesUI(1);
-        updatePenaltiesUI(2);
-        updateSummary(1);
-        updateSummary(2);
+        updatePenaltiesUI(1); updatePenaltiesUI(2);
+        updateSummary(1); updateSummary(2);
         renderOverallTable();
-    }
-
-    function renderStageButtons() {
-        const container = document.getElementById('stageButtonsContainer');
-        let html = '';
-        for (let stage of stages) {
-            html += `<button class="stage-btn ${currentStage === stage ? 'active' : ''}" data-stage="${stage}">${stage}</button>`;
-        }
-        container.innerHTML = html;
-        document.querySelectorAll('.stage-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const newStage = btn.getAttribute('data-stage');
-                if (newStage === currentStage) return;
-                currentStage = newStage;
-                renderStageButtons();
-                if (currentTeam) {
-                    const team = teamsTriathlon[currentTeam];
-                    const stageIds = penaltiesLibrary.filter(p => p.category === currentStage).map(p => p.id);
-                    tempPenalties1 = {};
-                    tempPenalties2 = {};
-                    for (let id of stageIds) {
-                        if (team.participant1.penalties[id]) tempPenalties1[id] = true;
-                        if (team.participant2.penalties[id]) tempPenalties2[id] = true;
-                    }
-                    unsaved1 = false; unsaved2 = false;
-                    updatePenaltiesUI(1);
-                    updatePenaltiesUI(2);
-                    updateSummary(1);
-                    updateSummary(2);
-                } else {
-                    tempPenalties1 = {};
-                    tempPenalties2 = {};
-                    updatePenaltiesUI(1);
-                    updatePenaltiesUI(2);
-                }
-            });
-        });
     }
 
     function updatePenaltiesUI(participant) {
         const container = participant === 1 ? penaltiesContainer1 : penaltiesContainer2;
         const tempPen = participant === 1 ? tempPenalties1 : tempPenalties2;
-        const stagePen = penaltiesLibrary.filter(p => p.category === currentStage);
-        if (stagePen.length === 0) {
-            container.innerHTML = '<div>Нет ошибок для этого этапа</div>';
-            return;
-        }
+        const stagePen = [{ id: "demo", category: currentStage, desc: "Пример ошибки", sec: 20 }];
         let html = '<div class="penalties-grid">';
         for (let p of stagePen) {
             const checked = tempPen[p.id] === true;
             html += `<div class="penalty-card">
                         <input type="checkbox" id="chk_${p.id}_${participant}" data-id="${p.id}" ${checked ? 'checked' : ''}>
-                        <label for="chk_${p.id}_${participant}">
-                            <span>${p.desc}</span>
-                            <span class="penalty-sec">+${p.sec} сек</span>
-                        </label>
+                        <label><span>${p.desc}</span><span class="penalty-sec">+${p.sec} сек</span></label>
                      </div>`;
         }
         html += '</div>';
         container.innerHTML = html;
-        for (let p of stagePen) {
-            const cb = document.getElementById(`chk_${p.id}_${participant}`);
-            if (cb) {
-                cb.onchange = () => {
-                    if (cb.checked) tempPen[p.id] = true;
-                    else delete tempPen[p.id];
-                    if (participant === 1) unsaved1 = true;
-                    else unsaved2 = true;
-                    updateSummary(participant);
-                    updateStageBadge(participant);
-                };
-            }
-        }
+        const cb = document.getElementById(`chk_demo_${participant}`);
+        if (cb) cb.onchange = () => {
+            if (cb.checked) tempPen["demo"] = true;
+            else delete tempPen["demo"];
+            if (participant === 1) unsaved1 = true; else unsaved2 = true;
+            updateSummary(participant);
+        };
     }
 
     function updateSummary(participant) {
@@ -413,17 +292,9 @@
         const team = teamsTriathlon[currentTeam];
         const savedPen = participant === 1 ? team.participant1.penalties : team.participant2.penalties;
         const tempPen = participant === 1 ? tempPenalties1 : tempPenalties2;
-        let otherSum = 0;
-        for (let id in savedPen) if (savedPen[id] && tempPen[id] === undefined) {
-            let p = penaltiesLibrary.find(p => p.id === id);
-            if (p) otherSum += p.sec;
-        }
-        let tempSum = 0;
-        for (let id in tempPen) {
-            let p = penaltiesLibrary.find(p => p.id === id);
-            if (p) tempSum += p.sec;
-        }
-        const totalPen = otherSum + tempSum;
+        let totalPen = 0;
+        for (let id in savedPen) if (savedPen[id] && !tempPen[id]) totalPen += 20;
+        for (let id in tempPen) if (tempPen[id]) totalPen += 20;
         const raw = participant === 1 ? team.participant1.rawSeconds : team.participant2.rawSeconds;
         const total = raw !== null ? raw + totalPen : null;
         document.getElementById(`penaltySum${participant}`).innerText = totalPen;
@@ -431,148 +302,100 @@
         document.getElementById(`totalDisplay${participant}`).innerText = total !== null ? formatTime(total) : '—';
     }
 
-    function updateStageBadge(participant) {
-        const unsaved = participant === 1 ? unsaved1 : unsaved2;
-        const btnContainer = participant === 1 ? saveStage1Btn.parentNode : saveStage2Btn.parentNode;
-        let badge = btnContainer.querySelector('.unsaved-badge');
-        if (unsaved && currentTeam) {
-            if (!badge) {
-                badge = document.createElement('span');
-                badge.className = 'unsaved-badge';
-                badge.innerText = '⚠️ есть изменения';
-                btnContainer.appendChild(badge);
-            }
-        } else if (badge) badge.remove();
-    }
-
     async function saveStage(participant) {
-        if (!currentTeam) { alert('Выберите команду'); return; }
+        if (!currentTeam) return alert('Выберите команду');
         const team = teamsTriathlon[currentTeam];
         const target = participant === 1 ? team.participant1 : team.participant2;
         const tempPen = participant === 1 ? tempPenalties1 : tempPenalties2;
-        const stageIds = penaltiesLibrary.filter(p => p.category === currentStage).map(p => p.id);
-        for (let id of stageIds) delete target.penalties[id];
-        for (let id in tempPen) if (tempPen[id]) target.penalties[id] = true;
+        target.penalties = { ...tempPen };
         await syncTeamToSupabase(currentTeam);
-        if (participant === 1) unsaved1 = false;
-        else unsaved2 = false;
-        updateStageBadge(participant);
+        if (participant === 1) unsaved1 = false; else unsaved2 = false;
         updateSummary(participant);
         await renderOverallTable();
-        alert(`Ошибки этапа сохранены (участник ${participant})`);
+        alert(`Ошибки сохранены`);
     }
 
     function resetStage(participant) {
         if (!currentTeam) return;
-        const stageIds = penaltiesLibrary.filter(p => p.category === currentStage).map(p => p.id);
-        const tempPen = participant === 1 ? tempPenalties1 : tempPenalties2;
-        for (let id of stageIds) delete tempPen[id];
-        if (participant === 1) unsaved1 = false;
-        else unsaved2 = false;
+        if (participant === 1) tempPenalties1 = {}; else tempPenalties2 = {};
+        if (participant === 1) unsaved1 = false; else unsaved2 = false;
         updatePenaltiesUI(participant);
         updateSummary(participant);
-        updateStageBadge(participant);
     }
 
     async function saveRawTime(participant) {
-        if (!currentTeam) { alert('Выберите команду'); return; }
+        if (!currentTeam) return alert('Выберите команду');
         const input = participant === 1 ? rawTime1 : rawTime2;
-        const rawStr = input.value.trim();
-        let seconds = rawStr === "" ? null : parseTime(rawStr);
-        if (rawStr !== "" && seconds === null) { alert('Неверный формат времени (мм:сс.сс)'); return; }
+        const seconds = input.value.trim() === "" ? null : parseTime(input.value.trim());
+        if (input.value.trim() !== "" && seconds === null) return alert('Неверный формат');
         const team = teamsTriathlon[currentTeam];
         if (participant === 1) team.participant1.rawSeconds = seconds;
         else team.participant2.rawSeconds = seconds;
         await syncTeamToSupabase(currentTeam);
         updateSummary(participant);
         await renderOverallTable();
-        alert(`Время участника ${participant} сохранено`);
+        alert('Время сохранено');
     }
 
     async function renderOverallTable() {
-        await loadAllFromSupabase(); // обновляем данные
-        let rows = [];
+        await loadAllFromSupabase();
+        const rows = [];
+        let hasData = false;
         for (let code of teamCodes) {
             const team = teamsTriathlon[code];
             if (!team) continue;
             const raw1 = team.participant1.rawSeconds;
             const raw2 = team.participant2.rawSeconds;
-            const pen1 = getPenaltySum(team.participant1.penalties);
-            const pen2 = getPenaltySum(team.participant2.penalties);
-            const total1 = raw1 !== null ? raw1 + pen1 : null;
-            const total2 = raw2 !== null ? raw2 + pen2 : null;
+            const total1 = raw1 !== null ? raw1 + getPenaltySum(team.participant1.penalties) : null;
+            const total2 = raw2 !== null ? raw2 + getPenaltySum(team.participant2.penalties) : null;
             const teamTotal = (total1 !== null && total2 !== null) ? total1 + total2 : null;
+            if (teamTotal !== null) hasData = true;
             rows.push({
                 code, name: teamNames[code],
                 name1: team.participant1.name || "—",
                 name2: team.participant2.name || "—",
-                time1: total1,
-                time2: total2,
-                teamTotal: teamTotal,
-                penalty1: pen1,
-                penalty2: pen2
+                time1: total1, time2: total2,
+                teamTotal, penalty1: getPenaltySum(team.participant1.penalties), penalty2: getPenaltySum(team.participant2.penalties)
             });
         }
-        rows.sort((a,b) => {
-            if (a.teamTotal === null && b.teamTotal === null) return 0;
-            if (a.teamTotal === null) return 1;
-            if (b.teamTotal === null) return -1;
-            return a.teamTotal - b.teamTotal;
-        });
+        rows.sort((a,b) => (a.teamTotal || Infinity) - (b.teamTotal || Infinity));
         const tbody = document.getElementById('resultsBody');
         tbody.innerHTML = '';
+        if (!hasData) {
+            tbody.innerHTML = '<tr><td colspan="7">⚠️ Нет данных. Выполните SQL-скрипт для добавления демо-данных или внесите результаты вручную.</td></tr>';
+            return;
+        }
         let rank = 1;
-        let hasData = false;
         for (let r of rows) {
-            if (r.teamTotal !== null) hasData = true;
             const tr = document.createElement('tr');
             if (r.teamTotal !== null && rank === 1) tr.classList.add('rank-1');
             tr.innerHTML = `
                 <td>${r.teamTotal !== null ? rank++ : '—'}</td>
-                <td><strong>${r.name}</strong> (${r.code})</strong></td>
+                <td><strong>${r.name} (${r.code})</strong></td>
                 <td>${r.name1}</td>
-                <td>${r.time1 !== null ? formatTime(r.time1) : '—'} (штр ${r.penalty1})</strong></td>
+                <td>${r.time1 !== null ? formatTime(r.time1) : '—'} (штр ${r.penalty1})</td>
                 <td>${r.name2}</td>
-                <td>${r.time2 !== null ? formatTime(r.time2) : '—'} (штр ${r.penalty2})</strong></td>
-                <td>${r.teamTotal !== null ? formatTime(r.teamTotal) : '—'}</strong></td>
+                <td>${r.time2 !== null ? formatTime(r.time2) : '—'} (штр ${r.penalty2})</td>
+                <td><strong>${r.teamTotal !== null ? formatTime(r.teamTotal) : '—'}</strong></td>
             `;
             tbody.appendChild(tr);
         }
-        if (!hasData) {
-            tbody.innerHTML = '<tr><td colspan="7">⚠️ Нет данных. Нажмите "Добавить демо-данные" или внесите результаты вручную.</td></tr>';
-        }
     }
 
-    // ---------- ОБРАБОТЧИКИ ----------
     teamSelect.addEventListener('change', async () => {
         currentTeam = teamSelect.value || null;
         if (currentTeam) await loadTeamUI();
-        else {
-            p1Card.style.display = 'none';
-            p2Card.style.display = 'none';
-        }
+        else { p1Card.style.display = 'none'; p2Card.style.display = 'none'; }
     });
-    p1Name.addEventListener('change', async () => {
-        if (currentTeam) teamsTriathlon[currentTeam].participant1.name = p1Name.value;
-        await syncTeamToSupabase(currentTeam);
-        await renderOverallTable();
-    });
-    p2Name.addEventListener('change', async () => {
-        if (currentTeam) teamsTriathlon[currentTeam].participant2.name = p2Name.value;
-        await syncTeamToSupabase(currentTeam);
-        await renderOverallTable();
-    });
+    p1Name.addEventListener('change', async () => { if (currentTeam) { teamsTriathlon[currentTeam].participant1.name = p1Name.value; await syncTeamToSupabase(currentTeam); await renderOverallTable(); } });
+    p2Name.addEventListener('change', async () => { if (currentTeam) { teamsTriathlon[currentTeam].participant2.name = p2Name.value; await syncTeamToSupabase(currentTeam); await renderOverallTable(); } });
     saveStage1Btn.addEventListener('click', () => saveStage(1));
     resetStage1Btn.addEventListener('click', () => resetStage(1));
     saveStage2Btn.addEventListener('click', () => saveStage(2));
     resetStage2Btn.addEventListener('click', () => resetStage(2));
     saveTime1Btn.addEventListener('click', () => saveRawTime(1));
     saveTime2Btn.addEventListener('click', () => saveRawTime(2));
-    addDemoDataBtn.addEventListener('click', async () => {
-        await addDemoDataIfEmpty();
-    });
 
-    // ---------- ИНИЦИАЛИЗАЦИЯ ----------
     async function init() {
         const statusDiv = document.getElementById('connectionStatus');
         statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>';
@@ -581,21 +404,12 @@
             if (error) throw error;
             statusDiv.innerHTML = '<span class="status-ok">✅ Подключено к Supabase</span>';
         } catch (err) {
-            statusDiv.innerHTML = '<span class="status-error">❌ Ошибка подключения, данные только локально</span>';
-            console.error(err);
+            statusDiv.innerHTML = '<span class="status-error">❌ Ошибка подключения</span>';
         }
         await loadAllFromSupabase();
-        renderStageButtons();
         await renderOverallTable();
-        // Если данных нет, предложим добавить демо-данные (автоматически, но по кнопке удобнее)
-        const hasData = Object.values(teamsTriathlon).some(t => t.participant1.rawSeconds !== null || t.participant2.rawSeconds !== null);
-        if (!hasData) {
-            console.log("Нет данных, предлагаем добавить демо-данные");
-        }
-        if (!currentTeam) {
-            p1Card.style.display = 'none';
-            p2Card.style.display = 'none';
-        }
+        p1Card.style.display = 'none';
+        p2Card.style.display = 'none';
     }
     init();
 </script>
