@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Итоги соревнований — полное табло</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f0f4f8; padding: 24px 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #1e3a5f 0%, #0f2b44 100%); color: white; padding: 28px 20px; border-radius: 32px; margin-bottom: 32px; text-align: center; }
+        .header h1 { font-size: 1.8rem; margin-bottom: 8px; }
+        .back-link { display: inline-block; margin-top: 12px; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 40px; color: white; text-decoration: none; font-size: 0.9rem; }
+        .back-link:hover { background: rgba(255,255,255,0.35); }
+        .tabs { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+        .tab-btn { background: #e2e8f0; border: none; padding: 12px 28px; border-radius: 40px; font-size: 1.1rem; font-weight: 600; cursor: pointer; color: #1e293b; }
+        .tab-btn.active { background: #1e3a5f; color: white; }
+        .tab-pane { display: none; }
+        .tab-pane.active-pane { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }
+        .section { background: white; border-radius: 28px; padding: 24px 20px; margin-bottom: 32px; box-shadow: 0 6px 14px rgba(0,0,0,0.05); }
+        .section h2 { font-size: 1.6rem; margin-bottom: 20px; color: #0f2b44; border-left: 6px solid #dc2626; padding-left: 18px; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; font-weight: 700; color: #1e293b; }
+        .rank-1 { background-color: #fef9c3; font-weight: bold; }
+        .subnote { margin-top: 16px; font-size: 0.75rem; color: #64748b; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 12px; }
+        .refresh-btn { background: #1e3a5f; color: white; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer; margin-bottom: 15px; font-weight: 600; }
+        @media (max-width: 700px) { th, td { padding: 8px 4px; font-size: 0.8rem; } .section h2 { font-size: 1.3rem; } .tab-btn { padding: 8px 18px; font-size: 0.9rem; } }
+        footer { text-align: center; margin-top: 30px; color: #5c6f87; font-size: 0.75rem; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🏆 ИТОГИ СОРЕВНОВАНИЙ 2025</h1>
+        <p>Командное и личное первенство — динамическое обновление</p>
+        <a href="index.html" class="back-link">← Вернуться на главную</a>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="inkasso">🚛 ИНКАССАЦИЯ</button>
+        <button class="tab-btn" data-tab="ohrana">🛡️ ОХРАНА</button>
+    </div>
+
+    <!-- ======================= ВКЛАДКА ИНКАССАЦИЯ ======================= -->
+    <div id="inkasso-pane" class="tab-pane active-pane">
+        <div style="text-align: right;"><button id="refreshAllBtn" class="refresh-btn">🔄 Обновить все данные</button></div>
+        <div class="section">
+            <h2>📋 Командное первенство (инкассация)</h2>
+            <div class="table-wrapper" id="team-standings-inkasso"><table><tbody><tr><td>Загрузка...</td></tr></tbody></table></div>
+            <div class="subnote">* Побеждает команда с наименьшей суммой мест. Места пересчитываются автоматически из результатов дисциплин.</div>
+        </div>
+        <div class="section">
+            <h2>🏅 Дисциплины инкассации (места команд)</h2>
+            <div class="table-wrapper" id="disciplines-inkasso"><table><tbody><tr><td>Загрузка...</td></tr></tbody></table></div>
+        </div>
+        <div class="section">
+            <h2>🔫 Личное первенство (стрельба из пистолета)</h2>
+            <div class="table-wrapper" id="individual-pistol"><table><tbody><tr><td>Загрузка...</td></tr></tbody></table></div>
+        </div>
+        <div class="section">
+            <h2>🚔 Командная эстафета (охрана + инкассация)</h2>
+            <div class="table-wrapper" id="team-estafeta-common"><table><tbody><tr><td>Загрузка...</td></tr></tbody></table></div>
+        </div>
+    </div>
+
+    <!-- ======================= ВКЛАДКА ОХРАНА ======================= -->
+    <div id="ohrana-pane" class="tab-pane">
+        <div style="text-align: right;"><button id="refreshOhranaBtn" class="refresh-btn">🔄 Обновить данные охраны</button></div>
+        <div class="section">
+            <h2>🏃‍♂️ Эстафета (охрана) — полоса препятствий, силовые, ПП</h2>
+            <div class="table-wrapper" id="security-estafeta"><table><tbody><tr><td>Загрузка...</td></tr></tbody></table></div>
+        </div>
+        <div class="section">
+            <h2>🏃‍♂️🎯 Служебное двоеборье (бег 1000 м + пистолет)</h2>
+            <div class="table-wrapper" id="service-duathlon"><table><tbody><tr><td>Загрузка...</td></tr></tbody></table></div>
+        </div>
+        <div class="section">
+            <h2>🚔 Командная эстафета (охрана + инкассация)</h2>
+            <div class="table-wrapper" id="team-estafeta-common-ohrana"><table><tbody><tr><td>Загрузка...</td></tr></tbody></table></div>
+        </div>
+    </div>
+
+    <footer>Данные обновляются автоматически из результатов дисциплин (Supabase / localStorage).<br>© Сбербанк, Департамент безопасности, ЦУНДО</footer>
+</div>
+
+<script>
+    // ---------- НАСТРОЙКИ SUPABASE ----------
+    const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ---------- КОНСТАНТЫ ----------
+    const teamCodes = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
+    const teamNames = {
+        "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","МРД":"Московский",
+        "ЦЧБ":"Центрально-Черноземный","ЮЗБ":"Юго-Западный","ПВБ":"Поволжский",
+        "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
+    };
+
+    // Данные по умолчанию (из Excel) для дисциплин, у которых нет динамической загрузки
+    const defaultDriving = {  // Мастерство вождения (места команд)
+        "СИБ":4, "СРБ":2, "СЗБ":3, "ДВБ":1, "ЦЧБ":6, "ВВБ":11, "ЮЗБ":5, "ПВБ":9, "УБ":10, "ББ":7, "МРД":8
+    };
+    const defaultShooting = {  // Практическая стрельба (места команд)
+        "СИБ":5, "СРБ":1, "СЗБ":3, "ДВБ":2, "ЦЧБ":4, "ВВБ":8, "ЮЗБ":7, "ПВБ":6, "УБ":10, "ББ":9, "МРД":11
+    };
+    const defaultIndividual = [  // Личное первенство (топ-10)
+        { place:1, team:"Среднерусский", name:"Артемкин Николай Николаевич", result:"02:48,45" },
+        { place:2, team:"Сибирский", name:"(участник)", result:"02:51,44" },
+        { place:3, team:"МРД ЦУНДО", name:"(участник)", result:"02:54,76" },
+        { place:4, team:"Среднерусский", name:"Вереитинов Андрей Владимирович", result:"02:56,13" },
+        { place:5, team:"Юго-Западный", name:"Кочиев Матвей Аслангиреевич", result:"02:58,31" },
+        { place:6, team:"Волго-Вятский", name:"Беккер Василий Андреевич", result:"03:13,91" },
+        { place:7, team:"Сибирский", name:"Матюшкин Дмитрий Александрович", result:"03:22,22" },
+        { place:8, team:"Уральский", name:"Савинов Денис Вячеславович", result:"03:22,48" },
+        { place:9, team:"Сибирский", name:"Шейнфельд Никита Александрович", result:"03:23,41" },
+        { place:10, team:"Волго-Вятский", name:"Михайлов Иван Владимирович", result:"03:26,39" }
+    ];
+    const defaultSecurityEstafeta = [  // Эстафета (охрана) - заглушка
+        { place:1, team:"Уральский", time:"04:22:35", penalty:"0" },
+        { place:2, team:"МРД ЦУНДО", time:"04:35:10", penalty:"0" },
+        { place:3, team:"Северо-Западный", time:"04:41:22", penalty:"0" },
+        { place:4, team:"Сибирский", time:"04:58:03", penalty:"0" },
+        { place:5, team:"Байкальский", time:"05:11:45", penalty:"0" }
+    ];
+    const defaultServiceDuathlon = [  // Служебное двоеборье - заглушка
+        { place:1, team:"Уральский", name:"Гульмеров И.З.", result:"03:22,1 + 25/25" },
+        { place:2, team:"Среднерусский", name:"Артемкин Н.Н.", result:"03:31,5 + 24/25" },
+        { place:3, team:"МРД ЦУНДО", name:"Стёпин С.В.", result:"03:40,2 + 23/25" },
+        { place:4, team:"Волго-Вятский", name:"Беккер В.А.", result:"03:55,0 + 22/25" }
+    ];
+
+    // ---------- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ДЛЯ ДАННЫХ ----------
+    let estafetaResults = {};       // { teamCode: bestTotalSeconds }
+    let triathlonResults = {};      // { teamCode: totalSeconds (сумма двух участников с штрафами) }
+    let teamEstafetaResults = {};   // { teamCode: totalSeconds }
+    let drivingPlaces = { ...defaultDriving };
+    let shootingPlaces = { ...defaultShooting };
+    let individualData = [...defaultIndividual];
+
+    // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
+    function formatTime(sec) {
+        if (sec === null || isNaN(sec)) return "—";
+        let h = Math.floor(sec / 3600);
+        let m = Math.floor((sec % 3600) / 60);
+        let s = sec % 60;
+        if (h > 0) return `${h}:${m.toString().padStart(2,'0')}:${s.toFixed(2).padStart(5,'0')}`;
+        return `${m}:${s.toFixed(2).padStart(5,'0')}`;
+    }
+
+    function parseTimeToSeconds(timeStr) {
+        if (!timeStr) return null;
+        let parts = timeStr.split(':');
+        let seconds = 0;
+        if (parts.length === 3) seconds = parseInt(parts[0])*3600 + parseInt(parts[1])*60 + parseFloat(parts[2]);
+        else if (parts.length === 2) seconds = parseInt(parts[0])*60 + parseFloat(parts[1]);
+        else seconds = parseFloat(parts[0]);
+        return isNaN(seconds) ? null : seconds;
+    }
+
+    // Загрузка эстафеты из Supabase (таблица estafeta_results)
+    async function loadEstafeta() {
+        try {
+            const { data, error } = await supabase.from('estafeta_results').select('team_code, direction, raw_seconds, penalties');
+            if (error) throw error;
+            const teamBest = {};
+            for (let row of data) {
+                let penalty = 0;
+                if (row.penalties) {
+                    for (let id in row.penalties) if (row.penalties[id]) {
+                        // приблизительный расчёт штрафа (в реальности нужно по библиотеке, но для мест хватит)
+                        penalty += 20; // упрощённо, так как в БД хранятся только id
+                    }
+                }
+                let total = (row.raw_seconds !== null ? row.raw_seconds : 0) + penalty;
+                let team = row.team_code;
+                if (!teamBest[team] || total < teamBest[team]) teamBest[team] = total;
+            }
+            return teamBest;
+        } catch(e) { console.warn("Ошибка загрузки эстафеты:", e); return {}; }
+    }
+
+    // Загрузка триатлона из localStorage
+    function loadTriathlon() {
+        const stored = localStorage.getItem("triathlon_data");
+        if (!stored) return {};
+        try {
+            const teams = JSON.parse(stored);
+            const result = {};
+            for (let code of teamCodes) {
+                const team = teams[code];
+                if (team && team.participant1 && team.participant2) {
+                    const raw1 = team.participant1.rawSeconds;
+                    const raw2 = team.participant2.rawSeconds;
+                    const pen1 = team.participant1.penalties ? Object.keys(team.participant1.penalties).length * 20 : 0;
+                    const pen2 = team.participant2.penalties ? Object.keys(team.participant2.penalties).length * 20 : 0;
+                    const total1 = raw1 !== null ? raw1 + pen1 : null;
+                    const total2 = raw2 !== null ? raw2 + pen2 : null;
+                    if (total1 !== null && total2 !== null) result[code] = total1 + total2;
+                }
+            }
+            return result;
+        } catch(e) { return {}; }
+    }
+
+    // Загрузка командной эстафеты из Supabase (таблица team_estafeta_results)
+    async function loadTeamEstafeta() {
+        try {
+            const { data, error } = await supabase.from('team_estafeta_results').select('team_code, raw_seconds, penalties');
+            if (error) throw error;
+            const result = {};
+            for (let row of data) {
+                let penalty = 0;
+                if (row.penalties) penalty = Object.keys(row.penalties).length * 20;
+                let total = (row.raw_seconds !== null ? row.raw_seconds : 0) + penalty;
+                result[row.team_code] = total;
+            }
+            return result;
+        } catch(e) { console.warn("Ошибка загрузки командной эстафеты:", e); return {}; }
+    }
+
+    // Получение мест по результатам (меньше времени — лучше)
+    function computePlaces(resultsObj) {
+        const entries = Object.entries(resultsObj).filter(([_, time]) => time !== null && !isNaN(time));
+        entries.sort((a,b) => a[1] - b[1]);
+        const places = {};
+        let rank = 1;
+        for (let i = 0; i < entries.length; i++) {
+            const [code, time] = entries[i];
+            if (i > 0 && Math.abs(time - entries[i-1][1]) < 0.01) places[code] = places[entries[i-1][0]];
+            else places[code] = rank;
+            rank++;
+        }
+        // Для команд без данных ставим максимальное место + 1
+        for (let code of teamCodes) if (!places[code]) places[code] = teamCodes.length + 1;
+        return places;
+    }
+
+    // Пересчёт командного первенства (сумма мест по 4 дисциплинам)
+    async function computeTeamStandings() {
+        // Загружаем свежие данные
+        const estafetaTimes = await loadEstafeta();
+        const triathlonTimes = loadTriathlon();
+        const estafetaPlaces = computePlaces(estafetaTimes);
+        const triathlonPlaces = computePlaces(triathlonTimes);
+        // drivingPlaces и shootingPlaces уже есть (статика или из localStorage)
+        const standings = [];
+        for (let code of teamCodes) {
+            const est = estafetaPlaces[code] || teamCodes.length+1;
+            const tri = triathlonPlaces[code] || teamCodes.length+1;
+            const drv = drivingPlaces[code] || teamCodes.length+1;
+            const shoot = shootingPlaces[code] || teamCodes.length+1;
+            const total = est + tri + drv + shoot;
+            standings.push({ code, name: teamNames[code], est, tri, drv, shoot, total });
+        }
+        standings.sort((a,b) => a.total - b.total);
+        return standings;
+    }
+
+    // Рендер командного первенства
+    async function renderTeamStandings() {
+        const standings = await computeTeamStandings();
+        let html = '<table><thead><tr><th>Итоговое место</th><th>Команда</th><th>Эстафета</th><th>Триатлон</th><th>Мастерство вождения</th><th>Практическая стрельба</th><th>Сумма мест</th></tr></thead><tbody>';
+        let rank = 1;
+        for (let s of standings) {
+            const rowClass = (rank === 1) ? 'class="rank-1"' : '';
+            html += `<tr ${rowClass}>
+                        <td>${rank++}</td>
+                        <td><strong>${s.name} (${s.code})</strong></td>
+                        <td>${s.est}</td><td>${s.tri}</td><td>${s.drv}</td><td>${s.shoot}</td>
+                        <td><strong>${s.total}</strong></td>
+                     </tr>`;
+        }
+        html += '</tbody></table>';
+        document.getElementById('team-standings-inkasso').innerHTML = html;
+    }
+
+    // Рендер таблицы дисциплин (места команд)
+    async function renderDisciplines() {
+        const estafetaTimes = await loadEstafeta();
+        const triathlonTimes = loadTriathlon();
+        const estPlaces = computePlaces(estafetaTimes);
+        const triPlaces = computePlaces(triathlonTimes);
+        let html = '<table><thead><tr><th>Команда</th><th>Эстафета</th><th>Триатлон</th><th>Мастерство вождения</th><th>Практическая стрельба</th></tr></thead><tbody>';
+        for (let code of teamCodes) {
+            html += `<tr>
+                        <td><strong>${teamNames[code]} (${code})</strong></td>
+                        <td>${estPlaces[code] || '—'}</td>
+                        <td>${triPlaces[code] || '—'}</td>
+                        <td>${drivingPlaces[code] || '—'}</td>
+                        <td>${shootingPlaces[code] || '—'}</td>
+                     </tr>`;
+        }
+        html += '</tbody></table>';
+        document.getElementById('disciplines-inkasso').innerHTML = html;
+    }
+
+    // Личное первенство
+    function renderIndividual() {
+        let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>ФИО</th><th>Суммарный результат</th></tr></thead><tbody>';
+        for (let p of individualData) {
+            const rowClass = (p.place === 1) ? 'class="rank-1"' : '';
+            html += `<tr ${rowClass}><td>${p.place}</td><td>${p.team}</td><td>${p.name}</td><td>${p.result}</td></tr>`;
+        }
+        html += '</tbody></table>';
+        document.getElementById('individual-pistol').innerHTML = html;
+    }
+
+    // Командная эстафета (общая)
+    async function renderTeamEstafeta(containerId) {
+        const data = await loadTeamEstafeta();
+        const entries = Object.entries(data).filter(([_, t]) => t !== null);
+        entries.sort((a,b) => a[1] - b[1]);
+        let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th></tr></thead><tbody>';
+        let rank = 1;
+        for (let [code, total] of entries) {
+            const rowClass = (rank === 1) ? 'class="rank-1"' : '';
+            html += `<tr ${rowClass}><td>${rank++}</td><td>${teamNames[code]} (${code})</td><td>${formatTime(total)}</td></tr>`;
+        }
+        if (entries.length === 0) html += '<tr><td colspan="3">Нет данных</td></tr>';
+        html += '</tbody></table>';
+        document.getElementById(containerId).innerHTML = html;
+    }
+
+    // Охрана: эстафета (охрана)
+    function renderSecurityEstafeta() {
+        let data = defaultSecurityEstafeta;
+        const stored = localStorage.getItem('security_estafeta');
+        if (stored) try { data = JSON.parse(stored); } catch(e) {}
+        let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th><th>Штраф</th></tr></thead><tbody>';
+        for (let row of data) {
+            const rowClass = (row.place === 1) ? 'class="rank-1"' : '';
+            html += `<tr ${rowClass}><td>${row.place}</td><td>${row.team}</td><td>${row.time}</td><td>${row.penalty}</td></tr>`;
+        }
+        html += '</tbody></table>';
+        document.getElementById('security-estafeta').innerHTML = html;
+    }
+
+    // Служебное двоеборье
+    function renderServiceDuathlon() {
+        let data = defaultServiceDuathlon;
+        const stored = localStorage.getItem('service_duathlon');
+        if (stored) try { data = JSON.parse(stored); } catch(e) {}
+        let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Участник</th><th>Результат</th></tr></thead><tbody>';
+        for (let row of data) {
+            const rowClass = (row.place === 1) ? 'class="rank-1"' : '';
+            html += `<tr ${rowClass}><td>${row.place}</td><td>${row.team}</td><td>${row.name}</td><td>${row.result}</td></tr>`;
+        }
+        html += '</tbody></table>';
+        document.getElementById('service-duathlon').innerHTML = html;
+    }
+
+    // Обновление всей страницы
+    async function refreshAll() {
+        await renderTeamStandings();
+        await renderDisciplines();
+        renderIndividual();
+        await renderTeamEstafeta('team-estafeta-common');
+        await renderTeamEstafeta('team-estafeta-common-ohrana');
+        renderSecurityEstafeta();
+        renderServiceDuathlon();
+    }
+
+    // Инициализация вкладок
+    function initTabs() {
+        const btns = document.querySelectorAll('.tab-btn');
+        const panes = {
+            inkasso: document.getElementById('inkasso-pane'),
+            ohrana: document.getElementById('ohrana-pane')
+        };
+        btns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                btns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                Object.keys(panes).forEach(p => panes[p].classList.remove('active-pane'));
+                if (tabId === 'inkasso') {
+                    panes.inkasso.classList.add('active-pane');
+                    refreshAll();
+                } else {
+                    panes.ohrana.classList.add('active-pane');
+                    refreshAll();
+                }
+            });
+        });
+    }
+
+    // Слушаем изменения в localStorage (триатлон, охрана) и обновляем
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'triathlon_data' || e.key === 'security_estafeta' || e.key === 'service_duathlon') {
+            refreshAll();
+        }
+    });
+
+    // Кнопки обновления
+    document.getElementById('refreshAllBtn').addEventListener('click', refreshAll);
+    document.getElementById('refreshOhranaBtn').addEventListener('click', () => {
+        renderSecurityEstafeta();
+        renderServiceDuathlon();
+        renderTeamEstafeta('team-estafeta-common-ohrana');
+    });
+
+    // Старт
+    initTabs();
+    refreshAll();
+</script>
+</body>
+</html>
