@@ -119,7 +119,7 @@
             "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
         };
 
-        // Статика (личное первенство пока из Excel)
+        // ---------- СТАТИЧЕСКИЕ ДАННЫЕ (личное первенство) ----------
         const defaultShootingPlaces = { "СИБ":5, "СРБ":1, "СЗБ":3, "ДВБ":2, "ЦЧБ":4, "ВВБ":8, "ЮЗБ":7, "ПВБ":6, "УБ":10, "ББ":9, "МРД":11 };
         const defaultIndividual = [
             { place:1, team:"Среднерусский", name:"Артемкин Николай Николаевич", result:"02:48,45" },
@@ -136,7 +136,7 @@
         let shootingPlaces = { ...defaultShootingPlaces };
         let individualData = [...defaultIndividual];
 
-        // ---------- ВСПОМОГАТЕЛЬНЫЕ ----------
+        // ---------- ФОРМАТИРОВАНИЕ ВРЕМЕНИ ----------
         function formatTime(sec) {
             if (sec === null || isNaN(sec)) return "—";
             let minutes = Math.floor(sec / 60);
@@ -256,7 +256,7 @@
             return computePlaces(totals);
         }
 
-        // ---------- МАСТЕРСТВО ВОЖДЕНИЯ (driving_results) ----------
+        // ---------- МАСТЕРСТВО ВОЖДЕНИЯ ----------
         async function loadDrivingResults() {
             try {
                 const { data, error } = await supabase.from('driving_results').select('*');
@@ -296,7 +296,6 @@
                     });
                 }
             }
-            // Места по сумме мест фигурного и СДУ (для сортировки)
             const figureEntries = res.filter(r => r.figure_total !== null).sort((a,b) => a.figure_total - b.figure_total);
             const sduEntries = res.filter(r => r.sdu_total !== null).sort((a,b) => a.sdu_total - b.sdu_total);
             const figurePlaces = {}, sduPlaces = {};
@@ -411,7 +410,7 @@
             } catch(e) { console.warn(e); return []; }
         }
 
-        // ---------- КОМАНДНОЕ ПЕРВЕНСТВО (инкассация) ----------
+        // ---------- КОМАНДНОЕ ПЕРВЕНСТВО ----------
         async function computeTeamStandings() {
             const estafetaTimes = await loadBestEstafetaTimes();
             const triPlaces = await getTriathlonPlaces();
@@ -432,14 +431,16 @@
             return standings;
         }
 
-        // ---------- РЕНДЕР ТАБЛИЦ ----------
+        // ---------- РЕНДЕР ТАБЛИЦ (все таблицы строятся правильно) ----------
         async function renderTeamStandings(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
             container.innerHTML = '<div class="loading">Загрузка...</div>';
             try {
                 const standings = await computeTeamStandings();
-                let html = '<tr><thead><tr><th>Итоговое место</th><th>Команда</th><th>Эстафета</th><th>Триатлон</th><th>Мастерство вождения</th><th>Практическая стрельба</th><th>Сумма мест</th></tr></thead><tbody>';
+                let html = '<table><thead><tr>' +
+                    '<th>Итоговое место</th><th>Команда</th><th>Эстафета</th><th>Триатлон</th><th>Мастерство вождения</th><th>Практическая стрельба</th><th>Сумма мест</th>' +
+                    '</tr></thead><tbody>';
                 let rank = 1;
                 for (let s of standings) {
                     const rowClass = (rank === 1) ? 'class="rank-1"' : '';
@@ -451,7 +452,7 @@
                                 <td>${s.drv}${s.drv === teamCodes.length+1 ? '†' : ''}</td>
                                 <td>${s.shoot}${s.shoot === teamCodes.length+1 ? '†' : ''}</td>
                                 <td><strong>${s.total}</strong></td>
-                             </td>`;
+                             </tr>`;
                 }
                 html += '</tbody></table>';
                 container.innerHTML = html;
@@ -464,17 +465,17 @@
             container.innerHTML = '<div class="loading">Загрузка...</div>';
             const rows = await loadDetailedEstafeta();
             if (rows.length === 0) { container.innerHTML = '<div class="loading">Нет данных эстафеты</div>'; return; }
-            let html = '<tr><thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead><tbody>';
+            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead><tbody>';
             for (let row of rows) {
                 const rowClass = (row.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
                             <td>${row.place}</td>
-                            <td><strong>${row.team_name}</strong> (${row.team_code})</strong></td>
+                            <td><strong>${row.team_name}</strong> (${row.team_code})</td>
                             <td>${row.direction}</td>
-                            <td>${formatTime(row.raw_seconds)}</strong></td>
-                            <td>${row.penalty}</strong></td>
-                            <td>${formatTime(row.total_seconds)}</strong></td>
-                          </td>`;
+                            <td>${formatTime(row.raw_seconds)}</td>
+                            <td>${row.penalty}</td>
+                            <td>${formatTime(row.total_seconds)}</td>
+                         </tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
@@ -486,7 +487,12 @@
             container.innerHTML = '<div class="loading">Загрузка...</div>';
             const details = await getTriathlonDetails();
             if (details.length === 0) { container.innerHTML = '<div class="loading">Нет данных триатлона</div>'; return; }
-            let html = '<tr><thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Чистое время 1</th><th>Штраф 1</th><th>Итог 1</th><th>Участник 2</th><th>Чистое время 2</th><th>Штраф 2</th><th>Итог 2</th><th>Сумма команды</th></tr></thead><tbody>';
+            let html = '<table><thead><tr>' +
+                '<th>Место</th><th>Команда</th>' +
+                '<th>Участник 1</th><th>Чистое время 1</th><th>Штраф 1</th><th>Итог 1</th>' +
+                '<th>Участник 2</th><th>Чистое время 2</th><th>Штраф 2</th><th>Итог 2</th>' +
+                '<th>Сумма команды</th>' +
+                '</tr></thead><tbody>';
             for (let d of details) {
                 const rowClass = (d.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
@@ -501,7 +507,7 @@
                             <td>${d.penalty2}</td>
                             <td>${d.total2 !== null ? formatTime(d.total2) : '—'}</td>
                             <td><strong>${d.teamTotal !== null ? formatTime(d.teamTotal) : '—'}</strong></td>
-                          </tr>`;
+                         </tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
@@ -516,7 +522,12 @@
                 container.innerHTML = '<div class="loading">Нет данных мастерства вождения</div>';
                 return;
             }
-            let html = '<table><thead><tr><th>Место (итог)</th><th>Команда</th><th>Участник</th><th>Фигурное (чистое)</th><th>Фигурное (штраф)</th><th>Фигурное (итог)</th><th>СДУ (чистое)</th><th>СДУ (штраф)</th><th>СДУ (итог)</th><th>Общее время</th></tr></thead><tbody>';
+            let html = '<table><thead><tr>' +
+                '<th>Место (итог)</th><th>Команда</th><th>Участник</th>' +
+                '<th>Фигурное (чистое)</th><th>Фигурное (штраф)</th><th>Фигурное (итог)</th>' +
+                '<th>СДУ (чистое)</th><th>СДУ (штраф)</th><th>СДУ (итог)</th>' +
+                '<th>Общее время</th>' +
+                '</tr></thead><tbody>';
             for (let d of details) {
                 const rowClass = (d.overall_place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
@@ -530,17 +541,16 @@
                             <td>${d.sdu_penalty}</td>
                             <td>${d.sdu_total !== null ? formatTime(d.sdu_total) : '—'}</td>
                             <td><strong>${d.total_time !== null ? formatTime(d.total_time) : '—'}</strong></td>
-                          </td>`;
+                         </tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
         }
 
-        // Личное первенство – исправленная таблица
         function renderIndividual(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
-            let html = '</table><thead><tr><th>Место</th><th>Команда</th><th>ФИО</th><th>Суммарный результат</th></tr></thead><tbody>';
+            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>ФИО</th><th>Суммарный результат</th></tr></thead><tbody>';
             for (let p of individualData) {
                 const rowClass = (p.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
@@ -548,7 +558,7 @@
                             <td>${p.team}</td>
                             <td>${p.name}</td>
                             <td>${p.result}</td>
-                         <tr>`;
+                         </tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
@@ -565,7 +575,11 @@
             let rank = 1;
             for (let [code, total] of entries) {
                 const rowClass = (rank === 1) ? 'class="rank-1"' : '';
-                html += `<tr ${rowClass}><td>${rank++}</td><td><strong>${teamNames[code]} (${code})</strong></td><td>${formatTime(total)}</strong></td></tr>`;
+                html += `<tr ${rowClass}>
+                            <td>${rank++}</td>
+                            <td><strong>${teamNames[code]} (${code})</strong></td>
+                            <td>${formatTime(total)}</td>
+                         </tr>`;
             }
             if (entries.length === 0) html += '<tr><td colspan="3">Нет данных</td></tr>';
             html += '</tbody></table>';
@@ -583,14 +597,14 @@
                 const rowClass = (row.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
                             <td>${row.place}</td>
-                            <td><strong>${row.team_name}</strong> (${row.team_code})</strong></td>
+                            <td><strong>${row.team_name}</strong> (${row.team_code})</td>
                             <td>${row.direction}</td>
-                            <td>${formatTime(row.raw_seconds)}</strong></td>
-                            <td>${row.penalty}</strong></td>
-                            <td>${formatTime(row.total_seconds)}</strong></td>
-                          </td>`;
+                            <td>${formatTime(row.raw_seconds)}</td>
+                            <td>${row.penalty}</td>
+                            <td>${formatTime(row.total_seconds)}</td>
+                         </tr>`;
             }
-            html += '</tbody><tr>';
+            html += '</tbody></table>';
             container.innerHTML = html;
         }
 
@@ -605,20 +619,20 @@
                 const rowClass = (row.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
                             <td>${row.place}${row.place === teamCodes.length+1 ? '†' : ''}</td>
-                            <td><strong>${row.team_name}</strong> (${row.team_code})</strong></td>
+                            <td><strong>${row.team_name}</strong> (${row.team_code})</td>
                             <td>${row.participant}</td>
                             <td>${row.raw_seconds !== null ? formatTime(row.raw_seconds) : '—'}</td>
                             <td>${row.misses} (${row.misses*30} сек)</td>
-                            <td>${row.penalty_misses} сек</strong></td>
-                            <td>${row.penalty_errors} сек</strong></td>
+                            <td>${row.penalty_misses} сек</td>
+                            <td>${row.penalty_errors} сек</td>
                             <td><strong>${row.total_seconds !== null ? formatTime(row.total_seconds) : '—'}</strong></td>
-                          </tr>`;
+                         </tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
         }
 
-        // ---------- ОБНОВЛЕНИЕ ВСЕХ БЛОКОВ ----------
+        // ---------- ОБНОВЛЕНИЕ ----------
         async function refreshInkasso() {
             await renderTeamStandings('team-standings-inkasso');
             await renderDetailedEstafeta('detailed-estafeta');
