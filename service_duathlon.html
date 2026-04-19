@@ -76,7 +76,7 @@
         <div class="time-row">
             <div class="control-group">
                 <label>⏱️ Чистое время бега (мм:сс.сс)</label>
-                <input type="text" id="rawTimeInput" placeholder="например 3:22.15">
+                <input type="text" id="rawTimeInput" placeholder="например 3:22.88">
             </div>
             <button id="saveRawTimeBtn" class="btn-secondary">Сохранить время</button>
         </div>
@@ -87,9 +87,7 @@
             <button id="saveMissesBtn" style="margin-top: 8px;">💾 Сохранить количество промахов</button>
         </div>
 
-        <div id="penaltiesContainer" class="penalties-grid">
-            <!-- Список ошибок -->
-        </div>
+        <div id="penaltiesContainer" class="penalties-grid"></div>
 
         <div style="display: flex; gap: 10px; margin-top: 15px;">
             <button id="saveAllBtn">💾 Сохранить все данные (время, промахи, ошибки)</button>
@@ -111,7 +109,7 @@
                 <tr><th>Место</th><th>Команда</th><th>Участник</th><th>Чистое время</th><th>Промахи</th><th>Штраф за промахи</th><th>Штраф за ошибки</th><th>Итоговое время</th></tr>
             </thead>
             <tbody id="resultsBody">
-                <tr><td colspan="8">Загрузка数据...</td></tr>
+                <tr><td colspan="8">Загрузка данных...</td></tr>
             </tbody>
         </table>
     </div>
@@ -141,6 +139,7 @@
         
         const PENALTY_PER_MISS = 30;
         
+        // ---------- СОСТОЯНИЕ ----------
         let currentTeam = null;
         let currentData = {
             participant_name: "",
@@ -149,8 +148,8 @@
             penalties: {}
         };
         let tempPenalties = {};
-        let hasUnsavedChanges = false;
         
+        // DOM элементы
         const teamSelect = document.getElementById('teamSelect');
         const participantNameInput = document.getElementById('participantName');
         const rawTimeInput = document.getElementById('rawTimeInput');
@@ -161,7 +160,8 @@
         const saveAllBtn = document.getElementById('saveAllBtn');
         const resetAllBtn = document.getElementById('resetAllBtn');
         
-        // ---------- ИСПРАВЛЕННЫЕ ФУНКЦИИ ФОРМАТИРОВАНИЯ ----------
+        // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
+        // Формат времени: минуты:секунды.сотые (например, 3:22.88)
         function formatTime(sec) {
             if (sec === null || isNaN(sec)) return "—";
             let minutes = Math.floor(sec / 60);
@@ -169,6 +169,7 @@
             return minutes + ":" + seconds.toString().padStart(5, '0');
         }
         
+        // Парсинг времени из строки вида "3:22.88" или "03:22.88"
         function parseTime(str) {
             if (!str.trim()) return null;
             let parts = str.trim().split(':');
@@ -179,16 +180,18 @@
                 let dotIndex = secPart.indexOf('.');
                 if (dotIndex !== -1) {
                     seconds = parseInt(secPart.substring(0, dotIndex)) || 0;
-                    seconds += parseFloat('0.' + secPart.substring(dotIndex+1)) || 0;
+                    let fraction = parseFloat('0.' + secPart.substring(dotIndex+1)) || 0;
+                    seconds += fraction;
                 } else {
-                    seconds = parseInt(secPart) || 0;
+                    seconds = parseFloat(secPart) || 0;
                 }
             } else if (parts.length === 1) {
                 seconds = parseFloat(parts[0]) || 0;
             } else {
                 return null;
             }
-            return minutes * 60 + seconds;
+            let total = minutes * 60 + seconds;
+            return isNaN(total) ? null : total;
         }
         
         function getPenaltySum(penObj) {
@@ -200,6 +203,7 @@
             return sum;
         }
         
+        // ---------- РАБОТА С SUPABASE ----------
         async function loadTeamData(teamCode) {
             if (!teamCode) return null;
             try {
@@ -247,6 +251,7 @@
             } catch(e) { console.warn(e); return []; }
         }
         
+        // ---------- ОБНОВЛЕНИЕ UI ----------
         async function refreshCurrentTeamUI() {
             if (!currentTeam) {
                 participantNameInput.value = "";
@@ -266,7 +271,6 @@
                     penalties: {}
                 };
                 tempPenalties = {};
-                hasUnsavedChanges = false;
             } else {
                 currentData = {
                     participant_name: "",
@@ -275,7 +279,6 @@
                     penalties: {}
                 };
                 tempPenalties = {};
-                hasUnsavedChanges = false;
             }
             participantNameInput.value = currentData.participant_name;
             rawTimeInput.value = currentData.raw_seconds !== null ? formatTime(currentData.raw_seconds) : "";
@@ -303,7 +306,6 @@
                     cb.onchange = () => {
                         if (cb.checked) tempPenalties[p.id] = true;
                         else delete tempPenalties[p.id];
-                        hasUnsavedChanges = true;
                         updateSummary();
                     };
                 }
@@ -327,11 +329,10 @@
             const name = participantNameInput.value.trim();
             const rawStr = rawTimeInput.value.trim();
             let rawSeconds = rawStr === "" ? null : parseTime(rawStr);
-            if (rawStr !== "" && rawSeconds === null) { alert('Неверный формат времени (используйте мм:сс.сс)'); return; }
+            if (rawStr !== "" && rawSeconds === null) { alert('Неверный формат времени. Используйте мм:сс.сс, например 3:22.88'); return; }
             const misses = parseInt(missesInput.value) || 0;
             if (misses < 0 || misses > 8) { alert('Промахи должны быть от 0 до 8'); return; }
             await saveTeamData(currentTeam, name, rawSeconds, misses, tempPenalties);
-            hasUnsavedChanges = false;
             await refreshCurrentTeamUI();
             await renderOverallTable();
             alert('Данные сохранены');
@@ -350,7 +351,7 @@
             if (!currentTeam) { alert('Выберите команду'); return; }
             const rawStr = rawTimeInput.value.trim();
             let rawSeconds = rawStr === "" ? null : parseTime(rawStr);
-            if (rawStr !== "" && rawSeconds === null) { alert('Неверный формат времени (используйте мм:сс.сс)'); return; }
+            if (rawStr !== "" && rawSeconds === null) { alert('Неверный формат времени. Используйте мм:сс.сс, например 3:22.88'); return; }
             currentData.raw_seconds = rawSeconds;
             await saveTeamData(currentTeam, currentData.participant_name, rawSeconds, currentData.misses, tempPenalties);
             await refreshCurrentTeamUI();
@@ -427,14 +428,16 @@
             }
         }
         
+        // ---------- ОБРАБОТЧИКИ ----------
         teamSelect.addEventListener('change', async () => {
             currentTeam = teamSelect.value || null;
             await refreshCurrentTeamUI();
         });
-        participantNameInput.addEventListener('change', () => {
+        participantNameInput.addEventListener('change', async () => {
             if (currentTeam) {
                 currentData.participant_name = participantNameInput.value;
-                saveAll(); // сохраняем имя сразу
+                await saveTeamData(currentTeam, currentData.participant_name, currentData.raw_seconds, currentData.misses, tempPenalties);
+                await renderOverallTable();
             }
         });
         saveRawTimeBtn.addEventListener('click', saveRawTimeOnly);
@@ -442,6 +445,7 @@
         saveAllBtn.addEventListener('click', saveAll);
         resetAllBtn.addEventListener('click', resetAll);
         
+        // ---------- ИНИЦИАЛИЗАЦИЯ ----------
         async function init() {
             const statusDiv = document.getElementById('connectionStatus');
             statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>';
