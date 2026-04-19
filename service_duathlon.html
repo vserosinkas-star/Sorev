@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Служебное двоеборье — судейская панель</title>
+    <title>Служебное двоеборье — судейская панель (3 участника)</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
@@ -15,8 +15,13 @@
         .control-group { margin-bottom: 20px; }
         .control-group label { font-weight: 600; display: block; margin-bottom: 6px; color: #1e3a5f; }
         select, input { width: 100%; padding: 12px; border-radius: 16px; border: 1px solid #cbd5e1; font-size: 1rem; background: white; }
-        .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin: 15px 0; }
-        .penalty-card { background: #f9fafb; border: 1px solid #e2e8f0; border-radius: 16px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+        .participant-selector { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
+        .participant-btn { background: #e2e8f0; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; font-size: 0.9rem; font-weight: 500; color: #1e293b; }
+        .participant-btn.active { background: #1e3a8a; color: white; }
+        .participant-card { background: #f9fafb; border-radius: 24px; padding: 16px; margin-top: 20px; border: 1px solid #e2e8f0; }
+        .participant-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; color: #0f2b44; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin: 15px 0; max-height: 300px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px; background: white; }
+        .penalty-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
         .penalty-card input { width: 22px; height: 22px; margin: 0; }
         .penalty-card label { flex: 1; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .penalty-sec { background: #e2e8f0; padding: 2px 8px; border-radius: 30px; font-size: 0.75rem; font-weight: 600; }
@@ -29,7 +34,7 @@
         .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: bold; margin-left: 12px; }
         .summary-bar { background: #f1f5f9; border-radius: 20px; padding: 16px; margin-top: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; font-weight: 600; }
         .results-table { background: white; border-radius: 24px; overflow-x: auto; padding: 4px; margin-top: 30px; }
-        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        table { width: 100%; border-collapse: collapse; min-width: 900px; }
         th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; }
         th { background: #f8fafc; }
         .rank-1 { background-color: #fef9c3; font-weight: bold; }
@@ -43,7 +48,7 @@
 <div class="container">
     <div class="header">
         <h1>🏃‍♂️🎯 Служебное двоеборье (бег 1000 м + стрельба)</h1>
-        <p>Дистанция 1000 м, 2 огневых рубежа (3+5 выстрелов), штрафной круг 50 м за каждый промах</p>
+        <p>Дистанция 1000 м, 2 огневых рубежа (3+5 выстрелов), штрафной круг 50 м за каждый промах. Команда — 3 участника.</p>
     </div>
 
     <div class="judge-panel">
@@ -66,50 +71,61 @@
             </select>
         </div>
 
-        <div class="time-row">
+        <!-- Кнопки выбора участника (1,2,3) -->
+        <div class="participant-selector">
+            <button class="participant-btn active" data-participant="1">👤 Участник 1</button>
+            <button class="participant-btn" data-participant="2">👤 Участник 2</button>
+            <button class="participant-btn" data-participant="3">👤 Участник 3</button>
+        </div>
+
+        <!-- Карточка участника (динамическая) -->
+        <div id="participantCard" class="participant-card" style="display: none;">
+            <div class="participant-title">
+                <span>👤 Данные участника</span>
+                <input type="text" id="participantName" placeholder="ФИО участника" style="width: auto; flex:1; margin-left: 10px;">
+            </div>
+            <div class="time-row">
+                <div class="control-group">
+                    <label>⏱️ Чистое время бега (мм:сс.сс)</label>
+                    <input type="text" id="rawTimeInput" placeholder="например 3:22.15">
+                </div>
+                <button id="saveRawTimeBtn" class="btn-secondary">Сохранить время</button>
+            </div>
             <div class="control-group">
-                <label>👤 ФИО участника</label>
-                <input type="text" id="participantName" placeholder="Иванов Иван Иванович">
+                <label>🔫 Количество промахов (0-8). Каждый промах = штрафной круг 50 м (+30 сек)</label>
+                <input type="number" id="missesInput" min="0" max="8" value="0" step="1">
+                <button id="saveMissesBtn" style="margin-top: 8px;">💾 Сохранить промахи</button>
+            </div>
+            <div id="penaltiesContainer" class="penalties-grid"></div>
+            <div style="display: flex; gap: 10px; margin-top: 12px;">
+                <button id="saveAllBtn">💾 Сохранить все данные участника</button>
+                <button id="resetParticipantBtn" class="btn-warning">🗑️ Сбросить данные участника</button>
+            </div>
+            <div class="summary-bar">
+                <span>Штраф за ошибки: <span id="penaltySum">0</span> сек</span>
+                <span>Штраф за промахи: <span id="missesPenalty">0</span> сек</span>
+                <span>Чистое время: <span id="rawTimeDisplay">—</span></span>
+                <span>Итого: <strong id="totalTimeDisplay">—</strong></span>
             </div>
         </div>
 
-        <div class="time-row">
-            <div class="control-group">
-                <label>⏱️ Чистое время бега (мм:сс.сс)</label>
-                <input type="text" id="rawTimeInput" placeholder="например 3:22.15">
-            </div>
-            <button id="saveRawTimeBtn" class="btn-secondary">Сохранить время</button>
-        </div>
-
-        <div class="control-group">
-            <label>🔫 Количество промахов (0-8). Каждый промах = штрафной круг 50 м (+30 сек)</label>
-            <input type="number" id="missesInput" min="0" max="8" value="0" step="1">
-            <button id="saveMissesBtn" style="margin-top: 8px;">💾 Сохранить количество промахов</button>
-        </div>
-
-        <div id="penaltiesContainer" class="penalties-grid"></div>
-
-        <div style="display: flex; gap: 10px; margin-top: 15px;">
-            <button id="saveAllBtn">💾 Сохранить все данные (время, промахи, ошибки)</button>
-            <button id="resetAllBtn" class="btn-warning">🗑️ Сбросить все данные команды</button>
-        </div>
-
-        <div class="summary-bar">
-            <span><strong>Штраф за ошибки:</strong> <span id="penaltySum">0</span> сек</span>
-            <span><strong>Штраф за промахи:</strong> <span id="missesPenalty">0</span> сек</span>
-            <span><strong>Чистое время:</strong> <span id="rawTimeDisplay">—</span></span>
-            <span class="total-time"><strong>ИТОГО:</strong> <span id="totalTimeDisplay">—</span></span>
+        <div style="margin-top: 20px; text-align: center;">
+            <button id="syncTeamBtn" style="background: #2b6e3c;">💾 Синхронизировать всех участников команды</button>
         </div>
     </div>
 
     <div class="results-table">
-        <h3>🏆 Общий зачёт (служебное двоеборье)</h3>
+        <h3>🏆 Общий зачёт (служебное двоеборье) — сумма трёх участников</h3>
         <table id="resultsTable">
             <thead>
-                <tr><th>Место</th><th>Команда</th><th>Участник</th><th>Чистое время</th><th>Промахи</th><th>Штраф за промахи</th><th>Штраф за ошибки</th><th>Итоговое время</th></tr>
+                <tr>
+                    <th>Место</th><th>Команда</th>
+                    <th>Участник 1</th><th>Время 1</th><th>Участник 2</th><th>Время 2</th><th>Участник 3</th><th>Время 3</th>
+                    <th>Суммарное время команды</th>
+                </tr>
             </thead>
             <tbody id="resultsBody">
-                <tr><td colspan="8">Загрузка данных...</td></tr>
+                <tr><td colspan="9">Загрузка данных...</td></tr>
             </tbody>
         </table>
     </div>
@@ -117,6 +133,7 @@
 
 <script>
     (function() {
+        // ---------- НАСТРОЙКИ SUPABASE ----------
         const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -128,6 +145,7 @@
             "СИБ": "Сибирский", "СРБ": "Среднерусский", "СЗБ": "Северо-Западный", "ВВБ": "Волго-Вятский"
         };
         
+        // Список ошибок (по документу)
         const penaltiesList = [
             { id: "falsestart", desc: "Фальстарт", sec: 5 },
             { id: "gun_drop", desc: "Падение пистолета (пистолет коснулся земли)", sec: 20 },
@@ -136,16 +154,21 @@
         ];
         const PENALTY_PER_MISS = 30;
         
+        // Состояние
         let currentTeam = null;
-        let currentData = {
-            participant_name: "",
-            raw_seconds: null,
-            misses: 0,
-            penalties: {}
+        let currentParticipant = 1;   // 1,2,3
+        let participantsData = {
+            1: { name: "", raw_seconds: null, misses: 0, penalties: {} },
+            2: { name: "", raw_seconds: null, misses: 0, penalties: {} },
+            3: { name: "", raw_seconds: null, misses: 0, penalties: {} }
         };
-        let tempPenalties = {};
+        let tempPenalties = {};  // временные штрафы для текущего участника
+        let unsavedChanges = false;
         
+        // DOM элементы
         const teamSelect = document.getElementById('teamSelect');
+        const participantBtns = document.querySelectorAll('.participant-btn');
+        const participantCard = document.getElementById('participantCard');
         const participantNameInput = document.getElementById('participantName');
         const rawTimeInput = document.getElementById('rawTimeInput');
         const missesInput = document.getElementById('missesInput');
@@ -153,13 +176,14 @@
         const saveRawTimeBtn = document.getElementById('saveRawTimeBtn');
         const saveMissesBtn = document.getElementById('saveMissesBtn');
         const saveAllBtn = document.getElementById('saveAllBtn');
-        const resetAllBtn = document.getElementById('resetAllBtn');
+        const resetParticipantBtn = document.getElementById('resetParticipantBtn');
+        const syncTeamBtn = document.getElementById('syncTeamBtn');
         
+        // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
         function formatTime(sec) {
             if (sec === null || isNaN(sec)) return "—";
             let minutes = Math.floor(sec / 60);
             let seconds = (sec % 60).toFixed(2);
-            // формат: минуты:секунды.сотые (без лишних нулей)
             return minutes + ":" + seconds.toString().padStart(5, '0');
         }
         
@@ -195,85 +219,87 @@
             return sum;
         }
         
-        async function loadTeamData(teamCode) {
-            if (!teamCode) return null;
+        // ---------- РАБОТА С SUPABASE ----------
+        async function loadAllParticipants(teamCode) {
+            if (!teamCode) return;
             try {
                 const { data, error } = await supabaseClient
                     .from('service_duathlon_results')
                     .select('*')
-                    .eq('team_code', teamCode)
-                    .maybeSingle();
+                    .eq('team_code', teamCode);
                 if (error) throw error;
-                return data;
-            } catch(e) { console.warn(e); return null; }
+                const newData = { 1: { name: "", raw_seconds: null, misses: 0, penalties: {} },
+                                  2: { name: "", raw_seconds: null, misses: 0, penalties: {} },
+                                  3: { name: "", raw_seconds: null, misses: 0, penalties: {} } };
+                for (let row of data) {
+                    const pNum = row.participant_number;
+                    if (pNum >= 1 && pNum <= 3) {
+                        newData[pNum] = {
+                            name: row.participant_name || "",
+                            raw_seconds: row.raw_seconds,
+                            misses: row.misses || 0,
+                            penalties: row.penalties || {}
+                        };
+                    }
+                }
+                participantsData = newData;
+                // Сохраняем в localStorage для резерва
+                localStorage.setItem(`service_duathlon_team_${teamCode}`, JSON.stringify(participantsData));
+            } catch(e) { console.warn(e); }
         }
         
-        async function saveTeamData(teamCode, participant_name, raw_seconds, misses, penaltiesObj) {
-            const penaltyMisses = misses * PENALTY_PER_MISS;
-            const penaltyErrors = getPenaltySum(penaltiesObj);
-            const totalPenalty = penaltyMisses + penaltyErrors;
-            const total_seconds = (raw_seconds !== null ? raw_seconds : 0) + totalPenalty;
-            const upsertData = {
+        async function saveParticipant(teamCode, participantNumber, data) {
+            const penaltyErrors = getPenaltySum(data.penalties);
+            const penaltyMisses = data.misses * PENALTY_PER_MISS;
+            const totalPenalty = penaltyErrors + penaltyMisses;
+            const totalSeconds = (data.raw_seconds !== null ? data.raw_seconds : 0) + totalPenalty;
+            const payload = {
                 team_code: teamCode,
-                participant_name: participant_name,
-                raw_seconds: raw_seconds,
-                misses: misses,
-                penalty_seconds: totalPenalty,
-                total_seconds: total_seconds,
+                participant_number: participantNumber,
+                participant_name: data.name,
+                raw_seconds: data.raw_seconds,
+                misses: data.misses,
+                penalties: data.penalties,
+                total_seconds: totalSeconds,
                 updated_at: new Date().toISOString()
             };
             try {
                 const { error } = await supabaseClient
                     .from('service_duathlon_results')
-                    .upsert(upsertData, { onConflict: 'team_code' });
+                    .upsert(payload, { onConflict: 'team_code, participant_number' });
                 if (error) throw error;
-                return true;
-            } catch(e) { console.error(e); return false; }
+            } catch(e) { console.error(e); }
         }
         
-        async function loadAllResults() {
-            try {
-                const { data, error } = await supabaseClient
-                    .from('service_duathlon_results')
-                    .select('*');
-                if (error) throw error;
-                return data;
-            } catch(e) { console.warn(e); return []; }
+        async function syncAllParticipants(teamCode) {
+            if (!teamCode) return;
+            for (let i=1; i<=3; i++) {
+                await saveParticipant(teamCode, i, participantsData[i]);
+            }
         }
         
-        async function refreshCurrentTeamUI() {
+        // ---------- ЗАГРУЗКА ДАННЫХ ДЛЯ ТЕКУЩЕЙ КОМАНДЫ И УЧАСТНИКА ----------
+        async function refreshCurrentUI() {
             if (!currentTeam) {
-                participantNameInput.value = "";
-                rawTimeInput.value = "";
-                missesInput.value = "0";
-                tempPenalties = {};
-                renderPenalties();
-                updateSummary();
+                participantCard.style.display = 'none';
                 return;
             }
-            const dbData = await loadTeamData(currentTeam);
-            if (dbData) {
-                currentData = {
-                    participant_name: dbData.participant_name || "",
-                    raw_seconds: dbData.raw_seconds,
-                    misses: dbData.misses || 0,
-                    penalties: {}
-                };
-                tempPenalties = {};
-            } else {
-                currentData = {
-                    participant_name: "",
-                    raw_seconds: null,
-                    misses: 0,
-                    penalties: {}
-                };
-                tempPenalties = {};
-            }
-            participantNameInput.value = currentData.participant_name;
-            rawTimeInput.value = currentData.raw_seconds !== null ? formatTime(currentData.raw_seconds) : "";
-            missesInput.value = currentData.misses;
+            participantCard.style.display = 'block';
+            await loadAllParticipants(currentTeam);
+            // обновляем отображение текущего участника
+            updateCurrentParticipantUI();
+        }
+        
+        function updateCurrentParticipantUI() {
+            const data = participantsData[currentParticipant];
+            participantNameInput.value = data.name || "";
+            rawTimeInput.value = data.raw_seconds !== null ? formatTime(data.raw_seconds) : "";
+            missesInput.value = data.misses;
+            tempPenalties = { ...data.penalties };
+            unsavedChanges = false;
             renderPenalties();
             updateSummary();
+            updateBadge();
         }
         
         function renderPenalties() {
@@ -295,7 +321,9 @@
                     cb.onchange = () => {
                         if (cb.checked) tempPenalties[p.id] = true;
                         else delete tempPenalties[p.id];
+                        unsavedChanges = true;
                         updateSummary();
+                        updateBadge();
                     };
                 }
             }
@@ -305,7 +333,7 @@
             const penaltyErrors = getPenaltySum(tempPenalties);
             const misses = parseInt(missesInput.value) || 0;
             const penaltyMisses = misses * PENALTY_PER_MISS;
-            const raw = currentData.raw_seconds;
+            const raw = participantsData[currentParticipant].raw_seconds;
             const total = (raw !== null ? raw : 0) + penaltyErrors + penaltyMisses;
             document.getElementById('penaltySum').innerText = penaltyErrors;
             document.getElementById('missesPenalty').innerText = penaltyMisses;
@@ -313,122 +341,184 @@
             document.getElementById('totalTimeDisplay').innerText = formatTime(total);
         }
         
-        async function saveAll() {
+        function updateBadge() {
+            const btnContainer = saveAllBtn.parentNode;
+            let badge = btnContainer.querySelector('.unsaved-badge');
+            if (unsavedChanges && currentTeam) {
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'unsaved-badge';
+                    badge.innerText = '⚠️ есть изменения';
+                    btnContainer.appendChild(badge);
+                }
+            } else if (badge) badge.remove();
+        }
+        
+        async function saveCurrentParticipant() {
             if (!currentTeam) { alert('Выберите команду'); return; }
             const name = participantNameInput.value.trim();
             const rawStr = rawTimeInput.value.trim();
             let rawSeconds = rawStr === "" ? null : parseTime(rawStr);
-            if (rawStr !== "" && rawSeconds === null) { alert('Неверный формат времени (пример: 3:22.15)'); return; }
-            const misses = parseInt(missesInput.value) || 0;
-            if (misses < 0 || misses > 8) { alert('Промахи должны быть от 0 до 8'); return; }
-            await saveTeamData(currentTeam, name, rawSeconds, misses, tempPenalties);
-            await refreshCurrentTeamUI();
-            await renderOverallTable();
-            alert('Данные сохранены');
-        }
-        
-        async function saveRawTimeOnly() {
-            if (!currentTeam) { alert('Выберите команду'); return; }
-            const rawStr = rawTimeInput.value.trim();
-            let rawSeconds = rawStr === "" ? null : parseTime(rawStr);
             if (rawStr !== "" && rawSeconds === null) { alert('Неверный формат времени'); return; }
-            currentData.raw_seconds = rawSeconds;
-            await saveTeamData(currentTeam, currentData.participant_name, rawSeconds, currentData.misses, tempPenalties);
-            await refreshCurrentTeamUI();
-            await renderOverallTable();
-            alert('Время сохранено');
-        }
-        
-        async function saveMissesOnly() {
-            if (!currentTeam) { alert('Выберите команду'); return; }
             const misses = parseInt(missesInput.value) || 0;
             if (misses < 0 || misses > 8) { alert('Промахи от 0 до 8'); return; }
-            currentData.misses = misses;
-            await saveTeamData(currentTeam, currentData.participant_name, currentData.raw_seconds, misses, tempPenalties);
-            await refreshCurrentTeamUI();
+            participantsData[currentParticipant] = {
+                name: name,
+                raw_seconds: rawSeconds,
+                misses: misses,
+                penalties: { ...tempPenalties }
+            };
+            await saveParticipant(currentTeam, currentParticipant, participantsData[currentParticipant]);
+            unsavedChanges = false;
+            updateBadge();
             await renderOverallTable();
-            alert('Количество промахов сохранено');
+            alert(`Участник ${currentParticipant} сохранён`);
         }
         
-        async function resetAll() {
+        async function resetCurrentParticipant() {
+            if (!currentTeam) return;
+            if (!confirm(`Сбросить данные участника ${currentParticipant}?`)) return;
+            participantsData[currentParticipant] = { name: "", raw_seconds: null, misses: 0, penalties: {} };
+            await saveParticipant(currentTeam, currentParticipant, participantsData[currentParticipant]);
+            updateCurrentParticipantUI();
+            await renderOverallTable();
+            alert(`Данные участника ${currentParticipant} сброшены`);
+        }
+        
+        async function syncTeam() {
             if (!currentTeam) { alert('Выберите команду'); return; }
-            if (!confirm('Сбросить все данные для этой команды?')) return;
-            await saveTeamData(currentTeam, "", null, 0, {});
-            await refreshCurrentTeamUI();
+            await syncAllParticipants(currentTeam);
             await renderOverallTable();
-            alert('Данные сброшены');
+            alert('Все участники команды синхронизированы');
         }
         
+        // ---------- ОБЩИЙ ЗАЧЁТ (сумма трёх участников) ----------
         async function renderOverallTable() {
-            const results = await loadAllResults();
-            const rows = [];
+            // Загружаем данные всех команд
+            const allRows = [];
             for (let code of teamCodes) {
-                const dbRow = results.find(r => r.team_code === code);
-                if (!dbRow) {
-                    rows.push({
-                        code, name: teamNames[code],
-                        participant: "—",
-                        raw: null,
-                        misses: 0,
-                        penalty_misses: 0,
-                        penalty_errors: 0,
-                        total: null
-                    });
-                } else {
-                    const penaltyMisses = (dbRow.misses || 0) * PENALTY_PER_MISS;
-                    const penaltyErrors = (dbRow.penalty_seconds || 0) - penaltyMisses;
-                    rows.push({
-                        code, name: teamNames[code],
-                        participant: dbRow.participant_name || "—",
-                        raw: dbRow.raw_seconds,
-                        misses: dbRow.misses || 0,
-                        penalty_misses: penaltyMisses,
-                        penalty_errors: penaltyErrors > 0 ? penaltyErrors : 0,
-                        total: dbRow.total_seconds
-                    });
+                const { data, error } = await supabaseClient
+                    .from('service_duathlon_results')
+                    .select('*')
+                    .eq('team_code', code);
+                if (error) continue;
+                const participants = { 1: null, 2: null, 3: null };
+                for (let row of data) {
+                    participants[row.participant_number] = {
+                        name: row.participant_name || "—",
+                        total: row.total_seconds
+                    };
                 }
+                let totalTeamSeconds = 0;
+                let hasAny = false;
+                for (let i=1; i<=3; i++) {
+                    if (participants[i] && participants[i].total !== null && participants[i].total !== undefined) {
+                        totalTeamSeconds += participants[i].total;
+                        hasAny = true;
+                    }
+                }
+                allRows.push({
+                    code: code,
+                    name: teamNames[code],
+                    p1_name: participants[1]?.name || "—",
+                    p1_total: participants[1]?.total || null,
+                    p2_name: participants[2]?.name || "—",
+                    p2_total: participants[2]?.total || null,
+                    p3_name: participants[3]?.name || "—",
+                    p3_total: participants[3]?.total || null,
+                    team_total: hasAny ? totalTeamSeconds : null
+                });
             }
-            rows.sort((a,b) => {
-                if (a.total === null && b.total === null) return 0;
-                if (a.total === null) return 1;
-                if (b.total === null) return -1;
-                return a.total - b.total;
+            allRows.sort((a,b) => {
+                if (a.team_total === null && b.team_total === null) return 0;
+                if (a.team_total === null) return 1;
+                if (b.team_total === null) return -1;
+                return a.team_total - b.team_total;
             });
             const tbody = document.getElementById('resultsBody');
             tbody.innerHTML = '';
             let rank = 1;
-            for (let r of rows) {
+            for (let r of allRows) {
                 const tr = document.createElement('tr');
-                if (r.total !== null && rank === 1) tr.classList.add('rank-1');
+                if (r.team_total !== null && rank === 1) tr.classList.add('rank-1');
                 tr.innerHTML = `
-                    <td>${r.total !== null ? rank++ : '—'}</td>
-                    <td><strong>${r.name}</strong> (${r.code})</td>
-                    <td>${r.participant}</td>
-                    <td>${r.raw !== null ? formatTime(r.raw) : '—'}</td>
-                    <td>${r.misses} (${r.misses * PENALTY_PER_MISS} сек)</td>
-                    <td>${r.penalty_misses} сек</td>
-                    <td>${r.penalty_errors} сек</td>
-                    <td><strong>${r.total !== null ? formatTime(r.total) : '—'}</strong></td>
+                    <td>${r.team_total !== null ? rank++ : '—'}</td>
+                    <td><strong>${r.name}</strong> (${r.code})</strong></td>
+                    <td>${r.p1_name}</td>
+                    <td>${r.p1_total !== null ? formatTime(r.p1_total) : '—'}</td>
+                    <td>${r.p2_name}</td>
+                    <td>${r.p2_total !== null ? formatTime(r.p2_total) : '—'}</td>
+                    <td>${r.p3_name}</td>
+                    <td>${r.p3_total !== null ? formatTime(r.p3_total) : '—'}</td>
+                    <td><strong>${r.team_total !== null ? formatTime(r.team_total) : '—'}</strong></td>
                 `;
                 tbody.appendChild(tr);
             }
-            if (rows.length === 0 || rows.every(r => r.total === null)) {
-                tbody.innerHTML = '<tr><td colspan="8">Нет данных. Внесите результаты.</td></tr>';
+            if (allRows.length === 0 || allRows.every(r => r.team_total === null)) {
+                tbody.innerHTML = '<tr><td colspan="9">Нет данных. Внесите результаты.</td></tr>';
             }
         }
         
+        // ---------- ПЕРЕКЛЮЧЕНИЕ УЧАСТНИКА ----------
+        function setActiveParticipant(participantNum) {
+            currentParticipant = participantNum;
+            participantBtns.forEach(btn => {
+                if (parseInt(btn.getAttribute('data-participant')) === participantNum) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            if (currentTeam) {
+                updateCurrentParticipantUI();
+            }
+        }
+        
+        // ---------- ОБРАБОТЧИКИ ----------
         teamSelect.addEventListener('change', async () => {
             currentTeam = teamSelect.value || null;
-            await refreshCurrentTeamUI();
+            if (currentTeam) {
+                await refreshCurrentUI();
+                setActiveParticipant(currentParticipant);
+            } else {
+                participantCard.style.display = 'none';
+            }
         });
-        participantNameInput.addEventListener('change', () => {
-            if (currentTeam) saveAll();
+        participantBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const pNum = parseInt(btn.getAttribute('data-participant'));
+                setActiveParticipant(pNum);
+            });
         });
-        saveRawTimeBtn.addEventListener('click', saveRawTimeOnly);
-        saveMissesBtn.addEventListener('click', saveMissesOnly);
-        saveAllBtn.addEventListener('click', saveAll);
-        resetAllBtn.addEventListener('click', resetAll);
+        saveRawTimeBtn.addEventListener('click', () => {
+            // Сохраняем только время – сразу обновляем данные и сохраняем
+            if (!currentTeam) { alert('Выберите команду'); return; }
+            const rawStr = rawTimeInput.value.trim();
+            let rawSeconds = rawStr === "" ? null : parseTime(rawStr);
+            if (rawStr !== "" && rawSeconds === null) { alert('Неверный формат времени'); return; }
+            participantsData[currentParticipant].raw_seconds = rawSeconds;
+            saveParticipant(currentTeam, currentParticipant, participantsData[currentParticipant]).then(() => {
+                updateSummary();
+                renderOverallTable();
+                alert('Время сохранено');
+            });
+        });
+        saveMissesBtn.addEventListener('click', () => {
+            if (!currentTeam) { alert('Выберите команду'); return; }
+            const misses = parseInt(missesInput.value) || 0;
+            if (misses < 0 || misses > 8) { alert('Промахи от 0 до 8'); return; }
+            participantsData[currentParticipant].misses = misses;
+            saveParticipant(currentTeam, currentParticipant, participantsData[currentParticipant]).then(() => {
+                updateSummary();
+                renderOverallTable();
+                alert('Промахи сохранены');
+            });
+        });
+        saveAllBtn.addEventListener('click', saveCurrentParticipant);
+        resetParticipantBtn.addEventListener('click', resetCurrentParticipant);
+        syncTeamBtn.addEventListener('click', syncTeam);
         
+        // ---------- ИНИЦИАЛИЗАЦИЯ ----------
         async function init() {
             const statusDiv = document.getElementById('connectionStatus');
             statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>';
@@ -440,6 +530,7 @@
                 statusDiv.innerHTML = '<span class="status-error">❌ Ошибка подключения, данные только локально</span>';
             }
             await renderOverallTable();
+            participantCard.style.display = 'none';
         }
         init();
     })();
