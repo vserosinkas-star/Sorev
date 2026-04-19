@@ -91,7 +91,7 @@
         <div class="section">
             <h2>🏃‍♂️ Эстафета (охрана) — полоса препятствий, силовые, ПП</h2>
             <div class="table-wrapper" id="security-estafeta"><div class="loading">Загрузка...</div></div>
-            <div class="subnote">* Время: м:сс.сс или ч:мм:сс.сс. Штрафы по регламенту.</div>
+            <div class="subnote">* Время: м:сс.сс. Штрафы по регламенту.</div>
         </div>
         <div class="section">
             <h2>🏃‍♂️🎯 Служебное двоеборье (бег 1000 м + пистолет) — командный зачёт</h2>
@@ -383,7 +383,6 @@
             try {
                 const { data, error } = await supabase.from('service_duathlon_results').select('*');
                 if (error) throw error;
-                // Группируем по командам
                 const teamMap = new Map();
                 for (let row of data) {
                     const code = row.team_code;
@@ -450,7 +449,7 @@
             return standings;
         }
 
-        // ---------- РЕНДЕР ТАБЛИЦ (все таблицы строятся правильно) ----------
+        // ---------- РЕНДЕР ТАБЛИЦ (ВСЕ ТАБЛИЦЫ СТРОЯТСЯ ПРАВИЛЬНО) ----------
         async function renderTeamStandings(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -464,14 +463,14 @@
                 for (let s of standings) {
                     const rowClass = (rank === 1) ? 'class="rank-1"' : '';
                     html += `<tr ${rowClass}>
-                                <td>${rank++}</td>
-                                <td><strong>${s.name} (${s.code})</strong></td>
-                                <td>${s.est}${s.est === teamCodes.length+1 ? '†' : ''}</td>
-                                <td>${s.tri}${s.tri === teamCodes.length+1 ? '†' : ''}</td>
-                                <td>${s.drv}${s.drv === teamCodes.length+1 ? '†' : ''}</td>
-                                <td>${s.shoot}${s.shoot === teamCodes.length+1 ? '†' : ''}</td>
-                                <td><strong>${s.total}</strong></td>
-                             </tr>`;
+                                 <td>${rank++}</td>
+                                 <td><strong>${s.name} (${s.code})</strong></td>
+                                 <td>${s.est}${s.est === teamCodes.length+1 ? '†' : ''}</td>
+                                 <td>${s.tri}${s.tri === teamCodes.length+1 ? '†' : ''}</td>
+                                 <td>${s.drv}${s.drv === teamCodes.length+1 ? '†' : ''}</td>
+                                 <td>${s.shoot}${s.shoot === teamCodes.length+1 ? '†' : ''}</td>
+                                 <td><strong>${s.total}</strong></td>
+                              </tr>`;
                 }
                 html += '</tbody></table>';
                 container.innerHTML = html;
@@ -484,19 +483,21 @@
             container.innerHTML = '<div class="loading">Загрузка...</div>';
             const rows = await loadDetailedEstafeta();
             if (rows.length === 0) { container.innerHTML = '<div class="loading">Нет данных эстафеты</div>'; return; }
-            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th><tr></thead><tbody>';
+            let html = '<table><thead><tr>' +
+                '<th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th>' +
+                '</tr></thead><tbody>';
             for (let row of rows) {
                 const rowClass = (row.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
-                            <td>${row.place}</td>
-                            <td><strong>${row.team_name}</strong> (${row.team_code})</strong></td>
-                            <td>${row.direction}</td>
-                            <td>${formatTime(row.raw_seconds)}</strong></td>
-                            <td>${row.penalty}</strong></td>
-                            <td>${formatTime(row.total_seconds)}</strong></td>
+                             <td>${row.place}</td>
+                             <td><strong>${row.team_name}</strong> (${row.team_code})</td>
+                             <td>${row.direction}</td>
+                             <td>${formatTime(row.raw_seconds)}</td>
+                             <td>${row.penalty}</td>
+                             <td>${formatTime(row.total_seconds)}</td>
                           </tr>`;
             }
-            html += '</tbody></td>';
+            html += '</tbody></table>';
             container.innerHTML = html;
         }
 
@@ -515,18 +516,18 @@
             for (let d of details) {
                 const rowClass = (d.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
-                            <td>${d.place}</td>
-                            <td><strong>${d.name} (${d.code})</strong></td>
-                            <td>${d.name1}</td>
-                            <td>${d.raw1 !== null ? formatTime(d.raw1) : '—'}</td>
-                            <td>${d.penalty1}</td>
-                            <td>${d.total1 !== null ? formatTime(d.total1) : '—'}</td>
-                            <td>${d.name2}</td>
-                            <td>${d.raw2 !== null ? formatTime(d.raw2) : '—'}</td>
-                            <td>${d.penalty2}</td>
-                            <td>${d.total2 !== null ? formatTime(d.total2) : '—'}</td>
-                            <td><strong>${d.teamTotal !== null ? formatTime(d.teamTotal) : '—'}</strong></td>
-                         </tr>`;
+                             <td>${d.place}</td>
+                             <td><strong>${d.name} (${d.code})</strong></td>
+                             <td>${d.name1}</td>
+                             <td>${d.raw1 !== null ? formatTime(d.raw1) : '—'}</td>
+                             <td>${d.penalty1}</td>
+                             <td>${d.total1 !== null ? formatTime(d.total1) : '—'}</td>
+                             <td>${d.name2}</td>
+                             <td>${d.raw2 !== null ? formatTime(d.raw2) : '—'}</td>
+                             <td>${d.penalty2}</td>
+                             <td>${d.total2 !== null ? formatTime(d.total2) : '—'}</td>
+                             <td><strong>${d.teamTotal !== null ? formatTime(d.teamTotal) : '—'}</strong></td>
+                          </tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
@@ -541,7 +542,7 @@
                 container.innerHTML = '<div class="loading">Нет данных мастерства вождения</div>';
                 return;
             }
-            let html = '<tr><thead><tr>' +
+            let html = '<table><thead><tr>' +
                 '<th>Место (итог)</th><th>Команда</th><th>Участник</th>' +
                 '<th>Фигурное (чистое)</th><th>Фигурное (штраф)</th><th>Фигурное (итог)</th>' +
                 '<th>СДУ (чистое)</th><th>СДУ (штраф)</th><th>СДУ (итог)</th>' +
@@ -550,17 +551,17 @@
             for (let d of details) {
                 const rowClass = (d.overall_place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
-                            <td>${d.overall_place}${d.overall_place === teamCodes.length+1 ? '†' : ''}</td>
-                            <td><strong>${d.name} (${d.code})</strong></td>
-                            <td>${d.participant}</td>
-                            <td>${d.figure_raw !== null ? formatTime(d.figure_raw) : '—'}</td>
-                            <td>${d.figure_penalty}</td>
-                            <td>${d.figure_total !== null ? formatTime(d.figure_total) : '—'}</td>
-                            <td>${d.sdu_raw !== null ? formatTime(d.sdu_raw) : '—'}</td>
-                            <td>${d.sdu_penalty}</td>
-                            <td>${d.sdu_total !== null ? formatTime(d.sdu_total) : '—'}</td>
-                            <td><strong>${d.total_time !== null ? formatTime(d.total_time) : '—'}</strong></td>
-                         </td>`;
+                             <td>${d.overall_place}${d.overall_place === teamCodes.length+1 ? '†' : ''}</td>
+                             <td><strong>${d.name} (${d.code})</strong></td>
+                             <td>${d.participant}</td>
+                             <td>${d.figure_raw !== null ? formatTime(d.figure_raw) : '—'}</td>
+                             <td>${d.figure_penalty}</td>
+                             <td>${d.figure_total !== null ? formatTime(d.figure_total) : '—'}</td>
+                             <td>${d.sdu_raw !== null ? formatTime(d.sdu_raw) : '—'}</td>
+                             <td>${d.sdu_penalty}</td>
+                             <td>${d.sdu_total !== null ? formatTime(d.sdu_total) : '—'}</td>
+                             <td><strong>${d.total_time !== null ? formatTime(d.total_time) : '—'}</strong></td>
+                          </tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
@@ -569,15 +570,15 @@
         function renderIndividual(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
-            let html = '</table><thead><tr><th>Место</th><th>Команда</th><th>ФИО</th><th>Суммарный результат</th></tr></thead><tbody>';
+            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>ФИО</th><th>Суммарный результат</th></tr></thead><tbody>';
             for (let p of individualData) {
                 const rowClass = (p.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
-                            <td>${p.place}</td>
-                            <td>${p.team}</td>
-                            <td>${p.name}</td>
-                            <td>${p.result}</td>
-                         </tr>`;
+                             <td>${p.place}</td>
+                             <td>${p.team}</td>
+                             <td>${p.name}</td>
+                             <td>${p.result}</td>
+                          </tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
@@ -590,11 +591,11 @@
             const data = await loadTeamEstafeta();
             const entries = Object.entries(data).filter(([_, t]) => t && t>0);
             entries.sort((a,b) => a[1] - b[1]);
-            let html = '<td><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th></tr></thead><tbody>';
+            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th></tr></thead><tbody>';
             let rank = 1;
             for (let [code, total] of entries) {
                 const rowClass = (rank === 1) ? 'class="rank-1"' : '';
-                html += `<tr ${rowClass}><td>${rank++}</td><td><strong>${teamNames[code]} (${code})</strong></td><td>${formatTime(total)}</strong></td></tr>`;
+                html += `<tr ${rowClass}><td>${rank++}</td><td><strong>${teamNames[code]} (${code})</strong></td><td>${formatTime(total)}</td></tr>`;
             }
             if (entries.length === 0) html += '<tr><td colspan="3">Нет данных</td></tr>';
             html += '</tbody></table>';
@@ -607,16 +608,18 @@
             container.innerHTML = '<div class="loading">Загрузка...</div>';
             const rows = await loadSecurityEstafeta();
             if (rows.length === 0) { container.innerHTML = '<div class="loading">Нет данных эстафеты охраны</div>'; return; }
-            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead><tbody>';
+            let html = '<table><thead><tr>' +
+                '<th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th>' +
+                '</tr></thead><tbody>';
             for (let row of rows) {
                 const rowClass = (row.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
-                            <td>${row.place}</td>
-                            <td><strong>${row.team_name}</strong> (${row.team_code})</strong></td>
-                            <td>${row.direction}</td>
-                            <td>${formatTime(row.raw_seconds)}</strong></td>
-                            <td>${row.penalty}</strong></td>
-                            <td>${formatTime(row.total_seconds)}</strong></td>
+                             <td>${row.place}</td>
+                             <td><strong>${row.team_name}</strong> (${row.team_code})</td>
+                             <td>${row.direction}</td>
+                             <td>${formatTime(row.raw_seconds)}</td>
+                             <td>${row.penalty}</td>
+                             <td>${formatTime(row.total_seconds)}</td>
                           </tr>`;
             }
             html += '</tbody></table>';
@@ -632,7 +635,7 @@
                 container.innerHTML = '<div class="loading">Нет данных служебного двоеборья</div>';
                 return;
             }
-            let html = '<tr><thead><tr>' +
+            let html = '<table><thead><tr>' +
                 '<th>Место</th><th>Команда</th>' +
                 '<th>Участник 1</th><th>Время 1</th>' +
                 '<th>Участник 2</th><th>Время 2</th>' +
@@ -642,16 +645,16 @@
             for (let t of teams) {
                 const rowClass = (t.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
-                            <td>${t.place !== null ? t.place : '—'}</td>
-                            <td><strong>${t.name} (${t.code})</strong></td>
-                            <td>${t.p1_name}</td>
-                            <td>${t.p1_total !== null ? formatTime(t.p1_total) : '—'}</td>
-                            <td>${t.p2_name}</td>
-                            <td>${t.p2_total !== null ? formatTime(t.p2_total) : '—'}</td>
-                            <td>${t.p3_name}</td>
-                            <td>${t.p3_total !== null ? formatTime(t.p3_total) : '—'}</td>
-                            <td><strong>${t.team_total !== null ? formatTime(t.team_total) : '—'}</strong></td>
-                         </tr>`;
+                             <td>${t.place !== null ? t.place : '—'}</td>
+                             <td><strong>${t.name} (${t.code})</strong></td>
+                             <td>${t.p1_name}</td>
+                             <td>${t.p1_total !== null ? formatTime(t.p1_total) : '—'}</td>
+                             <td>${t.p2_name}</td>
+                             <td>${t.p2_total !== null ? formatTime(t.p2_total) : '—'}</td>
+                             <td>${t.p3_name}</td>
+                             <td>${t.p3_total !== null ? formatTime(t.p3_total) : '—'}</td>
+                             <td><strong>${t.team_total !== null ? formatTime(t.team_total) : '—'}</strong></td>
+                          </tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
