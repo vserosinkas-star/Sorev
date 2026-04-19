@@ -525,7 +525,7 @@
             try {
                 let { error } = await supabaseClient.from('service_duathlon_results').select('count', { count: 'exact', head: true });
                 if (error) throw error;
-                statusDiv.innerHTML = '<span class="status-ok">✅ Подключено к Supabase</span>';
+                statusDiv.innerHTML = '<span class="status-ok">✅ Подключено</span>';
             } catch (err) {
                 statusDiv.innerHTML = '<span class="status-error">❌ Ошибка подключения, данные только локально</span>';
             }
