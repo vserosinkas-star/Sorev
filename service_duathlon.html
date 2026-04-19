@@ -76,7 +76,7 @@
         <div class="time-row">
             <div class="control-group">
                 <label>⏱️ Чистое время бега (мм:сс.сс)</label>
-                <input type="text" id="rawTimeInput" placeholder="например 3:22.88">
+                <input type="text" id="rawTimeInput" placeholder="например 3:22.15">
             </div>
             <button id="saveRawTimeBtn" class="btn-secondary">Сохранить время</button>
         </div>
@@ -117,12 +117,10 @@
 
 <script>
     (function() {
-        // ---------- НАСТРОЙКИ SUPABASE ----------
         const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
-        // ---------- ДАННЫЕ ----------
         const teamCodes = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
         const teamNames = {
             "УБ": "Уральский", "ДВБ": "Дальневосточный", "ББ": "Байкальский", "МРД": "Московский",
@@ -136,10 +134,8 @@
             { id: "ammo_drop", desc: "Падение патронов (патроны коснулись земли)", sec: 20 },
             { id: "holster_strap", desc: "Не пристёгнут страховочный ремешок к пистолету", sec: 20 }
         ];
-        
         const PENALTY_PER_MISS = 30;
         
-        // ---------- СОСТОЯНИЕ ----------
         let currentTeam = null;
         let currentData = {
             participant_name: "",
@@ -149,7 +145,6 @@
         };
         let tempPenalties = {};
         
-        // DOM элементы
         const teamSelect = document.getElementById('teamSelect');
         const participantNameInput = document.getElementById('participantName');
         const rawTimeInput = document.getElementById('rawTimeInput');
@@ -160,16 +155,14 @@
         const saveAllBtn = document.getElementById('saveAllBtn');
         const resetAllBtn = document.getElementById('resetAllBtn');
         
-        // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
-        // Формат времени: минуты:секунды.сотые (например, 3:22.88)
         function formatTime(sec) {
             if (sec === null || isNaN(sec)) return "—";
             let minutes = Math.floor(sec / 60);
             let seconds = (sec % 60).toFixed(2);
+            // формат: минуты:секунды.сотые (без лишних нулей)
             return minutes + ":" + seconds.toString().padStart(5, '0');
         }
         
-        // Парсинг времени из строки вида "3:22.88" или "03:22.88"
         function parseTime(str) {
             if (!str.trim()) return null;
             let parts = str.trim().split(':');
@@ -183,15 +176,14 @@
                     let fraction = parseFloat('0.' + secPart.substring(dotIndex+1)) || 0;
                     seconds += fraction;
                 } else {
-                    seconds = parseFloat(secPart) || 0;
+                    seconds = parseInt(secPart) || 0;
                 }
             } else if (parts.length === 1) {
                 seconds = parseFloat(parts[0]) || 0;
             } else {
                 return null;
             }
-            let total = minutes * 60 + seconds;
-            return isNaN(total) ? null : total;
+            return minutes * 60 + seconds;
         }
         
         function getPenaltySum(penObj) {
@@ -203,7 +195,6 @@
             return sum;
         }
         
-        // ---------- РАБОТА С SUPABASE ----------
         async function loadTeamData(teamCode) {
             if (!teamCode) return null;
             try {
@@ -218,11 +209,10 @@
         }
         
         async function saveTeamData(teamCode, participant_name, raw_seconds, misses, penaltiesObj) {
-            const penaltyForMisses = misses * PENALTY_PER_MISS;
-            const penaltyForErrors = getPenaltySum(penaltiesObj);
-            const totalPenalty = penaltyForMisses + penaltyForErrors;
+            const penaltyMisses = misses * PENALTY_PER_MISS;
+            const penaltyErrors = getPenaltySum(penaltiesObj);
+            const totalPenalty = penaltyMisses + penaltyErrors;
             const total_seconds = (raw_seconds !== null ? raw_seconds : 0) + totalPenalty;
-            
             const upsertData = {
                 team_code: teamCode,
                 participant_name: participant_name,
@@ -251,7 +241,6 @@
             } catch(e) { console.warn(e); return []; }
         }
         
-        // ---------- ОБНОВЛЕНИЕ UI ----------
         async function refreshCurrentTeamUI() {
             if (!currentTeam) {
                 participantNameInput.value = "";
@@ -321,7 +310,7 @@
             document.getElementById('penaltySum').innerText = penaltyErrors;
             document.getElementById('missesPenalty').innerText = penaltyMisses;
             document.getElementById('rawTimeDisplay').innerText = raw !== null ? formatTime(raw) : '—';
-            document.getElementById('totalTimeDisplay').innerText = total !== null ? formatTime(total) : '—';
+            document.getElementById('totalTimeDisplay').innerText = formatTime(total);
         }
         
         async function saveAll() {
@@ -329,7 +318,7 @@
             const name = participantNameInput.value.trim();
             const rawStr = rawTimeInput.value.trim();
             let rawSeconds = rawStr === "" ? null : parseTime(rawStr);
-            if (rawStr !== "" && rawSeconds === null) { alert('Неверный формат времени. Используйте мм:сс.сс, например 3:22.88'); return; }
+            if (rawStr !== "" && rawSeconds === null) { alert('Неверный формат времени (пример: 3:22.15)'); return; }
             const misses = parseInt(missesInput.value) || 0;
             if (misses < 0 || misses > 8) { alert('Промахи должны быть от 0 до 8'); return; }
             await saveTeamData(currentTeam, name, rawSeconds, misses, tempPenalties);
@@ -338,20 +327,11 @@
             alert('Данные сохранены');
         }
         
-        async function resetAll() {
-            if (!currentTeam) { alert('Выберите команду'); return; }
-            if (!confirm('Сбросить все данные для этой команды?')) return;
-            await saveTeamData(currentTeam, "", null, 0, {});
-            await refreshCurrentTeamUI();
-            await renderOverallTable();
-            alert('Данные сброшены');
-        }
-        
         async function saveRawTimeOnly() {
             if (!currentTeam) { alert('Выберите команду'); return; }
             const rawStr = rawTimeInput.value.trim();
             let rawSeconds = rawStr === "" ? null : parseTime(rawStr);
-            if (rawStr !== "" && rawSeconds === null) { alert('Неверный формат времени. Используйте мм:сс.сс, например 3:22.88'); return; }
+            if (rawStr !== "" && rawSeconds === null) { alert('Неверный формат времени'); return; }
             currentData.raw_seconds = rawSeconds;
             await saveTeamData(currentTeam, currentData.participant_name, rawSeconds, currentData.misses, tempPenalties);
             await refreshCurrentTeamUI();
@@ -368,6 +348,15 @@
             await refreshCurrentTeamUI();
             await renderOverallTable();
             alert('Количество промахов сохранено');
+        }
+        
+        async function resetAll() {
+            if (!currentTeam) { alert('Выберите команду'); return; }
+            if (!confirm('Сбросить все данные для этой команды?')) return;
+            await saveTeamData(currentTeam, "", null, 0, {});
+            await refreshCurrentTeamUI();
+            await renderOverallTable();
+            alert('Данные сброшены');
         }
         
         async function renderOverallTable() {
@@ -413,12 +402,12 @@
                 if (r.total !== null && rank === 1) tr.classList.add('rank-1');
                 tr.innerHTML = `
                     <td>${r.total !== null ? rank++ : '—'}</td>
-                    <td><strong>${r.name}</strong> (${r.code})</strong></td>
+                    <td><strong>${r.name}</strong> (${r.code})</td>
                     <td>${r.participant}</td>
                     <td>${r.raw !== null ? formatTime(r.raw) : '—'}</td>
                     <td>${r.misses} (${r.misses * PENALTY_PER_MISS} сек)</td>
-                    <td>${r.penalty_misses} сек</strong></td>
-                    <td>${r.penalty_errors} sec</strong></td>
+                    <td>${r.penalty_misses} сек</td>
+                    <td>${r.penalty_errors} сек</td>
                     <td><strong>${r.total !== null ? formatTime(r.total) : '—'}</strong></td>
                 `;
                 tbody.appendChild(tr);
@@ -428,24 +417,18 @@
             }
         }
         
-        // ---------- ОБРАБОТЧИКИ ----------
         teamSelect.addEventListener('change', async () => {
             currentTeam = teamSelect.value || null;
             await refreshCurrentTeamUI();
         });
-        participantNameInput.addEventListener('change', async () => {
-            if (currentTeam) {
-                currentData.participant_name = participantNameInput.value;
-                await saveTeamData(currentTeam, currentData.participant_name, currentData.raw_seconds, currentData.misses, tempPenalties);
-                await renderOverallTable();
-            }
+        participantNameInput.addEventListener('change', () => {
+            if (currentTeam) saveAll();
         });
         saveRawTimeBtn.addEventListener('click', saveRawTimeOnly);
         saveMissesBtn.addEventListener('click', saveMissesOnly);
         saveAllBtn.addEventListener('click', saveAll);
         resetAllBtn.addEventListener('click', resetAll);
         
-        // ---------- ИНИЦИАЛИЗАЦИЯ ----------
         async function init() {
             const statusDiv = document.getElementById('connectionStatus');
             statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>';
