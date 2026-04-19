@@ -15,9 +15,6 @@
         .control-group { margin-bottom: 20px; }
         .control-group label { font-weight: 600; display: block; margin-bottom: 6px; color: #1e3a5f; }
         select, input { width: 100%; padding: 12px; border-radius: 16px; border: 1px solid #cbd5e1; font-size: 1rem; background: white; }
-        .stage-buttons { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
-        .stage-btn { background: #e2e8f0; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; font-size: 0.85rem; font-weight: 500; color: #1e293b; }
-        .stage-btn.active { background: #1e3a8a; color: white; }
         .exercise-card { background: #f9fafb; border-radius: 24px; padding: 16px; margin-top: 20px; border: 1px solid #e2e8f0; }
         .exercise-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; color: #0f2b44; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin: 15px 0; max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px; background: white; }
@@ -158,48 +155,20 @@
             "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
         };
 
-        // ---------- БИБЛИОТЕКИ ШТРАФОВ (на основе документа) ----------
-        // Штрафы для фигурного вождения
+        // Штрафы для фигурного вождения (сокращённый список для примера, можно расширить)
         const figurePenaltiesList = [
             { id: "fig_falsestart", desc: "Фальстарт", sec: 5 },
-            { id: "fig_belt", desc: "Водитель не пристёгнут ремнем безопасности (за каждое предупреждение)", sec: 10 },
-            { id: "fig_cone", desc: "Касание, падение или сдвиг конуса (стойки) на всех фигурах (за каждый случай)", sec: 5 },
-            { id: "fig_circle_no_exit", desc: "Фигура «Круговое движение»: не выехал полностью за створ ворот", sec: 10 },
-            { id: "fig_krendel", desc: "Не исполнение требований в фигуре «Крендель»", sec: 15 },
-            { id: "fig_vosmerka", desc: "Не исполнение требований в фигуре «Восьмерка»", sec: 15 },
-            { id: "fig_box", desc: "Не исполнение требований в фигуре «Заезд в бокс задним ходом»", sec: 15 },
-            { id: "fig_obezd", desc: "Не исполнение требований в фигуре «Объезд препятствия»", sec: 15 },
-            { id: "fig_gabarit", desc: "Не исполнение требований в фигуре «Габаритная змейка» (выезд за ось)", sec: 10 },
-            { id: "fig_razvorot", desc: "Не исполнение требований в фигуре «Разворот в ограниченном пространстве»", sec: 15 },
-            { id: "fig_tunnel", desc: "Касание, падение или сдвиг стойки на фигуре «Туннельные ворота»", sec: 10 },
-            { id: "fig_parallel", desc: "Не исполнение требований в фигуре «Параллельная парковка задним ходом»", sec: 15 },
-            { id: "fig_kacheli", desc: "Прекращение выполнения упражнения «Качели» до истечения 2 минут", sec: 170 },
-            { id: "fig_stop_one", desc: "Отсутствие контакта со стоп-линией одного колеса", sec: 15 },
-            { id: "fig_stop_both", desc: "Отсутствие контакта со стоп-линией обоих колес", sec: 30 },
+            { id: "fig_belt", desc: "Водитель не пристёгнут ремнем безопасности", sec: 10 },
+            { id: "fig_cone", desc: "Касание, падение или сдвиг конуса", sec: 5 },
             { id: "fig_wrong_scheme", desc: "Проезд не по схеме (за каждую фигуру)", sec: 15 },
-            { id: "fig_missed_figure", desc: "Пропущенная (невыполненная) фигура", sec: 60 },
-            { id: "fig_outside_help", desc: "Посторонняя помощь участнику в движении по трассе", sec: 30 },
-            { id: "fig_people", desc: "Проход лиц за ограждение без разрешения (команде)", sec: 30 }
+            { id: "fig_missed_figure", desc: "Пропущенная фигура", sec: 60 }
         ];
-
-        // Штрафы для вождения в СДУ
         const sduPenaltiesList = [
             { id: "sdu_falsestart", desc: "Фальстарт", sec: 5 },
             { id: "sdu_belt", desc: "Водитель не пристёгнут ремнем безопасности", sec: 10 },
-            { id: "sdu_cone", desc: "Касание, падение или сдвиг конуса (за каждый случай)", sec: 5 },
-            { id: "sdu_maltese_wrong", desc: "Проезд конусов «Мальтийский крест» в неправильном направлении (за каждый конус)", sec: 5 },
-            { id: "sdu_shikana", desc: "Не исполнение требований при выполнении «шикана»", sec: 15 },
-            { id: "sdu_bocha", desc: "Проезд «бочки» против часовой стрелки", sec: 15 },
-            { id: "sdu_stop_hill", desc: "Не исполнение требований при выполнении «остановка на спуске»", sec: 15 },
-            { id: "sdu_razvorot", desc: "Не исполнение требований при выполнении «разворот в установленных габаритах»", sec: 15 },
-            { id: "sdu_obezd", desc: "Не исполнение требований при выполнении «объезд препятствий»", sec: 15 },
-            { id: "sdu_kvadrat", desc: "Не исполнение требований при выполнении «квадрат»", sec: 15 },
-            { id: "sdu_90", desc: "Не исполнение требований при выполнении «поворот на 90 градусов»", sec: 15 },
-            { id: "sdu_finish", desc: "Не исполнение требований при выполнении «финиш» (линия не между осями)", sec: 15 },
+            { id: "sdu_cone", desc: "Касание, падение или сдвиг конуса", sec: 5 },
             { id: "sdu_wrong_scheme", desc: "Проезд не по схеме (за каждую фигуру)", sec: 15 },
-            { id: "sdu_missed_figure", desc: "Пропущенная фигура", sec: 60 },
-            { id: "sdu_outside_help", desc: "Посторонняя помощь участнику", sec: 30 },
-            { id: "sdu_people", desc: "Проход лиц за ограждение без разрешения", sec: 30 }
+            { id: "sdu_missed_figure", desc: "Пропущенная фигура", sec: 60 }
         ];
 
         // ---------- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ----------
@@ -237,6 +206,7 @@
             if (sec === null || isNaN(sec)) return "—";
             let minutes = Math.floor(sec / 60);
             let seconds = (sec % 60).toFixed(2);
+            // формат: минуты:секунды.сотые (без лишних нулей)
             return minutes + ":" + seconds.toString().padStart(5, '0');
         }
 
@@ -288,17 +258,19 @@
 
         // Сохранение всей записи
         async function saveTeamData(teamCode, data) {
+            const figureTotal = data.figure_time !== null ? data.figure_time + getPenaltySum(data.figure_penalties) : null;
+            const sduTotal = data.sdu_time !== null ? data.sdu_time + getPenaltySum(data.sdu_penalties) : null;
+            const totalTime = (figureTotal !== null && sduTotal !== null) ? figureTotal + sduTotal : null;
             const payload = {
                 team_code: teamCode,
                 participant_name: data.participant_name,
                 figure_time: data.figure_time,
                 figure_penalties: data.figure_penalties,
-                figure_total: data.figure_time !== null ? data.figure_time + getPenaltySum(data.figure_penalties) : null,
+                figure_total: figureTotal,
                 sdu_time: data.sdu_time,
                 sdu_penalties: data.sdu_penalties,
-                sdu_total: data.sdu_time !== null ? data.sdu_time + getPenaltySum(data.sdu_penalties) : null,
-                total_time: (data.figure_time !== null && data.sdu_time !== null) ? 
-                    (data.figure_time + getPenaltySum(data.figure_penalties) + data.sdu_time + getPenaltySum(data.sdu_penalties)) : null,
+                sdu_total: sduTotal,
+                total_time: totalTime,
                 updated_at: new Date().toISOString()
             };
             try {
@@ -352,7 +324,6 @@
             figureRawTime.value = currentData.figure_time !== null ? formatTime(currentData.figure_time) : "";
             sduRawTime.value = currentData.sdu_time !== null ? formatTime(currentData.sdu_time) : "";
             
-            // Копируем временные штрафы из сохранённых
             tempFigurePenalties = { ...currentData.figure_penalties };
             tempSduPenalties = { ...currentData.sdu_penalties };
             unsavedFigure = false;
@@ -489,7 +460,6 @@
             currentData.participant_name = participantNameInput.value;
             currentData.figure_penalties = { ...tempFigurePenalties };
             currentData.sdu_penalties = { ...tempSduPenalties };
-            // время уже должно быть в currentData
             await saveTeamData(currentTeam, currentData);
             unsavedFigure = false;
             unsavedSdu = false;
@@ -502,7 +472,6 @@
         // Рендер общего зачёта
         async function renderOverallTable() {
             const results = await loadAllResults();
-            // Построим массив команд с данными
             const rows = [];
             for (let code of teamCodes) {
                 const dbRow = results.find(r => r.team_code === code);
@@ -530,7 +499,7 @@
                     });
                 }
             }
-            // Вычисляем места по каждому упражнению (только для тех, у кого есть итоговое время)
+            // Вычисляем места по каждому упражнению
             const figureEntries = rows.filter(r => r.figure_total !== null).sort((a,b) => a.figure_total - b.figure_total);
             const sduEntries = rows.filter(r => r.sdu_total !== null).sort((a,b) => a.sdu_total - b.sdu_total);
             const figurePlaces = {};
@@ -547,12 +516,10 @@
                 else sduPlaces[sduEntries[i].code] = rank;
                 rank++;
             }
-            // Для отсутствующих данных ставим максимальное место+1
             for (let row of rows) {
                 if (!figurePlaces[row.code]) figurePlaces[row.code] = teamCodes.length + 1;
                 if (!sduPlaces[row.code]) sduPlaces[row.code] = teamCodes.length + 1;
             }
-            // Сумма мест и итоговое место
             for (let row of rows) {
                 row.figure_place = figurePlaces[row.code];
                 row.sdu_place = sduPlaces[row.code];
@@ -560,7 +527,6 @@
             }
             rows.sort((a,b) => {
                 if (a.sum_places !== b.sum_places) return a.sum_places - b.sum_places;
-                // при равенстве лучшее место в фигурном
                 return a.figure_place - b.figure_place;
             });
             const tbody = document.getElementById('resultsBody');
