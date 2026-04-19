@@ -75,7 +75,7 @@
 
         <div class="time-row">
             <div class="control-group">
-                <label>⏱️ Чистое время бега (мм:сс.сс или чч:мм:сс.сс)</label>
+                <label>⏱️ Чистое время бега (мм:сс.сс)</label>
                 <input type="text" id="rawTimeInput" placeholder="например 3:22.15">
             </div>
             <button id="saveRawTimeBtn" class="btn-secondary">Сохранить время</button>
@@ -88,7 +88,7 @@
         </div>
 
         <div id="penaltiesContainer" class="penalties-grid">
-            <!-- Список ошибок будет загружен сюда -->
+            <!-- Список ошибок -->
         </div>
 
         <div style="display: flex; gap: 10px; margin-top: 15px;">
@@ -111,7 +111,7 @@
                 <tr><th>Место</th><th>Команда</th><th>Участник</th><th>Чистое время</th><th>Промахи</th><th>Штраф за промахи</th><th>Штраф за ошибки</th><th>Итоговое время</th></tr>
             </thead>
             <tbody id="resultsBody">
-                <tr><td colspan="8">Загрузка данных...</td></tr>
+                <tr><td colspan="8">Загрузка数据...</td></tr>
             </tbody>
         </table>
     </div>
@@ -132,7 +132,6 @@
             "СИБ": "Сибирский", "СРБ": "Среднерусский", "СЗБ": "Северо-Западный", "ВВБ": "Волго-Вятский"
         };
         
-        // Список ошибок согласно документу
         const penaltiesList = [
             { id: "falsestart", desc: "Фальстарт", sec: 5 },
             { id: "gun_drop", desc: "Падение пистолета (пистолет коснулся земли)", sec: 20 },
@@ -140,21 +139,18 @@
             { id: "holster_strap", desc: "Не пристёгнут страховочный ремешок к пистолету", sec: 20 }
         ];
         
-        // Штраф за один промах (штрафной круг 50 м) – принимаем 30 сек
         const PENALTY_PER_MISS = 30;
         
-        // ---------- СОСТОЯНИЕ ----------
         let currentTeam = null;
         let currentData = {
             participant_name: "",
             raw_seconds: null,
             misses: 0,
-            penalties: {}  // объект с отметками ошибок { "falsestart": true, ... }
+            penalties: {}
         };
         let tempPenalties = {};
         let hasUnsavedChanges = false;
         
-        // DOM элементы
         const teamSelect = document.getElementById('teamSelect');
         const participantNameInput = document.getElementById('participantName');
         const rawTimeInput = document.getElementById('rawTimeInput');
@@ -165,34 +161,19 @@
         const saveAllBtn = document.getElementById('saveAllBtn');
         const resetAllBtn = document.getElementById('resetAllBtn');
         
-        // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
+        // ---------- ИСПРАВЛЕННЫЕ ФУНКЦИИ ФОРМАТИРОВАНИЯ ----------
         function formatTime(sec) {
             if (sec === null || isNaN(sec)) return "—";
-            let hours = Math.floor(sec / 3600);
-            let minutes = Math.floor((sec % 3600) / 60);
+            let minutes = Math.floor(sec / 60);
             let seconds = (sec % 60).toFixed(2);
-            if (hours > 0) return `${hours}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(5,'0')}`;
-            return `${minutes}:${seconds.toString().padStart(2,'0')}:${seconds.toString().padStart(5,'0')}`;
+            return minutes + ":" + seconds.toString().padStart(5, '0');
         }
         
         function parseTime(str) {
             if (!str.trim()) return null;
             let parts = str.trim().split(':');
-            let seconds = 0;
-            let minutes = 0;
-            let hours = 0;
-            if (parts.length === 3) {
-                hours = parseInt(parts[0]) || 0;
-                minutes = parseInt(parts[1]) || 0;
-                let secPart = parts[2];
-                let dotIndex = secPart.indexOf('.');
-                if (dotIndex !== -1) {
-                    seconds = parseInt(secPart.substring(0, dotIndex)) || 0;
-                    seconds += parseFloat('0.' + secPart.substring(dotIndex+1)) || 0;
-                } else {
-                    seconds = parseInt(secPart) || 0;
-                }
-            } else if (parts.length === 2) {
+            let minutes = 0, seconds = 0;
+            if (parts.length === 2) {
                 minutes = parseInt(parts[0]) || 0;
                 let secPart = parts[1];
                 let dotIndex = secPart.indexOf('.');
@@ -207,7 +188,7 @@
             } else {
                 return null;
             }
-            return hours * 3600 + minutes * 60 + seconds;
+            return minutes * 60 + seconds;
         }
         
         function getPenaltySum(penObj) {
@@ -219,7 +200,6 @@
             return sum;
         }
         
-        // ---------- РАБОТА С SUPABASE ----------
         async function loadTeamData(teamCode) {
             if (!teamCode) return null;
             try {
@@ -267,10 +247,8 @@
             } catch(e) { console.warn(e); return []; }
         }
         
-        // ---------- ОБНОВЛЕНИЕ UI ----------
         async function refreshCurrentTeamUI() {
             if (!currentTeam) {
-                // очищаем форму
                 participantNameInput.value = "";
                 rawTimeInput.value = "";
                 missesInput.value = "0";
@@ -285,9 +263,8 @@
                     participant_name: dbData.participant_name || "",
                     raw_seconds: dbData.raw_seconds,
                     misses: dbData.misses || 0,
-                    penalties: {}  // поле penalties не храним, но ошибки не сохраняем отдельно, только сумма penalty_seconds
+                    penalties: {}
                 };
-                // У ошибок нет отдельного хранения, поэтому tempPenalties сбросим
                 tempPenalties = {};
                 hasUnsavedChanges = false;
             } else {
@@ -350,7 +327,7 @@
             const name = participantNameInput.value.trim();
             const rawStr = rawTimeInput.value.trim();
             let rawSeconds = rawStr === "" ? null : parseTime(rawStr);
-            if (rawStr !== "" && rawSeconds === null) { alert('Неверный формат времени'); return; }
+            if (rawStr !== "" && rawSeconds === null) { alert('Неверный формат времени (используйте мм:сс.сс)'); return; }
             const misses = parseInt(missesInput.value) || 0;
             if (misses < 0 || misses > 8) { alert('Промахи должны быть от 0 до 8'); return; }
             await saveTeamData(currentTeam, name, rawSeconds, misses, tempPenalties);
@@ -373,7 +350,7 @@
             if (!currentTeam) { alert('Выберите команду'); return; }
             const rawStr = rawTimeInput.value.trim();
             let rawSeconds = rawStr === "" ? null : parseTime(rawStr);
-            if (rawStr !== "" && rawSeconds === null) { alert('Неверный формат времени'); return; }
+            if (rawStr !== "" && rawSeconds === null) { alert('Неверный формат времени (используйте мм:сс.сс)'); return; }
             currentData.raw_seconds = rawSeconds;
             await saveTeamData(currentTeam, currentData.participant_name, rawSeconds, currentData.misses, tempPenalties);
             await refreshCurrentTeamUI();
@@ -392,7 +369,6 @@
             alert('Количество промахов сохранено');
         }
         
-        // Рендер общего зачёта
         async function renderOverallTable() {
             const results = await loadAllResults();
             const rows = [];
@@ -440,8 +416,8 @@
                     <td>${r.participant}</td>
                     <td>${r.raw !== null ? formatTime(r.raw) : '—'}</td>
                     <td>${r.misses} (${r.misses * PENALTY_PER_MISS} сек)</td>
-                    <td>${r.penalty_misses} сек</td>
-                    <td>${r.penalty_errors} сек</strong></td>
+                    <td>${r.penalty_misses} сек</strong></td>
+                    <td>${r.penalty_errors} sec</strong></td>
                     <td><strong>${r.total !== null ? formatTime(r.total) : '—'}</strong></td>
                 `;
                 tbody.appendChild(tr);
@@ -451,7 +427,6 @@
             }
         }
         
-        // ---------- ОБРАБОТЧИКИ ----------
         teamSelect.addEventListener('change', async () => {
             currentTeam = teamSelect.value || null;
             await refreshCurrentTeamUI();
@@ -467,7 +442,6 @@
         saveAllBtn.addEventListener('click', saveAll);
         resetAllBtn.addEventListener('click', resetAll);
         
-        // ---------- ИНИЦИАЛИЗАЦИЯ ----------
         async function init() {
             const statusDiv = document.getElementById('connectionStatus');
             statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>';
@@ -479,7 +453,6 @@
                 statusDiv.innerHTML = '<span class="status-error">❌ Ошибка подключения, данные только локально</span>';
             }
             await renderOverallTable();
-            // форма пока пуста, команда не выбрана
         }
         init();
     })();
