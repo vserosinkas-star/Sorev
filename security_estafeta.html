@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Эстафета (охрана) — судейская панель</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f0f4f8; margin: 0; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .judge-panel { background: white; border-radius: 20px; padding: 20px 24px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .judge-controls { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; margin-bottom: 20px; }
+        .control-group { display: flex; flex-direction: column; gap: 6px; min-width: 160px; flex: 1; }
+        .control-group label { font-weight: 600; font-size: 0.85rem; color: #2c3e66; }
+        select, input { padding: 12px 14px; border-radius: 12px; border: 1px solid #cbd5e1; background: white; font-size: 1rem; width: 100%; }
+        button { background: #1e3a8a; color: white; border: none; padding: 12px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; }
+        button:hover { background: #1e40af; }
+        .reset-stage-btn { background: #f97316; }
+        .reset-team-btn { background: #475569; }
+        .stage-info { background: #eef2ff; border-radius: 16px; padding: 12px 20px; margin: 15px 0; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; }
+        .stage-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
+        .stage-btn { background: #e2e8f0; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; font-size: 0.85rem; font-weight: 500; color: #1e293b; }
+        .stage-btn.active { background: #1e3a8a; color: white; }
+        .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin: 20px 0; max-height: 400px; overflow-y: auto; }
+        .penalty-card { background: #f9fafb; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+        .penalty-card input { width: 24px; height: 24px; margin: 0; }
+        .penalty-card label { flex: 1; display: flex; justify-content: space-between; align-items: center; }
+        .penalty-sec { background: #e2e8f0; padding: 4px 10px; border-radius: 40px; font-size: 0.8rem; }
+        .summary-bar { background: #f1f5f9; border-radius: 20px; padding: 16px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-top: 20px; gap: 15px; }
+        .total-time { font-size: 1.6rem; font-weight: 800; background: #dcfce7; padding: 6px 18px; border-radius: 40px; }
+        .results-table { background: white; border-radius: 24px; overflow-x: auto; padding: 4px; margin-top: 30px; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; }
+        .rank-1 { background-color: #fef9c3; font-weight: bold; }
+        .status-ok { background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 30px; display: inline-block; }
+        .status-error { background: #fee2e2; color: #991b1b; }
+        .status-warning { background: #fed7aa; color: #9b4a0c; }
+        @media (max-width: 700px) {
+            .judge-controls { flex-direction: column; align-items: stretch; }
+            .penalties-grid { grid-template-columns: 1fr; }
+            button { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="judge-panel">
+        <h2>🛡️ Эстафета (охрана) — полоса препятствий, силовые, противопожарная</h2>
+        <div id="connectionStatus" style="margin-bottom: 15px;"></div>
+        
+        <div class="judge-controls">
+            <div class="control-group">
+                <label>📌 Направление (дорожка)</label>
+                <select id="directionSelect">
+                    <option value="">-- выбрать --</option>
+                    <option value="1">Направление 1</option>
+                    <option value="2">Направление 2</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>🏦 Территориальный банк</label>
+                <select id="teamSelect">
+                    <option value="">-- выбрать --</option>
+                    <option value="УБ">Уральский (УБ)</option>
+                    <option value="ДВБ">Дальневосточный (ДВБ)</option>
+                    <option value="ББ">Байкальский (ББ)</option>
+                    <option value="МРД">Московский (МРД)</option>
+                    <option value="ЦЧБ">Центрально-Черноземный (ЦЧБ)</option>
+                    <option value="ЮЗБ">Юго-Западный (ЮЗБ)</option>
+                    <option value="ПВБ">Поволжский (ПВБ)</option>
+                    <option value="СИБ">Сибирский (СИБ)</option>
+                    <option value="СРБ">Среднерусский (СРБ)</option>
+                    <option value="СЗБ">Северо-Западный (СЗБ)</option>
+                    <option value="ВВБ">Волго-Вятский (ВВБ)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Кнопки выбора этапа -->
+        <div id="stageButtonsContainer" class="stage-buttons"></div>
+
+        <div class="judge-controls" style="margin-top: 0;">
+            <div class="control-group" style="min-width: 220px;">
+                <label>⏱️ Чистое время заезда (мм:сс.сс или чч:мм:сс.сс)</label>
+                <input type="text" id="rawTimeInput" placeholder="например 14:23:05.12 или 5:42.35">
+            </div>
+            <button id="saveRawTimeBtn">💾 Зафиксировать время</button>
+            <button id="resetTeamBtn" class="reset-team-btn">🔄 Сбросить ВСЕ ошибки команды</button>
+        </div>
+
+        <div id="stageInfo" class="stage-info">
+            <span>✅ Выберите направление, банк и этап</span>
+            <div style="display: flex; gap: 10px;">
+                <button id="saveStageBtn" style="background: #2b6e3c;">💾 Сохранить ошибки этапа</button>
+                <button id="resetStageBtn" class="reset-stage-btn">🗑️ Сбросить ошибки этапа</button>
+            </div>
+        </div>
+
+        <div id="penaltiesContainer" class="penalties-grid">
+            <div style="grid-column:1/-1; text-align:center;">⚙️ Выберите направление и команду</div>
+        </div>
+
+        <div class="summary-bar">
+            <span><strong>Штраф:</strong> <span id="totalPenaltyDisplay">0</span> сек</span>
+            <span><strong>Чистое время:</strong> <span id="rawTimeDisplay">—</span></span>
+            <span class="total-time"><strong>ИТОГО:</strong> <span id="totalTimeDisplay">—</span></span>
+        </div>
+    </div>
+
+    <div class="results-table">
+        <h3>🏆 Общий зачёт (эстафета охраны)</h3>
+        <table id="resultsTable">
+            <thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
+            <tbody id="resultsBody"><tr><td colspan="6">Загрузка данных...</td></tr></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    (function() {
+        // ---------- НАСТРОЙКИ SUPABASE ----------
+        const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // ---------- ДАННЫЕ ----------
+        const teamCodes = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
+        const teamNames = {
+            "УБ": "Уральский", "ДВБ": "Дальневосточный", "ББ": "Байкальский", "МРД": "Московский",
+            "ЦЧБ": "Центрально-Черноземный", "ЮЗБ": "Юго-Западный", "ПВБ": "Поволжский",
+            "СИБ": "Сибирский", "СРБ": "Среднерусский", "СЗБ": "Северо-Западный", "ВВБ": "Волго-Вятский"
+        };
+        
+        // Этапы (3 этапа, внутри каждого — список ошибок)
+        const stages = ["Этап 1. Полоса препятствий", "Этап 2. Силовые упражнения", "Этап 3. Противопожарная подготовка"];
+        
+        // ПОЛНЫЙ СПИСОК ОШИБОК (по документу)
+        const penaltiesLibrary = [
+            // Общие
+            { id: "common_not_done", category: "Общие", desc: "Невыполнение любого упражнения на этапах 1-3", sec: 120 },
+            // Этап 1
+            { id: "stage1_falsestart", category: "Этап 1. Полоса препятствий", desc: "Фальстарт", sec: 5 },
+            { id: "stage1_labyrinth", category: "Этап 1. Полоса препятствий", desc: "Лабиринт: пробег под стойками или оббегание", sec: 5 },
+            { id: "stage1_barrier", category: "Этап 1. Полоса препятствий", desc: "Барьер: оббегание", sec: 5 },
+            { id: "stage1_rukhod", category: "Этап 1. Полоса препятствий", desc: "Рукоход: падение (за каждое)", sec: 5 },
+            { id: "stage1_hill", category: "Этап 1. Полоса препятствий", desc: "Горка: оббегание", sec: 5 },
+            { id: "stage1_wire", category: "Этап 1. Полоса препятствий", desc: "Проволочное заграждение: оббегание", sec: 5 },
+            { id: "stage1_stairs", category: "Этап 1. Полоса препятствий", desc: "Разрушенная лестница: оббегание или неполное прохождение", sec: 5 },
+            // Этап 2
+            { id: "stage2_falsestart", category: "Этап 2. Силовые упражнения", desc: "Преждевременный старт (до финиша участника этапа 1)", sec: 20 },
+            { id: "stage2_punch", category: "Этап 2. Силовые упражнения", desc: "Удары по груше: не набрал установленные очки", sec: 10 },
+            { id: "stage2_jump_fall", category: "Этап 2. Силовые упражнения", desc: "Прыжки на тумбы: падение (за каждое)", sec: 10 },
+            { id: "stage2_situp", category: "Этап 2. Силовые упражнения", desc: "Sit up: медбол не коснулся земли (за каждое)", sec: 10 },
+            { id: "stage2_berpi", category: "Этап 2. Силовые упражнения", desc: "Берпи: касание штанги (за каждое)", sec: 10 },
+            { id: "stage2_shuttle", category: "Этап 2. Силовые упражнения", desc: "Челночный бег: не касание ногой линии (за каждое)", sec: 10 },
+            // Этап 3
+            { id: "stage3_falsestart", category: "Этап 3. Противопожарная подготовка", desc: "Преждевременный старт (до финиша этапа 2)", sec: 20 },
+            { id: "stage3_bop_button", category: "Этап 3. Противопожарная подготовка", desc: "БОП-1: не застёгнута пуговица/крючок", sec: 5 },
+            { id: "stage3_bop_straps", category: "Этап 3. Противопожарная подготовка", desc: "БОП-1: лямки брюк не надеты на плечи", sec: 5 },
+            { id: "stage3_bop_belt", category: "Этап 3. Противопожарная подготовка", desc: "БОП-1: пояс не застёгнут или перекручен", sec: 5 },
+            { id: "stage3_bop_helmet", category: "Этап 3. Противопожарная подготовка", desc: "БОП-1: подбородочный ремень каски не подтянут", sec: 5 },
+            { id: "stage3_tunnel", category: "Этап 3. Противопожарная подготовка", desc: "Тоннель: оббегание", sec: 5 },
+            { id: "stage3_tires", category: "Этап 3. Противопожарная подготовка", desc: "Покрышки с дымовой завесой: непрохождение ногами внутри покрышки (за каждую)", sec: 5 },
+            { id: "stage3_boom_fall", category: "Этап 3. Противопожарная подготовка", desc: "Бум: падение участника (за каждое)", sec: 5 },
+            { id: "stage3_hose_fall", category: "Этап 3. Противопожарная подготовка", desc: "Бум: падение пожарного рукава (за каждое)", sec: 5 },
+            { id: "stage3_no_connect", category: "Этап 3. Противопожарная подготовка", desc: "Неприсоединение рукава к разветвителю", sec: 20 },
+            { id: "stage3_fire_not_ext", category: "Этап 3. Противопожарная подготовка", desc: "Очаг возгорания не потушен (финиш без команды)", sec: 60 }
+        ];
+        
+        // ---------- СОСТОЯНИЕ ----------
+        let currentDirection = null;
+        let currentTeam = null;
+        let currentStage = stages[0];
+        let tempPenalties = {};
+        let hasUnsavedChanges = false;
+        
+        // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
+        function formatTime(sec) {
+            if (sec === null || isNaN(sec)) return "—";
+            let hours = Math.floor(sec / 3600);
+            let minutes = Math.floor((sec % 3600) / 60);
+            let seconds = (sec % 60).toFixed(2);
+            if (hours > 0) return `${hours}:${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(5,'0')}`;
+            return `${minutes}:${seconds.toString().padStart(5,'0')}`;
+        }
+        
+        function parseTime(str) {
+            if (!str.trim()) return null;
+            let parts = str.trim().split(':');
+            let seconds = 0;
+            let minutes = 0;
+            let hours = 0;
+            if (parts.length === 3) {
+                hours = parseInt(parts[0]) || 0;
+                minutes = parseInt(parts[1]) || 0;
+                let secPart = parts[2];
+                let dotIndex = secPart.indexOf('.');
+                if (dotIndex !== -1) {
+                    seconds = parseInt(secPart.substring(0, dotIndex)) || 0;
+                    seconds += parseFloat('0.' + secPart.substring(dotIndex+1)) || 0;
+                } else {
+                    seconds = parseInt(secPart) || 0;
+                }
+            } else if (parts.length === 2) {
+                minutes = parseInt(parts[0]) || 0;
+                let secPart = parts[1];
+                let dotIndex = secPart.indexOf('.');
+                if (dotIndex !== -1) {
+                    seconds = parseInt(secPart.substring(0, dotIndex)) || 0;
+                    seconds += parseFloat('0.' + secPart.substring(dotIndex+1)) || 0;
+                } else {
+                    seconds = parseInt(secPart) || 0;
+                }
+            } else if (parts.length === 1) {
+                seconds = parseFloat(parts[0]) || 0;
+            } else {
+                return null;
+            }
+            return hours * 3600 + minutes * 60 + seconds;
+        }
+        
+        function getPenaltySum(penObj) {
+            if (!penObj) return 0;
+            let sum = 0;
+            for (let id in penObj) if (penObj[id]) {
+                let p = penaltiesLibrary.find(p => p.id === id);
+                if (p) sum += p.sec;
+            }
+            return sum;
+        }
+        
+        // ---------- РАБОТА С SUPABASE ----------
+        async function fetchWithRetry(fn, retries = 3, delay = 1000) {
+            for (let i = 0; i < retries; i++) {
+                try { return await fn(); }
+                catch (err) { if (i === retries-1) throw err; await new Promise(r => setTimeout(r, delay)); }
+            }
+        }
+        
+        async function loadTeamData(dir, team) {
+            if (!dir || !team) return null;
+            return await fetchWithRetry(async () => {
+                let { data, error } = await supabaseClient
+                    .from('security_estafeta_results')
+                    .select('raw_seconds, penalties')
+                    .eq('direction', dir)
+                    .eq('team_code', team)
+                    .maybeSingle();
+                if (error) throw error;
+                return data;
+            }).catch(err => { console.error(err); return null; });
+        }
+        
+        async function saveTeamData(dir, team, rawSeconds, penalties) {
+            let total = (rawSeconds !== null ? rawSeconds : 0) + getPenaltySum(penalties);
+            let upsertData = {
+                direction: dir,
+                team_code: team,
+                raw_seconds: rawSeconds,
+                penalties: penalties,
+                total_seconds: total,
+                updated_at: new Date().toISOString()
+            };
+            await fetchWithRetry(async () => {
+                let { error } = await supabaseClient.from('security_estafeta_results').upsert(upsertData, { onConflict: 'direction, team_code' });
+                if (error) throw error;
+            }).catch(err => console.error(err));
+        }
+        
+        async function loadAllResults() {
+            try {
+                let { data, error } = await supabaseClient.from('security_estafeta_results').select('direction, team_code, raw_seconds, penalties, total_seconds');
+                if (error) throw error;
+                let rows = [];
+                for (let r of data) {
+                    let raw = r.raw_seconds;
+                    let penalty = getPenaltySum(r.penalties);
+                    let total = r.total_seconds !== null ? r.total_seconds : (raw !== null ? raw + penalty : null);
+                    rows.push({ team: r.team_code, name: teamNames[r.team_code] || r.team_code, dir: r.direction, raw, penalty, total });
+                }
+                rows.sort((a,b) => {
+                    if (a.total === null && b.total === null) return 0;
+                    if (a.total === null) return 1;
+                    if (b.total === null) return -1;
+                    return a.total - b.total;
+                });
+                let tbody = document.getElementById('resultsBody');
+                tbody.innerHTML = '';
+                let rank = 1;
+                for (let r of rows) {
+                    let tr = document.createElement('tr');
+                    if (r.total !== null && rank === 1) tr.classList.add('rank-1');
+                    tr.innerHTML = `<td>${r.total !== null ? rank++ : '—'}</td>
+                                    <td><strong>${r.name}</strong> (${r.team})</strong></td>
+                                    <td>${r.dir}</td>
+                                    <td>${r.raw !== null ? formatTime(r.raw) : '—'}</td>
+                                    <td>${r.penalty}</td>
+                                    <td>${r.total !== null ? formatTime(r.total) : '—'}</td>`;
+                    tbody.appendChild(tr);
+                }
+                if (rows.length === 0) tbody.innerHTML = '<tr><td colspan="6">Нет данных. Внесите результаты.</td></tr>';
+            } catch (err) {
+                console.error(err);
+                document.getElementById('resultsBody').innerHTML = `<tr><td colspan="6">Ошибка загрузки: ${err.message}</td></tr>`;
+            }
+        }
+        
+        async function refreshCurrentTeamData() {
+            if (!currentDirection || !currentTeam) {
+                document.getElementById('rawTimeDisplay').innerText = '—';
+                document.getElementById('totalPenaltyDisplay').innerText = '0';
+                document.getElementById('totalTimeDisplay').innerText = '—';
+                document.getElementById('rawTimeInput').value = '';
+                return;
+            }
+            let data = await loadTeamData(currentDirection, currentTeam);
+            if (data) {
+                let raw = data.raw_seconds;
+                let penaltiesObj = data.penalties || {};
+                let totalPen = getPenaltySum(penaltiesObj);
+                document.getElementById('rawTimeDisplay').innerText = raw !== null ? formatTime(raw) : '—';
+                document.getElementById('totalPenaltyDisplay').innerText = totalPen;
+                let total = raw !== null ? raw + totalPen : null;
+                document.getElementById('totalTimeDisplay').innerText = total !== null ? formatTime(total) : '—';
+                document.getElementById('rawTimeInput').value = raw !== null ? formatTime(raw) : '';
+                
+                let stageIds = penaltiesLibrary.filter(p => p.category === currentStage).map(p => p.id);
+                tempPenalties = {};
+                for (let id of stageIds) if (penaltiesObj[id]) tempPenalties[id] = true;
+                hasUnsavedChanges = false;
+            } else {
+                document.getElementById('rawTimeDisplay').innerText = '—';
+                document.getElementById('totalPenaltyDisplay').innerText = '0';
+                document.getElementById('totalTimeDisplay').innerText = '—';
+                document.getElementById('rawTimeInput').value = '';
+                tempPenalties = {};
+                hasUnsavedChanges = false;
+            }
+            renderPenalties();
+            updateBadge();
+        }
+        
+        function renderPenalties() {
+            if (!currentDirection || !currentTeam) {
+                document.getElementById('penaltiesContainer').innerHTML = '<div style="grid-column:1/-1; text-align:center;">⚠️ Выберите направление и банк</div>';
+                return;
+            }
+            let stagePen = penaltiesLibrary.filter(p => p.category === currentStage);
+            if (stagePen.length === 0) {
+                document.getElementById('penaltiesContainer').innerHTML = `<div>📭 Для этапа "${currentStage}" нет ошибок</div>`;
+                return;
+            }
+            let html = '';
+            for (let p of stagePen) {
+                let checked = tempPenalties[p.id] === true;
+                html += `<div class="penalty-card"><input type="checkbox" id="chk_${p.id}" data-id="${p.id}" ${checked ? 'checked' : ''}><label>${p.desc}<span class="penalty-sec">+${p.sec} сек</span></label></div>`;
+            }
+            document.getElementById('penaltiesContainer').innerHTML = html;
+            for (let p of stagePen) {
+                let cb = document.getElementById(`chk_${p.id}`);
+                if (cb) cb.onchange = async (e) => {
+                    let id = e.target.getAttribute('data-id');
+                    if (e.target.checked) tempPenalties[id] = true;
+                    else delete tempPenalties[id];
+                    hasUnsavedChanges = true;
+                    updateBadge();
+                    await updateSummaryFromTemp();
+                };
+            }
+            updateSummaryFromTemp();
+        }
+        
+        async function updateSummaryFromTemp() {
+            if (!currentDirection || !currentTeam) return;
+            let data = await loadTeamData(currentDirection, currentTeam);
+            let savedPen = data?.penalties || {};
+            let otherSum = 0;
+            for (let id in savedPen) if (savedPen[id] && tempPenalties[id] === undefined) {
+                let p = penaltiesLibrary.find(p => p.id === id);
+                if (p) otherSum += p.sec;
+            }
+            let tempSum = 0;
+            for (let id in tempPenalties) {
+                let p = penaltiesLibrary.find(p => p.id === id);
+                if (p) tempSum += p.sec;
+            }
+            let totalDisplay = otherSum + tempSum;
+            document.getElementById('totalPenaltyDisplay').innerText = totalDisplay;
+            let raw = data?.raw_seconds ?? null;
+            let total = raw !== null ? raw + totalDisplay : null;
+            document.getElementById('totalTimeDisplay').innerText = total !== null ? formatTime(total) : '—';
+        }
+        
+        function updateBadge() {
+            let div = document.getElementById('stageInfo');
+            let old = div.querySelector('.unsaved-badge');
+            if (old) old.remove();
+            if (hasUnsavedChanges && currentDirection && currentTeam) {
+                let badge = document.createElement('span');
+                badge.className = 'unsaved-badge';
+                badge.innerText = '⚠️ Есть несохранённые изменения';
+                div.appendChild(badge);
+            }
+        }
+        
+        async function saveStage() {
+            if (!currentDirection || !currentTeam) { alert('Выберите команду'); return; }
+            let existing = await loadTeamData(currentDirection, currentTeam);
+            let penaltiesObj = existing?.penalties || {};
+            let stageIds = penaltiesLibrary.filter(p => p.category === currentStage).map(p => p.id);
+            for (let id of stageIds) delete penaltiesObj[id];
+            for (let id in tempPenalties) if (tempPenalties[id]) penaltiesObj[id] = true;
+            let rawSeconds = existing?.raw_seconds ?? null;
+            await saveTeamData(currentDirection, currentTeam, rawSeconds, penaltiesObj);
+            hasUnsavedChanges = false;
+            updateBadge();
+            await refreshCurrentTeamData();
+            await loadAllResults();
+            alert('Ошибки этапа сохранены');
+        }
+        
+        async function saveRawTime() {
+            if (!currentDirection || !currentTeam) { alert('Выберите команду'); return; }
+            let rawStr = document.getElementById('rawTimeInput').value.trim();
+            let rawSeconds = rawStr === '' ? null : parseTime(rawStr);
+            if (rawStr !== '' && rawSeconds === null) { alert('Неверный формат времени'); return; }
+            let existing = await loadTeamData(currentDirection, currentTeam);
+            let penaltiesObj = existing?.penalties || {};
+            await saveTeamData(currentDirection, currentTeam, rawSeconds, penaltiesObj);
+            await refreshCurrentTeamData();
+            await loadAllResults();
+            alert('Время сохранено');
+        }
+        
+        async function resetAllPenalties() {
+            if (!currentDirection || !currentTeam) { alert('Выберите команду'); return; }
+            if (!confirm('Сбросить ВСЕ ошибки для этой команды?')) return;
+            let existing = await loadTeamData(currentDirection, currentTeam);
+            let rawSeconds = existing?.raw_seconds ?? null;
+            await saveTeamData(currentDirection, currentTeam, rawSeconds, {});
+            await refreshCurrentTeamData();
+            await loadAllResults();
+            alert('Сброшено');
+        }
+        
+        function resetTemp() { refreshCurrentTeamData(); }
+        
+        // ---------- ОТРИСОВКА КНОПОК ЭТАПОВ ----------
+        function renderStageButtons() {
+            const container = document.getElementById('stageButtonsContainer');
+            let html = '';
+            for (let stage of stages) {
+                html += `<button class="stage-btn ${currentStage === stage ? 'active' : ''}" data-stage="${stage}">${stage}</button>`;
+            }
+            container.innerHTML = html;
+            document.querySelectorAll('.stage-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const newStage = btn.getAttribute('data-stage');
+                    if (newStage === currentStage) return;
+                    currentStage = newStage;
+                    renderStageButtons();
+                    if (currentDirection && currentTeam) {
+                        refreshCurrentTeamData();
+                    } else {
+                        tempPenalties = {};
+                        hasUnsavedChanges = false;
+                        renderPenalties();
+                        updateBadge();
+                    }
+                    let span = document.querySelector('#stageInfo span:first-child');
+                    if (span && currentDirection && currentTeam) {
+                        let teamName = document.getElementById('teamSelect').options[document.getElementById('teamSelect').selectedIndex]?.text || currentTeam;
+                        span.innerText = `📍 Направление ${currentDirection}, команда ${teamName} | Этап: ${currentStage}`;
+                    }
+                });
+            });
+        }
+        
+        // ---------- ОБРАБОТЧИКИ ВЫБОРА ----------
+        async function onSelectionChange() {
+            currentDirection = document.getElementById('directionSelect').value ? parseInt(document.getElementById('directionSelect').value) : null;
+            currentTeam = document.getElementById('teamSelect').value || null;
+            if (currentDirection && currentTeam) await refreshCurrentTeamData();
+            else {
+                document.getElementById('penaltiesContainer').innerHTML = '<div style="grid-column:1/-1; text-align:center;">⚠️ Выберите направление и банк</div>';
+                document.getElementById('rawTimeDisplay').innerText = '—';
+                document.getElementById('totalPenaltyDisplay').innerText = '0';
+                document.getElementById('totalTimeDisplay').innerText = '—';
+            }
+            let span = document.querySelector('#stageInfo span:first-child');
+            if (span && currentDirection && currentTeam) {
+                let teamName = document.getElementById('teamSelect').options[document.getElementById('teamSelect').selectedIndex]?.text || currentTeam;
+                span.innerText = `📍 Направление ${currentDirection}, команда ${teamName} | Этап: ${currentStage}`;
+            } else if (span) span.innerText = '✅ Выберите направление, банк и этап';
+        }
+        
+        // ---------- ИНИЦИАЛИЗАЦИЯ ----------
+        async function init() {
+            let statusDiv = document.getElementById('connectionStatus');
+            statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>';
+            try {
+                let { error } = await supabaseClient.from('security_estafeta_results').select('count', { count: 'exact', head: true });
+                if (error) throw error;
+                statusDiv.innerHTML = '<span class="status-ok">✅ Подключено</span>';
+            } catch (err) {
+                console.error(err);
+                statusDiv.innerHTML = `<span class="status-error">❌ Ошибка: ${err.message}. Данные будут только локально.</span>`;
+            }
+            await loadAllResults();
+            renderStageButtons();
+            document.getElementById('directionSelect').addEventListener('change', onSelectionChange);
+            document.getElementById('teamSelect').addEventListener('change', onSelectionChange);
+            document.getElementById('saveStageBtn').addEventListener('click', saveStage);
+            document.getElementById('resetStageBtn').addEventListener('click', resetTemp);
+            document.getElementById('saveRawTimeBtn').addEventListener('click', saveRawTime);
+            document.getElementById('resetTeamBtn').addEventListener('click', resetAllPenalties);
+            onSelectionChange();
+        }
+        
+        init();
+    })();
+</script>
+</body>
+</html>
