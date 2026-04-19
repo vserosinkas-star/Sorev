@@ -91,7 +91,7 @@
         <div class="section">
             <h2>🏃‍♂️ Эстафета (охрана) — полоса препятствий, силовые, ПП</h2>
             <div class="table-wrapper" id="security-estafeta"><div class="loading">Загрузка...</div></div>
-            <div class="subnote">* Время: м:сс.сс или ч:мм:сс.сс. Штраф = кол-во ошибок × 5/10/20 сек (по регламенту).</div>
+            <div class="subnote">* Время: м:сс.сс или ч:мм:сс.сс. Штрафы по регламенту.</div>
         </div>
         <div class="section">
             <h2>🏃‍♂️🎯 Служебное двоеборье (бег 1000 м + пистолет)</h2>
@@ -104,7 +104,7 @@
         </div>
     </div>
 
-    <footer>Данные обновляются автоматически из Supabase. Триатлон, эстафета, мастерство вождения, командная эстафета, охрана, служебное двоеборье — все результаты в реальном времени.<br>© Сбербанк, Департамент безопасности, ЦУНДО</footer>
+    <footer>Данные обновляются автоматически из Supabase. Все дисциплины синхронизированы.<br>© Сбербанк, Департамент безопасности, ЦУНДО</footer>
 </div>
 
 <script>
@@ -121,7 +121,7 @@
             "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
         };
 
-        // ---------- ДАННЫЕ ПО УМОЛЧАНИЮ (для личного первенства, пока статика) ----------
+        // ---------- ДАННЫЕ ПО УМОЛЧАНИЮ (для личного первенства) ----------
         const defaultShootingPlaces = { "СИБ":5, "СРБ":1, "СЗБ":3, "ДВБ":2, "ЦЧБ":4, "ВВБ":8, "ЮЗБ":7, "ПВБ":6, "УБ":10, "ББ":9, "МРД":11 };
         const defaultIndividual = [
             { place:1, team:"Среднерусский", name:"Артемкин Николай Николаевич", result:"02:48,45" },
@@ -139,7 +139,7 @@
         let shootingPlaces = { ...defaultShootingPlaces };
         let individualData = [...defaultIndividual];
 
-        // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (форматирование времени: м:сс.сс) ----------
+        // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
         function formatTime(sec) {
             if (sec === null || isNaN(sec)) return "—";
             let minutes = Math.floor(sec / 60);
@@ -249,7 +249,7 @@
             return computePlaces(totals);
         }
 
-        // ---------- МАСТЕРСТВО ВОЖДЕНИЯ (driving_results) ----------
+        // ---------- МАСТЕРСТВО ВОЖДЕНИЯ (из Supabase) ----------
         async function loadDrivingResults() {
             try {
                 const { data, error } = await supabaseClient.from('driving_results').select('*');
@@ -272,7 +272,7 @@
                         total_time: null
                     });
                 } else {
-                    // вычисляем штрафы из JSONB
+                    // вычисляем штрафы из JSONB (каждая ошибка +20 сек, упрощённо)
                     const figurePenalty = row.figure_penalties ? Object.values(row.figure_penalties).filter(v=>v===true).length * 20 : 0;
                     const sduPenalty = row.sdu_penalties ? Object.values(row.sdu_penalties).filter(v=>v===true).length * 20 : 0;
                     const figureTotal = row.figure_time !== null ? row.figure_time + figurePenalty : null;
@@ -291,7 +291,7 @@
                     });
                 }
             }
-            // вычисляем места
+            // вычисляем места по фигурному вождению и СДУ
             const figureEntries = res.filter(r => r.figure_total !== null).sort((a,b) => a.figure_total - b.figure_total);
             const sduEntries = res.filter(r => r.sdu_total !== null).sort((a,b) => a.sdu_total - b.sdu_total);
             const figurePlaces = {}, sduPlaces = {};
@@ -346,27 +346,21 @@
             } catch(e) { console.warn(e); return {}; }
         }
 
-        // ---------- ЭСТАФЕТА (ОХРАНА) ----------
+        // ---------- ЭСТАФЕТА (ОХРАНА) из Supabase ----------
         async function loadSecurityEstafeta() {
             try {
-                const { data, error } = await supabaseClient.from('security_estafeta_results').select('team_code, direction, raw_seconds, penalties, total_seconds');
+                const { data, error } = await supabaseClient.from('security_estafeta_results').select('team_code, direction, raw_seconds, total_seconds');
                 if (error) throw error;
                 const rows = [];
                 for (let row of data) {
                     if (!row.raw_seconds || row.raw_seconds === 0) continue;
-                    let penalty = 0;
-                    if (row.penalties && typeof row.penalties === 'object') {
-                        // суммируем штрафы из JSONB (каждый штраф имеет свою величину, но для простоты возьмем сумму значений)
-                        for (let id in row.penalties) if (row.penalties[id]) {
-                            // упрощённо: можно захардкодить, но в таблице уже есть total_seconds
-                        }
-                    }
+                    const penalty = (row.total_seconds || 0) - (row.raw_seconds || 0);
                     rows.push({
                         team_code: row.team_code,
                         team_name: teamNames[row.team_code] || row.team_code,
                         direction: row.direction,
                         raw_seconds: row.raw_seconds,
-                        penalty: (row.total_seconds || 0) - (row.raw_seconds || 0),
+                        penalty: penalty,
                         total_seconds: row.total_seconds || (row.raw_seconds + penalty)
                     });
                 }
@@ -381,7 +375,7 @@
             } catch(e) { console.warn(e); return []; }
         }
 
-        // ---------- СЛУЖЕБНОЕ ДВОЕБОРЬЕ ----------
+        // ---------- СЛУЖЕБНОЕ ДВОЕБОРЬЕ из Supabase ----------
         async function loadServiceDuathlon() {
             try {
                 const { data, error } = await supabaseClient.from('service_duathlon_results').select('*');
@@ -415,7 +409,7 @@
             } catch(e) { console.warn(e); return []; }
         }
 
-        // ---------- ОБЩИЙ РАСЧЁТ МЕСТ ДЛЯ КОМАНДНОГО ПЕРВЕНСТВА ----------
+        // ---------- ОБЩИЙ РАСЧЁТ МЕСТ ----------
         function computePlaces(obj) {
             const entries = Object.entries(obj).filter(([_, v]) => v && v > 0);
             entries.sort((a,b) => a[1] - b[1]);
@@ -457,7 +451,7 @@
             if (!container) return;
             container.innerHTML = '<div class="loading">Загрузка...</div>';
             const standings = await computeTeamStandings();
-            let html = '<table><thead><tr><th>Итоговое место</th><th>Команда</th><th>Эстафета</th><th>Триатлон</th><th>Мастерство вождения</th><th>Практическая стрельба</th><th>Сумма мест</th></tr></thead><tbody>';
+            let html = '<tr><thead><tr><th>Итоговое место</th><th>Команда</th><th>Эстафета</th><th>Триатлон</th><th>Мастерство вождения</th><th>Практическая стрельба</th><th>Сумма мест</th></tr></thead><tbody>';
             let rank = 1;
             for (let s of standings) {
                 const rowClass = (rank === 1) ? 'class="rank-1"' : '';
@@ -494,9 +488,9 @@
                             <td>${formatTime(row.raw_seconds)}</strong></td>
                             <td>${row.penalty}</strong></td>
                             <td>${formatTime(row.total_seconds)}</strong></td>
-                          </tr>`;
+                          </td>`;
             }
-            html += '</tbody></tr>';
+            html += '</tbody></table>';
             container.innerHTML = html;
         }
 
@@ -544,7 +538,7 @@
                 container.innerHTML = '<div class="loading">Нет данных мастерства вождения.</div>';
                 return;
             }
-            let html = '<tr><thead><tr>
+            let html = '<table><thead><tr>
                             <th>Место (итог)</th><th>Команда</th><th>Участник</th>
                             <th>Фигурное вождение (чистое)</th><th>Фигурное (штраф)</th><th>Фигурное (итог)</th>
                             <th>Вождение СДУ (чистое)</th><th>СДУ (штраф)</th><th>СДУ (итог)</th>
@@ -577,7 +571,7 @@
                 const rowClass = (p.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}><td>${p.place}</td><td>${p.team}</td><td>${p.name}</td><td>${p.result}</td></tr>`;
             }
-            html += '</tbody><tr>';
+            html += '</tbody></table>';
             container.innerHTML = html;
         }
 
@@ -599,7 +593,7 @@
             container.innerHTML = html;
         }
 
-        // ---------- ОХРАНА ----------
+        // ---------- ОХРАНА (рендер из Supabase) ----------
         async function renderSecurityEstafeta(containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -609,7 +603,7 @@
                 container.innerHTML = '<div class="loading">Нет данных эстафеты охраны.</div>';
                 return;
             }
-            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead><tbody>';
+            let html = '<tr><thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead><tbody>';
             for (let row of rows) {
                 const rowClass = (row.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
