@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Мастерство вождения — судейская панель</title>
+    <title>Мастерство вождения спецавтомобиля — судейская панель</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
@@ -15,9 +15,12 @@
         .control-group { margin-bottom: 20px; }
         .control-group label { font-weight: 600; display: block; margin-bottom: 6px; color: #1e3a5f; }
         select, input { width: 100%; padding: 12px; border-radius: 16px; border: 1px solid #cbd5e1; font-size: 1rem; background: white; }
+        .stage-buttons { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0; }
+        .stage-btn { background: #e2e8f0; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; font-size: 0.85rem; font-weight: 500; color: #1e293b; }
+        .stage-btn.active { background: #1e3a8a; color: white; }
         .exercise-card { background: #f9fafb; border-radius: 24px; padding: 16px; margin-top: 20px; border: 1px solid #e2e8f0; }
-        .exercise-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; color: #0f2b44; }
-        .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin: 15px 0; }
+        .exercise-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; color: #0f2b44; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin: 15px 0; max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px; background: white; }
         .penalty-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
         .penalty-card input { width: 22px; height: 22px; margin: 0; }
         .penalty-card label { flex: 1; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
@@ -31,7 +34,7 @@
         .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: bold; margin-left: 12px; }
         .summary-bar { background: #f1f5f9; border-radius: 20px; padding: 16px; margin-top: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; font-weight: 600; }
         .results-table { background: white; border-radius: 24px; overflow-x: auto; padding: 4px; margin-top: 30px; }
-        table { width: 100%; border-collapse: collapse; min-width: 700px; }
+        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
         th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; }
         th { background: #f8fafc; }
         .rank-1 { background-color: #fef9c3; font-weight: bold; }
@@ -51,7 +54,7 @@
     <div class="judge-panel">
         <div id="connectionStatus" style="margin-bottom: 15px;"></div>
         <div class="control-group">
-            <label>🏦 Территориальный банк (участник)</label>
+            <label>🏦 Территориальный банк (команда)</label>
             <select id="teamSelect">
                 <option value="">-- выбрать --</option>
                 <option value="УБ">Уральский (УБ)</option>
@@ -70,15 +73,18 @@
 
         <!-- Упражнение 1: Фигурное вождение -->
         <div id="figureCard" class="exercise-card" style="display: none;">
-            <div class="exercise-title">📐 Фигурное вождение</div>
+            <div class="exercise-title">
+                <span>🚗 Упражнение 1: Фигурное вождение</span>
+                <input type="text" id="participantName" placeholder="ФИО участника" style="width: auto; flex:1; margin-left: 10px;">
+            </div>
             <div class="time-row">
                 <div class="control-group">
-                    <label>⏱️ Чистое время (мм:сс.сс или чч:мм:сс.сс)</label>
-                    <input type="text" id="figureTimeInput" placeholder="например 5:42.35 или 14:23.05">
+                    <label>⏱️ Чистое время (мм:сс.сс)</label>
+                    <input type="text" id="figureRawTime" placeholder="например 5:42.35">
                 </div>
                 <button id="saveFigureTimeBtn" class="btn-secondary">Сохранить время</button>
             </div>
-            <div id="figurePenaltiesContainer"></div>
+            <div id="figurePenaltiesContainer" class="penalties-grid"></div>
             <div style="display: flex; gap: 10px; margin-top: 12px;">
                 <button id="saveFigurePenaltiesBtn">💾 Сохранить ошибки фигурного вождения</button>
                 <button id="resetFigurePenaltiesBtn" class="btn-warning">🗑️ Сбросить ошибки этапа</button>
@@ -90,17 +96,19 @@
             </div>
         </div>
 
-        <!-- Упражнение 2: Вождение в сложных дорожных условиях (СДУ) -->
+        <!-- Упражнение 2: Вождение в СДУ -->
         <div id="sduCard" class="exercise-card" style="display: none;">
-            <div class="exercise-title">🛣️ Вождение в сложных дорожных условиях (СДУ)</div>
+            <div class="exercise-title">
+                <span>🛣️ Упражнение 2: Вождение в сложных дорожных условиях</span>
+            </div>
             <div class="time-row">
                 <div class="control-group">
-                    <label>⏱️ Чистое время (мм:сс.сс или чч:мм:сс.сс)</label>
-                    <input type="text" id="sduTimeInput" placeholder="например 4:21.12 или 12:15.45">
+                    <label>⏱️ Чистое время (мм:сс.сс)</label>
+                    <input type="text" id="sduRawTime" placeholder="например 6:18.22">
                 </div>
                 <button id="saveSduTimeBtn" class="btn-secondary">Сохранить время</button>
             </div>
-            <div id="sduPenaltiesContainer"></div>
+            <div id="sduPenaltiesContainer" class="penalties-grid"></div>
             <div style="display: flex; gap: 10px; margin-top: 12px;">
                 <button id="saveSduPenaltiesBtn">💾 Сохранить ошибки вождения в СДУ</button>
                 <button id="resetSduPenaltiesBtn" class="btn-warning">🗑️ Сбросить ошибки этапа</button>
@@ -111,6 +119,10 @@
                 <span>Итого: <strong id="sduTotalDisplay">—</strong></span>
             </div>
         </div>
+
+        <div style="margin-top: 20px; text-align: center;">
+            <button id="syncAllBtn" style="background: #2b6e3c;">💾 Синхронизировать все данные команды</button>
+        </div>
     </div>
 
     <div class="results-table">
@@ -118,497 +130,506 @@
         <table id="resultsTable">
             <thead>
                 <tr>
-                    <th>Место</th><th>Команда</th>
-                    <th>Фигурное вождение (чистое/штраф/итог)</th>
-                    <th>Вождение СДУ (чистое/штраф/итог)</th>
-                    <th>Сумма мест</th>
+                    <th>Место (итог)</th><th>Команда</th><th>Участник</th>
+                    <th>Фигурное вождение (чистое)</th><th>Фигурное (штраф)</th><th>Фигурное (итог)</th><th>Место фигурное</th>
+                    <th>Вождение СДУ (чистое)</th><th>СДУ (штраф)</th><th>СДУ (итог)</th><th>Место СДУ</th>
+                    <th>Сумма мест</th><th>Общее время</th>
                 </tr>
             </thead>
             <tbody id="resultsBody">
-                <tr><td colspan="5">Загрузка данных...</td></tr>
+                <tr><td colspan="13">Загрузка данных...</td></tr>
             </tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // ---------- НАСТРОЙКИ SUPABASE ----------
-    const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    const teamCodes = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
-    const teamNames = {
-        "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","МРД":"Московский",
-        "ЦЧБ":"Центрально-Черноземный","ЮЗБ":"Юго-Западный","ПВБ":"Поволжский",
-        "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
-    };
+    (function() {
+        // ---------- НАСТРОЙКИ SUPABASE ----------
+        const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ---------- БИБЛИОТЕКИ ОШИБОК (на основе документа) ----------
-    // Ошибки для фигурного вождения
-    const figurePenaltiesLibrary = [
-        { id: "fig_false_start", desc: "Фальстарт", sec: 5 },
-        { id: "fig_no_belt", desc: "Водитель-инкассатор не пристёгнут ремнем безопасности (за каждое предупреждение)", sec: 10 },
-        { id: "fig_cone_touch", desc: "Касание, падение или сдвиг конуса (стойки) на всех фигурах (за каждый случай)", sec: 5 },
-        { id: "fig_circle_exit", desc: "В фигуре «Круговое движение» передним ходом не полностью выехал за створ ворот", sec: 10 },
-        { id: "fig_krendel", desc: "Не исполнение требований в фигуре «Крендель»", sec: 15 },
-        { id: "fig_eight", desc: "Не исполнение требований в фигуре «Восьмерка»", sec: 15 },
-        { id: "fig_box", desc: "Не исполнение требований в фигуре «Заезд в бокс задним ходом»", sec: 15 },
-        { id: "fig_obezd", desc: "Не исполнение требований в фигуре «Объезд препятствия»", sec: 15 },
-        { id: "fig_gabarit_snake", desc: "Не исполнение требований в фигуре «Габаритная змейка» передним ходом, выезд за ось", sec: 10 },
-        { id: "fig_razvorot", desc: "Не исполнение требований в фигуре «Разворот в ограниченном пространстве»", sec: 15 },
-        { id: "fig_tunnel", desc: "Касание, падение или сдвиг стойки на фигуре «Туннельные ворота»", sec: 10 },
-        { id: "fig_other_cone", desc: "Касание, падение или сдвиг конуса фигуры, которую в данный момент не исполняют", sec: 10 },
-        { id: "fig_parallel", desc: "Не исполнение требований в фигуре «Параллельная парковка задним ходом»", sec: 15 },
-        { id: "fig_kacheli", desc: "Прекращение выполнения упражнения «Качели» до истечения 2 минут", sec: 170 },
-        { id: "fig_stop_line_one", desc: "Отсутствие контакта со стоп-линией одного колеса", sec: 15 },
-        { id: "fig_stop_line_both", desc: "Отсутствие контакта со стоп-линией обоих колес", sec: 30 },
-        { id: "fig_wrong_order", desc: "Проезд не по схеме (несоблюдение последовательности) (за каждую фигуру)", sec: 15 },
-        { id: "fig_missed", desc: "Пропущенная (невыполненная фигура)", sec: 60 },
-        { id: "fig_outside_help", desc: "Посторонняя помощь участнику в движении по трассе", sec: 30 },
-        { id: "fig_unauthorized_person", desc: "Проход лиц за ограждение на территорию площадки без разрешения", sec: 30 }
-    ];
+        // ---------- КОНСТАНТЫ ----------
+        const teamCodes = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
+        const teamNames = {
+            "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","МРД":"Московский",
+            "ЦЧБ":"Центрально-Черноземный","ЮЗБ":"Юго-Западный","ПВБ":"Поволжский",
+            "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
+        };
 
-    // Ошибки для вождения в сложных дорожных условиях (СДУ)
-    const sduPenaltiesLibrary = [
-        { id: "sdu_false_start", desc: "Фальстарт", sec: 5 },
-        { id: "sdu_no_belt", desc: "Водитель-инкассатор не пристёгнут ремнем безопасности (за каждое предупреждение)", sec: 10 },
-        { id: "sdu_cone_touch", desc: "Касание, падение или сдвиг конуса (стойки) на всех фигурах (за каждый случай)", sec: 5 },
-        { id: "sdu_maltese_wrong_dir", desc: "Проезд конусов фигуры «Мальтийский крест» в неправильном направлении (за каждый конус)", sec: 5 },
-        { id: "sdu_shikana", desc: "Не исполнение требований при выполнении «шикана»", sec: 15 },
-        { id: "sdu_barrel_wrong_dir", desc: "Проезд передним ходом против часовой стрелки вокруг обозначенной фигуры «бочка»", sec: 15 },
-        { id: "sdu_stop_on_slope", desc: "Не исполнение требований при выполнении «остановка на спуске»", sec: 15 },
-        { id: "sdu_razvorot", desc: "Не исполнение требований при выполнении «разворот в установленных габаритах»", sec: 15 },
-        { id: "sdu_obezd", desc: "Не исполнение требований при выполнении «объезд препятствий»", sec: 15 },
-        { id: "sdu_square", desc: "Не исполнение требований при выполнении «квадрат»", sec: 15 },
-        { id: "sdu_90_turn", desc: "Не исполнение требований при выполнении «поворот на 90 градусов»", sec: 15 },
-        { id: "sdu_finish", desc: "Не исполнение требований при выполнении «финиш» (линия не между осями)", sec: 15 },
-        { id: "sdu_wrong_order", desc: "Проезд не по схеме (несоблюдение последовательности) (за каждую фигуру)", sec: 15 },
-        { id: "sdu_missed", desc: "Пропущенная (невыполненная фигура)", sec: 60 },
-        { id: "sdu_outside_help", desc: "Посторонняя помощь участнику в движении по трассе", sec: 30 },
-        { id: "sdu_unauthorized_person", desc: "Проход лиц за ограждение на территорию площадки без разрешения", sec: 30 }
-    ];
+        // ---------- БИБЛИОТЕКИ ШТРАФОВ (на основе документа) ----------
+        // Штрафы для фигурного вождения
+        const figurePenaltiesList = [
+            { id: "fig_falsestart", desc: "Фальстарт", sec: 5 },
+            { id: "fig_belt", desc: "Водитель не пристёгнут ремнем безопасности (за каждое предупреждение)", sec: 10 },
+            { id: "fig_cone", desc: "Касание, падение или сдвиг конуса (стойки) на всех фигурах (за каждый случай)", sec: 5 },
+            { id: "fig_circle_no_exit", desc: "Фигура «Круговое движение»: не выехал полностью за створ ворот", sec: 10 },
+            { id: "fig_krendel", desc: "Не исполнение требований в фигуре «Крендель»", sec: 15 },
+            { id: "fig_vosmerka", desc: "Не исполнение требований в фигуре «Восьмерка»", sec: 15 },
+            { id: "fig_box", desc: "Не исполнение требований в фигуре «Заезд в бокс задним ходом»", sec: 15 },
+            { id: "fig_obezd", desc: "Не исполнение требований в фигуре «Объезд препятствия»", sec: 15 },
+            { id: "fig_gabarit", desc: "Не исполнение требований в фигуре «Габаритная змейка» (выезд за ось)", sec: 10 },
+            { id: "fig_razvorot", desc: "Не исполнение требований в фигуре «Разворот в ограниченном пространстве»", sec: 15 },
+            { id: "fig_tunnel", desc: "Касание, падение или сдвиг стойки на фигуре «Туннельные ворота»", sec: 10 },
+            { id: "fig_parallel", desc: "Не исполнение требований в фигуре «Параллельная парковка задним ходом»", sec: 15 },
+            { id: "fig_kacheli", desc: "Прекращение выполнения упражнения «Качели» до истечения 2 минут", sec: 170 },
+            { id: "fig_stop_one", desc: "Отсутствие контакта со стоп-линией одного колеса", sec: 15 },
+            { id: "fig_stop_both", desc: "Отсутствие контакта со стоп-линией обоих колес", sec: 30 },
+            { id: "fig_wrong_scheme", desc: "Проезд не по схеме (за каждую фигуру)", sec: 15 },
+            { id: "fig_missed_figure", desc: "Пропущенная (невыполненная) фигура", sec: 60 },
+            { id: "fig_outside_help", desc: "Посторонняя помощь участнику в движении по трассе", sec: 30 },
+            { id: "fig_people", desc: "Проход лиц за ограждение без разрешения (команде)", sec: 30 }
+        ];
 
-    // ---------- ГЛОБАЛЬНОЕ СОСТОЯНИЕ ----------
-    let currentTeam = null;
-    let tempFigurePenalties = {};
-    let tempSduPenalties = {};
-    let hasFigureChanges = false;
-    let hasSduChanges = false;
+        // Штрафы для вождения в СДУ
+        const sduPenaltiesList = [
+            { id: "sdu_falsestart", desc: "Фальстарт", sec: 5 },
+            { id: "sdu_belt", desc: "Водитель не пристёгнут ремнем безопасности", sec: 10 },
+            { id: "sdu_cone", desc: "Касание, падение или сдвиг конуса (за каждый случай)", sec: 5 },
+            { id: "sdu_maltese_wrong", desc: "Проезд конусов «Мальтийский крест» в неправильном направлении (за каждый конус)", sec: 5 },
+            { id: "sdu_shikana", desc: "Не исполнение требований при выполнении «шикана»", sec: 15 },
+            { id: "sdu_bocha", desc: "Проезд «бочки» против часовой стрелки", sec: 15 },
+            { id: "sdu_stop_hill", desc: "Не исполнение требований при выполнении «остановка на спуске»", sec: 15 },
+            { id: "sdu_razvorot", desc: "Не исполнение требований при выполнении «разворот в установленных габаритах»", sec: 15 },
+            { id: "sdu_obezd", desc: "Не исполнение требований при выполнении «объезд препятствий»", sec: 15 },
+            { id: "sdu_kvadrat", desc: "Не исполнение требований при выполнении «квадрат»", sec: 15 },
+            { id: "sdu_90", desc: "Не исполнение требований при выполнении «поворот на 90 градусов»", sec: 15 },
+            { id: "sdu_finish", desc: "Не исполнение требований при выполнении «финиш» (линия не между осями)", sec: 15 },
+            { id: "sdu_wrong_scheme", desc: "Проезд не по схеме (за каждую фигуру)", sec: 15 },
+            { id: "sdu_missed_figure", desc: "Пропущенная фигура", sec: 60 },
+            { id: "sdu_outside_help", desc: "Посторонняя помощь участнику", sec: 30 },
+            { id: "sdu_people", desc: "Проход лиц за ограждение без разрешения", sec: 30 }
+        ];
 
-    // Данные всех участников (кэш)
-    let allDrivingData = {};
+        // ---------- ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ----------
+        let currentTeam = null;
+        let currentData = {
+            participant_name: "",
+            figure_time: null,
+            figure_penalties: {},
+            sdu_time: null,
+            sdu_penalties: {}
+        };
+        let tempFigurePenalties = {};
+        let tempSduPenalties = {};
+        let unsavedFigure = false, unsavedSdu = false;
 
-    // DOM элементы
-    const teamSelect = document.getElementById('teamSelect');
-    const figureCard = document.getElementById('figureCard');
-    const sduCard = document.getElementById('sduCard');
-    const figureTimeInput = document.getElementById('figureTimeInput');
-    const sduTimeInput = document.getElementById('sduTimeInput');
-    const figurePenaltiesContainer = document.getElementById('figurePenaltiesContainer');
-    const sduPenaltiesContainer = document.getElementById('sduPenaltiesContainer');
-    const saveFigureTimeBtn = document.getElementById('saveFigureTimeBtn');
-    const saveSduTimeBtn = document.getElementById('saveSduTimeBtn');
-    const saveFigurePenaltiesBtn = document.getElementById('saveFigurePenaltiesBtn');
-    const resetFigurePenaltiesBtn = document.getElementById('resetFigurePenaltiesBtn');
-    const saveSduPenaltiesBtn = document.getElementById('saveSduPenaltiesBtn');
-    const resetSduPenaltiesBtn = document.getElementById('resetSduPenaltiesBtn');
+        // DOM элементы
+        const teamSelect = document.getElementById('teamSelect');
+        const figureCard = document.getElementById('figureCard');
+        const sduCard = document.getElementById('sduCard');
+        const participantNameInput = document.getElementById('participantName');
+        const figureRawTime = document.getElementById('figureRawTime');
+        const sduRawTime = document.getElementById('sduRawTime');
+        const figurePenaltiesContainer = document.getElementById('figurePenaltiesContainer');
+        const sduPenaltiesContainer = document.getElementById('sduPenaltiesContainer');
+        const saveFigureTimeBtn = document.getElementById('saveFigureTimeBtn');
+        const saveSduTimeBtn = document.getElementById('saveSduTimeBtn');
+        const saveFigurePenaltiesBtn = document.getElementById('saveFigurePenaltiesBtn');
+        const saveSduPenaltiesBtn = document.getElementById('saveSduPenaltiesBtn');
+        const resetFigurePenaltiesBtn = document.getElementById('resetFigurePenaltiesBtn');
+        const resetSduPenaltiesBtn = document.getElementById('resetSduPenaltiesBtn');
+        const syncAllBtn = document.getElementById('syncAllBtn');
 
-    // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
-    function formatTime(sec) {
-        if (sec === null || isNaN(sec)) return "—";
-        let minutes = Math.floor(sec / 60);
-        let seconds = (sec % 60).toFixed(2);
-        return minutes + ":" + seconds.toString().padStart(5, '0');
-    }
+        // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
+        function formatTime(sec) {
+            if (sec === null || isNaN(sec)) return "—";
+            let minutes = Math.floor(sec / 60);
+            let seconds = (sec % 60).toFixed(2);
+            return minutes + ":" + seconds.toString().padStart(5, '0');
+        }
 
-    function parseTime(str) {
-        if (!str.trim()) return null;
-        str = str.trim();
-        let parts = str.split(':');
-        let minutes = 0, seconds = 0;
-        if (parts.length === 2) {
-            minutes = parseInt(parts[0]) || 0;
-            let secPart = parts[1];
-            let dotIndex = secPart.indexOf('.');
-            if (dotIndex !== -1) {
-                seconds = parseInt(secPart.substring(0, dotIndex)) || 0;
-                let fraction = parseFloat('0.' + secPart.substring(dotIndex+1)) || 0;
-                seconds += fraction;
+        function parseTime(str) {
+            if (!str.trim()) return null;
+            let parts = str.trim().split(':');
+            let minutes = 0, seconds = 0;
+            if (parts.length === 2) {
+                minutes = parseInt(parts[0]) || 0;
+                let secPart = parts[1];
+                let dotIndex = secPart.indexOf('.');
+                if (dotIndex !== -1) {
+                    seconds = parseInt(secPart.substring(0, dotIndex)) || 0;
+                    let fraction = parseFloat('0.' + secPart.substring(dotIndex+1)) || 0;
+                    seconds += fraction;
+                } else {
+                    seconds = parseInt(secPart) || 0;
+                }
+            } else if (parts.length === 1) {
+                seconds = parseFloat(parts[0]) || 0;
             } else {
-                seconds = parseInt(secPart) || 0;
+                return null;
             }
-        } else if (parts.length === 3) {
-            // чч:мм:сс.сс
-            minutes = parseInt(parts[0])*60 + parseInt(parts[1]);
-            let secPart = parts[2];
-            let dotIndex = secPart.indexOf('.');
-            if (dotIndex !== -1) {
-                seconds = parseInt(secPart.substring(0, dotIndex)) || 0;
-                let fraction = parseFloat('0.' + secPart.substring(dotIndex+1)) || 0;
-                seconds += fraction;
-            } else {
-                seconds = parseInt(secPart) || 0;
+            return minutes * 60 + seconds;
+        }
+
+        function getPenaltySum(penObj) {
+            let sum = 0;
+            for (let id in penObj) if (penObj[id]) {
+                let p = figurePenaltiesList.find(p => p.id === id) || sduPenaltiesList.find(p => p.id === id);
+                if (p) sum += p.sec;
             }
-        } else {
-            return null;
+            return sum;
         }
-        let total = minutes * 60 + seconds;
-        return isNaN(total) ? null : total;
-    }
 
-    function getPenaltySum(penObj, library) {
-        let sum = 0;
-        for (let id in penObj) if (penObj[id]) {
-            let p = library.find(p => p.id === id);
-            if (p) sum += p.sec;
+        // Загрузка данных команды из Supabase
+        async function loadTeamData(teamCode) {
+            if (!teamCode) return null;
+            try {
+                const { data, error } = await supabaseClient
+                    .from('driving_results')
+                    .select('*')
+                    .eq('team_code', teamCode)
+                    .maybeSingle();
+                if (error) throw error;
+                return data;
+            } catch(e) { console.warn(e); return null; }
         }
-        return sum;
-    }
 
-    // ---------- ЗАГРУЗКА/СОХРАНЕНИЕ ДАННЫХ (Supabase) ----------
-    async function loadAllDrivingData() {
-        try {
-            const { data, error } = await supabaseClient.from('driving_results').select('*');
-            if (error) throw error;
-            const result = {};
-            for (let row of data) {
-                result[row.team_code] = {
-                    figure_raw: row.figure_raw,
-                    figure_penalties: row.figure_penalties || {},
-                    sdu_raw: row.sdu_raw,
-                    sdu_penalties: row.sdu_penalties || {}
-                };
-            }
-            allDrivingData = result;
-            return result;
-        } catch(e) {
-            console.warn("Ошибка загрузки из Supabase, используем локальный кэш", e);
-            return allDrivingData;
-        }
-    }
-
-    async function saveDrivingData(teamCode, figureRaw, figurePenalties, sduRaw, sduPenalties) {
-        try {
-            const { error } = await supabaseClient.from('driving_results').upsert({
+        // Сохранение всей записи
+        async function saveTeamData(teamCode, data) {
+            const payload = {
                 team_code: teamCode,
-                figure_raw: figureRaw,
-                figure_penalties: figurePenalties,
-                sdu_raw: sduRaw,
-                sdu_penalties: sduPenalties,
+                participant_name: data.participant_name,
+                figure_time: data.figure_time,
+                figure_penalties: data.figure_penalties,
+                figure_total: data.figure_time !== null ? data.figure_time + getPenaltySum(data.figure_penalties) : null,
+                sdu_time: data.sdu_time,
+                sdu_penalties: data.sdu_penalties,
+                sdu_total: data.sdu_time !== null ? data.sdu_time + getPenaltySum(data.sdu_penalties) : null,
+                total_time: (data.figure_time !== null && data.sdu_time !== null) ? 
+                    (data.figure_time + getPenaltySum(data.figure_penalties) + data.sdu_time + getPenaltySum(data.sdu_penalties)) : null,
                 updated_at: new Date().toISOString()
-            }, { onConflict: 'team_code' });
-            if (error) throw error;
-            // Обновляем кэш
-            if (!allDrivingData[teamCode]) allDrivingData[teamCode] = {};
-            allDrivingData[teamCode].figure_raw = figureRaw;
-            allDrivingData[teamCode].figure_penalties = figurePenalties;
-            allDrivingData[teamCode].sdu_raw = sduRaw;
-            allDrivingData[teamCode].sdu_penalties = sduPenalties;
-        } catch(e) { console.error("Ошибка сохранения:", e); }
-    }
+            };
+            try {
+                const { error } = await supabaseClient
+                    .from('driving_results')
+                    .upsert(payload, { onConflict: 'team_code' });
+                if (error) throw error;
+                return true;
+            } catch(e) { console.error(e); return false; }
+        }
 
-    async function refreshCurrentTeamUI() {
-        if (!currentTeam) {
-            figureCard.style.display = 'none';
-            sduCard.style.display = 'none';
-            return;
+        // Загрузка всех результатов для таблицы
+        async function loadAllResults() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('driving_results')
+                    .select('*');
+                if (error) throw error;
+                return data;
+            } catch(e) { console.warn(e); return []; }
         }
-        figureCard.style.display = 'block';
-        sduCard.style.display = 'block';
-        
-        const data = allDrivingData[currentTeam] || {};
-        // Фигурное вождение
-        const figureRaw = data.figure_raw !== undefined ? data.figure_raw : null;
-        const figurePenObj = data.figure_penalties || {};
-        const figurePenSum = getPenaltySum(figurePenObj, figurePenaltiesLibrary);
-        const figureTotal = figureRaw !== null ? figureRaw + figurePenSum : null;
-        document.getElementById('figureRawDisplay').innerText = figureRaw !== null ? formatTime(figureRaw) : '—';
-        document.getElementById('figurePenaltySum').innerText = figurePenSum;
-        document.getElementById('figureTotalDisplay').innerText = figureTotal !== null ? formatTime(figureTotal) : '—';
-        figureTimeInput.value = figureRaw !== null ? formatTime(figureRaw) : '';
-        
-        // Временные штрафы (для текущей сессии редактирования)
-        tempFigurePenalties = { ...figurePenObj };
-        renderPenalties('figure', figurePenaltiesLibrary, tempFigurePenalties, figurePenaltiesContainer, () => {
-            hasFigureChanges = true;
-            updateFigureSummary();
-        });
-        updateFigureSummary();
-        
-        // Вождение СДУ
-        const sduRaw = data.sdu_raw !== undefined ? data.sdu_raw : null;
-        const sduPenObj = data.sdu_penalties || {};
-        const sduPenSum = getPenaltySum(sduPenObj, sduPenaltiesLibrary);
-        const sduTotal = sduRaw !== null ? sduRaw + sduPenSum : null;
-        document.getElementById('sduRawDisplay').innerText = sduRaw !== null ? formatTime(sduRaw) : '—';
-        document.getElementById('sduPenaltySum').innerText = sduPenSum;
-        document.getElementById('sduTotalDisplay').innerText = sduTotal !== null ? formatTime(sduTotal) : '—';
-        sduTimeInput.value = sduRaw !== null ? formatTime(sduRaw) : '';
-        
-        tempSduPenalties = { ...sduPenObj };
-        renderPenalties('sdu', sduPenaltiesLibrary, tempSduPenalties, sduPenaltiesContainer, () => {
-            hasSduChanges = true;
-            updateSduSummary();
-        });
-        updateSduSummary();
-        
-        hasFigureChanges = false;
-        hasSduChanges = false;
-        updateBadges();
-    }
-    
-    function renderPenalties(type, library, tempPen, container, onUpdate) {
-        let html = '<div class="penalties-grid">';
-        for (let p of library) {
-            const checked = tempPen[p.id] === true;
-            html += `<div class="penalty-card">
-                        <input type="checkbox" id="chk_${p.id}_${type}" data-id="${p.id}" ${checked ? 'checked' : ''}>
-                        <label for="chk_${p.id}_${type}">
-                            <span>${p.desc}</span>
-                            <span class="penalty-sec">+${p.sec} сек</span>
-                        </label>
-                     </div>`;
-        }
-        html += '</div>';
-        container.innerHTML = html;
-        for (let p of library) {
-            const cb = document.getElementById(`chk_${p.id}_${type}`);
-            if (cb) {
-                cb.onchange = () => {
-                    if (cb.checked) tempPen[p.id] = true;
-                    else delete tempPen[p.id];
-                    if (onUpdate) onUpdate();
+
+        // Обновление UI текущей команды
+        async function refreshCurrentTeamUI() {
+            if (!currentTeam) {
+                figureCard.style.display = 'none';
+                sduCard.style.display = 'none';
+                return;
+            }
+            figureCard.style.display = 'block';
+            sduCard.style.display = 'block';
+            const dbData = await loadTeamData(currentTeam);
+            if (dbData) {
+                currentData = {
+                    participant_name: dbData.participant_name || "",
+                    figure_time: dbData.figure_time,
+                    figure_penalties: dbData.figure_penalties || {},
+                    sdu_time: dbData.sdu_time,
+                    sdu_penalties: dbData.sdu_penalties || {}
+                };
+            } else {
+                currentData = {
+                    participant_name: "",
+                    figure_time: null,
+                    figure_penalties: {},
+                    sdu_time: null,
+                    sdu_penalties: {}
                 };
             }
-        }
-    }
-    
-    function updateFigureSummary() {
-        if (!currentTeam) return;
-        const figureRaw = parseTime(figureTimeInput.value);
-        const penSum = getPenaltySum(tempFigurePenalties, figurePenaltiesLibrary);
-        const total = figureRaw !== null ? figureRaw + penSum : null;
-        document.getElementById('figurePenaltySum').innerText = penSum;
-        document.getElementById('figureRawDisplay').innerText = figureRaw !== null ? formatTime(figureRaw) : '—';
-        document.getElementById('figureTotalDisplay').innerText = total !== null ? formatTime(total) : '—';
-    }
-    
-    function updateSduSummary() {
-        if (!currentTeam) return;
-        const sduRaw = parseTime(sduTimeInput.value);
-        const penSum = getPenaltySum(tempSduPenalties, sduPenaltiesLibrary);
-        const total = sduRaw !== null ? sduRaw + penSum : null;
-        document.getElementById('sduPenaltySum').innerText = penSum;
-        document.getElementById('sduRawDisplay').innerText = sduRaw !== null ? formatTime(sduRaw) : '—';
-        document.getElementById('sduTotalDisplay').innerText = total !== null ? formatTime(total) : '—';
-    }
-    
-    function updateBadges() {
-        const figDiv = document.getElementById('figureCard');
-        let badge = figDiv.querySelector('.unsaved-badge');
-        if (hasFigureChanges && currentTeam) {
-            if (!badge) {
-                badge = document.createElement('span');
-                badge.className = 'unsaved-badge';
-                badge.innerText = '⚠️ есть изменения';
-                figDiv.querySelector('.exercise-title').appendChild(badge);
-            }
-        } else if (badge) badge.remove();
-        
-        const sduDiv = document.getElementById('sduCard');
-        let badge2 = sduDiv.querySelector('.unsaved-badge');
-        if (hasSduChanges && currentTeam) {
-            if (!badge2) {
-                badge2 = document.createElement('span');
-                badge2.className = 'unsaved-badge';
-                badge2.innerText = '⚠️ есть изменения';
-                sduDiv.querySelector('.exercise-title').appendChild(badge2);
-            }
-        } else if (badge2) badge2.remove();
-    }
-    
-    async function saveFigureData() {
-        if (!currentTeam) { alert('Выберите команду'); return; }
-        const rawStr = figureTimeInput.value.trim();
-        let rawSeconds = rawStr === '' ? null : parseTime(rawStr);
-        if (rawStr !== '' && rawSeconds === null) { alert('Неверный формат времени'); return; }
-        const existing = allDrivingData[currentTeam] || {};
-        const sduRaw = existing.sdu_raw !== undefined ? existing.sdu_raw : null;
-        const sduPen = existing.sdu_penalties || {};
-        await saveDrivingData(currentTeam, rawSeconds, tempFigurePenalties, sduRaw, sduPen);
-        hasFigureChanges = false;
-        await loadAllDrivingData();
-        await refreshCurrentTeamUI();
-        await renderOverallTable();
-        alert('Данные фигурного вождения сохранены');
-    }
-    
-    async function saveSduData() {
-        if (!currentTeam) { alert('Выберите команду'); return; }
-        const rawStr = sduTimeInput.value.trim();
-        let rawSeconds = rawStr === '' ? null : parseTime(rawStr);
-        if (rawStr !== '' && rawSeconds === null) { alert('Неверный формат времени'); return; }
-        const existing = allDrivingData[currentTeam] || {};
-        const figureRaw = existing.figure_raw !== undefined ? existing.figure_raw : null;
-        const figurePen = existing.figure_penalties || {};
-        await saveDrivingData(currentTeam, figureRaw, figurePen, rawSeconds, tempSduPenalties);
-        hasSduChanges = false;
-        await loadAllDrivingData();
-        await refreshCurrentTeamUI();
-        await renderOverallTable();
-        alert('Данные вождения в СДУ сохранены');
-    }
-    
-    function resetFigureChanges() {
-        if (!currentTeam) return;
-        const data = allDrivingData[currentTeam] || {};
-        tempFigurePenalties = { ...(data.figure_penalties || {}) };
-        renderPenalties('figure', figurePenaltiesLibrary, tempFigurePenalties, figurePenaltiesContainer, () => {
-            hasFigureChanges = true;
-            updateFigureSummary();
-        });
-        hasFigureChanges = false;
-        updateFigureSummary();
-        updateBadges();
-    }
-    
-    function resetSduChanges() {
-        if (!currentTeam) return;
-        const data = allDrivingData[currentTeam] || {};
-        tempSduPenalties = { ...(data.sdu_penalties || {}) };
-        renderPenalties('sdu', sduPenaltiesLibrary, tempSduPenalties, sduPenaltiesContainer, () => {
-            hasSduChanges = true;
-            updateSduSummary();
-        });
-        hasSduChanges = false;
-        updateSduSummary();
-        updateBadges();
-    }
-    
-    async function renderOverallTable() {
-        await loadAllDrivingData();
-        let rows = [];
-        for (let code of teamCodes) {
-            const data = allDrivingData[code] || {};
-            const figureRaw = data.figure_raw;
-            const figurePen = getPenaltySum(data.figure_penalties || {}, figurePenaltiesLibrary);
-            const figureTotal = figureRaw !== null ? figureRaw + figurePen : null;
-            const sduRaw = data.sdu_raw;
-            const sduPen = getPenaltySum(data.sdu_penalties || {}, sduPenaltiesLibrary);
-            const sduTotal = sduRaw !== null ? sduRaw + sduPen : null;
+            participantNameInput.value = currentData.participant_name;
+            figureRawTime.value = currentData.figure_time !== null ? formatTime(currentData.figure_time) : "";
+            sduRawTime.value = currentData.sdu_time !== null ? formatTime(currentData.sdu_time) : "";
             
-            // Места в каждом упражнении (по итоговому времени)
-            rows.push({
-                code, name: teamNames[code],
-                figureTotal: figureTotal,
-                sduTotal: sduTotal,
-                figureRaw, figurePen,
-                sduRaw, sduPen
-            });
+            // Копируем временные штрафы из сохранённых
+            tempFigurePenalties = { ...currentData.figure_penalties };
+            tempSduPenalties = { ...currentData.sdu_penalties };
+            unsavedFigure = false;
+            unsavedSdu = false;
+            
+            renderPenalties(figurePenaltiesContainer, figurePenaltiesList, tempFigurePenalties, 'figure');
+            renderPenalties(sduPenaltiesContainer, sduPenaltiesList, tempSduPenalties, 'sdu');
+            updateSummary('figure');
+            updateSummary('sdu');
+            updateBadges();
         }
-        // Сортируем для определения мест
-        const figureSorted = [...rows].filter(r => r.figureTotal !== null).sort((a,b) => a.figureTotal - b.figureTotal);
-        const sduSorted = [...rows].filter(r => r.sduTotal !== null).sort((a,b) => a.sduTotal - b.sduTotal);
-        const figurePlaces = {};
-        const sduPlaces = {};
-        let rank = 1;
-        for (let i=0; i<figureSorted.length; i++) {
-            if (i>0 && Math.abs(figureSorted[i].figureTotal - figureSorted[i-1].figureTotal) < 0.01) figurePlaces[figureSorted[i].code] = figurePlaces[figureSorted[i-1].code];
-            else figurePlaces[figureSorted[i].code] = rank;
-            rank++;
+
+        function renderPenalties(container, penaltiesList, tempPenObj, type) {
+            if (!container) return;
+            let html = '';
+            for (let p of penaltiesList) {
+                const checked = tempPenObj[p.id] === true;
+                html += `<div class="penalty-card">
+                            <input type="checkbox" id="chk_${type}_${p.id}" data-id="${p.id}" ${checked ? 'checked' : ''}>
+                            <label for="chk_${type}_${p.id}">
+                                <span>${p.desc}</span>
+                                <span class="penalty-sec">+${p.sec} сек</span>
+                            </label>
+                         </div>`;
+            }
+            container.innerHTML = html;
+            for (let p of penaltiesList) {
+                const cb = document.getElementById(`chk_${type}_${p.id}`);
+                if (cb) {
+                    cb.onchange = () => {
+                        if (cb.checked) tempPenObj[p.id] = true;
+                        else delete tempPenObj[p.id];
+                        if (type === 'figure') unsavedFigure = true;
+                        else unsavedSdu = true;
+                        updateSummary(type);
+                        updateBadges();
+                    };
+                }
+            }
         }
-        rank = 1;
-        for (let i=0; i<sduSorted.length; i++) {
-            if (i>0 && Math.abs(sduSorted[i].sduTotal - sduSorted[i-1].sduTotal) < 0.01) sduPlaces[sduSorted[i].code] = sduPlaces[sduSorted[i-1].code];
-            else sduPlaces[sduSorted[i].code] = rank;
-            rank++;
+
+        function updateSummary(type) {
+            if (!currentTeam) return;
+            if (type === 'figure') {
+                const penaltySum = getPenaltySum(tempFigurePenalties);
+                const raw = currentData.figure_time;
+                const total = raw !== null ? raw + penaltySum : null;
+                document.getElementById('figurePenaltySum').innerText = penaltySum;
+                document.getElementById('figureRawDisplay').innerText = raw !== null ? formatTime(raw) : '—';
+                document.getElementById('figureTotalDisplay').innerText = total !== null ? formatTime(total) : '—';
+            } else {
+                const penaltySum = getPenaltySum(tempSduPenalties);
+                const raw = currentData.sdu_time;
+                const total = raw !== null ? raw + penaltySum : null;
+                document.getElementById('sduPenaltySum').innerText = penaltySum;
+                document.getElementById('sduRawDisplay').innerText = raw !== null ? formatTime(raw) : '—';
+                document.getElementById('sduTotalDisplay').innerText = total !== null ? formatTime(total) : '—';
+            }
         }
-        // Для команд без данных ставим место = количество команд + 1
-        for (let code of teamCodes) {
-            if (!figurePlaces[code]) figurePlaces[code] = teamCodes.length + 1;
-            if (!sduPlaces[code]) sduPlaces[code] = teamCodes.length + 1;
+
+        function updateBadges() {
+            const figureBtnContainer = saveFigurePenaltiesBtn.parentNode;
+            let badge = figureBtnContainer.querySelector('.unsaved-badge');
+            if (unsavedFigure && currentTeam) {
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'unsaved-badge';
+                    badge.innerText = '⚠️ есть изменения';
+                    figureBtnContainer.appendChild(badge);
+                }
+            } else if (badge) badge.remove();
+
+            const sduBtnContainer = saveSduPenaltiesBtn.parentNode;
+            let badge2 = sduBtnContainer.querySelector('.unsaved-badge');
+            if (unsavedSdu && currentTeam) {
+                if (!badge2) {
+                    badge2 = document.createElement('span');
+                    badge2.className = 'unsaved-badge';
+                    badge2.innerText = '⚠️ есть изменения';
+                    sduBtnContainer.appendChild(badge2);
+                }
+            } else if (badge2) badge2.remove();
         }
-        
-        const standings = [];
-        for (let code of teamCodes) {
-            const sumPlaces = figurePlaces[code] + sduPlaces[code];
-            standings.push({
-                code, name: teamNames[code],
-                figurePlace: figurePlaces[code],
-                sduPlace: sduPlaces[code],
-                sumPlaces: sumPlaces,
-                figureTotal: rows.find(r => r.code === code)?.figureTotal,
-                sduTotal: rows.find(r => r.code === code)?.sduTotal,
-                figureRaw: rows.find(r => r.code === code)?.figureRaw,
-                figurePen: rows.find(r => r.code === code)?.figurePen,
-                sduRaw: rows.find(r => r.code === code)?.sduRaw,
-                sduPen: rows.find(r => r.code === code)?.sduPen
-            });
+
+        async function savePenalties(type) {
+            if (!currentTeam) { alert('Выберите команду'); return; }
+            if (type === 'figure') {
+                currentData.figure_penalties = { ...tempFigurePenalties };
+                unsavedFigure = false;
+            } else {
+                currentData.sdu_penalties = { ...tempSduPenalties };
+                unsavedSdu = false;
+            }
+            await saveTeamData(currentTeam, currentData);
+            updateSummary(type);
+            updateBadges();
+            await renderOverallTable();
+            alert(`Ошибки ${type === 'figure' ? 'фигурного вождения' : 'вождения в СДУ'} сохранены`);
         }
-        // Сортировка по сумме мест, при равенстве преимущество лучшему в фигурном вождении (меньше место)
-        standings.sort((a,b) => {
-            if (a.sumPlaces !== b.sumPlaces) return a.sumPlaces - b.sumPlaces;
-            return a.figurePlace - b.figurePlace;
-        });
-        
-        const tbody = document.getElementById('resultsBody');
-        tbody.innerHTML = '';
-        let globalRank = 1;
-        for (let s of standings) {
-            const rowClass = (globalRank === 1) ? 'class="rank-1"' : '';
-            const figureDisplay = s.figureTotal !== null ? `${formatTime(s.figureRaw)} / ${s.figurePen} / ${formatTime(s.figureTotal)}` : '— / — / —';
-            const sduDisplay = s.sduTotal !== null ? `${formatTime(s.sduRaw)} / ${s.sduPen} / ${formatTime(s.sduTotal)}` : '— / — / —';
-            const tr = document.createElement('tr');
-            tr.className = rowClass;
-            tr.innerHTML = `
-                <td>${globalRank++}</td>
-                <td><strong>${s.name} (${s.code})</strong></td>
-                <td>${figureDisplay} (место ${s.figurePlace})</strong></td>
-                <td>${sduDisplay} (место ${s.sduPlace})</strong></td>
-                <td><strong>${s.sumPlaces}</strong> (фиг. ${s.figurePlace} + СДУ ${s.sduPlace})</strong></td>
-            `;
-            tbody.appendChild(tr);
+
+        async function saveTime(type) {
+            if (!currentTeam) { alert('Выберите команду'); return; }
+            const input = type === 'figure' ? figureRawTime : sduRawTime;
+            const rawStr = input.value.trim();
+            let seconds = rawStr === "" ? null : parseTime(rawStr);
+            if (rawStr !== "" && seconds === null) { alert('Неверный формат времени (мм:сс.сс)'); return; }
+            if (type === 'figure') currentData.figure_time = seconds;
+            else currentData.sdu_time = seconds;
+            await saveTeamData(currentTeam, currentData);
+            updateSummary(type);
+            await renderOverallTable();
+            alert(`Время ${type === 'figure' ? 'фигурного вождения' : 'вождения в СДУ'} сохранено`);
         }
-        if (standings.length === 0) tbody.innerHTML = '<tr><td colspan="5">Нет данных</td></tr>';
-    }
-    
-    // ---------- ОБРАБОТЧИКИ ----------
-    teamSelect.addEventListener('change', async () => {
-        currentTeam = teamSelect.value || null;
-        if (currentTeam) {
-            await loadAllDrivingData();
+
+        function resetPenalties(type) {
+            if (!currentTeam) return;
+            if (type === 'figure') {
+                tempFigurePenalties = {};
+                unsavedFigure = false;
+                renderPenalties(figurePenaltiesContainer, figurePenaltiesList, tempFigurePenalties, 'figure');
+                updateSummary('figure');
+                updateBadges();
+            } else {
+                tempSduPenalties = {};
+                unsavedSdu = false;
+                renderPenalties(sduPenaltiesContainer, sduPenaltiesList, tempSduPenalties, 'sdu');
+                updateSummary('sdu');
+                updateBadges();
+            }
+        }
+
+        async function syncAll() {
+            if (!currentTeam) { alert('Выберите команду'); return; }
+            currentData.participant_name = participantNameInput.value;
+            currentData.figure_penalties = { ...tempFigurePenalties };
+            currentData.sdu_penalties = { ...tempSduPenalties };
+            // время уже должно быть в currentData
+            await saveTeamData(currentTeam, currentData);
+            unsavedFigure = false;
+            unsavedSdu = false;
+            updateBadges();
             await refreshCurrentTeamUI();
-        } else {
+            await renderOverallTable();
+            alert('Все данные команды синхронизированы');
+        }
+
+        // Рендер общего зачёта
+        async function renderOverallTable() {
+            const results = await loadAllResults();
+            // Построим массив команд с данными
+            const rows = [];
+            for (let code of teamCodes) {
+                const dbRow = results.find(r => r.team_code === code);
+                if (!dbRow) {
+                    rows.push({
+                        code, name: teamNames[code],
+                        participant: "—",
+                        figure_raw: null, figure_penalty_sum: 0, figure_total: null,
+                        sdu_raw: null, sdu_penalty_sum: 0, sdu_total: null,
+                        total_time: null
+                    });
+                } else {
+                    const figurePenSum = dbRow.figure_penalties ? getPenaltySum(dbRow.figure_penalties) : 0;
+                    const sduPenSum = dbRow.sdu_penalties ? getPenaltySum(dbRow.sdu_penalties) : 0;
+                    rows.push({
+                        code, name: teamNames[code],
+                        participant: dbRow.participant_name || "—",
+                        figure_raw: dbRow.figure_time,
+                        figure_penalty_sum: figurePenSum,
+                        figure_total: dbRow.figure_total,
+                        sdu_raw: dbRow.sdu_time,
+                        sdu_penalty_sum: sduPenSum,
+                        sdu_total: dbRow.sdu_total,
+                        total_time: dbRow.total_time
+                    });
+                }
+            }
+            // Вычисляем места по каждому упражнению (только для тех, у кого есть итоговое время)
+            const figureEntries = rows.filter(r => r.figure_total !== null).sort((a,b) => a.figure_total - b.figure_total);
+            const sduEntries = rows.filter(r => r.sdu_total !== null).sort((a,b) => a.sdu_total - b.sdu_total);
+            const figurePlaces = {};
+            const sduPlaces = {};
+            let rank = 1;
+            for (let i=0; i<figureEntries.length; i++) {
+                if (i>0 && Math.abs(figureEntries[i].figure_total - figureEntries[i-1].figure_total) < 0.01) figurePlaces[figureEntries[i].code] = figurePlaces[figureEntries[i-1].code];
+                else figurePlaces[figureEntries[i].code] = rank;
+                rank++;
+            }
+            rank = 1;
+            for (let i=0; i<sduEntries.length; i++) {
+                if (i>0 && Math.abs(sduEntries[i].sdu_total - sduEntries[i-1].sdu_total) < 0.01) sduPlaces[sduEntries[i].code] = sduPlaces[sduEntries[i-1].code];
+                else sduPlaces[sduEntries[i].code] = rank;
+                rank++;
+            }
+            // Для отсутствующих данных ставим максимальное место+1
+            for (let row of rows) {
+                if (!figurePlaces[row.code]) figurePlaces[row.code] = teamCodes.length + 1;
+                if (!sduPlaces[row.code]) sduPlaces[row.code] = teamCodes.length + 1;
+            }
+            // Сумма мест и итоговое место
+            for (let row of rows) {
+                row.figure_place = figurePlaces[row.code];
+                row.sdu_place = sduPlaces[row.code];
+                row.sum_places = row.figure_place + row.sdu_place;
+            }
+            rows.sort((a,b) => {
+                if (a.sum_places !== b.sum_places) return a.sum_places - b.sum_places;
+                // при равенстве лучшее место в фигурном
+                return a.figure_place - b.figure_place;
+            });
+            const tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = '';
+            let overallRank = 1;
+            for (let r of rows) {
+                const tr = document.createElement('tr');
+                if (overallRank === 1) tr.classList.add('rank-1');
+                tr.innerHTML = `
+                    <td>${overallRank++}</td>
+                    <td><strong>${r.name} (${r.code})</strong></td>
+                    <td>${r.participant}</td>
+                    <td>${r.figure_raw !== null ? formatTime(r.figure_raw) : '—'}</td>
+                    <td>${r.figure_penalty_sum}</td>
+                    <td>${r.figure_total !== null ? formatTime(r.figure_total) : '—'}</td>
+                    <td>${r.figure_place}${r.figure_place === teamCodes.length+1 ? '†' : ''}</td>
+                    <td>${r.sdu_raw !== null ? formatTime(r.sdu_raw) : '—'}</td>
+                    <td>${r.sdu_penalty_sum}</td>
+                    <td>${r.sdu_total !== null ? formatTime(r.sdu_total) : '—'}</td>
+                    <td>${r.sdu_place}${r.sdu_place === teamCodes.length+1 ? '†' : ''}</td>
+                    <td><strong>${r.sum_places}</strong></td>
+                    <td>${r.total_time !== null ? formatTime(r.total_time) : '—'}</td>
+                `;
+                tbody.appendChild(tr);
+            }
+            if (rows.length === 0) tbody.innerHTML = '<tr><td colspan="13">Нет данных. Внесите результаты.</td></tr>';
+        }
+
+        // Обработчики
+        teamSelect.addEventListener('change', async () => {
+            currentTeam = teamSelect.value || null;
+            if (currentTeam) await refreshCurrentTeamUI();
+            else {
+                figureCard.style.display = 'none';
+                sduCard.style.display = 'none';
+            }
+        });
+        participantNameInput.addEventListener('change', async () => {
+            if (currentTeam) {
+                currentData.participant_name = participantNameInput.value;
+                await saveTeamData(currentTeam, currentData);
+                await renderOverallTable();
+            }
+        });
+        saveFigureTimeBtn.addEventListener('click', () => saveTime('figure'));
+        saveSduTimeBtn.addEventListener('click', () => saveTime('sdu'));
+        saveFigurePenaltiesBtn.addEventListener('click', () => savePenalties('figure'));
+        saveSduPenaltiesBtn.addEventListener('click', () => savePenalties('sdu'));
+        resetFigurePenaltiesBtn.addEventListener('click', () => resetPenalties('figure'));
+        resetSduPenaltiesBtn.addEventListener('click', () => resetPenalties('sdu'));
+        syncAllBtn.addEventListener('click', syncAll);
+
+        // Инициализация
+        async function init() {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>';
+            try {
+                let { error } = await supabaseClient.from('driving_results').select('count', { count: 'exact', head: true });
+                if (error) throw error;
+                statusDiv.innerHTML = '<span class="status-ok">✅ Подключено к Supabase</span>';
+            } catch (err) {
+                statusDiv.innerHTML = '<span class="status-error">❌ Ошибка подключения, данные только локально</span>';
+            }
+            await renderOverallTable();
             figureCard.style.display = 'none';
             sduCard.style.display = 'none';
         }
-    });
-    saveFigureTimeBtn.addEventListener('click', () => { updateFigureSummary(); saveFigureData(); });
-    saveSduTimeBtn.addEventListener('click', () => { updateSduSummary(); saveSduData(); });
-    saveFigurePenaltiesBtn.addEventListener('click', () => saveFigureData());
-    resetFigurePenaltiesBtn.addEventListener('click', () => resetFigureChanges());
-    saveSduPenaltiesBtn.addEventListener('click', () => saveSduData());
-    resetSduPenaltiesBtn.addEventListener('click', () => resetSduChanges());
-    
-    // ---------- ИНИЦИАЛИЗАЦИЯ ----------
-    async function init() {
-        const statusDiv = document.getElementById('connectionStatus');
-        statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>';
-        try {
-            let { error } = await supabaseClient.from('driving_results').select('count', { count: 'exact', head: true });
-            if (error) throw error;
-            statusDiv.innerHTML = '<span class="status-ok">✅ Подключено к Supabase</span>';
-        } catch (err) {
-            statusDiv.innerHTML = '<span class="status-error">❌ Ошибка подключения, данные только локально</span>';
-            console.error(err);
-        }
-        await loadAllDrivingData();
-        await renderOverallTable();
-        figureCard.style.display = 'none';
-        sduCard.style.display = 'none';
-    }
-    init();
+        init();
+    })();
 </script>
 </body>
 </html>
