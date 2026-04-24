@@ -14,14 +14,16 @@
         .control-group { display: flex; flex-direction: column; gap: 6px; min-width: 160px; flex: 1; }
         .control-group label { font-weight: 600; font-size: 0.85rem; color: #2c3e66; }
         select, input { padding: 12px 14px; border-radius: 12px; border: 1px solid #cbd5e1; background: white; font-size: 1rem; width: 100%; }
-        button { background: #1e3a8a; color: white; border: none; padding: 12px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; }
+        button { background: #1e3a8a; color: white; border: none; padding: 12px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         button:hover { background: #1e40af; }
         .reset-stage-btn { background: #f97316; }
         .reset-team-btn { background: #475569; }
+        .print-btn { background: #2c5f2d; }
+        .print-btn:hover { background: #1f4a20; }
         .stage-info { background: #eef2ff; border-radius: 16px; padding: 12px 20px; margin: 15px 0; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
         .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; }
         .stage-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
-        .stage-btn { background: #e2e8f0; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; font-size: 0.85rem; font-weight: 500; color: #1e293b; }
+        .stage-btn { background: #e2e8f0; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; font-size: 0.85rem; font-weight: 500; color: #1e293b; transition: 0.2s; }
         .stage-btn.active { background: #1e3a8a; color: white; }
         .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin: 20px 0; }
         .penalty-card { background: #f9fafb; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
@@ -38,10 +40,34 @@
         .status-ok { background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; display: inline-block; }
         .status-error { background: #fee2e2; color: #991b1b; }
         .status-warning { background: #fed7aa; color: #9b4a0c; }
-        @media (max-width: 700px) {
-            .judge-controls { flex-direction: column; align-items: stretch; }
-            .penalties-grid { grid-template-columns: 1fr; }
-            button { width: 100%; }
+        
+        /* Стили для печатной версии */
+        @media print {
+            body { background: white; padding: 0; margin: 0; }
+            .judge-panel, .results-table, .stage-buttons, .stage-info, .judge-controls, .penalties-grid, .summary-bar, .unsaved-badge,
+            #printReportBtn, #saveRawTimeBtn, #resetTeamBtn, #saveStageBtn, #resetStageBtn, .stage-btn, .control-group button,
+            select, input, .unsaved-badge, #connectionStatus {
+                display: none !important;
+            }
+            .print-report-area {
+                display: block !important;
+                margin: 0;
+                padding: 20px;
+                font-size: 12pt;
+            }
+            .print-sign-line {
+                margin-top: 40px;
+                border-top: 1px dashed #aaa;
+                padding-top: 20px;
+            }
+            .print-footer {
+                margin-top: 30px;
+                font-size: 9pt;
+                text-align: center;
+            }
+        }
+        .print-report-area {
+            display: none;
         }
     </style>
 </head>
@@ -77,6 +103,7 @@
                     <option value="ВВБ">Волго-Вятский (ВВБ)</option>
                 </select>
             </div>
+            <button id="printReportBtn" class="print-btn" style="background:#2c5f2d; margin-left: auto;">🖨️ Печать отчета с подписями</button>
         </div>
 
         <!-- Кнопки выбора этапа -->
@@ -113,11 +140,14 @@
     <div class="results-table">
         <h3>🏆 Общий зачёт</h3>
         <table id="resultsTable">
-            <thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
+            <thead>德国<th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></thead>
             <tbody id="resultsBody"><tr><td colspan="6">Загрузка данных...</td></tr></tbody>
         </table>
     </div>
 </div>
+
+<!-- Скрытый блок для печати отчета -->
+<div id="printReportContainer" class="print-report-area"></div>
 
 <script>
     (function() {
@@ -147,7 +177,7 @@
             "Наручники"
         ];
         
-        // ПОЛНЫЙ СПИСОК ОШИБОК (все этапы) - полная версия из вашего исходного файла
+        // ПОЛНЫЙ СПИСОК ОШИБОК (все этапы)
         const penaltiesLibrary = [
             // === Получение имущества ===
             { id: "prop_door", category: "Получение имущества", desc: "Не закрыты двери/дверь СТС в «гараже»", sec: 30 },
@@ -218,12 +248,11 @@
         let tempPenalties = {};
         let hasUnsavedChanges = false;
         
-        // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ (только минуты:секунды.сотые) ----------
+        // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
         function formatTime(sec) {
             if (sec === null || isNaN(sec)) return "—";
             let minutes = Math.floor(sec / 60);
             let seconds = (sec % 60).toFixed(2);
-            // всегда возвращаем в формате М:СС.СС (минуты без ведущего нуля, секунды с двумя цифрами и двумя десятыми)
             return minutes + ":" + seconds.toString().padStart(5, '0');
         }
         
@@ -233,7 +262,6 @@
             let parts = str.split(':');
             let minutes = 0, seconds = 0;
             if (parts.length === 2) {
-                // формат ММ:СС.СС или М:СС.СС
                 minutes = parseInt(parts[0]) || 0;
                 let secPart = parts[1];
                 let dotIndex = secPart.indexOf('.');
@@ -245,18 +273,12 @@
                     seconds = parseInt(secPart) || 0;
                 }
             } else if (parts.length === 1) {
-                // только секунды (не рекомендуется, но поддержим)
                 let secPart = parts[0];
                 let dotIndex = secPart.indexOf('.');
-                if (dotIndex !== -1) {
-                    seconds = parseFloat(secPart);
-                } else {
-                    seconds = parseInt(secPart) || 0;
-                }
+                if (dotIndex !== -1) seconds = parseFloat(secPart);
+                else seconds = parseInt(secPart) || 0;
                 minutes = 0;
-            } else {
-                return null;
-            }
+            } else return null;
             let total = minutes * 60 + seconds;
             return isNaN(total) ? null : total;
         }
@@ -274,9 +296,7 @@
         // ---------- РАБОТА С SUPABASE ----------
         async function fetchWithRetry(fn, retries = 3, delay = 1000) {
             for (let i = 0; i < retries; i++) {
-                try {
-                    return await fn();
-                } catch (err) {
+                try { return await fn(); } catch (err) {
                     if (i === retries - 1) throw err;
                     await new Promise(resolve => setTimeout(resolve, delay));
                 }
@@ -329,7 +349,7 @@
                     let tr = document.createElement('tr');
                     if (r.total !== null && rank === 1) tr.classList.add('rank-1');
                     tr.innerHTML = `<td>${r.total !== null ? rank++ : '—'}</td>
-                                    <td><strong>${r.name}</strong> (${r.team})</strong></td>
+                                    <td><strong>${r.name}</strong> (${r.team})</td>
                                     <td>${r.dir}</td>
                                     <td>${r.raw !== null ? formatTime(r.raw) : '—'}</td>
                                     <td>${r.penalty}</td>
@@ -339,7 +359,7 @@
                 if (rows.length === 0) tbody.innerHTML = '<tr><td colspan="6">Нет данных. Внесите результаты.</td></tr>';
             } catch (err) {
                 console.error(err);
-                document.getElementById('resultsBody').innerHTML = `<td><td colspan="6">Ошибка загрузки: ${err.message}</td></tr>`;
+                document.getElementById('resultsBody').innerHTML = `<tr><td colspan="6">Ошибка загрузки: ${err.message}</td></tr>`;
             }
         }
         
@@ -483,6 +503,85 @@
         
         function resetTemp() { refreshCurrentTeamData(); }
         
+        // ---------- ПЕЧАТЬ ОТЧЕТА С ПОДПИСЬЮ ПРЕДСТАВИТЕЛЯ КОМАНДЫ ----------
+        async function printFullReport() {
+            if (!currentDirection || !currentTeam) {
+                alert('Сначала выберите направление и команду!');
+                return;
+            }
+            const data = await loadTeamData(currentDirection, currentTeam);
+            if (!data) {
+                alert('Нет сохранённых данных для этой команды. Сначала зафиксируйте время или ошибки.');
+                return;
+            }
+            const rawSec = data.raw_seconds;
+            const penaltiesObj = data.penalties || {};
+            const activePenalties = [];
+            for (let [id, active] of Object.entries(penaltiesObj)) {
+                if (active === true) {
+                    const penaltyInfo = penaltiesLibrary.find(p => p.id === id);
+                    if (penaltyInfo) activePenalties.push(penaltyInfo);
+                }
+            }
+            const grouped = {};
+            for (let p of activePenalties) {
+                if (!grouped[p.category]) grouped[p.category] = [];
+                grouped[p.category].push(p);
+            }
+            const totalPenalty = getPenaltySum(penaltiesObj);
+            const totalTime = (rawSec !== null && rawSec !== undefined) ? rawSec + totalPenalty : null;
+            const teamFullName = teamNames[currentTeam] || currentTeam;
+            const now = new Date().toLocaleString('ru-RU');
+            const printHtml = `
+                <div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px;">
+                    <h1 style="text-align: center; margin-bottom: 8px;">🏁 ОТЧЕТ О ПРОХОЖДЕНИИ ЭСТАФЕТЫ</h1>
+                    <div style="text-align: center; margin-bottom: 24px; color: #2c3e66;">Дата формирования: ${now}</div>
+                    <div style="background: #f8fafc; padding: 16px; border-radius: 16px; margin-bottom: 24px;">
+                        <div><strong>Команда (территориальный банк):</strong> ${teamFullName} (${currentTeam})</div>
+                        <div><strong>Направление:</strong> ${currentDirection}</div>
+                        <div><strong>Чистое время заезда:</strong> ${rawSec !== null ? formatTime(rawSec) : '—'}</div>
+                        <div><strong>Общий штраф:</strong> ${totalPenalty} секунд</div>
+                        <div><strong>Итоговое время:</strong> ${totalTime !== null ? formatTime(totalTime) : '—'}</div>
+                    </div>
+                    <h3>📋 Перечень допущенных ошибок (штрафных нарушений):</h3>
+                    ${Object.keys(grouped).length === 0 ? '<p style="color: green;">✅ Штрафные нарушения отсутствуют.</p>' : ''}
+                    ${Object.entries(grouped).map(([stageName, penaltiesArr]) => `
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="background: #eef2ff; padding: 8px 12px; border-radius: 12px;">🎯 ${stageName}</h4>
+                            <table style="width: 100%; border-collapse: collapse; margin-top: 8px;">
+                                <thead><tr style="background: #e2e8f0;"><th style="padding: 8px; text-align: left;">Нарушение</th><th style="padding: 8px; width: 100px;">Штраф (сек)</th></tr></thead>
+                                <tbody>
+                                    ${penaltiesArr.map(p => `<tr style="border-bottom: 1px solid #cbd5e1;"><td style="padding: 8px;">${p.desc}</td><td style="padding: 8px;">+${p.sec}</td></tr>`).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `).join('')}
+                    
+                    <div class="print-sign-line" style="margin-top: 48px; border-top: 1px dashed #aaa; padding-top: 24px;">
+                        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px;">
+                            <div style="min-width: 250px;"><strong>Представитель команды:</strong> __________________</div>
+                            <div style="min-width: 200px;"><strong>Судья (ФИО):</strong> __________________</div>
+                        </div>
+                        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                            <div><strong>Дата:</strong> __________________</div>
+                        </div>
+                        <div style="margin-top: 20px; font-size: 10px; color: #4b5563; text-align: center;">
+                            Подпись представителя команды подтверждает согласие с зафиксированными результатами и отсутствие претензий.
+                        </div>
+                    </div>
+                    <div class="print-footer" style="margin-top: 40px; font-size: 9pt; text-align: center; color: #6c757d;">
+                        Официальный протокол соревнований "Эстафета"
+                    </div>
+                </div>
+            `;
+            const container = document.getElementById('printReportContainer');
+            container.innerHTML = printHtml;
+            container.style.display = 'block';
+            window.print();
+            container.style.display = 'none';
+            container.innerHTML = '';
+        }
+        
         // ---------- ОТРИСОВКА КНОПОК ЭТАПОВ ----------
         function renderStageButtons() {
             const container = document.getElementById('stageButtonsContainer');
@@ -497,14 +596,8 @@
                     if (newStage === currentStage) return;
                     currentStage = newStage;
                     renderStageButtons();
-                    if (currentDirection && currentTeam) {
-                        refreshCurrentTeamData();
-                    } else {
-                        tempPenalties = {};
-                        hasUnsavedChanges = false;
-                        renderPenalties();
-                        updateBadge();
-                    }
+                    if (currentDirection && currentTeam) refreshCurrentTeamData();
+                    else { tempPenalties = {}; hasUnsavedChanges = false; renderPenalties(); updateBadge(); }
                     let span = document.querySelector('#stageInfo span:first-child');
                     if (span && currentDirection && currentTeam) {
                         let teamName = document.getElementById('teamSelect').options[document.getElementById('teamSelect').selectedIndex]?.text || currentTeam;
@@ -514,7 +607,6 @@
             });
         }
         
-        // ---------- ОБРАБОТЧИКИ ВЫБОРА НАПРАВЛЕНИЯ И КОМАНДЫ ----------
         async function onSelectionChange() {
             currentDirection = document.getElementById('directionSelect').value ? parseInt(document.getElementById('directionSelect').value) : null;
             currentTeam = document.getElementById('teamSelect').value || null;
@@ -532,7 +624,6 @@
             } else if (span) span.innerText = '✅ Выберите направление, банк и этап';
         }
         
-        // ---------- ИНИЦИАЛИЗАЦИЯ ----------
         async function init() {
             let statusDiv = document.getElementById('connectionStatus');
             statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>';
@@ -552,6 +643,7 @@
             document.getElementById('resetStageBtn').addEventListener('click', resetTemp);
             document.getElementById('saveRawTimeBtn').addEventListener('click', saveRawTime);
             document.getElementById('resetTeamBtn').addEventListener('click', resetAllPenalties);
+            document.getElementById('printReportBtn').addEventListener('click', printFullReport);
             onSelectionChange();
         }
         
