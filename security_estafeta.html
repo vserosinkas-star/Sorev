@@ -134,12 +134,14 @@
             "СИБ": "Сибирский", "СРБ": "Среднерусский", "СЗБ": "Северо-Западный", "ВВБ": "Волго-Вятский"
         };
         
-        // Этапы (3 этапа)
+        // Этапы (3 этапа, внутри каждого — список ошибок)
         const stages = ["Этап 1. Полоса препятствий", "Этап 2. Силовые упражнения", "Этап 3. Противопожарная подготовка"];
         
-        // ПОЛНЫЙ СПИСОК ОШИБОК
+        // ПОЛНЫЙ СПИСОК ОШИБОК (по документу)
         const penaltiesLibrary = [
+            // Общие
             { id: "common_not_done", category: "Общие", desc: "Невыполнение любого упражнения на этапах 1-3", sec: 120 },
+            // Этап 1
             { id: "stage1_falsestart", category: "Этап 1. Полоса препятствий", desc: "Фальстарт", sec: 5 },
             { id: "stage1_labyrinth", category: "Этап 1. Полоса препятствий", desc: "Лабиринт: пробег под стойками или оббегание", sec: 5 },
             { id: "stage1_barrier", category: "Этап 1. Полоса препятствий", desc: "Барьер: оббегание", sec: 5 },
@@ -147,12 +149,14 @@
             { id: "stage1_hill", category: "Этап 1. Полоса препятствий", desc: "Горка: оббегание", sec: 5 },
             { id: "stage1_wire", category: "Этап 1. Полоса препятствий", desc: "Проволочное заграждение: оббегание", sec: 5 },
             { id: "stage1_stairs", category: "Этап 1. Полоса препятствий", desc: "Разрушенная лестница: оббегание или неполное прохождение", sec: 5 },
+            // Этап 2
             { id: "stage2_falsestart", category: "Этап 2. Силовые упражнения", desc: "Преждевременный старт (до финиша участника этапа 1)", sec: 20 },
             { id: "stage2_punch", category: "Этап 2. Силовые упражнения", desc: "Удары по груше: не набрал установленные очки", sec: 10 },
             { id: "stage2_jump_fall", category: "Этап 2. Силовые упражнения", desc: "Прыжки на тумбы: падение (за каждое)", sec: 10 },
             { id: "stage2_situp", category: "Этап 2. Силовые упражнения", desc: "Sit up: медбол не коснулся земли (за каждое)", sec: 10 },
             { id: "stage2_berpi", category: "Этап 2. Силовые упражнения", desc: "Берпи: касание штанги (за каждое)", sec: 10 },
             { id: "stage2_shuttle", category: "Этап 2. Силовые упражнения", desc: "Челночный бег: не касание ногой линии (за каждое)", sec: 10 },
+            // Этап 3
             { id: "stage3_falsestart", category: "Этап 3. Противопожарная подготовка", desc: "Преждевременный старт (до финиша этапа 2)", sec: 20 },
             { id: "stage3_bop_button", category: "Этап 3. Противопожарная подготовка", desc: "БОП-1: не застёгнута пуговица/крючок", sec: 5 },
             { id: "stage3_bop_straps", category: "Этап 3. Противопожарная подготовка", desc: "БОП-1: лямки брюк не надеты на плечи", sec: 5 },
@@ -290,7 +294,7 @@
                     let tr = document.createElement('tr');
                     if (r.total !== null && rank === 1) tr.classList.add('rank-1');
                     tr.innerHTML = `<td>${r.total !== null ? rank++ : '—'}</td>
-                                    </td><strong>${r.name}</strong> (${r.team})</strong></td>
+                                    <td><strong>${r.name}</strong> (${r.team})</strong></td>
                                     <td>${r.dir}</td>
                                     <td>${r.raw !== null ? formatTime(r.raw) : '—'}</td>
                                     <td>${r.penalty}</td>
@@ -493,20 +497,6 @@
             } else if (span) span.innerText = '✅ Выберите направление, банк и этап';
         }
         
-        // ---------- ПОДПИСКА НА ИЗМЕНЕНИЯ В РЕАЛЬНОМ ВРЕМЕНИ ----------
-        function subscribeToChanges() {
-            supabaseClient.channel('security-estafeta-public')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'security_estafeta_results' }, () => {
-                    // Обновляем общий зачёт
-                    loadAllResults();
-                    // Если текущие выбранные команда и направление имеют обновления – обновляем и форму
-                    if (currentDirection && currentTeam) {
-                        refreshCurrentTeamData();
-                    }
-                })
-                .subscribe();
-        }
-        
         // ---------- ИНИЦИАЛИЗАЦИЯ ----------
         async function init() {
             let statusDiv = document.getElementById('connectionStatus');
@@ -514,7 +504,7 @@
             try {
                 let { error } = await supabaseClient.from('security_estafeta_results').select('count', { count: 'exact', head: true });
                 if (error) throw error;
-                statusDiv.innerHTML = '<span class="status-ok">✅ Подключено (режим реального времени)</span>';
+                statusDiv.innerHTML = '<span class="status-ok">✅ Подключено</span>';
             } catch (err) {
                 console.error(err);
                 statusDiv.innerHTML = `<span class="status-error">❌ Ошибка: ${err.message}. Данные будут только локально.</span>`;
@@ -528,8 +518,6 @@
             document.getElementById('saveRawTimeBtn').addEventListener('click', saveRawTime);
             document.getElementById('resetTeamBtn').addEventListener('click', resetAllPenalties);
             onSelectionChange();
-            // Подписываемся на изменения после загрузки
-            subscribeToChanges();
         }
         
         init();
