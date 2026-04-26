@@ -31,6 +31,8 @@
         button:hover { background: #1e40af; }
         .btn-secondary { background: #475569; }
         .btn-warning { background: #f97316; }
+        .print-btn { background: #2c5f2d; margin-left: auto; }
+        .print-btn:hover { background: #1f4a20; }
         .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: bold; margin-left: 12px; }
         .summary-bar { background: #f1f5f9; border-radius: 20px; padding: 16px; margin-top: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; font-weight: 600; }
         .results-table { background: white; border-radius: 24px; overflow-x: auto; padding: 4px; margin-top: 30px; }
@@ -41,7 +43,37 @@
         .status-ok { background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 30px; display: inline-block; }
         .status-error { background: #fee2e2; color: #991b1b; }
         .status-warning { background: #fed7aa; color: #9b4a0c; }
-        @media (max-width: 700px) { .penalties-grid { grid-template-columns: 1fr; } .stage-buttons { flex-direction: column; } button { width: 100%; } }
+
+        /* Стили для печатной версии */
+        @media print {
+            body { background: white; padding: 0; margin: 0; }
+            .judge-panel, .results-table, .stage-buttons, .stage-info, .judge-controls, .penalties-grid, .summary-bar, .unsaved-badge,
+            #printReportBtn, #saveRawTimeBtn, #resetTeamBtn, #saveStageBtn, #resetStageBtn, .stage-btn, .control-group button,
+            select, input, .unsaved-badge, #connectionStatus, .time-row button, .participant-card button,
+            .header, .print-btn {
+                display: none !important;
+            }
+            .print-report-area {
+                display: block !important;
+                margin: 0;
+                padding: 20px;
+                font-size: 12pt;
+            }
+            .print-sign-line {
+                margin-top: 40px;
+                border-top: 1px dashed #aaa;
+                padding-top: 20px;
+            }
+            .print-footer {
+                margin-top: 30px;
+                font-size: 9pt;
+                text-align: center;
+            }
+        }
+        .print-report-area {
+            display: none;
+        }
+        .flex-between { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: space-between; margin-bottom: 15px; }
     </style>
 </head>
 <body>
@@ -53,22 +85,25 @@
 
     <div class="judge-panel">
         <div id="connectionStatus" style="margin-bottom: 15px;"></div>
-        <div class="control-group">
-            <label>🏦 Территориальный банк (команда)</label>
-            <select id="teamSelect">
-                <option value="">-- выбрать --</option>
-                <option value="УБ">Уральский (УБ)</option>
-                <option value="ДВБ">Дальневосточный (ДВБ)</option>
-                <option value="ББ">Байкальский (ББ)</option>
-                <option value="МРД">Московский (МРД)</option>
-                <option value="ЦЧБ">Центрально-Черноземный (ЦЧБ)</option>
-                <option value="ЮЗБ">Юго-Западный (ЮЗБ)</option>
-                <option value="ПВБ">Поволжский (ПВБ)</option>
-                <option value="СИБ">Сибирский (СИБ)</option>
-                <option value="СРБ">Среднерусский (СРБ)</option>
-                <option value="СЗБ">Северо-Западный (СЗБ)</option>
-                <option value="ВВБ">Волго-Вятский (ВВБ)</option>
-            </select>
+        <div class="flex-between">
+            <div class="control-group" style="flex: 1; margin-bottom: 0;">
+                <label>🏦 Территориальный банк (команда)</label>
+                <select id="teamSelect">
+                    <option value="">-- выбрать --</option>
+                    <option value="УБ">Уральский (УБ)</option>
+                    <option value="ДВБ">Дальневосточный (ДВБ)</option>
+                    <option value="ББ">Байкальский (ББ)</option>
+                    <option value="МРД">Московский (МРД)</option>
+                    <option value="ЦЧБ">Центрально-Черноземный (ЦЧБ)</option>
+                    <option value="ЮЗБ">Юго-Западный (ЮЗБ)</option>
+                    <option value="ПВБ">Поволжский (ПВБ)</option>
+                    <option value="СИБ">Сибирский (СИБ)</option>
+                    <option value="СРБ">Среднерусский (СРБ)</option>
+                    <option value="СЗБ">Северо-Западный (СЗБ)</option>
+                    <option value="ВВБ">Волго-Вятский (ВВБ)</option>
+                </select>
+            </div>
+            <button id="printTriathlonReportBtn" class="print-btn">🖨️ Печать отчета с подписями</button>
         </div>
 
         <div id="stageButtonsContainer" class="stage-buttons"></div>
@@ -140,8 +175,11 @@
     </div>
 </div>
 
+<!-- Скрытый блок для печати отчета -->
+<div id="printReportContainer" class="print-report-area"></div>
+
 <script>
-    // ---------- НАСТРОЙКИ SUPABASE (переименовано в supabaseClient) ----------
+    // ---------- НАСТРОЙКИ SUPABASE ----------
     const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -288,13 +326,12 @@
     const saveTime2Btn = document.getElementById('saveTime2Btn');
 
     // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
-function formatTime(sec) {
-    if (sec === null || isNaN(sec)) return "—";
-    let minutes = Math.floor(sec / 60);
-    let seconds = (sec % 60).toFixed(2);
-    // Формат: м:сс.сс (без ведущего нуля для минут)
-    return `${minutes}:${seconds.toString().padStart(5, '0')}`;
-}
+    function formatTime(sec) {
+        if (sec === null || isNaN(sec)) return "—";
+        let minutes = Math.floor(sec / 60);
+        let seconds = (sec % 60).toFixed(2);
+        return `${minutes}:${seconds.toString().padStart(5, '0')}`;
+    }
 
     function parseTime(str) {
         if (!str.trim()) return null;
@@ -317,7 +354,7 @@ function formatTime(sec) {
         return sum;
     }
 
-    // ---------- РАБОТА С SUPABASE (используем supabaseClient) ----------
+    // ---------- РАБОТА С SUPABASE ----------
     async function loadAllFromSupabase() {
         try {
             const { data, error } = await supabaseClient.from('triathlon_results').select('*');
@@ -374,6 +411,152 @@ function formatTime(sec) {
         if (!team) return;
         await saveParticipant(teamCode, 1, team.participant1.name, team.participant1.rawSeconds, team.participant1.penalties);
         await saveParticipant(teamCode, 2, team.participant2.name, team.participant2.rawSeconds, team.participant2.penalties);
+    }
+
+    // ---------- ФУНКЦИЯ ПЕЧАТИ ОТЧЕТА ----------
+    async function printFullReport() {
+        if (!currentTeam) {
+            alert('Сначала выберите команду!');
+            return;
+        }
+        const team = teamsTriathlon[currentTeam];
+        if (!team) {
+            alert('Нет данных для этой команды');
+            return;
+        }
+
+        // Получаем актуальные данные из глобальной переменной (уже синхронизированы)
+        const p1 = team.participant1;
+        const p2 = team.participant2;
+        const p1PenaltiesObj = p1.penalties || {};
+        const p2PenaltiesObj = p2.penalties || {};
+
+        // Формируем списки активных штрафов для каждого участника
+        const activePenalties1 = [];
+        const activePenalties2 = [];
+        for (let id in p1PenaltiesObj) {
+            if (p1PenaltiesObj[id]) {
+                const info = penaltiesLibrary.find(p => p.id === id);
+                if (info) activePenalties1.push(info);
+            }
+        }
+        for (let id in p2PenaltiesObj) {
+            if (p2PenaltiesObj[id]) {
+                const info = penaltiesLibrary.find(p => p.id === id);
+                if (info) activePenalties2.push(info);
+            }
+        }
+
+        // Группировка по категориям (этапам)
+        const groupByCategory = (penaltiesArr) => {
+            const groups = {};
+            for (let p of penaltiesArr) {
+                if (!groups[p.category]) groups[p.category] = [];
+                groups[p.category].push(p);
+            }
+            return groups;
+        };
+        const groups1 = groupByCategory(activePenalties1);
+        const groups2 = groupByCategory(activePenalties2);
+
+        const penaltySum1 = getPenaltySum(p1PenaltiesObj);
+        const penaltySum2 = getPenaltySum(p2PenaltiesObj);
+        const totalPenaltyTeam = penaltySum1 + penaltySum2;
+
+        const raw1 = p1.rawSeconds;
+        const raw2 = p2.rawSeconds;
+        const total1 = (raw1 !== null && raw1 !== undefined) ? raw1 + penaltySum1 : null;
+        const total2 = (raw2 !== null && raw2 !== undefined) ? raw2 + penaltySum2 : null;
+        const teamTotal = (total1 !== null && total2 !== null) ? total1 + total2 : null;
+
+        // Вычисляем место команды
+        let allTeams = [];
+        for (let code of teamCodes) {
+            const t = teamsTriathlon[code];
+            if (!t) continue;
+            const r1 = t.participant1.rawSeconds;
+            const r2 = t.participant2.rawSeconds;
+            const pen1 = getPenaltySum(t.participant1.penalties);
+            const pen2 = getPenaltySum(t.participant2.penalties);
+            const tot1 = (r1 !== null) ? r1 + pen1 : null;
+            const tot2 = (r2 !== null) ? r2 + pen2 : null;
+            const teamTot = (tot1 !== null && tot2 !== null) ? tot1 + tot2 : null;
+            allTeams.push({ code, teamTotal: teamTot });
+        }
+        allTeams.sort((a,b) => (a.teamTotal ?? Infinity) - (b.teamTotal ?? Infinity));
+        let rank = allTeams.findIndex(t => t.code === currentTeam) + 1;
+        if (teamTotal === null) rank = null;
+
+        const teamFullName = teamNames[currentTeam] || currentTeam;
+        const now = new Date().toLocaleString('ru-RU');
+
+        const buildPenaltyTable = (groups, participantNum, participantName) => {
+            if (Object.keys(groups).length === 0) {
+                return `<p style="margin-top: 10px; color: green;">✅ Штрафные нарушения отсутствуют.</p>`;
+            }
+            let html = `<h4 style="margin: 15px 0 5px 0;">Участник ${participantNum}${participantName ? ` (${participantName})` : ''}</h4>`;
+            for (let [stageName, penaltiesArr] of Object.entries(groups)) {
+                html += `<div style="margin-bottom: 15px;">
+                            <h5 style="background: #eef2ff; padding: 5px 10px; border-radius: 10px; margin: 0 0 8px 0;">🎯 ${stageName}</h5>
+                            <table style="width: 100%; border-collapse: collapse; margin-top: 4px;">
+                                <thead><tr style="background: #e2e8f0;"><th style="padding: 6px; text-align: left;">Нарушение</th><th style="padding: 6px; width: 80px;">Штраф (сек)</th></tr></thead>
+                                <tbody>
+                                    ${penaltiesArr.map(p => `<tr style="border-bottom: 1px solid #cbd5e1;"><td style="padding: 6px;">${p.desc}</td><td style="padding: 6px;">+${p.sec}</td></tr>`).join('')}
+                                </tbody>
+                            </table>
+                        </div>`;
+            }
+            return html;
+        };
+
+        const printHtml = `
+            <div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1100px; margin: 0 auto; padding: 20px;">
+                <h1 style="text-align: center; margin-bottom: 8px;">🏁 ОТЧЕТ О ПРОХОЖДЕНИИ КОМАНДНОГО ТРИАТЛОНА</h1>
+                <div style="text-align: center; margin-bottom: 24px; color: #2c3e66;">Дата формирования: ${now}</div>
+                <div style="background: #f8fafc; padding: 16px; border-radius: 16px; margin-bottom: 24px;">
+                    <div><strong>Команда (территориальный банк):</strong> ${teamFullName} (${currentTeam})</div>
+                    <div><strong>Место в общем зачете:</strong> ${rank ? rank + '-' + (rank === 1 ? 'е' : (rank === 2 ? 'е' : (rank === 3 ? 'е' : ''))) : '—'}</div>
+                    <div><strong>Общий штраф команды:</strong> ${totalPenaltyTeam} секунд</div>
+                    <div><strong>Итоговое время команды:</strong> ${teamTotal !== null ? formatTime(teamTotal) : '—'}</div>
+                </div>
+
+                <h3>📋 Детализация по участникам:</h3>
+                <div><strong>Участник 1:</strong> ${p1.name || '—'}</div>
+                <div>Чистое время: ${raw1 !== null ? formatTime(raw1) : '—'}</div>
+                <div>Штраф: ${penaltySum1} сек</div>
+                <div>Итоговое время: ${total1 !== null ? formatTime(total1) : '—'}</div>
+                ${buildPenaltyTable(groups1, 1, p1.name)}
+
+                <div style="margin-top: 20px;"><strong>Участник 2:</strong> ${p2.name || '—'}</div>
+                <div>Чистое время: ${raw2 !== null ? formatTime(raw2) : '—'}</div>
+                <div>Штраф: ${penaltySum2} сек</div>
+                <div>Итоговое время: ${total2 !== null ? formatTime(total2) : '—'}</div>
+                ${buildPenaltyTable(groups2, 2, p2.name)}
+
+                <div class="print-sign-line" style="margin-top: 48px; border-top: 1px dashed #aaa; padding-top: 24px;">
+                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px;">
+                        <div style="min-width: 250px;"><strong>Представитель команды:</strong> __________________</div>
+                        <div style="min-width: 200px;"><strong>Главный Судья (ФИО):</strong> __________________</div>
+                    </div>
+                    <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                        <div><strong>Дата:</strong> __________________</div>
+                    </div>
+                    <div style="margin-top: 20px; font-size: 10px; color: #4b5563; text-align: center;">
+                        Подпись представителя команды подтверждает согласие с зафиксированными результатами и отсутствие претензий.
+                    </div>
+                </div>
+                <div class="print-footer" style="margin-top: 40px; font-size: 9pt; text-align: center; color: #6c757d;">
+                    Официальный протокол дисциплины "Командный триатлон"
+                </div>
+            </div>
+        `;
+
+        const container = document.getElementById('printReportContainer');
+        container.innerHTML = printHtml;
+        container.style.display = 'block';
+        window.print();
+        container.style.display = 'none';
+        container.innerHTML = '';
     }
 
     // ---------- UI ЛОГИКА ----------
@@ -634,6 +817,7 @@ function formatTime(sec) {
     resetStage2Btn.addEventListener('click', () => resetStage(2));
     saveTime1Btn.addEventListener('click', () => saveRawTime(1));
     saveTime2Btn.addEventListener('click', () => saveRawTime(2));
+    document.getElementById('printTriathlonReportBtn').addEventListener('click', printFullReport);
 
     // ---------- ИНИЦИАЛИЗАЦИЯ ----------
     async function init() {
