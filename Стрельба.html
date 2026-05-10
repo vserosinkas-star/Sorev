@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Стрелковый рейтинг - практическая стрельба</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+        }
+        body {
+            background: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            overflow-x: auto;
+            padding: 16px 20px 20px 20px;
+        }
+        h1 {
+            font-size: 1.6rem;
+            margin: 0 0 8px 0;
+            color: #1e3a5f;
+        }
+        .sub {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            border-left: 4px solid #1e6f5c;
+            padding-left: 12px;
+            font-size: 0.9rem;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        button {
+            background: #1e3a5f;
+            border: none;
+            color: white;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        button:hover {
+            background: #0f2b44;
+            transform: translateY(-1px);
+        }
+        button.secondary {
+            background: #4b6e8a;
+        }
+        button.warning {
+            background: #9e2d2f;
+        }
+        button.success {
+            background: #1e6f5c;
+        }
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 16px;
+            border: 1px solid #e2e8f0;
+            background: #fff;
+            margin-bottom: 30px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            min-width: 900px;
+        }
+        th, td {
+            border-bottom: 1px solid #e9ecef;
+            padding: 10px 6px;
+            text-align: center;
+            vertical-align: middle;
+        }
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #1e293b;
+            position: sticky;
+            top: 0;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        input, select {
+            width: 100%;
+            padding: 6px 4px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            text-align: center;
+            background: white;
+            transition: 0.1s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #1e6f5c;
+            box-shadow: 0 0 0 2px rgba(30,111,92,0.2);
+        }
+        .delete-row {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #a0aec0;
+            padding: 0;
+            box-shadow: none;
+        }
+        .delete-row:hover {
+            color: #dc2626;
+            background: none;
+            transform: none;
+        }
+        
+        /* Все блоки результатов - вертикально, каждый на всю ширину */
+        .results-vertical {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            margin-top: 28px;
+        }
+        .result-card {
+            width: 100%;
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #eef2f6;
+            overflow: hidden;
+        }
+        .card-header {
+            background: #f1f5f9;
+            padding: 12px 16px;
+            font-weight: 700;
+            font-size: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            color: #0f3b2c;
+        }
+        .card-body {
+            padding: 12px 16px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .rank-table {
+            width: 100%;
+            font-size: 0.8rem;
+        }
+        .rank-table th, .rank-table td {
+            border: none;
+            padding: 8px 4px;
+            text-align: left;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .rank-table th {
+            background: none;
+            font-weight: 600;
+            color: #334155;
+        }
+        footer {
+            margin-top: 28px;
+            font-size: 0.7rem;
+            text-align: center;
+            color: #5b6e8c;
+        }
+        .status {
+            font-size: 0.75rem;
+            color: #2b6e3c;
+            background: #e6f7ec;
+            border-radius: 50px;
+            padding: 4px 12px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🏆 Соревнования по практической стрельбе</h1>
+    <div class="sub">Ввод результатов участников (до 69 человек) | Авторасчёт личных мест и рейтинга ТБ</div>
+
+    <div class="toolbar">
+        <button id="addRowBtn" class="success">➕ Добавить участника</button>
+        <button id="removeLastBtn" class="secondary">➖ Удалить последнего</button>
+        <button id="loadExampleBtn">📋 Загрузить пример</button>
+        <button id="exportBtn">💾 Экспорт JSON</button>
+        <button id="importBtn">📂 Импорт JSON</button>
+        <input type="file" id="importFileInput" accept=".json" style="display: none;">
+        <button id="resetBtn" class="warning">🗑️ Сбросить всё</button>
+        <span id="autoSaveStatus" class="status">✓ автосохранение</span>
+    </div>
+
+    <div class="table-wrapper">
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th style="width:30px">🗑️</th><th>№</th><th>ФИО</th><th>ТБ</th><th>Категория</th>
+                    <th>Вр1</th><th>Вр2</th><th>Вр3</th><th>Вр4</th><th>Вр5</th><th>Вр6</th><th>Вр7</th><th>Вр8</th>
+                </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+          </table>
+    </div>
+
+    <!-- Вертикальное расположение всех блоков результатов -->
+    <div class="results-vertical">
+        <div class="result-card">
+            <div class="card-header">🌟 Общий личный зачёт (все участники)</div>
+            <div class="card-body" id="rankTotalBody">—</div>
+        </div>
+        <div class="result-card">
+            <div class="card-header">🥇 Личное первенство (Инкассация)</div>
+            <div class="card-body" id="rankInkBody">—</div>
+        </div>
+        <div class="result-card">
+            <div class="card-header">🔒 Личное первенство (Охрана)</div>
+            <div class="card-body" id="rankSecBody">—</div>
+        </div>
+        <div class="result-card">
+            <div class="card-header">🏢 Рейтинг ТБ (Инкассация)</div>
+            <div class="card-body" id="tbInkBody">—</div>
+        </div>
+        <div class="result-card">
+            <div class="card-header">🏢 Рейтинг ТБ (Охрана)</div>
+            <div class="card-body" id="tbSecBody">—</div>
+        </div>
+    </div>
+    <footer>Время в секундах (можно дробные). Пустая ячейка = пропуск. Места рассчитываются по сумме занятых мест в упражнениях (чем меньше, тем выше).</footer>
+</div>
+
+<script>
+    const EXERCISES_COUNT = 8;
+    let participants = [];
+    const STORAGE_KEY = "shooting2025";
+
+    function saveToLocal() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(participants));
+        const statusSpan = document.getElementById('autoSaveStatus');
+        statusSpan.style.opacity = "1";
+        setTimeout(() => { statusSpan.style.opacity = "0.7"; }, 400);
+    }
+
+    function loadFromLocal() {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+            try {
+                participants = JSON.parse(raw);
+                participants = participants.map(p => {
+                    if (!Array.isArray(p.times)) p.times = Array(EXERCISES_COUNT).fill("");
+                    while(p.times.length < EXERCISES_COUNT) p.times.push("");
+                    return p;
+                });
+                renderTable();
+                computeAll();
+            } catch(e) { console.warn(e); }
+        } else {
+            if(participants.length === 0) addEmptyRows(5);
+            renderTable();
+            computeAll();
+        }
+    }
+
+    function addEmptyRows(count) {
+        for(let i=0; i<count; i++) {
+            participants.push({
+                id: Date.now() + i + Math.random(),
+                name: "",
+                tb: "",
+                category: "Инкассация",
+                times: Array(EXERCISES_COUNT).fill("")
+            });
+        }
+        saveToLocal();
+        renderTable();
+        computeAll();
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = "";
+        participants.forEach((p, idx) => {
+            const tr = document.createElement('tr');
+            const tdDel = document.createElement('td');
+            const delBtn = document.createElement('button');
+            delBtn.innerHTML = '✖';
+            delBtn.className = 'delete-row';
+            delBtn.onclick = () => { deleteParticipantById(p.id); };
+            tdDel.appendChild(delBtn);
+            tr.appendChild(tdDel);
+            const tdNum = document.createElement('td'); tdNum.innerText = idx+1; tr.appendChild(tdNum);
+            const tdName = createInputCell(p.name, 'text', (val) => { p.name = val; saveAndRecalc(); });
+            tr.appendChild(tdName);
+            const tbOptions = ["Байкальский","Волго-Вятский","Дальневосточный","МРД ЦУНДО","Поволжский","Северо-Западный","Сибирский","Среднерусский","Уральский","Центрально-Черноземный","Юго-Западный","ЦОО ЦАиМБ ОСЦ \"Москва\"","СТБ"];
+            const tdTb = createSelectCell(p.tb, tbOptions, (val) => { p.tb = val; saveAndRecalc(); });
+            tr.appendChild(tdTb);
+            const catOptions = ["Инкассация", "Охрана"];
+            const tdCat = createSelectCell(p.category, catOptions, (val) => { p.category = val; saveAndRecalc(); });
+            tr.appendChild(tdCat);
+            for(let ex = 0; ex < EXERCISES_COUNT; ex++) {
+                const timeVal = p.times[ex] !== undefined ? p.times[ex] : "";
+                const tdTime = createInputCell(timeVal, 'number', (val) => {
+                    let clean = val.trim() === "" ? "" : parseFloat(val);
+                    if (clean !== "" && isNaN(clean)) clean = "";
+                    p.times[ex] = clean === "" ? "" : clean;
+                    saveAndRecalc();
+                });
+                tr.appendChild(tdTime);
+            }
+            tbody.appendChild(tr);
+        });
+    }
+
+    function createInputCell(value, type, onUpdate) {
+        const td = document.createElement('td');
+        const input = document.createElement('input');
+        input.type = type;
+        input.value = value === undefined ? "" : value;
+        input.step = "any";
+        input.addEventListener('change', (e) => { onUpdate(e.target.value); });
+        td.appendChild(input);
+        return td;
+    }
+
+    function createSelectCell(current, options, onUpdate) {
+        const td = document.createElement('td');
+        const select = document.createElement('select');
+        options.forEach(opt => {
+            const option = document.createElement('option');
+            option.value = opt;
+            option.innerText = opt;
+            if (current === opt) option.selected = true;
+            select.appendChild(option);
+        });
+        select.addEventListener('change', (e) => { onUpdate(e.target.value); });
+        td.appendChild(select);
+        return td;
+    }
+
+    function deleteParticipantById(id) {
+        participants = participants.filter(p => p.id !== id);
+        if(participants.length === 0) addEmptyRows(1);
+        saveAndRecalc();
+    }
+
+    function addParticipant() {
+        participants.push({
+            id: Date.now(),
+            name: "",
+            tb: "",
+            category: "Инкассация",
+            times: Array(EXERCISES_COUNT).fill("")
+        });
+        saveAndRecalc();
+    }
+
+    function removeLast() {
+        if(participants.length > 1) participants.pop();
+        else { participants = []; addEmptyRows(1); }
+        saveAndRecalc();
+    }
+
+    function saveAndRecalc() {
+        saveToLocal();
+        renderTable();
+        computeAll();
+    }
+
+    function computeDetailedRanks() {
+        let enriched = participants.map((p, idx) => ({
+            ...p,
+            idx,
+            times: p.times.map(t => (t === "" || t === null || isNaN(t) ? null : parseFloat(t))),
+            rankCatByEx: Array(EXERCISES_COUNT).fill(null),
+            rankOverallByEx: Array(EXERCISES_COUNT).fill(null)
+        }));
+
+        for (let ex = 0; ex < EXERCISES_COUNT; ex++) {
+            let validOverall = enriched.filter(p => p.times[ex] !== null).map(p => ({ id: p.id, time: p.times[ex] }));
+            validOverall.sort((a,b) => a.time - b.time);
+            let overallRankMap = new Map();
+            let rank = 1;
+            for (let i=0; i<validOverall.length; i++) {
+                if (i>0 && validOverall[i].time !== validOverall[i-1].time) rank = i+1;
+                overallRankMap.set(validOverall[i].id, rank);
+            }
+            let categoryGroups = { "Инкассация": [], "Охрана": [] };
+            enriched.forEach(p => {
+                if(p.times[ex] !== null) categoryGroups[p.category].push({ id: p.id, time: p.times[ex] });
+            });
+            for(let cat of ["Инкассация","Охрана"]) {
+                categoryGroups[cat].sort((a,b) => a.time - b.time);
+                let catRank = 1;
+                for(let i=0; i<categoryGroups[cat].length; i++) {
+                    if(i>0 && categoryGroups[cat][i].time !== categoryGroups[cat][i-1].time) catRank = i+1;
+                    const pid = categoryGroups[cat][i].id;
+                    const participant = enriched.find(p => p.id === pid);
+                    if(participant) participant.rankCatByEx[ex] = catRank;
+                }
+            }
+            enriched.forEach(p => {
+                if(p.times[ex] !== null) p.rankOverallByEx[ex] = overallRankMap.get(p.id);
+            });
+        }
+
+        enriched.forEach(p => {
+            p.sumRankCat = p.rankCatByEx.filter(v => v !== null).reduce((a,b)=>a+b,0);
+            p.sumRankOverall = p.rankOverallByEx.filter(v => v !== null).reduce((a,b)=>a+b,0);
+            p.exercisesDone = p.rankCatByEx.filter(v => v !== null).length;
+        });
+        return enriched;
+    }
+
+    function computeAll() {
+        if(!participants.length) {
+            document.getElementById('rankTotalBody').innerHTML = '<div>Нет участников</div>';
+            document.getElementById('rankInkBody').innerHTML = '<div>Нет участников</div>';
+            document.getElementById('rankSecBody').innerHTML = '<div>Нет участников</div>';
+            document.getElementById('tbInkBody').innerHTML = '<div>Нет данных</div>';
+            document.getElementById('tbSecBody').innerHTML = '<div>Нет данных</div>';
+            return;
+        }
+        const details = computeDetailedRanks();
+
+        // Общий личный зачёт
+        const allParticipants = [...details];
+        allParticipants.sort((a,b) => a.sumRankOverall - b.sumRankOverall);
+        let totalHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Категория</th><th>Сумма мест(общ)</th></tr></thead><tbody>';
+        allParticipants.forEach((p, idx) => {
+            totalHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(p.name) || '—'}</td><td>${escapeHtml(p.tb) || '—'}</td><td>${p.category}</td><td>${p.sumRankOverall}</td></tr>`;
+        });
+        totalHtml += '</tbody></table>';
+        document.getElementById('rankTotalBody').innerHTML = totalHtml;
+
+        // Инкассация
+        const inkParticipants = details.filter(p => p.category === "Инкассация");
+        inkParticipants.sort((a,b) => {
+            if(a.sumRankCat !== b.sumRankCat) return a.sumRankCat - b.sumRankCat;
+            return (a.rankCatByEx[0] ?? 999) - (b.rankCatByEx[0] ?? 999);
+        });
+        let inkHtml = '<table class="rank-table"><thead><table><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма мест</th></tr></thead><tbody>';
+        inkParticipants.forEach((p, idx) => {
+            inkHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(p.name) || '—'}</td><td>${escapeHtml(p.tb) || '—'}</td><td>${p.sumRankCat || 0}</td></tr>`;
+        });
+        inkHtml += '</tbody></table>';
+        document.getElementById('rankInkBody').innerHTML = inkHtml;
+
+        // Охрана
+        const secParticipants = details.filter(p => p.category === "Охрана");
+        secParticipants.sort((a,b) => a.sumRankCat - b.sumRankCat);
+        let secHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма мест</th></tr></thead><tbody>';
+        secParticipants.forEach((p, idx) => {
+            secHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(p.name) || '—'}</td><td>${escapeHtml(p.tb) || '—'}</td><td>${p.sumRankCat || 0}</td></tr>`;
+        });
+        secHtml += '</tbody></table>';
+        document.getElementById('rankSecBody').innerHTML = secHtml;
+
+        // Рейтинг ТБ Инкассация
+        const tbMapInk = new Map();
+        inkParticipants.forEach(p => {
+            if(p.tb && p.tb.trim() !== "") {
+                tbMapInk.set(p.tb, (tbMapInk.get(p.tb) || 0) + (p.sumRankCat || 0));
+            }
+        });
+        let tbInkArray = Array.from(tbMapInk.entries()).map(([tb, sum]) => ({ tb, sum }));
+        tbInkArray.sort((a,b) => a.sum - b.sum);
+        let tbInkHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>Территориальный банк</th><th>Сумма мест (команда)</th></tr></thead><tbody>';
+        tbInkArray.forEach((item, idx) => {
+            tbInkHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(item.tb)}</td><td>${item.sum}</td></tr>`;
+        });
+        tbInkHtml += '</tbody></table>';
+        document.getElementById('tbInkBody').innerHTML = tbInkHtml;
+
+        // Рейтинг ТБ Охрана
+        const tbMapSec = new Map();
+        secParticipants.forEach(p => {
+            if(p.tb && p.tb.trim() !== "") {
+                tbMapSec.set(p.tb, (tbMapSec.get(p.tb) || 0) + (p.sumRankCat || 0));
+            }
+        });
+        let tbSecArray = Array.from(tbMapSec.entries()).map(([tb, sum]) => ({ tb, sum }));
+        tbSecArray.sort((a,b) => a.sum - b.sum);
+        let tbSecHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>Территориальный банк</th><th>Сумма мест (команда)</th></tr></thead><tbody>';
+        tbSecArray.forEach((item, idx) => {
+            tbSecHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(item.tb)}</td><td>${item.sum}</td></tr>`;
+        });
+        tbSecHtml += '</tbody></table>';
+        document.getElementById('tbSecBody').innerHTML = tbSecHtml;
+    }
+
+    function escapeHtml(str) {
+        if(!str) return "";
+        return str.replace(/[&<>]/g, function(m) {
+            if(m === '&') return '&amp;';
+            if(m === '<') return '&lt;';
+            if(m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    function exportJSON() {
+        const exportData = participants.map(p => ({
+            name: p.name,
+            tb: p.tb,
+            category: p.category,
+            times: p.times
+        }));
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([dataStr], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "shooting_results.json";
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    function importJSON(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const imported = JSON.parse(e.target.result);
+                if (Array.isArray(imported)) {
+                    participants = imported.map(item => ({
+                        id: Date.now() + Math.random(),
+                        name: item.name || "",
+                        tb: item.tb || "",
+                        category: (item.category === "Инкассация" || item.category === "Охрана") ? item.category : "Инкассация",
+                        times: Array.isArray(item.times) ? item.times.slice(0,EXERCISES_COUNT) : Array(EXERCISES_COUNT).fill("")
+                    }));
+                    if(participants.length === 0) addEmptyRows(3);
+                    saveAndRecalc();
+                } else { alert("Неверный формат JSON"); }
+            } catch(err) { alert("Ошибка импорта: "+err.message); }
+        };
+        reader.readAsText(file);
+    }
+
+    function loadExample() {
+        participants = [];
+        const exampleNames = ["Артемьев А.","Артемкин Н.","Баженов В.","Беккер В.","Березовский В.","Борисовский Д.","Бузынин Н.","Вереитинов А.","Веретенников Д.","Гавриличев П.","Гончаров Д.","Горбунов В.","Горяйнов А.","Гребенников П.","Гриднев В.","Гумеров И.","Дмитриев Е.","Ермолаев А.","Ершов И.","Зуев И."];
+        const tbs = ["Байкальский","Волго-Вятский","Дальневосточный","Поволжский","Северо-Западный","Сибирский","Среднерусский","Уральский","Центрально-Черноземный","Юго-Западный"];
+        for(let i=0; i<20; i++) {
+            let cat = i % 2 === 0 ? "Инкассация" : "Охрана";
+            let tbSample = tbs[i % tbs.length];
+            let times = Array(EXERCISES_COUNT).fill("");
+            for(let t=0; t<5; t++) {
+                times[t] = (Math.random() * 40 + 30).toFixed(1);
+            }
+            participants.push({
+                id: Date.now()+i,
+                name: exampleNames[i % exampleNames.length],
+                tb: tbSample,
+                category: cat,
+                times: times
+            });
+        }
+        addEmptyRows(3);
+        saveAndRecalc();
+    }
+
+    function resetAll() {
+        participants = [];
+        addEmptyRows(6);
+        saveAndRecalc();
+    }
+
+    document.getElementById('addRowBtn').onclick = () => { addParticipant(); };
+    document.getElementById('removeLastBtn').onclick = () => { removeLast(); };
+    document.getElementById('exportBtn').onclick = () => { exportJSON(); };
+    document.getElementById('resetBtn').onclick = () => { if(confirm("Сбросить все данные?")) resetAll(); };
+    document.getElementById('loadExampleBtn').onclick = () => { loadExample(); };
+    document.getElementById('importBtn').onclick = () => { document.getElementById('importFileInput').click(); };
+    document.getElementById('importFileInput').onchange = (e) => { if(e.target.files.length) importJSON(e.target.files[0]); e.target.value = ''; };
+
+    loadFromLocal();
+</script>
+</body>
+</html>
