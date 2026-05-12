@@ -123,8 +123,6 @@
             background: none;
             transform: none;
         }
-        
-        /* Все блоки результатов - вертикально, каждый на всю ширину */
         .results-vertical {
             display: flex;
             flex-direction: column;
@@ -211,30 +209,31 @@
           </table>
     </div>
 
-    <!-- Вертикальное расположение всех блоков результатов -->
     <div class="results-vertical">
         <div class="result-card">
-            <div class="card-header">🌟 Общий личный зачёт (все участники)</div>
+            <div class="card-header">🌟 Общий личный зачёт (все участники) - по сумме времени</div>
             <div class="card-body" id="rankTotalBody">—</div>
         </div>
         <div class="result-card">
-            <div class="card-header">🥇 Личное первенство (Инкассация)</div>
+            <div class="card-header">🥇 Личное первенство (Инкассация) - по сумме мест</div>
             <div class="card-body" id="rankInkBody">—</div>
         </div>
         <div class="result-card">
-            <div class="card-header">🔒 Личное первенство (Охрана)</div>
+            <div class="card-header">🔒 Личное первенство (Охрана) - по сумме мест</div>
             <div class="card-body" id="rankSecBody">—</div>
         </div>
         <div class="result-card">
-            <div class="card-header">🏢 Рейтинг ТБ (Инкассация)</div>
+            <div class="card-header">🏢 Рейтинг ТБ (Инкассация) - по сумме мест</div>
             <div class="card-body" id="tbInkBody">—</div>
         </div>
         <div class="result-card">
-            <div class="card-header">🏢 Рейтинг ТБ (Охрана)</div>
+            <div class="card-header">🏢 Рейтинг ТБ (Охрана) - по сумме мест</div>
             <div class="card-body" id="tbSecBody">—</div>
         </div>
     </div>
-    <footer>Время в секундах (можно дробные). Пустая ячейка = пропуск. Места рассчитываются по сумме занятых мест в упражнениях (чем меньше, тем выше).</footer>
+    <footer>Время в секундах (можно дробные). Пустая ячейка = пропуск. <br>
+    <strong>Общий зачёт</strong> сортируется по сумме времени (чем меньше, тем выше). Участники без единого заполненного времени исключаются.<br>
+    <strong>Личные первенства и рейтинги ТБ</strong> — по сумме занятых мест.</footer>
 </div>
 
 <script>
@@ -374,17 +373,28 @@
         computeAll();
     }
 
-    function computeDetailedRanks() {
-        let enriched = participants.map((p, idx) => ({
-            ...p,
-            idx,
-            times: p.times.map(t => (t === "" || t === null || isNaN(t) ? null : parseFloat(t))),
-            rankCatByEx: Array(EXERCISES_COUNT).fill(null),
-            rankOverallByEx: Array(EXERCISES_COUNT).fill(null)
-        }));
-
+    // Функция вычисления детализированных данных
+    function computeDetailed() {
+        let enriched = participants.map((p, idx) => {
+            let timesNum = p.times.map(t => {
+                if (t === "" || t === null || isNaN(t)) return null;
+                let num = parseFloat(t);
+                return isNaN(num) ? null : num;
+            });
+            let totalTime = timesNum.reduce((sum, t) => sum + (t !== null ? t : 0), 0);
+            let hasAnyTime = timesNum.some(t => t !== null);
+            return {
+                ...p,
+                idx,
+                timesNum,
+                totalTime,
+                hasAnyTime
+            };
+        });
+        // Для каждого упражнения вычисляем места по категориям и общие места
         for (let ex = 0; ex < EXERCISES_COUNT; ex++) {
-            let validOverall = enriched.filter(p => p.times[ex] !== null).map(p => ({ id: p.id, time: p.times[ex] }));
+            // Общее место (среди всех, у кого есть время)
+            let validOverall = enriched.filter(p => p.timesNum[ex] !== null).map(p => ({ id: p.id, time: p.timesNum[ex] }));
             validOverall.sort((a,b) => a.time - b.time);
             let overallRankMap = new Map();
             let rank = 1;
@@ -392,29 +402,34 @@
                 if (i>0 && validOverall[i].time !== validOverall[i-1].time) rank = i+1;
                 overallRankMap.set(validOverall[i].id, rank);
             }
-            let categoryGroups = { "Инкассация": [], "Охрана": [] };
+            // Места по категориям
+            let catGroups = { "Инкассация": [], "Охрана": [] };
             enriched.forEach(p => {
-                if(p.times[ex] !== null) categoryGroups[p.category].push({ id: p.id, time: p.times[ex] });
+                if(p.timesNum[ex] !== null) catGroups[p.category].push({ id: p.id, time: p.timesNum[ex] });
             });
             for(let cat of ["Инкассация","Охрана"]) {
-                categoryGroups[cat].sort((a,b) => a.time - b.time);
+                catGroups[cat].sort((a,b) => a.time - b.time);
                 let catRank = 1;
-                for(let i=0; i<categoryGroups[cat].length; i++) {
-                    if(i>0 && categoryGroups[cat][i].time !== categoryGroups[cat][i-1].time) catRank = i+1;
-                    const pid = categoryGroups[cat][i].id;
+                for(let i=0; i<catGroups[cat].length; i++) {
+                    if(i>0 && catGroups[cat][i].time !== catGroups[cat][i-1].time) catRank = i+1;
+                    const pid = catGroups[cat][i].id;
                     const participant = enriched.find(p => p.id === pid);
-                    if(participant) participant.rankCatByEx[ex] = catRank;
+                    if(participant) {
+                        if(!participant.rankCatByEx) participant.rankCatByEx = Array(EXERCISES_COUNT).fill(null);
+                        participant.rankCatByEx[ex] = catRank;
+                    }
                 }
             }
             enriched.forEach(p => {
-                if(p.times[ex] !== null) p.rankOverallByEx[ex] = overallRankMap.get(p.id);
+                if(!p.rankOverallByEx) p.rankOverallByEx = Array(EXERCISES_COUNT).fill(null);
+                if(p.timesNum[ex] !== null) p.rankOverallByEx[ex] = overallRankMap.get(p.id);
             });
         }
-
         enriched.forEach(p => {
+            if(!p.rankCatByEx) p.rankCatByEx = Array(EXERCISES_COUNT).fill(null);
+            if(!p.rankOverallByEx) p.rankOverallByEx = Array(EXERCISES_COUNT).fill(null);
             p.sumRankCat = p.rankCatByEx.filter(v => v !== null).reduce((a,b)=>a+b,0);
             p.sumRankOverall = p.rankOverallByEx.filter(v => v !== null).reduce((a,b)=>a+b,0);
-            p.exercisesDone = p.rankCatByEx.filter(v => v !== null).length;
         });
         return enriched;
     }
@@ -428,32 +443,32 @@
             document.getElementById('tbSecBody').innerHTML = '<div>Нет данных</div>';
             return;
         }
-        const details = computeDetailedRanks();
+        const details = computeDetailed();
 
-        // Общий личный зачёт
-        const allParticipants = [...details];
-        allParticipants.sort((a,b) => a.sumRankOverall - b.sumRankOverall);
-        let totalHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Категория</th><th>Сумма мест(общ)</th></tr></thead><tbody>';
-        allParticipants.forEach((p, idx) => {
-            totalHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(p.name) || '—'}</td><td>${escapeHtml(p.tb) || '—'}</td><td>${p.category}</td><td>${p.sumRankOverall}</td></tr>`;
+        // ----- ОБЩИЙ ЛИЧНЫЙ ЗАЧЁТ по сумме времени (исключаем участников без единого времени) -----
+        const allByTime = details.filter(p => p.hasAnyTime === true);
+        allByTime.sort((a,b) => a.totalTime - b.totalTime);
+        let totalHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Категория</th><th>Суммарное время (сек)</th></tr></thead><tbody>';
+        allByTime.forEach((p, idx) => {
+            totalHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(p.name) || '—'}</td><td>${escapeHtml(p.tb) || '—'}</td><td>${p.category}</td><td>${p.totalTime.toFixed(2)}</td></tr>`;
         });
         totalHtml += '</tbody></table>';
-        document.getElementById('rankTotalBody').innerHTML = totalHtml;
+        document.getElementById('rankTotalBody').innerHTML = totalHtml || '<div>Нет участников с результатами</div>';
 
-        // Инкассация
+        // ----- Личное первенство Инкассация (по сумме мест) -----
         const inkParticipants = details.filter(p => p.category === "Инкассация");
         inkParticipants.sort((a,b) => {
             if(a.sumRankCat !== b.sumRankCat) return a.sumRankCat - b.sumRankCat;
             return (a.rankCatByEx[0] ?? 999) - (b.rankCatByEx[0] ?? 999);
         });
-        let inkHtml = '<table class="rank-table"><thead><table><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма мест</th></tr></thead><tbody>';
+        let inkHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма мест</th></tr></thead><tbody>';
         inkParticipants.forEach((p, idx) => {
             inkHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(p.name) || '—'}</td><td>${escapeHtml(p.tb) || '—'}</td><td>${p.sumRankCat || 0}</td></tr>`;
         });
         inkHtml += '</tbody></table>';
         document.getElementById('rankInkBody').innerHTML = inkHtml;
 
-        // Охрана
+        // ----- Личное первенство Охрана (по сумме мест) -----
         const secParticipants = details.filter(p => p.category === "Охрана");
         secParticipants.sort((a,b) => a.sumRankCat - b.sumRankCat);
         let secHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма мест</th></tr></thead><tbody>';
@@ -463,7 +478,7 @@
         secHtml += '</tbody></table>';
         document.getElementById('rankSecBody').innerHTML = secHtml;
 
-        // Рейтинг ТБ Инкассация
+        // ----- Рейтинг ТБ (Инкассация) по сумме мест -----
         const tbMapInk = new Map();
         inkParticipants.forEach(p => {
             if(p.tb && p.tb.trim() !== "") {
@@ -479,7 +494,7 @@
         tbInkHtml += '</tbody></table>';
         document.getElementById('tbInkBody').innerHTML = tbInkHtml;
 
-        // Рейтинг ТБ Охрана
+        // ----- Рейтинг ТБ (Охрана) по сумме мест -----
         const tbMapSec = new Map();
         secParticipants.forEach(p => {
             if(p.tb && p.tb.trim() !== "") {
@@ -552,7 +567,8 @@
             let cat = i % 2 === 0 ? "Инкассация" : "Охрана";
             let tbSample = tbs[i % tbs.length];
             let times = Array(EXERCISES_COUNT).fill("");
-            for(let t=0; t<5; t++) {
+            // Заполняем все 8 упражнений случайными числами
+            for(let t=0; t<EXERCISES_COUNT; t++) {
                 times[t] = (Math.random() * 40 + 30).toFixed(1);
             }
             participants.push({
@@ -563,8 +579,10 @@
                 times: times
             });
         }
-        addEmptyRows(3);
-        saveAndRecalc();
+        // НЕ добавляем дополнительные пустые строки — убираем addEmptyRows(3)
+        saveToLocal();
+        renderTable();
+        computeAll();
     }
 
     function resetAll() {
