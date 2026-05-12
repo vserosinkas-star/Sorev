@@ -67,6 +67,32 @@
         button.success {
             background: #1e6f5c;
         }
+        .print-panel {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 15px;
+            border: 1px solid #e2e8f0;
+        }
+        .print-panel label {
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #1e293b;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .print-panel select {
+            width: 260px;
+            padding: 8px 12px;
+            border-radius: 40px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 0.85rem;
+        }
         .table-wrapper {
             overflow-x: auto;
             border-radius: 16px;
@@ -193,7 +219,6 @@
             padding: 4px 12px;
             display: inline-block;
         }
-        /* Стили для печати */
         @media print {
             body * {
                 visibility: hidden;
@@ -235,11 +260,22 @@
         <span id="autoSaveStatus" class="status">✓ автосохранение</span>
     </div>
 
+    <!-- Отдельная панель печати с выбором участника -->
+    <div class="print-panel">
+        <div style="flex: 1;">
+            <label>Выберите участника для печати протокола:</label>
+            <select id="printParticipantSelect">
+                <option value="">— выберите —</option>
+            </select>
+        </div>
+        <button id="printSelectedBtn" class="success">🖨️ Печать выбранного</button>
+    </div>
+
     <div class="table-wrapper">
         <table id="dataTable">
             <thead>
                 <tr>
-                    <th style="width:60px">Действия</th><th>№</th><th>ФИО</th><th>ТБ</th><th>Категория</th>
+                    <th style="width:70px">Действия</th><th>№</th><th>ФИО</th><th>ТБ</th><th>Категория</th>
                     <th>Вр1</th><th>Вр2</th><th>Вр3</th><th>Вр4</th><th>Вр5</th><th>Вр6</th><th>Вр7</th><th>Вр8</th>
                 </tr>
                 </thead>
@@ -279,8 +315,8 @@
     let participants = [];
     const STORAGE_KEY = "shooting2025";
     // Глобальные переменные для хранения последних рассчитанных рейтингов (для печати)
-    let lastOverallRanking = [];    // [{ id, place, totalTime, ... }]
-    let lastInkRanking = [];        // [{ id, place, sumRankCat }]
+    let lastOverallRanking = [];    // [{ id, place, totalTime, name, tb, category }]
+    let lastInkRanking = [];        // [{ id, place, sumRankCat, name, tb }]
     let lastSecRanking = [];
     let lastTbInkRanking = [];      // [{ tb, place, sum }]
     let lastTbSecRanking = [];
@@ -304,11 +340,13 @@
                 });
                 renderTable();
                 computeAll();
+                updateParticipantSelect();
             } catch(e) { console.warn(e); }
         } else {
             if(participants.length === 0) addEmptyRows(5);
             renderTable();
             computeAll();
+            updateParticipantSelect();
         }
     }
 
@@ -325,6 +363,25 @@
         saveToLocal();
         renderTable();
         computeAll();
+        updateParticipantSelect();
+    }
+
+    function updateParticipantSelect() {
+        const select = document.getElementById('printParticipantSelect');
+        select.innerHTML = '<option value="">— выберите —</option>';
+        participants.forEach((p, idx) => {
+            if (p.name && p.name.trim() !== "") {
+                const option = document.createElement('option');
+                option.value = idx;
+                option.textContent = `${p.name} (${p.tb || '—'}, ${p.category})`;
+                select.appendChild(option);
+            } else {
+                const option = document.createElement('option');
+                option.value = idx;
+                option.textContent = `Участник №${idx+1} (без имени)`;
+                select.appendChild(option);
+            }
+        });
     }
 
     function renderTable() {
@@ -339,7 +396,7 @@
             printBtn.innerHTML = '🖨️';
             printBtn.title = 'Распечатать протокол для подписи';
             printBtn.className = 'action-btn print-btn';
-            printBtn.onclick = () => printParticipantProtocol(idx);
+            printBtn.onclick = () => printParticipantByIdx(idx);
             const delBtn = document.createElement('button');
             delBtn.innerHTML = '🗑️';
             delBtn.title = 'Удалить участника';
@@ -374,6 +431,7 @@
             }
             tbody.appendChild(tr);
         });
+        updateParticipantSelect(); // обновляем выпадающий список при изменении данных
     }
 
     function createInputCell(value, type, onUpdate) {
@@ -530,7 +588,7 @@
         lastSecRanking = secParticipants.map((p, idx) => ({ id: p.id, place: idx+1, sumRankCat: p.sumRankCat, name: p.name, tb: p.tb }));
         let secHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма мест</th></tr></thead><tbody>';
         secParticipants.forEach((p, idx) => {
-            secHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(p.name) || '—'}</td><td>${escapeHtml(p.tb) || '—'}</td><td>${p.sumRankCat || 0}<tr></tr>`;
+            secHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(p.name) || '—'}</td><td>${escapeHtml(p.tb) || '—'}</td><td>${p.sumRankCat || 0}</td></tr>`;
         });
         secHtml += '</tbody></table>';
         document.getElementById('rankSecBody').innerHTML = secHtml;
@@ -562,7 +620,7 @@
         let tbSecArray = Array.from(tbMapSec.entries()).map(([tb, sum]) => ({ tb, sum }));
         tbSecArray.sort((a,b) => a.sum - b.sum);
         lastTbSecRanking = tbSecArray.map((item, idx) => ({ tb: item.tb, place: idx+1, sum: item.sum }));
-        let tbSecHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>Территориальный банк</th><th>Сумма мест (команда)</th></tr></thead><tbody>';
+        let tbSecHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>Территориальный банк</th><th>Сумма мест (команда)</th><tr></thead><tbody>';
         tbSecArray.forEach((item, idx) => {
             tbSecHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(item.tb)}</td><td>${item.sum}</td></tr>`;
         });
@@ -570,14 +628,18 @@
         document.getElementById('tbSecBody').innerHTML = tbSecHtml;
     }
 
-    // Печать протокола для участника по его индексу в массиве participants
-    function printParticipantProtocol(index) {
+    // Печать протокола по индексу в массиве participants
+    function printParticipantByIdx(index) {
         const p = participants[index];
         if (!p) return;
-        // Получить актуальные рейтинги перед печатью
-        computeAll(); // обновим глобальные переменные рейтингов
+        // Обновляем рейтинги перед печатью
+        computeAll();
+        // Получаем enriched для деталей по упражнениям
+        const details = computeDetailed();
+        const enriched = details.find(d => d.id === p.id);
+        if (!enriched) return;
 
-        // Найти место в общем зачёте (по времени)
+        // Место в общем зачёте
         const overall = lastOverallRanking.find(item => item.id === p.id);
         const overallPlace = overall ? overall.place : '—';
         const totalTimeSec = overall ? overall.totalTime.toFixed(2) : '0.00';
@@ -591,7 +653,7 @@
             const found = lastSecRanking.find(item => item.id === p.id);
             if (found) { personalPlace = found.place; personalSum = found.sumRankCat; }
         }
-        // Место ТБ в рейтинге по категории
+        // Место ТБ в рейтинге
         let tbPlace = '—';
         let tbSum = '—';
         if (p.category === 'Инкассация') {
@@ -606,15 +668,9 @@
         let timesTable = '<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">';
         timesTable += '<thead><tr><th>Упражнение</th><th>Время (сек)</th><th>Место в категории</th></tr></thead><tbody>';
         for (let ex = 0; ex < EXERCISES_COUNT; ex++) {
-            let timeVal = p.times[ex] !== undefined && p.times[ex] !== "" ? parseFloat(p.times[ex]).toFixed(2) : '—';
-            // нужно также получить место в категории для этого упражнения — пересчитаем на лету
-            let catRank = '—';
-            // Для простоты пересчитаем места на основе текущих participants (можно вызвать computeDetailed, но дорого). Сделаем локальный расчёт.
-            // Лучше: используем функцию getRankForParticipant, но для простоты здесь вызовем computeDetailed один раз
-            const details = computeDetailed();
-            const enriched = details.find(d => d.id === p.id);
-            if (enriched && enriched.rankCatByEx && enriched.rankCatByEx[ex] !== null) catRank = enriched.rankCatByEx[ex];
-            timesTable += `<tr><td>${ex+1}</td><td>${timeVal}</td><td>${catRank}</td></tr>`;
+            let timeVal = (p.times[ex] !== undefined && p.times[ex] !== "") ? parseFloat(p.times[ex]).toFixed(2) : '—';
+            let catRank = (enriched.rankCatByEx && enriched.rankCatByEx[ex] !== null) ? enriched.rankCatByEx[ex] : '—';
+            timesTable += `<tr><td style="text-align:center">${ex+1}</td><td style="text-align:center">${timeVal}</td><td style="text-align:center">${catRank}</td></tr>`;
         }
         timesTable += '</tbody></table>';
 
@@ -738,14 +794,17 @@
         saveToLocal();
         renderTable();
         computeAll();
+        updateParticipantSelect();
     }
 
     function resetAll() {
         participants = [];
         addEmptyRows(6);
         saveAndRecalc();
+        updateParticipantSelect();
     }
 
+    // Обработчики
     document.getElementById('addRowBtn').onclick = () => { addParticipant(); };
     document.getElementById('removeLastBtn').onclick = () => { removeLast(); };
     document.getElementById('exportBtn').onclick = () => { exportJSON(); };
@@ -753,6 +812,15 @@
     document.getElementById('loadExampleBtn').onclick = () => { loadExample(); };
     document.getElementById('importBtn').onclick = () => { document.getElementById('importFileInput').click(); };
     document.getElementById('importFileInput').onchange = (e) => { if(e.target.files.length) importJSON(e.target.files[0]); e.target.value = ''; };
+    document.getElementById('printSelectedBtn').onclick = () => {
+        const select = document.getElementById('printParticipantSelect');
+        const idx = select.value;
+        if (idx === "" || idx === null) {
+            alert("Пожалуйста, выберите участника из списка.");
+            return;
+        }
+        printParticipantByIdx(parseInt(idx));
+    };
 
     loadFromLocal();
 </script>
