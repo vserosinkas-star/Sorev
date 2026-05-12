@@ -78,7 +78,7 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 0.8rem;
-            min-width: 900px;
+            min-width: 950px;
         }
         th, td {
             border-bottom: 1px solid #e9ecef;
@@ -109,19 +109,33 @@
             border-color: #1e6f5c;
             box-shadow: 0 0 0 2px rgba(30,111,92,0.2);
         }
-        .delete-row {
+        .action-btn {
             background: none;
             border: none;
             font-size: 1.2rem;
             cursor: pointer;
-            color: #a0aec0;
-            padding: 0;
-            box-shadow: none;
+            padding: 4px 6px;
+            margin: 0 2px;
+            border-radius: 8px;
+            transition: 0.1s;
         }
-        .delete-row:hover {
-            color: #dc2626;
-            background: none;
+        .action-btn:hover {
+            background: #e2e8f0;
             transform: none;
+        }
+        .delete-btn {
+            color: #a0aec0;
+        }
+        .delete-btn:hover {
+            color: #dc2626;
+            background: #fee2e2;
+        }
+        .print-btn {
+            color: #2c6e9e;
+        }
+        .print-btn:hover {
+            color: #1e3a5f;
+            background: #e0f2fe;
         }
         .results-vertical {
             display: flex;
@@ -179,6 +193,30 @@
             padding: 4px 12px;
             display: inline-block;
         }
+        /* Стили для печати */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-protocol, .print-protocol * {
+                visibility: visible;
+            }
+            .print-protocol {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                padding: 20px;
+                font-family: 'Times New Roman', serif;
+            }
+            .print-sign {
+                margin-top: 40px;
+                border-top: 1px solid #000;
+                width: 300px;
+                text-align: center;
+                padding-top: 8px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -201,12 +239,12 @@
         <table id="dataTable">
             <thead>
                 <tr>
-                    <th style="width:30px">🗑️</th><th>№</th><th>ФИО</th><th>ТБ</th><th>Категория</th>
+                    <th style="width:60px">Действия</th><th>№</th><th>ФИО</th><th>ТБ</th><th>Категория</th>
                     <th>Вр1</th><th>Вр2</th><th>Вр3</th><th>Вр4</th><th>Вр5</th><th>Вр6</th><th>Вр7</th><th>Вр8</th>
                 </tr>
                 </thead>
                 <tbody id="tableBody"></tbody>
-          </table>
+           </table
     </div>
 
     <div class="results-vertical">
@@ -233,13 +271,19 @@
     </div>
     <footer>Время в секундах (можно дробные). Пустая ячейка = пропуск. <br>
     <strong>Общий зачёт</strong> сортируется по сумме времени (чем меньше, тем выше). Участники без единого заполненного времени исключаются.<br>
-    <strong>Личные первенства и рейтинги ТБ</strong> — по сумме занятых мест.</footer>
+    <strong>Личные первенства и рейтинги ТБ</strong> — по сумме занятых мест. Кнопка печати 🖨️ формирует персональный протокол для подписи.</footer>
 </div>
 
 <script>
     const EXERCISES_COUNT = 8;
     let participants = [];
     const STORAGE_KEY = "shooting2025";
+    // Глобальные переменные для хранения последних рассчитанных рейтингов (для печати)
+    let lastOverallRanking = [];    // [{ id, place, totalTime, ... }]
+    let lastInkRanking = [];        // [{ id, place, sumRankCat }]
+    let lastSecRanking = [];
+    let lastTbInkRanking = [];      // [{ tb, place, sum }]
+    let lastTbSecRanking = [];
 
     function saveToLocal() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(participants));
@@ -288,22 +332,36 @@
         tbody.innerHTML = "";
         participants.forEach((p, idx) => {
             const tr = document.createElement('tr');
-            const tdDel = document.createElement('td');
+            // Ячейка действий: печать и удаление
+            const tdActions = document.createElement('td');
+            tdActions.style.whiteSpace = 'nowrap';
+            const printBtn = document.createElement('button');
+            printBtn.innerHTML = '🖨️';
+            printBtn.title = 'Распечатать протокол для подписи';
+            printBtn.className = 'action-btn print-btn';
+            printBtn.onclick = () => printParticipantProtocol(idx);
             const delBtn = document.createElement('button');
-            delBtn.innerHTML = '✖';
-            delBtn.className = 'delete-row';
-            delBtn.onclick = () => { deleteParticipantById(p.id); };
-            tdDel.appendChild(delBtn);
-            tr.appendChild(tdDel);
+            delBtn.innerHTML = '🗑️';
+            delBtn.title = 'Удалить участника';
+            delBtn.className = 'action-btn delete-btn';
+            delBtn.onclick = () => deleteParticipantById(p.id);
+            tdActions.appendChild(printBtn);
+            tdActions.appendChild(delBtn);
+            tr.appendChild(tdActions);
+            // №
             const tdNum = document.createElement('td'); tdNum.innerText = idx+1; tr.appendChild(tdNum);
+            // ФИО
             const tdName = createInputCell(p.name, 'text', (val) => { p.name = val; saveAndRecalc(); });
             tr.appendChild(tdName);
+            // ТБ
             const tbOptions = ["Байкальский","Волго-Вятский","Дальневосточный","МРД ЦУНДО","Поволжский","Северо-Западный","Сибирский","Среднерусский","Уральский","Центрально-Черноземный","Юго-Западный","ЦОО ЦАиМБ ОСЦ \"Москва\"","СТБ"];
             const tdTb = createSelectCell(p.tb, tbOptions, (val) => { p.tb = val; saveAndRecalc(); });
             tr.appendChild(tdTb);
+            // Категория
             const catOptions = ["Инкассация", "Охрана"];
             const tdCat = createSelectCell(p.category, catOptions, (val) => { p.category = val; saveAndRecalc(); });
             tr.appendChild(tdCat);
+            // 8 ячеек времени
             for(let ex = 0; ex < EXERCISES_COUNT; ex++) {
                 const timeVal = p.times[ex] !== undefined ? p.times[ex] : "";
                 const tdTime = createInputCell(timeVal, 'number', (val) => {
@@ -373,7 +431,7 @@
         computeAll();
     }
 
-    // Функция вычисления детализированных данных
+    // Расчёт всех рейтингов и возврат enriched-массива
     function computeDetailed() {
         let enriched = participants.map((p, idx) => {
             let timesNum = p.times.map(t => {
@@ -391,9 +449,8 @@
                 hasAnyTime
             };
         });
-        // Для каждого упражнения вычисляем места по категориям и общие места
+        // Места по упражнениям
         for (let ex = 0; ex < EXERCISES_COUNT; ex++) {
-            // Общее место (среди всех, у кого есть время)
             let validOverall = enriched.filter(p => p.timesNum[ex] !== null).map(p => ({ id: p.id, time: p.timesNum[ex] }));
             validOverall.sort((a,b) => a.time - b.time);
             let overallRankMap = new Map();
@@ -402,7 +459,6 @@
                 if (i>0 && validOverall[i].time !== validOverall[i-1].time) rank = i+1;
                 overallRankMap.set(validOverall[i].id, rank);
             }
-            // Места по категориям
             let catGroups = { "Инкассация": [], "Охрана": [] };
             enriched.forEach(p => {
                 if(p.timesNum[ex] !== null) catGroups[p.category].push({ id: p.id, time: p.timesNum[ex] });
@@ -441,26 +497,26 @@
             document.getElementById('rankSecBody').innerHTML = '<div>Нет участников</div>';
             document.getElementById('tbInkBody').innerHTML = '<div>Нет данных</div>';
             document.getElementById('tbSecBody').innerHTML = '<div>Нет данных</div>';
+            lastOverallRanking = []; lastInkRanking = []; lastSecRanking = []; lastTbInkRanking = []; lastTbSecRanking = [];
             return;
         }
         const details = computeDetailed();
 
-        // ----- ОБЩИЙ ЛИЧНЫЙ ЗАЧЁТ по сумме времени (исключаем участников без единого времени) -----
+        // Общий зачёт по времени
         const allByTime = details.filter(p => p.hasAnyTime === true);
         allByTime.sort((a,b) => a.totalTime - b.totalTime);
+        lastOverallRanking = allByTime.map((p, idx) => ({ id: p.id, place: idx+1, totalTime: p.totalTime, name: p.name, tb: p.tb, category: p.category }));
         let totalHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Категория</th><th>Суммарное время (сек)</th></tr></thead><tbody>';
         allByTime.forEach((p, idx) => {
             totalHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(p.name) || '—'}</td><td>${escapeHtml(p.tb) || '—'}</td><td>${p.category}</td><td>${p.totalTime.toFixed(2)}</td></tr>`;
         });
         totalHtml += '</tbody></table>';
-        document.getElementById('rankTotalBody').innerHTML = totalHtml || '<div>Нет участников с результатами</div>';
+        document.getElementById('rankTotalBody').innerHTML = totalHtml;
 
-        // ----- Личное первенство Инкассация (по сумме мест) -----
+        // Инкассация по сумме мест
         const inkParticipants = details.filter(p => p.category === "Инкассация");
-        inkParticipants.sort((a,b) => {
-            if(a.sumRankCat !== b.sumRankCat) return a.sumRankCat - b.sumRankCat;
-            return (a.rankCatByEx[0] ?? 999) - (b.rankCatByEx[0] ?? 999);
-        });
+        inkParticipants.sort((a,b) => a.sumRankCat - b.sumRankCat);
+        lastInkRanking = inkParticipants.map((p, idx) => ({ id: p.id, place: idx+1, sumRankCat: p.sumRankCat, name: p.name, tb: p.tb }));
         let inkHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма мест</th></tr></thead><tbody>';
         inkParticipants.forEach((p, idx) => {
             inkHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(p.name) || '—'}</td><td>${escapeHtml(p.tb) || '—'}</td><td>${p.sumRankCat || 0}</td></tr>`;
@@ -468,17 +524,18 @@
         inkHtml += '</tbody></table>';
         document.getElementById('rankInkBody').innerHTML = inkHtml;
 
-        // ----- Личное первенство Охрана (по сумме мест) -----
+        // Охрана по сумме мест
         const secParticipants = details.filter(p => p.category === "Охрана");
         secParticipants.sort((a,b) => a.sumRankCat - b.sumRankCat);
+        lastSecRanking = secParticipants.map((p, idx) => ({ id: p.id, place: idx+1, sumRankCat: p.sumRankCat, name: p.name, tb: p.tb }));
         let secHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма мест</th></tr></thead><tbody>';
         secParticipants.forEach((p, idx) => {
-            secHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(p.name) || '—'}</td><td>${escapeHtml(p.tb) || '—'}</td><td>${p.sumRankCat || 0}</td></tr>`;
+            secHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(p.name) || '—'}</td><td>${escapeHtml(p.tb) || '—'}</td><td>${p.sumRankCat || 0}<tr></tr>`;
         });
         secHtml += '</tbody></table>';
         document.getElementById('rankSecBody').innerHTML = secHtml;
 
-        // ----- Рейтинг ТБ (Инкассация) по сумме мест -----
+        // Рейтинг ТБ Инкассация
         const tbMapInk = new Map();
         inkParticipants.forEach(p => {
             if(p.tb && p.tb.trim() !== "") {
@@ -487,6 +544,7 @@
         });
         let tbInkArray = Array.from(tbMapInk.entries()).map(([tb, sum]) => ({ tb, sum }));
         tbInkArray.sort((a,b) => a.sum - b.sum);
+        lastTbInkRanking = tbInkArray.map((item, idx) => ({ tb: item.tb, place: idx+1, sum: item.sum }));
         let tbInkHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>Территориальный банк</th><th>Сумма мест (команда)</th></tr></thead><tbody>';
         tbInkArray.forEach((item, idx) => {
             tbInkHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(item.tb)}</td><td>${item.sum}</td></tr>`;
@@ -494,7 +552,7 @@
         tbInkHtml += '</tbody></table>';
         document.getElementById('tbInkBody').innerHTML = tbInkHtml;
 
-        // ----- Рейтинг ТБ (Охрана) по сумме мест -----
+        // Рейтинг ТБ Охрана
         const tbMapSec = new Map();
         secParticipants.forEach(p => {
             if(p.tb && p.tb.trim() !== "") {
@@ -503,12 +561,111 @@
         });
         let tbSecArray = Array.from(tbMapSec.entries()).map(([tb, sum]) => ({ tb, sum }));
         tbSecArray.sort((a,b) => a.sum - b.sum);
+        lastTbSecRanking = tbSecArray.map((item, idx) => ({ tb: item.tb, place: idx+1, sum: item.sum }));
         let tbSecHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>Территориальный банк</th><th>Сумма мест (команда)</th></tr></thead><tbody>';
         tbSecArray.forEach((item, idx) => {
             tbSecHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(item.tb)}</td><td>${item.sum}</td></tr>`;
         });
         tbSecHtml += '</tbody></table>';
         document.getElementById('tbSecBody').innerHTML = tbSecHtml;
+    }
+
+    // Печать протокола для участника по его индексу в массиве participants
+    function printParticipantProtocol(index) {
+        const p = participants[index];
+        if (!p) return;
+        // Получить актуальные рейтинги перед печатью
+        computeAll(); // обновим глобальные переменные рейтингов
+
+        // Найти место в общем зачёте (по времени)
+        const overall = lastOverallRanking.find(item => item.id === p.id);
+        const overallPlace = overall ? overall.place : '—';
+        const totalTimeSec = overall ? overall.totalTime.toFixed(2) : '0.00';
+        // Место в личном первенстве по категории
+        let personalPlace = '—';
+        let personalSum = 0;
+        if (p.category === 'Инкассация') {
+            const found = lastInkRanking.find(item => item.id === p.id);
+            if (found) { personalPlace = found.place; personalSum = found.sumRankCat; }
+        } else {
+            const found = lastSecRanking.find(item => item.id === p.id);
+            if (found) { personalPlace = found.place; personalSum = found.sumRankCat; }
+        }
+        // Место ТБ в рейтинге по категории
+        let tbPlace = '—';
+        let tbSum = '—';
+        if (p.category === 'Инкассация') {
+            const tbRank = lastTbInkRanking.find(item => item.tb === p.tb);
+            if (tbRank) { tbPlace = tbRank.place; tbSum = tbRank.sum; }
+        } else {
+            const tbRank = lastTbSecRanking.find(item => item.tb === p.tb);
+            if (tbRank) { tbPlace = tbRank.place; tbSum = tbRank.sum; }
+        }
+
+        // Таблица результатов по упражнениям
+        let timesTable = '<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">';
+        timesTable += '<thead><tr><th>Упражнение</th><th>Время (сек)</th><th>Место в категории</th></tr></thead><tbody>';
+        for (let ex = 0; ex < EXERCISES_COUNT; ex++) {
+            let timeVal = p.times[ex] !== undefined && p.times[ex] !== "" ? parseFloat(p.times[ex]).toFixed(2) : '—';
+            // нужно также получить место в категории для этого упражнения — пересчитаем на лету
+            let catRank = '—';
+            // Для простоты пересчитаем места на основе текущих participants (можно вызвать computeDetailed, но дорого). Сделаем локальный расчёт.
+            // Лучше: используем функцию getRankForParticipant, но для простоты здесь вызовем computeDetailed один раз
+            const details = computeDetailed();
+            const enriched = details.find(d => d.id === p.id);
+            if (enriched && enriched.rankCatByEx && enriched.rankCatByEx[ex] !== null) catRank = enriched.rankCatByEx[ex];
+            timesTable += `<tr><td>${ex+1}</td><td>${timeVal}</td><td>${catRank}</td></tr>`;
+        }
+        timesTable += '</tbody></table>';
+
+        const protocolHtml = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Протокол участника - ${escapeHtml(p.name) || 'Участник'}</title>
+                <style>
+                    body { font-family: 'Times New Roman', serif; margin: 20px; }
+                    h2 { text-align: center; }
+                    .info { margin-bottom: 20px; }
+                    .info p { margin: 4px 0; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                    th, td { border: 1px solid #000; padding: 6px; text-align: left; }
+                    th { background: #f0f0f0; }
+                    .sign-block { margin-top: 40px; display: flex; justify-content: space-between; }
+                    .sign-line { width: 250px; border-top: 1px solid #000; text-align: center; padding-top: 5px; }
+                </style>
+            </head>
+            <body>
+                <div class="print-protocol">
+                    <h2>ПРОТОКОЛ РЕЗУЛЬТАТОВ УЧАСТНИКА</h2>
+                    <div class="info">
+                        <p><strong>ФИО:</strong> ${escapeHtml(p.name) || '—'}</p>
+                        <p><strong>Территориальный банк:</strong> ${escapeHtml(p.tb) || '—'}</p>
+                        <p><strong>Категория:</strong> ${p.category}</p>
+                        <p><strong>Суммарное время (все упражнения):</strong> ${totalTimeSec} сек</p>
+                        <p><strong>Место в общем личном зачёте:</strong> ${overallPlace}</p>
+                        <p><strong>Место в личном первенстве (${p.category}):</strong> ${personalPlace}  (сумма мест = ${personalSum})</p>
+                        <p><strong>Место территориального банка в рейтинге (${p.category}):</strong> ${tbPlace}  (сумма мест команды = ${tbSum})</p>
+                    </div>
+                    <h3>Результаты по упражнениям:</h3>
+                    ${timesTable}
+                    <div class="sign-block">
+                        <div class="sign-line">Подпись участника</div>
+                        <div class="sign-line">Подпись судьи</div>
+                    </div>
+                    <p style="margin-top: 30px; font-size: 0.8em; text-align: center;">Дата: _______________</p>
+                </div>
+                <script>
+                    window.onload = function() { window.print(); };
+                <\/script>
+            </body>
+            </html>
+        `;
+
+        const printWindow = window.open('', '_blank', 'width=800,height=600');
+        printWindow.document.write(protocolHtml);
+        printWindow.document.close();
     }
 
     function escapeHtml(str) {
@@ -567,7 +724,6 @@
             let cat = i % 2 === 0 ? "Инкассация" : "Охрана";
             let tbSample = tbs[i % tbs.length];
             let times = Array(EXERCISES_COUNT).fill("");
-            // Заполняем все 8 упражнений случайными числами
             for(let t=0; t<EXERCISES_COUNT; t++) {
                 times[t] = (Math.random() * 40 + 30).toFixed(1);
             }
@@ -579,7 +735,6 @@
                 times: times
             });
         }
-        // НЕ добавляем дополнительные пустые строки — убираем addEmptyRows(3)
         saveToLocal();
         renderTable();
         computeAll();
