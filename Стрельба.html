@@ -75,17 +75,20 @@
             display: flex;
             flex-wrap: wrap;
             align-items: flex-end;
-            gap: 15px;
+            gap: 20px;
             border: 1px solid #e2e8f0;
         }
-        .print-panel label {
+        .print-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .print-group label {
             font-weight: 600;
             font-size: 0.85rem;
             color: #1e293b;
-            display: block;
-            margin-bottom: 4px;
         }
-        .print-panel select {
+        .print-group select {
             width: 260px;
             padding: 8px 12px;
             border-radius: 40px;
@@ -130,11 +133,6 @@
             background: white;
             transition: 0.1s;
         }
-        input:focus, select:focus {
-            outline: none;
-            border-color: #1e6f5c;
-            box-shadow: 0 0 0 2px rgba(30,111,92,0.2);
-        }
         .action-btn {
             background: none;
             border: none;
@@ -143,111 +141,28 @@
             padding: 4px 6px;
             margin: 0 2px;
             border-radius: 8px;
-            transition: 0.1s;
         }
-        .action-btn:hover {
-            background: #e2e8f0;
-            transform: none;
-        }
-        .delete-btn {
-            color: #a0aec0;
-        }
-        .delete-btn:hover {
-            color: #dc2626;
-            background: #fee2e2;
-        }
-        .print-btn {
-            color: #2c6e9e;
-        }
-        .print-btn:hover {
-            color: #1e3a5f;
-            background: #e0f2fe;
-        }
-        .results-vertical {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-            margin-top: 28px;
-        }
-        .result-card {
-            width: 100%;
-            background: #ffffff;
-            border-radius: 20px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            border: 1px solid #eef2f6;
-            overflow: hidden;
-        }
-        .card-header {
-            background: #f1f5f9;
-            padding: 12px 16px;
-            font-weight: 700;
-            font-size: 1rem;
-            border-bottom: 1px solid #e2e8f0;
-            color: #0f3b2c;
-        }
-        .card-body {
-            padding: 12px 16px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-        .rank-table {
-            width: 100%;
-            font-size: 0.8rem;
-        }
-        .rank-table th, .rank-table td {
-            border: none;
-            padding: 8px 4px;
-            text-align: left;
-            border-bottom: 1px solid #edf2f7;
-        }
-        .rank-table th {
-            background: none;
-            font-weight: 600;
-            color: #334155;
-        }
-        footer {
-            margin-top: 28px;
-            font-size: 0.7rem;
-            text-align: center;
-            color: #5b6e8c;
-        }
-        .status {
-            font-size: 0.75rem;
-            color: #2b6e3c;
-            background: #e6f7ec;
-            border-radius: 50px;
-            padding: 4px 12px;
-            display: inline-block;
-        }
-        @media print {
-            body * {
-                visibility: hidden;
-            }
-            .print-protocol, .print-protocol * {
-                visibility: visible;
-            }
-            .print-protocol {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                padding: 20px;
-                font-family: 'Times New Roman', serif;
-            }
-            .print-sign {
-                margin-top: 40px;
-                border-top: 1px solid #000;
-                width: 300px;
-                text-align: center;
-                padding-top: 8px;
-            }
-        }
+        .action-btn:hover { background: #e2e8f0; }
+        .delete-btn { color: #a0aec0; }
+        .delete-btn:hover { color: #dc2626; background: #fee2e2; }
+        .print-btn { color: #2c6e9e; }
+        .print-btn:hover { color: #1e3a5f; background: #e0f2fe; }
+        .results-vertical { display: flex; flex-direction: column; gap: 24px; margin-top: 28px; }
+        .result-card { width: 100%; background: #fff; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eef2f6; overflow: hidden; }
+        .card-header { background: #f1f5f9; padding: 12px 16px; font-weight: 700; font-size: 1rem; border-bottom: 1px solid #e2e8f0; color: #0f3b2c; }
+        .card-body { padding: 12px 16px; max-height: 400px; overflow-y: auto; }
+        .rank-table { width: 100%; font-size: 0.8rem; border-collapse: collapse; }
+        .rank-table th, .rank-table td { border: none; padding: 8px 4px; text-align: left; border-bottom: 1px solid #edf2f7; }
+        .rank-table th { background: none; font-weight: 600; }
+        footer { margin-top: 28px; font-size: 0.7rem; text-align: center; color: #5b6e8c; }
+        .status { font-size: 0.75rem; color: #2b6e3c; background: #e6f7ec; border-radius: 50px; padding: 4px 12px; display: inline-block; }
+        @media print { body * { visibility: hidden; } .print-protocol, .print-protocol * { visibility: visible; } .print-protocol { position: absolute; top: 0; left: 0; width: 100%; padding: 20px; font-family: 'Times New Roman', serif; } }
     </style>
 </head>
 <body>
 <div class="container">
     <h1>🏆 Соревнования по практической стрельбе</h1>
-    <div class="sub">Ввод результатов участников (до 69 человек) | Авторасчёт личных мест и рейтинга ТБ</div>
+    <div class="sub">Ввод результатов участников | Личное первенство — по сумме времени | Рейтинг ТБ — по сумме мест команды (одиночные + групповые только для инкассации)</div>
 
     <div class="toolbar">
         <button id="addRowBtn" class="success">➕ Добавить участника</button>
@@ -260,74 +175,41 @@
         <span id="autoSaveStatus" class="status">✓ автосохранение</span>
     </div>
 
-    <!-- Отдельная панель печати с выбором участника -->
     <div class="print-panel">
-        <div style="flex: 1;">
-            <label>Выберите участника для печати протокола:</label>
-            <select id="printParticipantSelect">
-                <option value="">— выберите —</option>
-            </select>
-        </div>
-        <button id="printSelectedBtn" class="success">🖨️ Печать выбранного</button>
+        <div class="print-group"><label>👤 Печать участника:</label><select id="printParticipantSelect"><option value="">— выберите —</option></select></div>
+        <button id="printSelectedBtn" class="success">🖨️ Печать</button>
+    </div>
+
+    <div class="print-panel">
+        <div class="print-group"><label>🏢 Печать команды (ТБ):</label><select id="teamCategorySelect"><option value="Инкассация">Инкассация</option><option value="Охрана">Охрана</option></select></div>
+        <div class="print-group"><label>Территориальный банк:</label><select id="teamTbSelect"><option value="">— выберите —</option></select></div>
+        <button id="printTeamBtn" class="success">🖨️ Печать команды</button>
     </div>
 
     <div class="table-wrapper">
         <table id="dataTable">
-            <thead>
-                <tr>
-                    <th style="width:70px">Действия</th><th>№</th><th>ФИО</th><th>ТБ</th><th>Категория</th>
-                    <th>Вр1</th><th>Вр2</th><th>Вр3</th><th>Вр4</th><th>Вр5</th><th>Вр6</th><th>Вр7</th><th>Вр8</th>
-                </tr>
-                </thead>
-                <tbody id="tableBody"></tbody>
-           </table
+            <thead><tr><th style="width:70px">Действия</th><th>№</th><th>ФИО</th><th>ТБ</th><th>Категория</th><th>Вр1</th><th>Вр2</th><th>Вр3</th><th>Вр4</th><th>Вр5</th><th>Вр6</th><th>Вгр1</th><th>Вгр2</th></tr></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
     </div>
 
     <div class="results-vertical">
-        <div class="result-card">
-            <div class="card-header">🌟 Общий личный зачёт (все участники) - по сумме времени</div>
-            <div class="card-body" id="rankTotalBody">—</div>
-        </div>
-        <div class="result-card">
-            <div class="card-header">🥇 Личное первенство (Инкассация) - по сумме мест</div>
-            <div class="card-body" id="rankInkBody">—</div>
-        </div>
-        <div class="result-card">
-            <div class="card-header">🔒 Личное первенство (Охрана) - по сумме мест</div>
-            <div class="card-body" id="rankSecBody">—</div>
-        </div>
-        <div class="result-card">
-            <div class="card-header">🏢 Рейтинг ТБ (Инкассация) - по сумме мест</div>
-            <div class="card-body" id="tbInkBody">—</div>
-        </div>
-        <div class="result-card">
-            <div class="card-header">🏢 Рейтинг ТБ (Охрана) - по сумме мест</div>
-            <div class="card-body" id="tbSecBody">—</div>
-        </div>
+        <div class="result-card"><div class="card-header">🌟 Общий личный зачёт (все) - сумма времени (сек)</div><div class="card-body" id="rankTotalBody">—</div></div>
+        <div class="result-card"><div class="card-header">🥇 Личное первенство (Инкассация) - сумма времени (сек)</div><div class="card-body" id="rankInkBody">—</div></div>
+        <div class="result-card"><div class="card-header">🔒 Личное первенство (Охрана) - сумма времени (сек)</div><div class="card-body" id="rankSecBody">—</div></div>
+        <div class="result-card"><div class="card-header">🏢 Рейтинг ТБ (Инкассация) - сумма мест (одиночные + групповые)</div><div class="card-body" id="tbInkBody">—</div></div>
+        <div class="result-card"><div class="card-header">🏢 Рейтинг ТБ (Охрана) - сумма мест (только одиночные)</div><div class="card-body" id="tbSecBody">—</div></div>
     </div>
-    <footer>Время в секундах (можно дробные). Пустая ячейка = пропуск. <br>
-    <strong>Общий зачёт</strong> сортируется по сумме времени (чем меньше, тем выше). Участники без единого заполненного времени исключаются.<br>
-    <strong>Личные первенства и рейтинги ТБ</strong> — по сумме занятых мест. Кнопка печати 🖨️ формирует персональный протокол для подписи.</footer>
+    <footer>Вр1-Вр6 — одиночные упражнения. Вгр1, Вгр2 — групповые упражнения (учитываются только для инкассации). Личное первенство — по сумме времени всех упражнений (одиночные+групповые). Рейтинг ТБ: суммируется время членов команды на каждом упражнении → место команды на упражнении → сумма мест.</footer>
 </div>
 
 <script>
-    const EXERCISES_COUNT = 8;
+    const EXERCISES_COUNT = 8; // 6 одиночных + 2 групповых
     let participants = [];
     const STORAGE_KEY = "shooting2025";
-    // Глобальные переменные для хранения последних рассчитанных рейтингов (для печати)
-    let lastOverallRanking = [];    // [{ id, place, totalTime, name, tb, category }]
-    let lastInkRanking = [];        // [{ id, place, sumRankCat, name, tb }]
-    let lastSecRanking = [];
-    let lastTbInkRanking = [];      // [{ tb, place, sum }]
-    let lastTbSecRanking = [];
+    let lastOverallRanking = [], lastInkRanking = [], lastSecRanking = [], lastTbInkRanking = [], lastTbSecRanking = [];
 
-    function saveToLocal() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(participants));
-        const statusSpan = document.getElementById('autoSaveStatus');
-        statusSpan.style.opacity = "1";
-        setTimeout(() => { statusSpan.style.opacity = "0.7"; }, 400);
-    }
-
+    function saveToLocal() { localStorage.setItem(STORAGE_KEY, JSON.stringify(participants)); }
     function loadFromLocal() {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
@@ -338,490 +220,266 @@
                     while(p.times.length < EXERCISES_COUNT) p.times.push("");
                     return p;
                 });
-                renderTable();
-                computeAll();
-                updateParticipantSelect();
             } catch(e) { console.warn(e); }
-        } else {
-            if(participants.length === 0) addEmptyRows(5);
-            renderTable();
-            computeAll();
-            updateParticipantSelect();
         }
-    }
-
-    function addEmptyRows(count) {
-        for(let i=0; i<count; i++) {
-            participants.push({
-                id: Date.now() + i + Math.random(),
-                name: "",
-                tb: "",
-                category: "Инкассация",
-                times: Array(EXERCISES_COUNT).fill("")
-            });
-        }
-        saveToLocal();
+        if (!participants.length) addEmptyRows(5);
         renderTable();
         computeAll();
         updateParticipantSelect();
+        updateTeamTbSelect();
     }
-
+    function addEmptyRows(count) {
+        for(let i=0;i<count;i++) participants.push({ id: Date.now()+i+Math.random(), name:"", tb:"", category:"Инкассация", times:Array(EXERCISES_COUNT).fill("") });
+        saveToLocal();
+    }
     function updateParticipantSelect() {
-        const select = document.getElementById('printParticipantSelect');
-        select.innerHTML = '<option value="">— выберите —</option>';
-        participants.forEach((p, idx) => {
-            if (p.name && p.name.trim() !== "") {
-                const option = document.createElement('option');
-                option.value = idx;
-                option.textContent = `${p.name} (${p.tb || '—'}, ${p.category})`;
-                select.appendChild(option);
-            } else {
-                const option = document.createElement('option');
-                option.value = idx;
-                option.textContent = `Участник №${idx+1} (без имени)`;
-                select.appendChild(option);
-            }
+        const sel = document.getElementById('printParticipantSelect');
+        sel.innerHTML = '<option value="">— выберите участника —</option>';
+        participants.forEach((p,idx)=>{
+            let namePart = p.name?.trim() || `Участник №${idx+1}`;
+            let opt = document.createElement('option');
+            opt.value = idx;
+            opt.textContent = `${namePart} (${p.tb||'—'}, ${p.category})`;
+            sel.appendChild(opt);
         });
     }
-
+    function updateTeamTbSelect() {
+        const cat = document.getElementById('teamCategorySelect').value;
+        const tbSel = document.getElementById('teamTbSelect');
+        if(!cat) { tbSel.innerHTML = '<option value="">— выберите категорию —</option>'; return; }
+        const tbs = [...new Set(participants.filter(p=>p.category===cat && p.tb?.trim()).map(p=>p.tb))].sort();
+        tbSel.innerHTML = '<option value="">— выберите ТБ —</option>';
+        tbs.forEach(tb=>{ let opt=document.createElement('option'); opt.value=tb; opt.textContent=tb; tbSel.appendChild(opt); });
+    }
     function renderTable() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = "";
         participants.forEach((p, idx) => {
             const tr = document.createElement('tr');
-            // Ячейка действий: печать и удаление
-            const tdActions = document.createElement('td');
-            tdActions.style.whiteSpace = 'nowrap';
-            const printBtn = document.createElement('button');
-            printBtn.innerHTML = '🖨️';
-            printBtn.title = 'Распечатать протокол для подписи';
-            printBtn.className = 'action-btn print-btn';
-            printBtn.onclick = () => printParticipantByIdx(idx);
-            const delBtn = document.createElement('button');
-            delBtn.innerHTML = '🗑️';
-            delBtn.title = 'Удалить участника';
-            delBtn.className = 'action-btn delete-btn';
-            delBtn.onclick = () => deleteParticipantById(p.id);
-            tdActions.appendChild(printBtn);
-            tdActions.appendChild(delBtn);
-            tr.appendChild(tdActions);
-            // №
-            const tdNum = document.createElement('td'); tdNum.innerText = idx+1; tr.appendChild(tdNum);
-            // ФИО
-            const tdName = createInputCell(p.name, 'text', (val) => { p.name = val; saveAndRecalc(); });
-            tr.appendChild(tdName);
-            // ТБ
-            const tbOptions = ["Байкальский","Волго-Вятский","Дальневосточный","МРД ЦУНДО","Поволжский","Северо-Западный","Сибирский","Среднерусский","Уральский","Центрально-Черноземный","Юго-Западный","ЦОО ЦАиМБ ОСЦ \"Москва\"","СТБ"];
-            const tdTb = createSelectCell(p.tb, tbOptions, (val) => { p.tb = val; saveAndRecalc(); });
-            tr.appendChild(tdTb);
-            // Категория
-            const catOptions = ["Инкассация", "Охрана"];
-            const tdCat = createSelectCell(p.category, catOptions, (val) => { p.category = val; saveAndRecalc(); });
-            tr.appendChild(tdCat);
-            // 8 ячеек времени
-            for(let ex = 0; ex < EXERCISES_COUNT; ex++) {
-                const timeVal = p.times[ex] !== undefined ? p.times[ex] : "";
-                const tdTime = createInputCell(timeVal, 'number', (val) => {
-                    let clean = val.trim() === "" ? "" : parseFloat(val);
-                    if (clean !== "" && isNaN(clean)) clean = "";
-                    p.times[ex] = clean === "" ? "" : clean;
+            const tdAct = document.createElement('td'); tdAct.style.whiteSpace='nowrap';
+            const printBtn = document.createElement('button'); printBtn.innerHTML='🖨️'; printBtn.className='action-btn print-btn'; printBtn.onclick=()=>printParticipantByIdx(idx);
+            const delBtn = document.createElement('button'); delBtn.innerHTML='🗑️'; delBtn.className='action-btn delete-btn'; delBtn.onclick=()=>deleteParticipantById(p.id);
+            tdAct.append(printBtn, delBtn); tr.appendChild(tdAct);
+            tr.appendChild(tdNum(idx+1));
+            tr.appendChild(createInputCell(p.name, 'text', v=>{ p.name=v; saveAndRecalc(); }));
+            tr.appendChild(createSelectCell(p.tb, ["Байкальский","Волго-Вятский","Дальневосточный","МРД ЦУНДО","Поволжский","Северо-Западный","Сибирский","Среднерусский","Уральский","Центрально-Черноземный","Юго-Западный","ЦОО ЦАиМБ ОСЦ \"Москва\"","СТБ"], v=>{ p.tb=v; saveAndRecalc(); }));
+            tr.appendChild(createSelectCell(p.category, ["Инкассация","Охрана"], v=>{ p.category=v; saveAndRecalc(); }));
+            for(let ex=0; ex<EXERCISES_COUNT; ex++) {
+                tr.appendChild(createInputCell(p.times[ex]??"", 'number', v=>{
+                    let clean = v.trim()==="" ? "" : parseFloat(v);
+                    if(clean!=="" && isNaN(clean)) clean="";
+                    p.times[ex]=clean===""?"":clean;
                     saveAndRecalc();
-                });
-                tr.appendChild(tdTime);
+                }));
             }
             tbody.appendChild(tr);
         });
-        updateParticipantSelect(); // обновляем выпадающий список при изменении данных
+        updateParticipantSelect(); updateTeamTbSelect();
     }
-
+    function tdNum(n) { let td=document.createElement('td'); td.innerText=n; return td; }
     function createInputCell(value, type, onUpdate) {
-        const td = document.createElement('td');
-        const input = document.createElement('input');
-        input.type = type;
-        input.value = value === undefined ? "" : value;
-        input.step = "any";
-        input.addEventListener('change', (e) => { onUpdate(e.target.value); });
-        td.appendChild(input);
-        return td;
+        let td=document.createElement('td'), inp=document.createElement('input');
+        inp.type=type; inp.value=value??""; inp.step="any";
+        inp.addEventListener('change',e=>onUpdate(e.target.value));
+        td.appendChild(inp); return td;
     }
-
     function createSelectCell(current, options, onUpdate) {
-        const td = document.createElement('td');
-        const select = document.createElement('select');
-        options.forEach(opt => {
-            const option = document.createElement('option');
-            option.value = opt;
-            option.innerText = opt;
-            if (current === opt) option.selected = true;
-            select.appendChild(option);
-        });
-        select.addEventListener('change', (e) => { onUpdate(e.target.value); });
-        td.appendChild(select);
-        return td;
+        let td=document.createElement('td'), sel=document.createElement('select');
+        options.forEach(opt=>{ let o=document.createElement('option'); o.value=opt; o.innerText=opt; if(current===opt) o.selected=true; sel.appendChild(o); });
+        sel.addEventListener('change',e=>onUpdate(e.target.value));
+        td.appendChild(sel); return td;
     }
+    function deleteParticipantById(id) { participants=participants.filter(p=>p.id!==id); if(!participants.length) addEmptyRows(1); saveAndRecalc(); }
+    function addParticipant() { participants.push({ id:Date.now(), name:"", tb:"", category:"Инкассация", times:Array(EXERCISES_COUNT).fill("") }); saveAndRecalc(); }
+    function removeLast() { if(participants.length>1) participants.pop(); else { participants=[]; addEmptyRows(1); } saveAndRecalc(); }
+    function saveAndRecalc() { saveToLocal(); renderTable(); computeAll(); }
 
-    function deleteParticipantById(id) {
-        participants = participants.filter(p => p.id !== id);
-        if(participants.length === 0) addEmptyRows(1);
-        saveAndRecalc();
-    }
-
-    function addParticipant() {
-        participants.push({
-            id: Date.now(),
-            name: "",
-            tb: "",
-            category: "Инкассация",
-            times: Array(EXERCISES_COUNT).fill("")
-        });
-        saveAndRecalc();
-    }
-
-    function removeLast() {
-        if(participants.length > 1) participants.pop();
-        else { participants = []; addEmptyRows(1); }
-        saveAndRecalc();
-    }
-
-    function saveAndRecalc() {
-        saveToLocal();
-        renderTable();
-        computeAll();
-    }
-
-    // Расчёт всех рейтингов и возврат enriched-массива
-    function computeDetailed() {
-        let enriched = participants.map((p, idx) => {
-            let timesNum = p.times.map(t => {
-                if (t === "" || t === null || isNaN(t)) return null;
-                let num = parseFloat(t);
-                return isNaN(num) ? null : num;
-            });
-            let totalTime = timesNum.reduce((sum, t) => sum + (t !== null ? t : 0), 0);
-            let hasAnyTime = timesNum.some(t => t !== null);
-            return {
-                ...p,
-                idx,
-                timesNum,
-                totalTime,
-                hasAnyTime
-            };
-        });
-        // Места по упражнениям
-        for (let ex = 0; ex < EXERCISES_COUNT; ex++) {
-            let validOverall = enriched.filter(p => p.timesNum[ex] !== null).map(p => ({ id: p.id, time: p.timesNum[ex] }));
-            validOverall.sort((a,b) => a.time - b.time);
-            let overallRankMap = new Map();
-            let rank = 1;
-            for (let i=0; i<validOverall.length; i++) {
-                if (i>0 && validOverall[i].time !== validOverall[i-1].time) rank = i+1;
-                overallRankMap.set(validOverall[i].id, rank);
-            }
-            let catGroups = { "Инкассация": [], "Охрана": [] };
-            enriched.forEach(p => {
-                if(p.timesNum[ex] !== null) catGroups[p.category].push({ id: p.id, time: p.timesNum[ex] });
-            });
-            for(let cat of ["Инкассация","Охрана"]) {
-                catGroups[cat].sort((a,b) => a.time - b.time);
-                let catRank = 1;
-                for(let i=0; i<catGroups[cat].length; i++) {
-                    if(i>0 && catGroups[cat][i].time !== catGroups[cat][i-1].time) catRank = i+1;
-                    const pid = catGroups[cat][i].id;
-                    const participant = enriched.find(p => p.id === pid);
-                    if(participant) {
-                        if(!participant.rankCatByEx) participant.rankCatByEx = Array(EXERCISES_COUNT).fill(null);
-                        participant.rankCatByEx[ex] = catRank;
-                    }
-                }
-            }
-            enriched.forEach(p => {
-                if(!p.rankOverallByEx) p.rankOverallByEx = Array(EXERCISES_COUNT).fill(null);
-                if(p.timesNum[ex] !== null) p.rankOverallByEx[ex] = overallRankMap.get(p.id);
-            });
+    function getTotalTime(p) {
+        let sum = 0;
+        for(let ex=0; ex<EXERCISES_COUNT; ex++) {
+            let val = p.times[ex];
+            if(val !== "" && val !== null && !isNaN(parseFloat(val))) sum += parseFloat(val);
         }
-        enriched.forEach(p => {
-            if(!p.rankCatByEx) p.rankCatByEx = Array(EXERCISES_COUNT).fill(null);
-            if(!p.rankOverallByEx) p.rankOverallByEx = Array(EXERCISES_COUNT).fill(null);
-            p.sumRankCat = p.rankCatByEx.filter(v => v !== null).reduce((a,b)=>a+b,0);
-            p.sumRankOverall = p.rankOverallByEx.filter(v => v !== null).reduce((a,b)=>a+b,0);
+        return sum;
+    }
+
+    function computeTeamRankings(category) {
+        const tbSet = new Set(participants.filter(p=>p.category===category && p.tb?.trim()).map(p=>p.tb));
+        const tbList = Array.from(tbSet);
+        const totalExercises = (category === "Инкассация") ? EXERCISES_COUNT : 6;
+        let placesByEx = [];
+        for(let ex=0; ex<totalExercises; ex++) {
+            let tbSums = tbList.map(tb=>{
+                let sum=0, any=false;
+                participants.forEach(p=>{
+                    if(p.category===category && p.tb===tb && p.times[ex]!=="" && !isNaN(parseFloat(p.times[ex]))) {
+                        sum += parseFloat(p.times[ex]);
+                        any = true;
+                    }
+                });
+                return { tb, sumTime: any ? sum : Infinity };
+            });
+            tbSums.sort((a,b)=>a.sumTime - b.sumTime);
+            let rank=1;
+            for(let i=0;i<tbSums.length;i++){
+                if(i>0 && tbSums[i].sumTime !== tbSums[i-1].sumTime) rank = i+1;
+                tbSums[i].place = rank;
+            }
+            placesByEx.push(tbSums);
+        }
+        let tbResults = {};
+        tbList.forEach(tb=>{ tbResults[tb]={ sumPlaces:0, placesByEx:Array(totalExercises).fill(null) }; });
+        for(let ex=0; ex<totalExercises; ex++) {
+            for(let item of placesByEx[ex]) {
+                tbResults[item.tb].sumPlaces += item.place;
+                tbResults[item.tb].placesByEx[ex] = item.place;
+            }
+        }
+        let arr = tbList.map(tb=>{
+            let placesArray = tbResults[tb].placesByEx;
+            return { tb, sumPlaces: tbResults[tb].sumPlaces, placesByEx: placesArray };
         });
-        return enriched;
+        arr.sort((a,b)=>a.sumPlaces - b.sumPlaces);
+        let finalPlace=1;
+        for(let i=0;i<arr.length;i++){
+            if(i>0 && arr[i].sumPlaces !== arr[i-1].sumPlaces) finalPlace = i+1;
+            arr[i].finalPlace = finalPlace;
+        }
+        return arr;
     }
 
     function computeAll() {
         if(!participants.length) {
-            document.getElementById('rankTotalBody').innerHTML = '<div>Нет участников</div>';
-            document.getElementById('rankInkBody').innerHTML = '<div>Нет участников</div>';
-            document.getElementById('rankSecBody').innerHTML = '<div>Нет участников</div>';
-            document.getElementById('tbInkBody').innerHTML = '<div>Нет данных</div>';
-            document.getElementById('tbSecBody').innerHTML = '<div>Нет данных</div>';
-            lastOverallRanking = []; lastInkRanking = []; lastSecRanking = []; lastTbInkRanking = []; lastTbSecRanking = [];
+            ["rankTotalBody","rankInkBody","rankSecBody","tbInkBody","tbSecBody"].forEach(id=>document.getElementById(id).innerHTML='<div>Нет участников</div>');
             return;
         }
-        const details = computeDetailed();
-
-        // Общий зачёт по времени
-        const allByTime = details.filter(p => p.hasAnyTime === true);
-        allByTime.sort((a,b) => a.totalTime - b.totalTime);
-        lastOverallRanking = allByTime.map((p, idx) => ({ id: p.id, place: idx+1, totalTime: p.totalTime, name: p.name, tb: p.tb, category: p.category }));
-        let totalHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Категория</th><th>Суммарное время (сек)</th></tr></thead><tbody>';
-        allByTime.forEach((p, idx) => {
-            totalHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(p.name) || '—'}</td><td>${escapeHtml(p.tb) || '—'}</td><td>${p.category}</td><td>${p.totalTime.toFixed(2)}</td></tr>`;
-        });
+        let enriched = participants.map(p => ({ ...p, totalTime: getTotalTime(p), hasAnyTime: p.times.some(t => t !== "" && !isNaN(parseFloat(t))) }));
+        
+        // Общий зачёт
+        let allByTime = enriched.filter(p=>p.hasAnyTime).sort((a,b)=>a.totalTime - b.totalTime);
+        lastOverallRanking = allByTime.map((p,i)=>({id:p.id,place:i+1,totalTime:p.totalTime,name:p.name,tb:p.tb,category:p.category}));
+        let totalHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Категория</th><th>Сумма времени (сек)</th></tr></thead><tbody>';
+        allByTime.forEach((p,i)=>{ totalHtml += `<tr><td>${i+1}</td><td>${escapeHtml(p.name)||'—'}</td><td>${escapeHtml(p.tb)||'—'}</td><td>${p.category}</td><td>${p.totalTime.toFixed(2)}</td></tr>`; });
         totalHtml += '</tbody></table>';
         document.getElementById('rankTotalBody').innerHTML = totalHtml;
 
-        // Инкассация по сумме мест
-        const inkParticipants = details.filter(p => p.category === "Инкассация");
-        inkParticipants.sort((a,b) => a.sumRankCat - b.sumRankCat);
-        lastInkRanking = inkParticipants.map((p, idx) => ({ id: p.id, place: idx+1, sumRankCat: p.sumRankCat, name: p.name, tb: p.tb }));
-        let inkHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма мест</th></tr></thead><tbody>';
-        inkParticipants.forEach((p, idx) => {
-            inkHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(p.name) || '—'}</td><td>${escapeHtml(p.tb) || '—'}</td><td>${p.sumRankCat || 0}</td></tr>`;
-        });
+        // Инкассация личное
+        let ink = enriched.filter(p=>p.category==="Инкассация" && p.hasAnyTime).sort((a,b)=>a.totalTime - b.totalTime);
+        lastInkRanking = ink.map((p,i)=>({id:p.id,place:i+1,totalTime:p.totalTime,name:p.name,tb:p.tb}));
+        let inkHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма времени (сек)</th></tr></thead><tbody>';
+        ink.forEach((p,i)=>{ inkHtml += `<tr><td>${i+1}</td><td>${escapeHtml(p.name)||'—'}</td><td>${escapeHtml(p.tb)||'—'}</td><td>${p.totalTime.toFixed(2)}</td></tr>`; });
         inkHtml += '</tbody></table>';
         document.getElementById('rankInkBody').innerHTML = inkHtml;
 
-        // Охрана по сумме мест
-        const secParticipants = details.filter(p => p.category === "Охрана");
-        secParticipants.sort((a,b) => a.sumRankCat - b.sumRankCat);
-        lastSecRanking = secParticipants.map((p, idx) => ({ id: p.id, place: idx+1, sumRankCat: p.sumRankCat, name: p.name, tb: p.tb }));
-        let secHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма мест</th></tr></thead><tbody>';
-        secParticipants.forEach((p, idx) => {
-            secHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(p.name) || '—'}</td><td>${escapeHtml(p.tb) || '—'}</td><td>${p.sumRankCat || 0}</td></tr>`;
-        });
+        // Охрана личное
+        let sec = enriched.filter(p=>p.category==="Охрана" && p.hasAnyTime).sort((a,b)=>a.totalTime - b.totalTime);
+        lastSecRanking = sec.map((p,i)=>({id:p.id,place:i+1,totalTime:p.totalTime,name:p.name,tb:p.tb}));
+        let secHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма времени (сек)</th></tr></thead><tbody>';
+        sec.forEach((p,i)=>{ secHtml += `<tr><td>${i+1}</td><td>${escapeHtml(p.name)||'—'}</td><td>${escapeHtml(p.tb)||'—'}</td><td>${p.totalTime.toFixed(2)}</td></tr>`; });
         secHtml += '</tbody></table>';
         document.getElementById('rankSecBody').innerHTML = secHtml;
 
         // Рейтинг ТБ Инкассация
-        const tbMapInk = new Map();
-        inkParticipants.forEach(p => {
-            if(p.tb && p.tb.trim() !== "") {
-                tbMapInk.set(p.tb, (tbMapInk.get(p.tb) || 0) + (p.sumRankCat || 0));
-            }
-        });
-        let tbInkArray = Array.from(tbMapInk.entries()).map(([tb, sum]) => ({ tb, sum }));
-        tbInkArray.sort((a,b) => a.sum - b.sum);
-        lastTbInkRanking = tbInkArray.map((item, idx) => ({ tb: item.tb, place: idx+1, sum: item.sum }));
-        let tbInkHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>Территориальный банк</th><th>Сумма мест (команда)</th></tr></thead><tbody>';
-        tbInkArray.forEach((item, idx) => {
-            tbInkHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(item.tb)}</td><td>${item.sum}</td></tr>`;
-        });
-        tbInkHtml += '</tbody></table>';
-        document.getElementById('tbInkBody').innerHTML = tbInkHtml;
+        let inkTeams = computeTeamRankings("Инкассация");
+        lastTbInkRanking = inkTeams;
+        let inkTeamHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ТБ</th><th>Сумма мест (всего)</th><th>Места по упражнениям (1-8)</th></tr></thead><tbody>';
+        inkTeams.forEach(t=>{ let placesStr = t.placesByEx.map(v=>v!==null?v:'—').join(', '); inkTeamHtml += `<tr><td>${t.finalPlace}</td><td>${escapeHtml(t.tb)}</td><td>${t.sumPlaces}</td><td>${placesStr}</td></tr>`; });
+        inkTeamHtml += '</tbody></table>';
+        document.getElementById('tbInkBody').innerHTML = inkTeamHtml;
 
         // Рейтинг ТБ Охрана
-        const tbMapSec = new Map();
-        secParticipants.forEach(p => {
-            if(p.tb && p.tb.trim() !== "") {
-                tbMapSec.set(p.tb, (tbMapSec.get(p.tb) || 0) + (p.sumRankCat || 0));
-            }
-        });
-        let tbSecArray = Array.from(tbMapSec.entries()).map(([tb, sum]) => ({ tb, sum }));
-        tbSecArray.sort((a,b) => a.sum - b.sum);
-        lastTbSecRanking = tbSecArray.map((item, idx) => ({ tb: item.tb, place: idx+1, sum: item.sum }));
-        let tbSecHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>Территориальный банк</th><th>Сумма мест (команда)</th><tr></thead><tbody>';
-        tbSecArray.forEach((item, idx) => {
-            tbSecHtml += `<tr><td>${idx+1}</td><td>${escapeHtml(item.tb)}</td><td>${item.sum}</td></tr>`;
-        });
-        tbSecHtml += '</tbody></table>';
-        document.getElementById('tbSecBody').innerHTML = tbSecHtml;
+        let secTeams = computeTeamRankings("Охрана");
+        lastTbSecRanking = secTeams;
+        let secTeamHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ТБ</th><th>Сумма мест (всего)</th><th>Места по упражнениям (1-6)</th></tr></thead><tbody>';
+        secTeams.forEach(t=>{ let placesStr = t.placesByEx.map(v=>v!==null?v:'—').join(', '); secTeamHtml += `<tr><td>${t.finalPlace}</td><td>${escapeHtml(t.tb)}</td><td>${t.sumPlaces}</td><td>${placesStr}</td></tr>`; });
+        secTeamHtml += '</tbody></table>';
+        document.getElementById('tbSecBody').innerHTML = secTeamHtml;
     }
 
-    // Печать протокола по индексу в массиве participants
-    function printParticipantByIdx(index) {
-        const p = participants[index];
-        if (!p) return;
-        // Обновляем рейтинги перед печатью
+    function printParticipantByIdx(idx) {
+        let p = participants[idx];
+        if(!p) return;
         computeAll();
-        // Получаем enriched для деталей по упражнениям
-        const details = computeDetailed();
-        const enriched = details.find(d => d.id === p.id);
-        if (!enriched) return;
-
-        // Место в общем зачёте
-        const overall = lastOverallRanking.find(item => item.id === p.id);
-        const overallPlace = overall ? overall.place : '—';
-        const totalTimeSec = overall ? overall.totalTime.toFixed(2) : '0.00';
-        // Место в личном первенстве по категории
-        let personalPlace = '—';
-        let personalSum = 0;
-        if (p.category === 'Инкассация') {
-            const found = lastInkRanking.find(item => item.id === p.id);
-            if (found) { personalPlace = found.place; personalSum = found.sumRankCat; }
-        } else {
-            const found = lastSecRanking.find(item => item.id === p.id);
-            if (found) { personalPlace = found.place; personalSum = found.sumRankCat; }
-        }
-        // Место ТБ в рейтинге
-        let tbPlace = '—';
-        let tbSum = '—';
-        if (p.category === 'Инкассация') {
-            const tbRank = lastTbInkRanking.find(item => item.tb === p.tb);
-            if (tbRank) { tbPlace = tbRank.place; tbSum = tbRank.sum; }
-        } else {
-            const tbRank = lastTbSecRanking.find(item => item.tb === p.tb);
-            if (tbRank) { tbPlace = tbRank.place; tbSum = tbRank.sum; }
-        }
-
-        // Таблица результатов по упражнениям
-        let timesTable = '<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">';
-        timesTable += '<thead><tr><th>Упражнение</th><th>Время (сек)</th><th>Место в категории</th></tr></thead><tbody>';
-        for (let ex = 0; ex < EXERCISES_COUNT; ex++) {
-            let timeVal = (p.times[ex] !== undefined && p.times[ex] !== "") ? parseFloat(p.times[ex]).toFixed(2) : '—';
-            let catRank = (enriched.rankCatByEx && enriched.rankCatByEx[ex] !== null) ? enriched.rankCatByEx[ex] : '—';
-            timesTable += `<tr><td style="text-align:center">${ex+1}</td><td style="text-align:center">${timeVal}</td><td style="text-align:center">${catRank}</td></tr>`;
+        let totalTime = getTotalTime(p);
+        let overall = lastOverallRanking.find(o=>o.id===p.id);
+        let personal = (p.category==='Инкассация'?lastInkRanking:lastSecRanking).find(o=>o.id===p.id);
+        let teamRank = (p.category==='Инкассация'?lastTbInkRanking:lastTbSecRanking).find(t=>t.tb===p.tb);
+        let timesTable = '<table border="1" style="border-collapse:collapse;width:100%"><thead><tr><th>Упр</th><th>Время (сек)</th></tr></thead><tbody>';
+        for(let ex=0; ex<EXERCISES_COUNT; ex++) {
+            let label = (ex < 6) ? `Вр${ex+1}` : (ex === 6 ? 'Вгр1' : 'Вгр2');
+            let timeVal = (p.times[ex] && p.times[ex]!=="") ? parseFloat(p.times[ex]).toFixed(2) : '—';
+            timesTable += `<tr><td style="text-align:center">${label}</td><td style="text-align:center">${timeVal}</td></tr>`;
         }
         timesTable += '</tbody></table>';
-
-        const protocolHtml = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <title>Протокол участника - ${escapeHtml(p.name) || 'Участник'}</title>
-                <style>
-                    body { font-family: 'Times New Roman', serif; margin: 20px; }
-                    h2 { text-align: center; }
-                    .info { margin-bottom: 20px; }
-                    .info p { margin: 4px 0; }
-                    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-                    th, td { border: 1px solid #000; padding: 6px; text-align: left; }
-                    th { background: #f0f0f0; }
-                    .sign-block { margin-top: 40px; display: flex; justify-content: space-between; }
-                    .sign-line { width: 250px; border-top: 1px solid #000; text-align: center; padding-top: 5px; }
-                </style>
-            </head>
-            <body>
-                <div class="print-protocol">
-                    <h2>ПРОТОКОЛ РЕЗУЛЬТАТОВ УЧАСТНИКА</h2>
-                    <div class="info">
-                        <p><strong>ФИО:</strong> ${escapeHtml(p.name) || '—'}</p>
-                        <p><strong>Территориальный банк:</strong> ${escapeHtml(p.tb) || '—'}</p>
-                        <p><strong>Категория:</strong> ${p.category}</p>
-                        <p><strong>Суммарное время (все упражнения):</strong> ${totalTimeSec} сек</p>
-                        <p><strong>Место в общем личном зачёте:</strong> ${overallPlace}</p>
-                        <p><strong>Место в личном первенстве (${p.category}):</strong> ${personalPlace}  (сумма мест = ${personalSum})</p>
-                        <p><strong>Место территориального банка в рейтинге (${p.category}):</strong> ${tbPlace}  (сумма мест команды = ${tbSum})</p>
-                    </div>
-                    <h3>Результаты по упражнениям:</h3>
-                    ${timesTable}
-                    <div class="sign-block">
-                        <div class="sign-line">Подпись участника</div>
-                        <div class="sign-line">Подпись судьи</div>
-                    </div>
-                    <p style="margin-top: 30px; font-size: 0.8em; text-align: center;">Дата: _______________</p>
-                </div>
-                <script>
-                    window.onload = function() { window.print(); };
-                <\/script>
-            </body>
-            </html>
-        `;
-
-        const printWindow = window.open('', '_blank', 'width=800,height=600');
-        printWindow.document.write(protocolHtml);
-        printWindow.document.close();
+        let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Протокол ${escapeHtml(p.name)||'участника'}</title>
+        <style>body{font-family:'Times New Roman',serif;margin:20px} h2{text-align:center} .info{margin-bottom:20px} .sign-block{margin-top:40px;display:flex;justify-content:space-between} .sign-line{width:250px;border-top:1px solid #000;text-align:center;padding-top:5px} table{border-collapse:collapse;width:100%} th,td{border:1px solid #000;padding:6px}</style>
+        </head><body><div class="print-protocol"><h2>ПРОТОКОЛ УЧАСТНИКА</h2>
+        <div class="info"><p><strong>ФИО:</strong> ${escapeHtml(p.name)||'—'}</p><p><strong>ТБ:</strong> ${escapeHtml(p.tb)||'—'}</p><p><strong>Категория:</strong> ${p.category}</p>
+        <p><strong>Суммарное время:</strong> ${totalTime.toFixed(2)} сек</p>
+        <p><strong>Место в общем зачёте:</strong> ${overall?.place||'—'}</p>
+        <p><strong>Место в личном первенстве (${p.category}):</strong> ${personal?.place||'—'}</p>
+        <p><strong>Место ТБ в рейтинге:</strong> ${teamRank?.finalPlace||'—'} (сумма мест команды=${teamRank?.sumPlaces||0})</p></div>
+        <h3>Результаты по упражнениям:</h3>${timesTable}
+        <div class="sign-block"><div class="sign-line">Подпись участника</div><div class="sign-line">Подпись судьи</div></div>
+        <p style="margin-top:30px;text-align:center">Дата: _______________</p></div>
+        <script>window.onload=function(){window.print();};<\/script></body></html>`;
+        let w = window.open('','_blank','width=800,height=600');
+        w.document.write(html);
+        w.document.close();
     }
 
-    function escapeHtml(str) {
-        if(!str) return "";
-        return str.replace(/[&<>]/g, function(m) {
-            if(m === '&') return '&amp;';
-            if(m === '<') return '&lt;';
-            if(m === '>') return '&gt;';
-            return m;
-        });
-    }
-
-    function exportJSON() {
-        const exportData = participants.map(p => ({
-            name: p.name,
-            tb: p.tb,
-            category: p.category,
-            times: p.times
-        }));
-        const dataStr = JSON.stringify(exportData, null, 2);
-        const blob = new Blob([dataStr], {type: "application/json"});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = "shooting_results.json";
-        a.click();
-        URL.revokeObjectURL(url);
-    }
-
-    function importJSON(file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const imported = JSON.parse(e.target.result);
-                if (Array.isArray(imported)) {
-                    participants = imported.map(item => ({
-                        id: Date.now() + Math.random(),
-                        name: item.name || "",
-                        tb: item.tb || "",
-                        category: (item.category === "Инкассация" || item.category === "Охрана") ? item.category : "Инкассация",
-                        times: Array.isArray(item.times) ? item.times.slice(0,EXERCISES_COUNT) : Array(EXERCISES_COUNT).fill("")
-                    }));
-                    if(participants.length === 0) addEmptyRows(3);
-                    saveAndRecalc();
-                } else { alert("Неверный формат JSON"); }
-            } catch(err) { alert("Ошибка импорта: "+err.message); }
-        };
-        reader.readAsText(file);
-    }
-
-    function loadExample() {
-        participants = [];
-        const exampleNames = ["Артемьев А.","Артемкин Н.","Баженов В.","Беккер В.","Березовский В.","Борисовский Д.","Бузынин Н.","Вереитинов А.","Веретенников Д.","Гавриличев П.","Гончаров Д.","Горбунов В.","Горяйнов А.","Гребенников П.","Гриднев В.","Гумеров И.","Дмитриев Е.","Ермолаев А.","Ершов И.","Зуев И."];
-        const tbs = ["Байкальский","Волго-Вятский","Дальневосточный","Поволжский","Северо-Западный","Сибирский","Среднерусский","Уральский","Центрально-Черноземный","Юго-Западный"];
-        for(let i=0; i<20; i++) {
-            let cat = i % 2 === 0 ? "Инкассация" : "Охрана";
-            let tbSample = tbs[i % tbs.length];
-            let times = Array(EXERCISES_COUNT).fill("");
-            for(let t=0; t<EXERCISES_COUNT; t++) {
-                times[t] = (Math.random() * 40 + 30).toFixed(1);
-            }
-            participants.push({
-                id: Date.now()+i,
-                name: exampleNames[i % exampleNames.length],
-                tb: tbSample,
-                category: cat,
-                times: times
-            });
-        }
-        saveToLocal();
-        renderTable();
+    function printTeam(category, tbName) {
+        if(!tbName) { alert("Выберите ТБ"); return; }
         computeAll();
-        updateParticipantSelect();
-    }
-
-    function resetAll() {
-        participants = [];
-        addEmptyRows(6);
-        saveAndRecalc();
-        updateParticipantSelect();
-    }
-
-    // Обработчики
-    document.getElementById('addRowBtn').onclick = () => { addParticipant(); };
-    document.getElementById('removeLastBtn').onclick = () => { removeLast(); };
-    document.getElementById('exportBtn').onclick = () => { exportJSON(); };
-    document.getElementById('resetBtn').onclick = () => { if(confirm("Сбросить все данные?")) resetAll(); };
-    document.getElementById('loadExampleBtn').onclick = () => { loadExample(); };
-    document.getElementById('importBtn').onclick = () => { document.getElementById('importFileInput').click(); };
-    document.getElementById('importFileInput').onchange = (e) => { if(e.target.files.length) importJSON(e.target.files[0]); e.target.value = ''; };
-    document.getElementById('printSelectedBtn').onclick = () => {
-        const select = document.getElementById('printParticipantSelect');
-        const idx = select.value;
-        if (idx === "" || idx === null) {
-            alert("Пожалуйста, выберите участника из списка.");
-            return;
+        let teamRanking = computeTeamRankings(category);
+        let teamInfo = teamRanking.find(t=>t.tb===tbName);
+        if(!teamInfo){ alert("Нет данных"); return; }
+        let members = participants.filter(p=>p.category===category && p.tb===tbName);
+        let memberRows = '';
+        members.forEach((m,idx)=>{
+            let personal = (category==="Инкассация"?lastInkRanking:lastSecRanking).find(o=>o.id===m.id);
+            let totalTime = getTotalTime(m);
+            memberRows += `<tr><td style="text-align:center">${idx+1}</td><td>${escapeHtml(m.name)||'—'}</td><td style="text-align:center">${personal?.place||'—'}</td><td style="text-align:center">${totalTime.toFixed(2)}</td></tr>`;
+        });
+        let totalEx = (category === "Инкассация") ? EXERCISES_COUNT : 6;
+        let placesRows = '';
+        for(let ex=0; ex<totalEx; ex++) {
+            let label = (ex < 6) ? `Вр${ex+1}` : (ex === 6 ? 'Вгр1' : 'Вгр2');
+            let place = teamInfo.placesByEx[ex]!==null ? teamInfo.placesByEx[ex] : '—';
+            placesRows += `<tr><td style="text-align:center">${label}</td><td style="text-align:center">${place}</td></tr>`;
         }
-        printParticipantByIdx(parseInt(idx));
-    };
+        let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Протокол команды ${escapeHtml(tbName)}</title>
+        <style>body{font-family:'Times New Roman',serif;margin:20px} h2{text-align:center} .info{margin-bottom:20px} .sign-block{margin-top:40px;display:flex;justify-content:space-between} .sign-line{width:250px;border-top:1px solid #000;text-align:center;padding-top:5px} table{border-collapse:collapse;width:100%} th,td{border:1px solid #000;padding:6px}</style>
+        </head><body><div class="print-protocol"><h2>ПРОТОКОЛ КОМАНДЫ</h2>
+        <div class="info"><p><strong>Территориальный банк:</strong> ${escapeHtml(tbName)}</p><p><strong>Категория:</strong> ${category}</p>
+        <p><strong>Итоговое место в рейтинге ТБ:</strong> ${teamInfo.finalPlace}</p>
+        <p><strong>Сумма мест (всего):</strong> ${teamInfo.sumPlaces}</p></div>
+        <h3>Состав команды</h3><table border="1"><thead><tr><th>№</th><th>ФИО</th><th>Место в личном зачёте</th><th>Суммарное время (сек)</th></tr></thead><tbody>${memberRows}</tbody></table>
+        <h3>Места команды по упражнениям</h3><table border="1"><thead><tr><th>Упражнение</th><th>Место команды</th></tr></thead><tbody>${placesRows}</tbody></table>
+        <div class="sign-block"><div class="sign-line">Подпись представителя команды</div><div class="sign-line">Подпись судьи</div></div>
+        <p style="margin-top:30px;text-align:center">Дата: _______________</p></div>
+        <script>window.onload=function(){window.print();};<\/script></body></html>`;
+        let w = window.open('','_blank','width=800,height=600');
+        w.document.write(html);
+        w.document.close();
+    }
 
+    function escapeHtml(str) { if(!str) return ""; return str.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+    function exportJSON() { let data = JSON.stringify(participants.map(p=>({name:p.name,tb:p.tb,category:p.category,times:p.times})),null,2); let blob=new Blob([data],{type:"application/json"}); let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download="shooting_results.json"; a.click(); URL.revokeObjectURL(blob); }
+    function importJSON(file) { let reader=new FileReader(); reader.onload=e=>{ try{ let imported=JSON.parse(e.target.result); if(Array.isArray(imported)){ participants=imported.map(item=>({ id:Date.now()+Math.random(), name:item.name||"", tb:item.tb||"", category:(item.category==="Инкассация"||item.category==="Охрана")?item.category:"Инкассация", times:Array.isArray(item.times)?item.times.slice(0,EXERCISES_COUNT):Array(EXERCISES_COUNT).fill("") })); if(!participants.length) addEmptyRows(3); saveAndRecalc(); } else alert("Неверный формат JSON"); } catch(err){ alert("Ошибка импорта: "+err.message); } }; reader.readAsText(file); }
+    function loadExample() { participants=[]; let names=["Артемьев А.","Артемкин Н.","Баженов В.","Беккер В.","Березовский В.","Борисовский Д.","Бузынин Н.","Вереитинов А.","Веретенников Д.","Гавриличев П.","Гончаров Д.","Горбунов В.","Горяйнов А.","Гребенников П.","Гриднев В.","Гумеров И.","Дмитриев Е.","Ермолаев А.","Ершов И.","Зуев И."]; let tbs=["Байкальский","Волго-Вятский","Дальневосточный","Поволжский","Северо-Западный","Сибирский","Среднерусский","Уральский","Центрально-Черноземный","Юго-Западный"]; for(let i=0;i<20;i++){ let cat=i%2===0?"Инкассация":"Охрана"; let tb=tbs[i%tbs.length]; let times=Array(EXERCISES_COUNT).fill(""); for(let t=0;t<EXERCISES_COUNT;t++) times[t]=(Math.random()*40+30).toFixed(1); participants.push({ id:Date.now()+i, name:names[i%names.length], tb:tb, category:cat, times:times }); } saveAndRecalc(); }
+    function resetAll() { participants=[]; addEmptyRows(6); saveAndRecalc(); }
+
+    document.getElementById('addRowBtn').onclick=()=>addParticipant();
+    document.getElementById('removeLastBtn').onclick=()=>removeLast();
+    document.getElementById('exportBtn').onclick=()=>exportJSON();
+    document.getElementById('resetBtn').onclick=()=>{ if(confirm("Сбросить все данные?")) resetAll(); };
+    document.getElementById('loadExampleBtn').onclick=()=>loadExample();
+    document.getElementById('importBtn').onclick=()=>document.getElementById('importFileInput').click();
+    document.getElementById('importFileInput').onchange=e=>{ if(e.target.files.length) importJSON(e.target.files[0]); e.target.value=''; };
+    document.getElementById('printSelectedBtn').onclick=()=>{ let idx=document.getElementById('printParticipantSelect').value; if(idx==="") alert("Выберите участника"); else printParticipantByIdx(parseInt(idx)); };
+    document.getElementById('teamCategorySelect').onchange=()=>updateTeamTbSelect();
+    document.getElementById('printTeamBtn').onclick=()=>{ let cat = document.getElementById('teamCategorySelect').value; let tb = document.getElementById('teamTbSelect').value; if(!tb) alert("Выберите ТБ"); else printTeam(cat, tb); };
     loadFromLocal();
 </script>
 </body>
