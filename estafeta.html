@@ -26,10 +26,12 @@
         .stage-btn { background: #e2e8f0; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; font-size: 0.85rem; font-weight: 500; color: #1e293b; transition: 0.2s; }
         .stage-btn.active { background: #1e3a8a; color: white; }
         .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin: 20px 0; }
-        .penalty-card { background: #f9fafb; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
-        .penalty-card input { width: 24px; height: 24px; margin: 0; }
-        .penalty-card label { flex: 1; display: flex; justify-content: space-between; align-items: center; }
+        .penalty-card { background: #f9fafb; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; transition: 0.1s; }
+        .penalty-card input { width: 24px; height: 24px; margin: 0; cursor: pointer; }
+        .penalty-card label { flex: 1; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
         .penalty-sec { background: #e2e8f0; padding: 4px 10px; border-radius: 40px; font-size: 0.8rem; }
+        /* Класс для зелёной подсветки */
+        .penalty-highlight-green { background: #dcfce7 !important; border-left: 6px solid #15803d !important; }
         .summary-bar { background: #f1f5f9; border-radius: 20px; padding: 16px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-top: 20px; gap: 15px; }
         .total-time { font-size: 1.6rem; font-weight: 800; background: #dcfce7; padding: 6px 18px; border-radius: 40px; }
         .results-table { background: white; border-radius: 24px; overflow-x: auto; padding: 4px; }
@@ -74,7 +76,7 @@
 <body>
 <div class="container">
     <div class="judge-panel">
-        <h2>👨‍⚖️ Эстафета</h2>
+        <h2>👨‍⚖️ Эстафета <span style="font-size: 0.8rem; background: #dcfce7; padding: 4px 12px; border-radius: 30px;"></span></h2>
         <div id="connectionStatus" style="margin-bottom: 15px;"></div>
         
         <div class="judge-controls">
@@ -178,7 +180,61 @@
             "Наручники"
         ];
         
-        // ПОЛНЫЙ СПИСОК ОШИБОК (все этапы)
+        // ========== НАСТРОЙКА ЗЕЛЁНОЙ ПОДСВЕТКИ ДЛЯ ОПРЕДЕЛЁННЫХ НАРУШЕНИЙ ==========
+        // Добавьте сюда ID нарушений, которые нужно подсвечивать зелёным
+        // Можно указать точные ID из penaltiesLibrary
+        const greenHighlightIds = [
+            // Получение имущества
+            "prop_no_radio_start",     // Не доложили по радио о начале движения
+            "prop_sk_cell",           // Инкассатор: СК не установлен в специальную ячейку
+            "prop_belt",             // Бригада не пристегнута ремнями
+            
+            // Получение банковских ценностей
+			"bank_belt",               // Бригада не пристегнута ремнями безопасности
+			"bank_nak_open",                // Не закрыт накопитель в боксе
+            "bank_nak",                // Не заложены ценности в накопитель
+            "bank_scan",               // Не произвел сканирование
+            
+            // Прокол шины
+            "puncture_no_report",      // Не сообщил о поломке
+            "puncture_repair_report",  // Не сообщил об устранении
+            
+            // Змейка и инкассация объекта
+            "incass_no_radio",         // Инкассатор без радиостанции
+            "incass_no_exit_radio",    // Не связался о выходе
+            "incass_tumbler_blue",     // Не переключил тумблер в синее
+            
+            // Обслуживание УС
+            "us_no_command",           // Не подал команду на выход
+            "us_early_exit",           // Вышел до команды
+            "us_no_check",             // Не проверил установку кассет
+            
+            // Стрельба
+            "shoot_miss",              // Не сбита мишень
+            
+            // Пожар+ВСП
+            "fire_ext",                // Не достал огнетушитель
+            "fire_evac",               // Не все ценности эвакуированы
+            
+            // Медицина/Преступник
+            "med_tourniquet",          // Неправильное наложение турникета
+            
+            // Связь
+            "radio_drop",              // Уронил радиостанцию
+            "ivr_drop",                // Уронил ИВР
+            
+            // Наручники
+            "handcuff_no_warning",     // Не предупредил о наручниках
+            "handcuff_no_report"       // Не доложил о надевании
+        ];
+        
+        // Функция проверки — нужно ли подсвечивать нарушение зелёным
+        function isGreenHighlight(penaltyId) {
+            return greenHighlightIds.includes(penaltyId);
+        }
+        // ================================================
+        
+        // ПОЛНЫЙ СПИСОК ОШИБОК (все этапы) - без изменений
         const penaltiesLibrary = [
             // === 1. Получение имущества ===
             { id: "prop_door", category: "Получение имущества", desc: "1. Не закрыты двери/дверь СТС в «гараже»", sec: 30 },
@@ -195,131 +251,127 @@
             { id: "prop_blue_key", category: "Получение имущества", desc: "Водитель: синий ИК-ключ СК не получен", sec: 20 },
             { id: "prop_car_keys", category: "Получение имущества", desc: "Водитель: ключи от СТС/брелок не получены", sec: 20 },
             { id: "prop_sumka", category: "Получение имущества", desc: "Не получена сумка-баул для кассет УС", sec: 20 },
-            { id: "prop_check_sk", category: "Получение имущества", desc: "Инкассатор не проверил работоспособность СК с помощью ИК-ключа желтого цвета (открыл/закрыл)", sec: 30 },
+            { id: "prop_check_sk", category: "Получение имущества", desc: "Инкассатор не проверил работоспособность СК с помощью ИК-ключа желтого цвета", sec: 30 },
             { id: "prop_no_radio_start", category: "Получение имущества", desc: "Не доложили по радио о начале движения", sec: 30 },
             { id: "prop_bad_sk", category: "Получение имущества", desc: "Некорректное обращение с СК (уронил/кинул)", sec: 50 },
             { id: "prop_belt", category: "Получение имущества", desc: "Бригада не пристегнута ремнями", sec: 30 },
             
             // === 2. Получение банковских ценностей ===
-            { id: "bank_belt", category: "Получение банковских ценностей", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            { id: "bank_cone_1", category: "Получение банковских ценностей", desc: "СТС вышел за пределы габарита шлюзового бокса/совершил наезд на ограждающий конус", sec: 5 },
+            { id: "bank_belt", category: "Получение банковских ценностей", desc: "Бригада не пристегнута ремнями безопасности", sec: 30 },
+            { id: "bank_cone_1", category: "Получение банковских ценностей", desc: "Наезд на ограждающий конус", sec: 5 },
             { id: "bank_cone_2", category: "Получение банковских ценностей", desc: "Наезд на 2 конуса", sec: 10 },
             { id: "bank_cone_3", category: "Получение банковских ценностей", desc: "Наезд на 3 конуса", sec: 15 },
             { id: "bank_cone_4", category: "Получение банковских ценностей", desc: "Наезд на 4 и более конуса", sec: 20 },
-            { id: "bank_sts", category: "Получение банковских ценностей", desc: "СТС не заехал в бокс (СТС установлен вне обозначенного периметра)", sec: 50 },    
+            { id: "bank_sts", category: "Получение банковских ценностей", desc: "СТС не заехал в бокс", sec: 50 },    
             { id: "bank_door_open", category: "Получение банковских ценностей", desc: "Не закрыты двери в боксе", sec: 30 },
             { id: "bank_nak_open", category: "Получение банковских ценностей", desc: "Не закрыт накопитель в боксе", sec: 30 },
-            { id: "bank_no_dok", category: "Получение банковских ценностей", desc: "Инкассатор не предъявил документы (паспорт/ доверенность)", sec: 30 },
+            { id: "bank_no_dok", category: "Получение банковских ценностей", desc: "Инкассатор не предъявил документы", sec: 30 },
             { id: "bank_bc", category: "Получение банковских ценностей", desc: "Оставление банковских ценностей без охраны", sec: 50 },
-            { id: "bank_scan", category: "Получение банковских ценностей", desc: "Инкассатор не произвел сканирования/имитации с помощью ТСД/радиотерминал ярлыка мешка/ярлыков кассет УС/посылки (не направил ТСД на ярлык мешка/ярлыки кассет УС) ", sec: 20 },
-            { id: "bank_ostav", category: "Получение банковских ценностей", desc: "Оставление документов (паспорт, доверенность и т.д.).", sec: 30 },
-            { id: "bank_nak", category: "Получение банковских ценностей", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС).", sec: 30 },
-            { id: "bank_nak_dv", category: "Получение банковских ценностей", desc: "Не была закрыта дверь устройства накопителя до начала движения СТС", sec: 30 },
-            { id: "bank_belt", category: "Получение банковских ценностей", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+            { id: "bank_scan", category: "Получение банковских ценностей", desc: "Не произвел сканирования с помощью ТСД", sec: 20 },
+            { id: "bank_ostav", category: "Получение банковских ценностей", desc: "Оставление документов", sec: 30 },
+            { id: "bank_nak", category: "Получение банковских ценностей", desc: "Не заложены ценности в накопитель", sec: 30 },
+            { id: "bank_nak_dv", category: "Получение банковских ценностей", desc: "Не закрыта дверца накопителя", sec: 30 },
 
             // === 3. Прокол шины ===
-            { id: "puncture_belt", category: "Прокол шины", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            { id: "puncture_no_report", category: "Прокол шины", desc: "Водитель-инкассатор не сообщил по автомобильной радиостанции дежурному/оператору ЦМ о поломке СТС", sec: 30 },
+            { id: "puncture_belt", category: "Прокол шины", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "puncture_no_report", category: "Прокол шины", desc: "Не сообщил о поломке по радио", sec: 30 },
             { id: "puncture_hazard", category: "Прокол шины", desc: "Не включена аварийная сигнализация", sec: 30 },
-            { id: "puncture_engine", category: "Прокол шины", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
-            { id: "puncture_triangle", category: "Прокол шины", desc: "Не выставлен водителем-инкассатором позади СТС в «обозначенное место» знак аварийной остановки", sec: 30 },
-            { id: "puncture_triangle_pass", category: "Прокол шины", desc: "Осуществлена передача инкассатором знака аварийной остановки после выхода из СТС водителю-инкассатору", sec: 30 },
-            { id: "puncture_triangle_side", category: "Прокол шины", desc: "Не выставлен знак аварийной остановки красной светоотражающей частью во внешнюю сторону от СТС", sec: 10 },
+            { id: "puncture_engine", category: "Прокол шины", desc: "Не заглушен двигатель", sec: 20 },
+            { id: "puncture_triangle", category: "Прокол шины", desc: "Не выставлен знак аварийной остановки", sec: 30 },
+            { id: "puncture_triangle_pass", category: "Прокол шины", desc: "Передал знак аварийной остановки", sec: 30 },
+            { id: "puncture_triangle_side", category: "Прокол шины", desc: "Знак выставлен не красной стороной", sec: 10 },
             { id: "puncture_handbrake", category: "Прокол шины", desc: "СТС не заторможен стояночным тормозом", sec: 10 },
-            { id: "puncture_gear", category: "Прокол шины", desc: "Не установлен рычаг переключения передач в положение первой передачи или передачи заднего хода", sec: 10 },
-            { id: "puncture_chocks", category: "Прокол шины", desc: "Под переднее левое колесо не подложены два специальных упора (стопорного башмака) ", sec: 10 },
-            { id: "puncture_jack_pos", category: "Прокол шины", desc: "Головка домкрата не установлена в специальное место СТС (обозначенное судьёй на брифинге)", sec: 30 },
-            { id: "puncture_jack_doors", category: "Прокол шины", desc: "При «поддомкрачивании» спецавтомобиля не закрыты двери/дверь", sec: 50 },
-            { id: "puncture_jack_height", category: "Прокол шины", desc: "СТС не был поддомкрачен на требуемую высоту (чтобы прошла линейка судьи)", sec: 50 },
-            { id: "puncture_imitation", category: "Прокол шины", desc: "Не осуществлена имитация замены колеса (касание колеса)", sec: 20 },
+            { id: "puncture_gear", category: "Прокол шины", desc: "КПП не в 1 передаче или заднем ходе", sec: 10 },
+            { id: "puncture_chocks", category: "Прокол шины", desc: "Не подложены упоры", sec: 10 },
+            { id: "puncture_jack_pos", category: "Прокол шины", desc: "Головка домкрата не в спецместо", sec: 30 },
+            { id: "puncture_jack_doors", category: "Прокол шины", desc: "При поддомкрачивании не закрыты двери", sec: 50 },
+            { id: "puncture_jack_height", category: "Прокол шины", desc: "СТС не поддомкрачен на нужную высоту", sec: 50 },
+            { id: "puncture_imitation", category: "Прокол шины", desc: "Не осуществлена имитация замены колеса", sec: 20 },
             { id: "puncture_cleanup_triangle", category: "Прокол шины", desc: "Не убран знак аварийной остановки", sec: 10 },
-            { id: "puncture_cleanup_chocks", category: "Прокол шины", desc: "Не убраны в сторону два специальных упора (башмака)", sec: 10 },
-            { id: "puncture_cleanup_jack", category: "Прокол шины", desc: "Не откатан в сторону из под СТС домкрат", sec: 10 },
-            { id: "puncture_helper", category: "Прокол шины", desc: "Инкассатор оказывает помощь водителю-инкассатору в выполнении данного упражнения (выставление/убирание башмаков/знака аварийной остановки/домкрата и т.д.)", sec: 30 },
-            { id: "puncture_belt", category: "Прокол шины", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            { id: "puncture_repair_report", category: "Прокол шины", desc: "Водитель-инкассатор не сообщил по автомобильной радиостанции дежурному/оператору ЦМ об устранении неисправности СТС", sec: 30 },
+            { id: "puncture_cleanup_chocks", category: "Прокол шины", desc: "Не убраны упоры", sec: 10 },
+            { id: "puncture_cleanup_jack", category: "Прокол шины", desc: "Не откатан домкрат", sec: 10 },
+            { id: "puncture_helper", category: "Прокол шины", desc: "Инкассатор помогает водителю", sec: 30 },
+            { id: "puncture_repair_report", category: "Прокол шины", desc: "Не сообщил об устранении неисправности", sec: 30 },
 
             // === 4. Змейка и инкассация объекта ===
             { id: "snake_cone", category: "Змейка и инкассация объекта", desc: "Наезд на конус (за каждый)", sec: 5 },
             { id: "incass_belt", category: "Змейка и инкассация объекта", desc: "Бригада не пристегнута ремнями", sec: 30 },
-            { id: "incass_no_radio", category: "Змейка и инкассация объекта", desc: "Инкассатор инкассирует клиента без носимой радиостанции (не получил у водителя-инкассатора)", sec: 30 },
-            { id: "incass_no_docs", category: "Змейка и инкассация объекта", desc: "Инкассатор не предъявил документы (паспорт, доверенность)", sec: 30 },
-            { id: "incass_no_scan", category: "Змейка и инкассация объекта", desc: "Инкассатор не произвел сканирования/имитации с помощью ТСД/радиотерминал сейф-пакета (не направил ТСД/радиотерминал на сейф-пакет). ", sec: 20 },
-            { id: "incass_no_sign", category: "Змейка и инкассация объекта", desc: "Инкассатор не передал ТСД/радиотерминал клиенту для проставления стилусом своей подписи", sec: 20 },
-            { id: "incass_open_sk_no_key", category: "Змейка и инкассация объекта", desc: "Инкассатор открыл СК без ИК-ключа", sec: 30 },
-            { id: "incass_not_loaded", category: "Змейка и инкассация объекта", desc: "Не заложен пакет с банковскими ценностями в СК после инкассации объекта", sec: 50 },
-            { id: "incass_tumbler_blue", category: "Змейка и инкассация объекта", desc: "Инкассатор не переключил тумблер выбора деактивационного ключа в синее положение", sec: 30 },
-            { id: "incass_sk_not_closed", category: "Змейка и инкассация объекта", desc: "Инкассатор не закрыл СК после вложения сейф-пакета с банковскими ценностями", sec: 30 },
-            { id: "incass_left_docs", category: "Змейка и инкассация объекта", desc: "Оставил документы (паспорт, доверенность)", sec: 30 },
-            { id: "incass_left_packet", category: "Змейка и инкассация объекта", desc: "Оставление сейф-пакета с денежной наличностью", sec: 30 },
+            { id: "incass_no_radio", category: "Змейка и инкассация объекта", desc: "Инкассатор без носимой радиостанции", sec: 30 },
+            { id: "incass_no_docs", category: "Змейка и инкассация объекта", desc: "Не предъявил документы", sec: 30 },
+            { id: "incass_no_scan", category: "Змейка и инкассация объекта", desc: "Не произвел сканирование сейф-пакета", sec: 20 },
+            { id: "incass_no_sign", category: "Змейка и инкассация объекта", desc: "Не передал ТСД клиенту для подписи", sec: 20 },
+            { id: "incass_open_sk_no_key", category: "Змейка и инкассация объекта", desc: "Открыл СК без ИК-ключа", sec: 30 },
+            { id: "incass_not_loaded", category: "Змейка и инкассация объекта", desc: "Не заложен пакет в СК", sec: 50 },
+            { id: "incass_tumbler_blue", category: "Змейка и инкассация объекта", desc: "Не переключил тумблер в синее положение", sec: 30 },
+            { id: "incass_sk_not_closed", category: "Змейка и инкассация объекта", desc: "Не закрыл СК после вложения", sec: 30 },
+            { id: "incass_left_docs", category: "Змейка и инкассация объекта", desc: "Оставил документы", sec: 30 },
+            { id: "incass_left_packet", category: "Змейка и инкассация объекта", desc: "Оставил сейф-пакет", sec: 30 },
             { id: "incass_left_sk", category: "Змейка и инкассация объекта", desc: "Оставил СК", sec: 30 },
-            { id: "incass_no_exit_radio", category: "Змейка и инкассация объекта", desc: "Инкассатор не связался по радиостанции с водителем-инкассатором о возможности выхода с объекта инкассации", sec: 30 },
-            { id: "incass_exit_no_confirm", category: "Змейка и инкассация объекта", desc: "Не получив подтверждение на выход из объекта от водителя-инкассатора начал инкассатор выходить", sec: 30 },
-            { id: "incass_blue_key_from_driver", category: "Змейка и инкассация объекта", desc: "Взял не у водителя-инкассатора ИК-ключ синего цвета в СТС", sec: 30 },
-            { id: "incass_tumbler_yellow_back", category: "Змейка и инкассация объекта", desc: "После извлечения сейф-пакета с денежной наличности тумблер выбора деактивационного ключа не был переведён в желтое положение", sec: 30 },
-            { id: "incass_nakop_after", category: "Змейка и инкассация объекта", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 50 },
-            { id: "incass_nakop_door_after", category: "Змейка и инкассация объекта", desc: "Не была закрыта дверь устройства накопителя", sec: 30 },
-            { id: "incass_sk_cell_after", category: "Змейка и инкассация объекта", desc: "СК не установлен в специальную ячейку", sec: 20 },
-            { id: "incass_belt", category: "Змейка и инкассация объекта", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "incass_no_exit_radio", category: "Змейка и инкассация объекта", desc: "Не связался о выходе с объекта", sec: 30 },
+            { id: "incass_exit_no_confirm", category: "Змейка и инкассация объекта", desc: "Начал выход без подтверждения водителя", sec: 30 },
+            { id: "incass_blue_key_from_driver", category: "Змейка и инкассация объекта", desc: "Взял синий ключ не у водителя", sec: 30 },
+            { id: "incass_tumbler_yellow_back", category: "Змейка и инкассация объекта", desc: "Тумблер не переведён в жёлтое", sec: 30 },
+            { id: "incass_nakop_after", category: "Змейка и инкассация объекта", desc: "Не заложены ценности в накопитель", sec: 50 },
+            { id: "incass_nakop_door_after", category: "Змейка и инкассация объекта", desc: "Не закрыта дверца накопителя", sec: 30 },
+            { id: "incass_sk_cell_after", category: "Змейка и инкассация объекта", desc: "СК не установлен в ячейку", sec: 20 },
 
-             // === 5. Обслуживание УС ===
+            // === 5. Обслуживание УС ===
             { id: "us_belt", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями", sec: 30 },
-            { id: "us_early_cassette", category: "Обслуживание УС", desc: "Изъятие инкассатором кассет УС из накопителя СТС произведено до остановки СТС", sec: 30 },
+            { id: "us_early_cassette", category: "Обслуживание УС", desc: "Изъятие кассет до остановки СТС", sec: 30 },
             { id: "us_first_exit", category: "Обслуживание УС", desc: "Инкассатор первым вышел из СТС", sec: 30 },
-            { id: "us_engine", category: "Обслуживание УС", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
-            { id: "us_driver_door_lock", category: "Обслуживание УС", desc: "После выхода из СТС старшего бригады, инкассатор не закрыл за ним водительскую дверь изнутри на механическую задвижку дверь", sec: 30 },
-            { id: "us_no_command", category: "Обслуживание УС", desc: "Старший бригады не подал, по носимой радиостанции, команду инкассатору на выход", sec: 30 },
-            { id: "us_early_exit", category: "Обслуживание УС", desc: "Инкассатор вышел из СТС до команды старшего бригады на выход", sec: 30 },
-            { id: "us_cassette_left", category: "Обслуживание УС", desc: "Инкассатор оставил кассету УС в накопителе", sec: 30 },
-            { id: "us_no_bag", category: "Обслуживание УС", desc: "Транспортировка комплекта кассет УС до/от УС из/до СТС осуществляется без использования сумки-баула", sec: 50 },
-            { id: "us_cassette_dropped", category: "Обслуживание УС", desc: "При транспортировке кассет УС, кассета выпала из сумки-баул на землю (за каждую кассету)", sec: 30 },
-            { id: "us_jam_search", category: "Обслуживание УС", desc: "Не осуществлен поиск и устранения замятия в BRM модуле УС", sec: 30 },
-            { id: "us_jam_bad_fix", category: "Обслуживание УС", desc: "Некорректное устранение замятия (нарушение памятки 404)", sec: 30 },
-            { id: "us_kup", category: "Обслуживание УС", desc: "Извлеченная/ые купюра/купюры не уложена/ы в находящийся рядом сейф-пакет", sec: 30 },
-            { id: "us_seifpak", category: "Обслуживание УС", desc: "Сейф-пакет не заклеен инкассатором", sec: 30 },
-            { id: "us_no_scan", category: "Обслуживание УС", desc: "С помощью ТСД/радиотерминала не отсканирован сейф-пакет", sec: 30 },
-            { id: "us_no_bag", category: "Обслуживание УС", desc: "Сейф-пакет не убран в сумку-баул", sec: 30 },
-            { id: "us_safe_not_open", category: "Обслуживание УС", desc: "Инкассатор не открыл самостоятельно сейф (пришлось обращаться за помощью к судье)", sec: 30 },
-            { id: "us_not_kas", category: "Обслуживание УС", desc: "Кассеты не установлены в соответствии с маркировкой слотов (при этом реджект кассета не установлена в свой слот)", sec: 30 },
-            { id: "us_no_check", category: "Обслуживание УС", desc: "Старший бригады не проверил правильность установки кассет в УС инкассатором", sec: 30 },
-            { id: "us_helper_pack", category: "Обслуживание УС", desc: "Старший бригады оказывает помощь инкассатору в укладке кассет УС в сумку-баул", sec: 30 },
-            { id: "us_code_not_set", category: "Обслуживание УС", desc: "Инкассатор не сбил код замка и не закрыл сейф УС", sec: 30 },
-            { id: "us_left_property", category: "Обслуживание УС", desc: "Оставление имущества (ключ от УС/кассета(ы)/сумка-баул", sec: 30 },
-            { id: "us_senior_first_seat", category: "Обслуживание УС", desc: "Первым сел в СТС старший бригады", sec: 30 },
-            { id: "us_simultaneous_seat", category: "Обслуживание УС", desc: "Старший бригады и инкассатор одновременно сели в СТС", sec: 30 },
-            { id: "us_nakop_load", category: "Обслуживание УС", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 50 },
-            { id: "us_nakop_door", category: "Обслуживание УС", desc: "Не была закрыта дверь устройства накопителя", sec: 30 },
-            { id: "us_belt", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями", sec: 30 },
-            { id: "us_broken_key", category: "Обслуживание УС", desc: "Инкассатор при обслуживании УС сломал/погнул/потерял ключ от УС ", sec: 30 },
+            { id: "us_engine", category: "Обслуживание УС", desc: "Не заглушен двигатель", sec: 20 },
+            { id: "us_driver_door_lock", category: "Обслуживание УС", desc: "Не закрыл водительскую дверь на задвижку", sec: 30 },
+            { id: "us_no_command", category: "Обслуживание УС", desc: "Старший бригады не подал команду на выход", sec: 30 },
+            { id: "us_early_exit", category: "Обслуживание УС", desc: "Инкассатор вышел до команды", sec: 30 },
+            { id: "us_cassette_left", category: "Обслуживание УС", desc: "Оставил кассету в накопителе", sec: 30 },
+            { id: "us_no_bag", category: "Обслуживание УС", desc: "Транспортировка кассет без сумки-баула", sec: 50 },
+            { id: "us_cassette_dropped", category: "Обслуживание УС", desc: "Кассета выпала из сумки", sec: 30 },
+            { id: "us_jam_search", category: "Обслуживание УС", desc: "Не осуществлен поиск замятия", sec: 30 },
+            { id: "us_jam_bad_fix", category: "Обслуживание УС", desc: "Некорректное устранение замятия", sec: 30 },
+            { id: "us_kup", category: "Обслуживание УС", desc: "Купюра не уложена в сейф-пакет", sec: 30 },
+            { id: "us_seifpak", category: "Обслуживание УС", desc: "Сейф-пакет не заклеен", sec: 30 },
+            { id: "us_no_scan", category: "Обслуживание УС", desc: "Не отсканирован сейф-пакет", sec: 30 },
+            { id: "us_safe_not_open", category: "Обслуживание УС", desc: "Не открыл сейф самостоятельно", sec: 30 },
+            { id: "us_not_kas", category: "Обслуживание УС", desc: "Кассеты установлены не по маркировке", sec: 30 },
+            { id: "us_no_check", category: "Обслуживание УС", desc: "Не проверил установку кассет", sec: 30 },
+            { id: "us_helper_pack", category: "Обслуживание УС", desc: "Старший помогает укладывать кассеты", sec: 30 },
+            { id: "us_code_not_set", category: "Обслуживание УС", desc: "Не сбил код замка", sec: 30 },
+            { id: "us_left_property", category: "Обслуживание УС", desc: "Оставление имущества", sec: 30 },
+            { id: "us_senior_first_seat", category: "Обслуживание УС", desc: "Первым сел старший бригады", sec: 30 },
+            { id: "us_simultaneous_seat", category: "Обслуживание УС", desc: "Одновременно сели в СТС", sec: 30 },
+            { id: "us_nakop_load", category: "Обслуживание УС", desc: "Не заложены ценности в накопитель", sec: 50 },
+            { id: "us_nakop_door", category: "Обслуживание УС", desc: "Не закрыта дверца накопителя", sec: 30 },
+            { id: "us_broken_key", category: "Обслуживание УС", desc: "Сломал/погнул ключ от УС", sec: 30 },
             
-            // === Стрельба ===
-            { id: "shoot_belt", category: "Стрельба", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            { id: "shoot_position", category: "Стрельба", desc: "СТС не установлен в обозначенном месте, которое обозначено «Г» образной стоп линией (габариты СТС выходят за обозначенную стоп линию)", sec: 30 },
-            { id: "shoot_engine", category: "Стрельба", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
-            { id: "shoot_door_open", category: "Стрельба", desc: "Не закрыты двери/дверь СТС", sec: 30 },
+            // === 6. Стрельба ===
+            { id: "shoot_belt", category: "Стрельба", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "shoot_position", category: "Стрельба", desc: "СТС не на стоп-линии", sec: 30 },
+            { id: "shoot_engine", category: "Стрельба", desc: "Не заглушен двигатель", sec: 20 },
+            { id: "shoot_door_open", category: "Стрельба", desc: "Не закрыты двери СТС", sec: 30 },
             { id: "shoot_miss", category: "Стрельба", desc: "Не сбита мишень", sec: 10 },
-            { id: "shoot_belt", category: "Стрельба", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-
             
-            // === Пожар+ВСП ===
-            { id: "fire_belt", category: "Пожар+ВСП", desc: "Не пристегнуты", sec: 30 },
+            // === 7. Пожар+ВСП ===
+            { id: "fire_belt", category: "Пожар+ВСП", desc: "Бригада не пристегнута ремнями", sec: 30 },
             { id: "fire_ext", category: "Пожар+ВСП", desc: "Не достал огнетушитель", sec: 30 },
             { id: "fire_evac", category: "Пожар+ВСП", desc: "Не все ценности эвакуированы", sec: 30 },
-            // === Медицина/Преступник ===
-            { id: "med_belt", category: "Медицина/Преступник", desc: "Не пристегнуты", sec: 30 },
+            
+            // === 8. Медицина/Преступник ===
+            { id: "med_belt", category: "Медицина/Преступник", desc: "Бригада не пристегнута ремнями", sec: 30 },
             { id: "med_tourniquet", category: "Медицина/Преступник", desc: "Неправильное наложение турникета", sec: 50 },
             { id: "med_stretcher", category: "Медицина/Преступник", desc: "Неправильная транспортировка", sec: 30 },
-            // === Связь ===
+            
+            // === 9. Связь ===
             { id: "radio_drop", category: "Связь", desc: "Уронил радиостанцию", sec: 30 },
             { id: "ivr_drop", category: "Связь", desc: "Уронил ИВР", sec: 30 },
-            // === Наручники ===
+            
+            // === 10. Наручники ===
             { id: "handcuff_belt", category: "Наручники", desc: "Бригада не пристегнута ремнями", sec: 30 },
-            { id: "handcuff_no_warning", category: "Наручники", desc: "Не предупредил: «Стой, применяю спецсредство - наручники»", sec: 10 },
-            { id: "handcuff_loose", category: "Наручники", desc: "Наручники не надежно зафиксировали конечность", sec: 30 },
-            { id: "handcuff_no_report", category: "Наручники", desc: "Не осуществил доклад «Наручники надеты»", sec: 10 },
-            { id: "handcuff_no_radio_exit", category: "Наручники", desc: "Инкассатор не связался по радио о выходе", sec: 30 },
-            { id: "handcuff_boarding_no_confirm", category: "Наручники", desc: "Посадка в СТС без подтверждения водителя", sec: 30 },
-            { id: "handcuff_driver_no_confirm", category: "Наручники", desc: "Водитель не подтвердил возможность выхода", sec: 30 }
+            { id: "handcuff_no_warning", category: "Наручники", desc: "Не предупредил о применении наручников", sec: 10 },
+            { id: "handcuff_loose", category: "Наручники", desc: "Наручники не надежно зафиксированы", sec: 30 },
+            { id: "handcuff_no_report", category: "Наручники", desc: "Не доложил «Наручники надеты»", sec: 10 },
+            { id: "handcuff_no_radio_exit", category: "Наручники", desc: "Не связался о выходе", sec: 30 },
+            { id: "handcuff_boarding_no_confirm", category: "Наручники", desc: "Посадка без подтверждения", sec: 30 },
+            { id: "handcuff_driver_no_confirm", category: "Наручники", desc: "Водитель не подтвердил выход", sec: 30 }
         ];
         
         // ---------- СОСТОЯНИЕ ----------
@@ -430,7 +482,7 @@
                     let tr = document.createElement('tr');
                     if (r.total !== null && rank === 1) tr.classList.add('rank-1');
                     tr.innerHTML = `<td>${r.total !== null ? rank++ : '—'}</td>
-                                    <td><strong>${r.name}</strong> (${r.team})</td>
+                                    <td><strong>${r.name}</strong> (${r.team})</strong></td>
                                     <td>${r.dir}</td>
                                     <td>${r.raw !== null ? formatTime(r.raw) : '—'}</td>
                                     <td>${r.penalty}</td>
@@ -440,7 +492,7 @@
                 if (rows.length === 0) tbody.innerHTML = '<tr><td colspan="6">Нет данных. Внесите результаты.</td></tr>';
             } catch (err) {
                 console.error(err);
-                document.getElementById('resultsBody').innerHTML = `<tr><td colspan="6">Ошибка загрузки: ${err.message}</td></tr>`;
+                document.getElementById('resultsBody').innerHTML = `<table><td colspan="6">Ошибка загрузки: ${err.message}</td></tr>`;
             }
         }
         
@@ -479,6 +531,7 @@
             updateBadge();
         }
         
+        // ГЛАВНОЕ: рендер с зелёной подсветкой для указанных нарушений
         function renderPenalties() {
             if (!currentDirection || !currentTeam) {
                 document.getElementById('penaltiesContainer').innerHTML = '<div style="grid-column:1/-1; text-align:center;">⚠️ Выберите направление и банк</div>';
@@ -492,7 +545,12 @@
             let html = '';
             for (let p of stagePen) {
                 let checked = tempPenalties[p.id] === true;
-                html += `<div class="penalty-card"><input type="checkbox" id="chk_${p.id}" data-id="${p.id}" ${checked ? 'checked' : ''}><label>${p.desc}<span class="penalty-sec">+${p.sec} сек</span></label></div>`;
+                // Проверяем, нужно ли подсвечивать зелёным
+                const greenClass = isGreenHighlight(p.id) ? 'penalty-highlight-green' : '';
+                html += `<div class="penalty-card ${greenClass}">
+                            <input type="checkbox" id="chk_${p.id}" data-id="${p.id}" ${checked ? 'checked' : ''}>
+                            <label for="chk_${p.id}">${p.desc}<span class="penalty-sec">+${p.sec} сек</span></label>
+                         </div>`;
             }
             document.getElementById('penaltiesContainer').innerHTML = html;
             for (let p of stagePen) {
@@ -584,7 +642,7 @@
         
         function resetTemp() { refreshCurrentTeamData(); }
         
-        // ---------- ПЕЧАТЬ ОТЧЕТА С ПОДПИСЬЮ ПРЕДСТАВИТЕЛЯ КОМАНДЫ ----------
+        // ---------- ПЕЧАТЬ ОТЧЕТА ----------
         async function printFullReport() {
             if (!currentDirection || !currentTeam) {
                 alert('Сначала выберите направление и команду!');
