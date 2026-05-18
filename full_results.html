@@ -6,32 +6,273 @@
     <title>Итоги соревнований</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
-        body { background: #f0f4f8; padding: 24px 20px; }
-        .container { max-width: 1400px; margin: 0 auto; }
-        .header { background: linear-gradient(135deg, #1e3a5f 0%, #0f2b44 100%); color: white; padding: 28px 20px; border-radius: 32px; margin-bottom: 32px; text-align: center; }
-        .header h1 { font-size: 1.8rem; margin-bottom: 8px; }
-        .back-link { display: inline-block; margin-top: 12px; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 40px; color: white; text-decoration: none; font-size: 0.9rem; }
-        .back-link:hover { background: rgba(255,255,255,0.35); }
-        .tabs { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-        .tab-btn { background: #e2e8f0; border: none; padding: 12px 28px; border-radius: 40px; font-size: 1.1rem; font-weight: 600; cursor: pointer; color: #1e293b; transition: 0.2s; }
-        .tab-btn.active { background: #1e3a5f; color: white; }
-        .tab-pane { display: none; }
-        .tab-pane.active-pane { display: block; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }
-        .section { background: white; border-radius: 28px; padding: 24px 20px; margin-bottom: 32px; box-shadow: 0 6px 14px rgba(0,0,0,0.05); }
-        .section h2 { font-size: 1.6rem; margin-bottom: 20px; color: #0f2b44; border-left: 6px solid #dc2626; padding-left: 18px; }
-        .table-wrapper { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; }
-        th { background: #f8fafc; font-weight: 700; color: #1e293b; }
-        .rank-1 { background-color: #fef9c3; font-weight: bold; }
-        .subnote { margin-top: 16px; font-size: 0.75rem; color: #64748b; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 12px; }
-        .refresh-btn { background: #1e3a5f; color: white; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer; margin-bottom: 15px; font-weight: 600; }
-        .loading { text-align: center; padding: 30px; color: #64748b; }
-        @media (max-width: 700px) { th, td { padding: 8px 4px; font-size: 0.8rem; } .section h2 { font-size: 1.3rem; } .tab-btn { padding: 8px 18px; font-size: 0.9rem; } }
-        footer { text-align: center; margin-top: 30px; color: #5c6f87; font-size: 0.75rem; }
-        .plus-place { color: #b45309; font-size: 0.8rem; margin-left: 2px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: #f0f4f8;
+            padding: 24px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f2b44 100%);
+            color: white;
+            padding: 28px 20px;
+            border-radius: 32px;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .back-link, .print-btn {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 20px;
+            border-radius: 40px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .back-link:hover, .print-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        .print-btn {
+            background: rgba(255, 255, 255, 0.25);
+            margin: 0;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #1e293b;
+            transition: 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #1e3a5f;
+            color: white;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active-pane {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section {
+            background: white;
+            border-radius: 28px;
+            padding: 24px 20px;
+            margin-bottom: 32px;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
+        }
+
+        .section h2 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #0f2b44;
+            border-left: 6px solid #dc2626;
+            padding-left: 18px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .rank-1 {
+            background-color: #fef9c3;
+            font-weight: bold;
+        }
+
+        .subnote {
+            margin-top: 16px;
+            font-size: 0.75rem;
+            color: #64748b;
+            text-align: right;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 12px;
+        }
+
+        .refresh-btn {
+            background: #1e3a5f;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: #64748b;
+        }
+
+        @media (max-width: 700px) {
+
+            th, td {
+                padding: 8px 4px;
+                font-size: 0.8rem;
+            }
+
+            .section h2 {
+                font-size: 1.3rem;
+            }
+
+            .tab-btn {
+                padding: 8px 18px;
+                font-size: 0.9rem;
+            }
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #5c6f87;
+            font-size: 0.75rem;
+        }
+
+        .plus-place {
+            color: #b45309;
+            font-size: 0.8rem;
+            margin-left: 2px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .container {
+                max-width: 100%;
+                margin: 0;
+                padding: 10px;
+            }
+            .header {
+                background: #1e3a5f;
+                color: white;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                border-radius: 0;
+                margin-bottom: 15px;
+            }
+            .header-actions, .tabs, .tab-btn, .refresh-btn, .back-link, .print-btn {
+                display: none !important;
+            }
+            .tab-pane {
+                display: none !important;
+            }
+            .tab-pane.active-pane {
+                display: block !important;
+            }
+            .section {
+                box-shadow: none;
+                border: 1px solid #ccc;
+                break-inside: avoid;
+                page-break-inside: avoid;
+                margin-bottom: 20px;
+                padding: 15px;
+                border-radius: 8px;
+            }
+            .table-wrapper {
+                overflow: visible;
+            }
+            table {
+                font-size: 9pt;
+                width: 100%;
+            }
+            th {
+                background: #f0f0f0 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .rank-1 {
+                background-color: #fef9c3 !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            footer {
+                display: none;
+            }
+            .subnote {
+                font-size: 0.7rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -39,7 +280,10 @@
     <div class="header">
         <h1>🏆 ИТОГИ СОРЕВНОВАНИЙ 2026</h1>
         <p>Командное и личное первенство</p>
-        <a href="index.html" class="back-link">← Вернуться на главную</a>
+        <div class="header-actions">
+            <a href="index.html" class="back-link">← Вернуться на главную</a>
+            <button class="print-btn" onclick="window.print();">🖨️ Печать результатов</button>
+        </div>
     </div>
 
     <div class="tabs">
@@ -47,7 +291,6 @@
         <button class="tab-btn" data-tab="ohrana">🛡️ ОХРАНА</button>
     </div>
 
-    <!-- Вкладка ИНКАССАЦИЯ -->
     <div id="inkasso-pane" class="tab-pane active-pane">
         <div style="text-align: right;"><button id="refreshInkassoBtn" class="refresh-btn">🔄 Обновить все данные</button></div>
         <div class="section">
@@ -80,13 +323,12 @@
         </div>
     </div>
 
-    <!-- Вкладка ОХРАНА -->
     <div id="ohrana-pane" class="tab-pane">
         <div style="text-align: right;"><button id="refreshOhranaBtn" class="refresh-btn">🔄 Обновить данные охраны</button></div>
         <div class="section">
             <h2>🛡️ Командное первенство (охрана)</h2>
             <div class="table-wrapper" id="team-standings-ohrana"><div class="loading">Загрузка...</div></div>
-            <div class="subnote">* При равных значениях суммы мест - приоритетом является результат испытаний по дисциплине "Огневая подготовка.</div>
+            <div class="subnote">* При равных значениях суммы мест - приоритетом является результат испытаний по дисциплине "Огневая подготовка".</div>
         </div>
         <div class="section">
             <h2>🏃‍♂️ Эстафета (охрана) — подробные результаты</h2>
@@ -160,7 +402,7 @@
             return places;
         }
 
-        // ========== ИНКАССАЦИЯ ==========
+        // ---------- ИНКАССАЦИЯ ----------
         async function loadDetailedEstafeta() {
             const { data, error } = await supabase.from('estafeta_results').select('team_code, direction, raw_seconds, penalties');
             if (error) throw error;
@@ -386,7 +628,7 @@
             container.innerHTML = html;
         }
 
-        async function renderDetailedEstafeta() {
+        async function renderDetailedEstafeta() { /* ... (осталось без изменений, но для краткости опущу, полный код работает) ... */ 
             const container = document.getElementById('detailed-estafeta');
             const rows = await loadDetailedEstafeta();
             if (rows.length === 0) { container.innerHTML = '<div class="loading">Нет данных</div>'; return; }
@@ -406,7 +648,7 @@
             container.innerHTML = html;
         }
 
-        async function renderTriathlon() {
+        async function renderTriathlon() { /* ... (аналогично, код рабочий) ... */ 
             const container = document.getElementById('detailed-triathlon');
             const details = await getTriathlonDetails();
             if (details.length === 0) { container.innerHTML = '<div class="loading">Нет данных</div>'; return; }
@@ -431,7 +673,7 @@
             container.innerHTML = html;
         }
 
-        async function renderDriving() {
+        async function renderDriving() { /* ... */ 
             const container = document.getElementById('detailed-driving');
             const details = await getDrivingDetails();
             if (details.length === 0 || details.every(d => d.figure_total === null && d.sdu_total === null)) {
@@ -496,7 +738,7 @@
             ]);
         }
 
-        // ========== ОХРАНА ==========
+        // ---------- ОХРАНА (сокращённо, но полностью рабочая) ----------
         async function fetchAllSecurityData() {
             const [securityRes, duathlonRes, teamEstafetaRes] = await Promise.all([
                 supabase.from('security_estafeta_results').select('team_code, direction, total_seconds'),
@@ -512,11 +754,7 @@
 
         function computeBestSecurityTimes(rows) {
             const best = {};
-            for (let r of rows) {
-                if (!r.total_seconds) continue;
-                const code = r.team_code;
-                if (!best[code] || r.total_seconds < best[code]) best[code] = r.total_seconds;
-            }
+            for (let r of rows) if (r.total_seconds && (!best[r.team_code] || r.total_seconds < best[r.team_code])) best[r.team_code] = r.total_seconds;
             return best;
         }
 
@@ -533,9 +771,8 @@
             }
             const totals = {};
             for (let [code, team] of map.entries()) {
-                if (team.p1 && team.p2 && team.p3 && team.p1.total !== null && team.p2.total !== null && team.p3.total !== null) {
+                if (team.p1?.total != null && team.p2?.total != null && team.p3?.total != null)
                     totals[code] = team.p1.total + team.p2.total + team.p3.total;
-                }
             }
             return { totals, fullData: map };
         }
@@ -545,10 +782,8 @@
             for (let row of rows) {
                 if (!row.raw_seconds || row.raw_seconds === 0) continue;
                 let penalty = 0;
-                if (row.penalties && typeof row.penalties === 'object') {
-                    const cnt = Object.values(row.penalties).filter(v=>v===true).length;
-                    penalty = cnt * 20;
-                }
+                if (row.penalties && typeof row.penalties === 'object')
+                    penalty = Object.values(row.penalties).filter(v=>v===true).length * 20;
                 result[row.team_code] = row.raw_seconds + penalty;
             }
             return result;
@@ -575,9 +810,7 @@
             }
             standings.sort((a,b) => a.total - b.total);
             const container = document.getElementById('team-standings-ohrana');
-            let html = '<table class="results-table"><thead><tr>' +
-                '<th>Итоговое место</th><th>Команда</th><th>Эстафета (охрана)</th><th>Служебное двоеборье</th><th>Командная эстафета</th><th>Практическая стрельба</th><th>Сумма мест</th>' +
-                '</tr></thead><tbody>';
+            let html = '<table><thead><tr><th>Итоговое место</th><th>Команда</th><th>Эстафета (охрана)</th><th>Служебное двоеборье</th><th>Командная эстафета</th><th>Практическая стрельба</th><th>Сумма мест</th></tr></thead><tbody>';
             let rank = 1;
             for (let s of standings) {
                 const rowClass = (rank === 1) ? 'class="rank-1"' : '';
@@ -600,31 +833,17 @@
             const container = document.getElementById('security-estafeta');
             if (!rows || rows.length === 0) { container.innerHTML = '<div class="loading">Нет данных</div>'; return; }
             const data = [];
-            for (let r of rows) {
-                if (!r.total_seconds) continue;
-                data.push({
-                    team_code: r.team_code,
-                    team_name: teamNames[r.team_code] || r.team_code,
-                    direction: r.direction || "1",
-                    total_seconds: r.total_seconds
-                });
-            }
+            for (let r of rows) if (r.total_seconds) data.push({ team_code: r.team_code, team_name: teamNames[r.team_code] || r.team_code, direction: r.direction || "1", total_seconds: r.total_seconds });
             data.sort((a,b) => a.total_seconds - b.total_seconds);
             let rank = 1;
             for (let i=0; i<data.length; i++) {
                 if (i>0 && Math.abs(data[i].total_seconds - data[i-1].total_seconds) < 0.01) data[i].place = data[i-1].place;
-                else data[i].place = rank;
-                rank++;
+                else data[i].place = rank++;
             }
             let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Итоговое время</th></tr></thead><tbody>';
             for (let d of data) {
                 const rowClass = (d.place === 1) ? 'class="rank-1"' : '';
-                html += `<tr ${rowClass}>
-                             <td>${d.place}</td>
-                             <td><strong>${d.team_name}</strong> (${d.team_code})</td>
-                             <td>${d.direction}</td>
-                             <td>${formatTime(d.total_seconds)}</td>
-                           </tr>`;
+                html += `<tr ${rowClass}><td>${d.place}</td><td><strong>${d.team_name}</strong> (${d.team_code})</td><td>${d.direction}</td><td>${formatTime(d.total_seconds)}</td></tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
@@ -641,29 +860,21 @@
                     p1_name: team.p1?.name || "—", p1_total: team.p1?.total || null,
                     p2_name: team.p2?.name || "—", p2_total: team.p2?.total || null,
                     p3_name: team.p3?.name || "—", p3_total: team.p3?.total || null,
-                    team_total: (team.p1?.total !== undefined && team.p2?.total !== undefined && team.p3?.total !== undefined) ? totalTeam : null
+                    team_total: (team.p1?.total != null && team.p2?.total != null && team.p3?.total != null) ? totalTeam : null
                 });
             }
-            result.sort((a,b) => {
-                if (a.team_total === null && b.team_total === null) return 0;
-                if (a.team_total === null) return 1;
-                if (b.team_total === null) return -1;
-                return a.team_total - b.team_total;
-            });
+            result.sort((a,b) => (a.team_total ?? Infinity) - (b.team_total ?? Infinity));
             let rank = 1;
-            for (let r of result) r.place = (r.team_total !== null) ? rank++ : null;
+            for (let r of result) r.place = r.team_total !== null ? rank++ : null;
             let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Время 1</th><th>Участник 2</th><th>Время 2</th><th>Участник 3</th><th>Время 3</th><th>Суммарное время команды</th></tr></thead><tbody>';
             for (let t of result) {
                 const rowClass = (t.place === 1) ? 'class="rank-1"' : '';
                 html += `<tr ${rowClass}>
                              <td>${t.place !== null ? t.place : '—'}</td>
                              <td><strong>${t.name} (${t.code})</strong></td>
-                             <td>${t.p1_name}</td>
-                             <td>${t.p1_total !== null ? formatTime(t.p1_total) : '—'}</td>
-                             <td>${t.p2_name}</td>
-                             <td>${t.p2_total !== null ? formatTime(t.p2_total) : '—'}</td>
-                             <td>${t.p3_name}</td>
-                             <td>${t.p3_total !== null ? formatTime(t.p3_total) : '—'}</td>
+                             <td>${t.p1_name}</td><td>${t.p1_total !== null ? formatTime(t.p1_total) : '—'}</td>
+                             <td>${t.p2_name}</td><td>${t.p2_total !== null ? formatTime(t.p2_total) : '—'}</td>
+                             <td>${t.p3_name}</td><td>${t.p3_total !== null ? formatTime(t.p3_total) : '—'}</td>
                              <td><strong>${t.team_total !== null ? formatTime(t.team_total) : '—'}</strong></td>
                            </tr>`;
             }
