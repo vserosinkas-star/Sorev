@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Участники — Сбербанк Многоборье 2026</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: #f0f4f8;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .back-link {
+            display: inline-block;
+            background: #1e3a5f;
+            color: white;
+            text-decoration: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .back-link:hover {
+            background: #0f2b44;
+        }
+        h1 {
+            font-size: 1.8rem;
+            color: #0f2b44;
+            margin-bottom: 8px;
+        }
+        .sub {
+            color: #475569;
+            margin-bottom: 30px;
+            border-left: 4px solid #f5a623;
+            padding-left: 16px;
+        }
+        .filters {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            background: white;
+            padding: 16px 20px;
+            border-radius: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .filter-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: 0.2s;
+        }
+        .filter-btn.active {
+            background: #1e3a5f;
+            color: white;
+        }
+        .filter-btn:hover {
+            background: #cbd5e1;
+        }
+        table {
+            width: 100%;
+            background: white;
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background: #f8fafc;
+            color: #1e3a5f;
+            font-weight: 600;
+        }
+        tr:hover td {
+            background-color: #fef9e6;
+        }
+        .role-badge {
+            display: inline-block;
+            background: #e0f2fe;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #0369a1;
+        }
+        .role-badge.driver {
+            background: #dcfce7;
+            color: #15803d;
+        }
+        .role-badge.triathlon {
+            background: #fff3e3;
+            color: #b45309;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+        @media (max-width: 700px) {
+            th, td { padding: 10px 8px; font-size: 0.85rem; }
+            .filters { border-radius: 24px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <a href="index.html" class="back-link">← На главную</a>
+    <h1>👥 Участники соревнований</h1>
+    <div class="sub">XVI Всероссийское многоборье — Нижний Тагил, 24–25 июня 2026</div>
+
+    <div class="filters">
+        <button class="filter-btn active" data-filter="all">Все</button>
+        <button class="filter-btn" data-filter="водитель">🚐 Водители</button>
+        <button class="filter-btn" data-filter="триатлон">🏃‍♂️ Триатлон</button>
+    </div>
+
+    <table id="participantsTable">
+        <thead>
+            <tr><th>ТБ (территориальный банк)</th><th>ФИО полностью</th><th>Должность</th><th>Роль</th></tr>
+        </thead>
+        <tbody id="tableBody">
+            <!-- данные заполнятся через js -->
+        </tbody>
+    </table>
+    <div class="footer">* Состав участников по заявкам команд. Роль определяет участие в дисциплинах.</div>
+</div>
+
+<script>
+    const participants = [
+        { tb: "Московский банк", fio: "Алексеев Дмитрий Викторович", position: "Старший инкассатор", role: "водитель" },
+        { tb: "Московский банк", fio: "Волков Иван Сергеевич", position: "Инкассатор", role: "триатлон" },
+        { tb: "Северо-Западный банк", fio: "Григорьев Андрей Петрович", position: "Начальник караула охраны", role: "триатлон" },
+        { tb: "Северо-Западный банк", fio: "Денисов Максим Олегович", position: "Водитель-инкассатор", role: "водитель" },
+        { tb: "Приволжский банк", fio: "Ермолов Сергей Николаевич", position: "Инкассатор 1 класса", role: "водитель" },
+        { tb: "Приволжский банк", fio: "Журавлёв Алексей Александрович", position: "Специалист по охране", role: "триатлон" },
+        { tb: "Уральский банк", fio: "Зайцев Павел Владимирович", position: "Командир отделения охраны", role: "триатлон" },
+        { tb: "Уральский банк", fio: "Исаев Кирилл Дмитриевич", position: "Водитель-инкассатор", role: "водитель" },
+        { tb: "Сибирский банк", fio: "Кузнецов Роман Андреевич", position: "Инкассатор", role: "водитель" },
+        { tb: "Сибирский банк", fio: "Лазарев Владимир Игоревич", position: "Стрелок охраны", role: "триатлон" },
+        { tb: "Дальневосточный банк", fio: "Михайлов Олег Станиславович", position: "Старший инкассатор", role: "водитель" },
+        { tb: "Дальневосточный банк", fio: "Никитин Артём Евгеньевич", position: "Охранник 3 разряда", role: "триатлон" },
+        { tb: "Юго-Западный банк", fio: "Орлов Денис Валерьевич", position: "Инкассатор-водитель", role: "водитель" },
+        { tb: "Юго-Западный банк", fio: "Павлов Сергей Викторович", position: "Начальник смены охраны", role: "триатлон" },
+        { tb: "Центрально-Чернозёмный банк", fio: "Романов Илья Петрович", position: "Специалист инкассации", role: "водитель" },
+        { tb: "Центрально-Чернозёмный банк", fio: "Семёнов Антон Юрьевич", position: "Охранник", role: "триатлон" }
+    ];
+
+    function renderTable(filterRole = "all") {
+        const tbody = document.getElementById("tableBody");
+        tbody.innerHTML = "";
+        const filtered = participants.filter(p => filterRole === "all" || p.role === filterRole);
+        filtered.forEach(p => {
+            const row = tbody.insertRow();
+            row.insertCell(0).textContent = p.tb;
+            row.insertCell(1).textContent = p.fio;
+            row.insertCell(2).textContent = p.position;
+            const roleCell = row.insertCell(3);
+            const roleDisplay = p.role === "водитель" ? "🚐 Водитель" : "🏃‍♂️ Триатлон";
+            const roleClass = p.role === "водитель" ? "role-badge driver" : "role-badge triathlon";
+            roleCell.innerHTML = `<span class="${roleClass}">${roleDisplay}</span>`;
+        });
+        if(filtered.length === 0) {
+            const row = tbody.insertRow();
+            const cell = row.insertCell(0);
+            cell.colSpan = 4;
+            cell.textContent = "⚠️ Нет участников с выбранной ролью";
+            cell.style.textAlign = "center";
+            cell.style.padding = "30px";
+        }
+    }
+
+    // фильтры
+    const buttons = document.querySelectorAll(".filter-btn");
+    buttons.forEach(btn => {
+        btn.addEventListener("click", () => {
+            buttons.forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            const filterValue = btn.getAttribute("data-filter");
+            renderTable(filterValue);
+        });
+    });
+
+    renderTable("all");
+</script>
+</body>
+</html>
