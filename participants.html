@@ -44,15 +44,54 @@
             border-left: 4px solid #f5a623;
             padding-left: 16px;
         }
-        .filters {
+        /* Стили для вкладок */
+        .tabs {
             display: flex;
             gap: 12px;
-            flex-wrap: wrap;
             margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.25s;
+            color: #1e293b;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .tab-btn i {
+            font-style: normal;
+            font-size: 1.2rem;
+        }
+        .tab-btn.active {
+            background: #1e3a5f;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .tab-btn:hover:not(.active) {
+            background: #cbd5e1;
+            transform: translateY(-1px);
+        }
+        /* панель фильтров — универсальная, содержимое меняется в зависимости от вкладки */
+        .filters-panel {
             background: white;
             padding: 16px 20px;
             border-radius: 40px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+        }
+        .filter-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
         }
         .filter-btn {
             background: #e2e8f0;
@@ -69,6 +108,23 @@
         }
         .filter-btn:hover {
             background: #cbd5e1;
+        }
+        .filter-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #334155;
+            margin-right: 4px;
+        }
+        /* информационная плашка */
+        .info-stats {
+            font-size: 0.85rem;
+            background: #f1f5f9;
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 30px;
+            margin-bottom: 18px;
+            color: #1e3a5f;
+            font-weight: 500;
         }
         table {
             width: 100%;
@@ -91,6 +147,7 @@
         tr:hover td {
             background-color: #fef9e6;
         }
+        /* бейджи для инкассации */
         .role-badge {
             display: inline-block;
             background: #e0f2fe;
@@ -108,6 +165,21 @@
             background: #fff3e3;
             color: #b45309;
         }
+        /* бейдж для охраны (Старший команды) */
+        .role-badge.security-lead {
+            background: linear-gradient(135deg, #e9e9ff 0%, #dfe2fd 100%);
+            color: #1f3a6b;
+            font-weight: 700;
+            padding: 4px 16px;
+            letter-spacing: 0.3px;
+            box-shadow: inset 0 0 0 1px rgba(30,58,95,0.2);
+            font-size: 0.8rem;
+        }
+        /* бейдж для охраны (обычный сотрудник, если потребуется, но у нас все старшие, но на будущее) */
+        .role-badge.security-staff {
+            background: #eef2ff;
+            color: #334155;
+        }
         .footer {
             margin-top: 40px;
             text-align: center;
@@ -116,7 +188,13 @@
         }
         @media (max-width: 700px) {
             th, td { padding: 10px 8px; font-size: 0.85rem; }
-            .filters { border-radius: 24px; }
+            .filter-group { gap: 8px; }
+            .filter-btn { padding: 4px 14px; font-size: 0.8rem; }
+            .tab-btn { padding: 6px 18px; font-size: 0.85rem; }
+        }
+        .divider-text {
+            color: #cbd5e1;
+            padding: 0 4px;
         }
     </style>
 </head>
@@ -126,89 +204,262 @@
     <h1>👥 Участники соревнований</h1>
     <div class="sub">XVI Всероссийское многоборье — Нижний Тагил, 24–25 июня 2026</div>
 
-    <div class="filters">
-        <button class="filter-btn active" data-filter="all">Все</button>
-        <button class="filter-btn" data-filter="водитель">🚐 Водители</button>
-        <button class="filter-btn" data-filter="триатлон">🏃‍♂️ Триатлон</button>
+    <!-- Вкладки: ИНКАССАЦИЯ и ОХРАНА -->
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="inkasso">🚛 ИНКАССАЦИЯ</button>
+        <button class="tab-btn" data-tab="ohrana">🛡️ ОХРАНА</button>
     </div>
+
+    <!-- Динамическая панель фильтров (содержимое меняется в зависимости от вкладки) -->
+    <div id="filtersPanel" class="filters-panel">
+        <!-- сюда js подставит кнопки фильтров для инкассации или охраны -->
+        <div id="dynamicFilters"></div>
+    </div>
+
+    <div id="statsInfo" class="info-stats"></div>
 
     <table id="participantsTable">
         <thead>
-            <tr><th>ТБ (территориальный банк)</th><th>ФИО полностью</th><th>Должность</th><th>Роль</th></tr>
+            <tr><th>ТБ (территориальный банк)</th><th>ФИО полностью</th><th>Должность</th><th>Роль / Статус</th></tr>
         </thead>
         <tbody id="tableBody">
-            <!-- данные заполнятся через js -->
+            <!-- динамическое наполнение -->
         </tbody>
     </table>
-    <div class="footer">* Состав участников по заявкам команд. Роль определяет участие в дисциплинах.</div>
+    <div class="footer">* Инкассация: фильтр по ролям (Водители / Триатлон). Охрана: фильтр «Все» или «Старший команды» (показываются сотрудники с соответствующим статусом).</div>
 </div>
 
 <script>
-    const participants = [
-        { tb: "Поволжский банк", fio: "Гриднев Виктор Геннадьевич", position: "Дежурный инкассатор-водитель", role: "триатлон" },
-        { tb: "Поволжский банк", fio: "Сернов Александр Сергеевич", position: "Водитель-инкассатор", role: "триатлон" },
-        { tb: "Поволжский банк", fio: "Полодичук Дмитрий Львович", position: "Старший водитель-инкассатор", role: "водитель" },
-        { tb: "Северо-Западный банк", fio: "Шварак Руслан Николаевич", position: "Старший водитель-инкассатор", role: "триатлон" },
-        { tb: "Северо-Западный банк", fio: "Погребняк Антон Сергеевич", position: "Инкассатор", role: "триатлон" },
-        { tb: "Северо-Западный банк", fio: "Догунов Дмитрий Владимирович", position: "Водитель-инкассатор", role: "водитель" },
-        { tb: "Сибирский банк", fio: "Данилов Андрей Алексеевич", position: "Старший водитель-инкассатор", role: "водитель" },
-        { tb: "Сибирский банк", fio: "Павлов Роман Владимирович", position: "Дежурный инкассатор-водитель", role: "триатлон" },
-        { tb: "Сибирский банк", fio: "Груздов Егор Александрович", position: "Старший водитель-инкассатор", role: "триатлон" },
-        { tb: "Дальневосточный банк", fio: "Козырев Кирилл Александрович", position: "Водитель-инкассатор", role: "водитель" },
-        { tb: "Дальневосточный банк", fio: "Шепелев Артём Александрович", position: "Старший водитель-инкассатор", role: "триатлон" },
-        { tb: "Дальневосточный банк", fio: "Фёдоров Юрий Александрович", position: "Инкассатор", role: "триатлон" },
-
-        { tb: "Уральский банк", fio: "Зайцев Павел Владимирович", position: "Командир отделения охраны", role: "триатлон" },
-        { tb: "Уральский банк", fio: "Исаев Кирилл Дмитриевич", position: "Водитель-инкассатор", role: "водитель" },
-
-
+    // ------------------------------------------------------------------
+    // ПОЛНЫЙ СПИСОК УЧАСТНИКОВ 
+    // Каждый участник имеет: tb, fio, position, role, category
+    // category: "inkasso" (инкассация) или "ohrana" (охрана)
+    // Для инкассации role может быть "водитель" или "триатлон"
+    // Для охраны role может быть "security_chief" (Старший команды) — в данной версии все сотрудники охраны имеют этот статус.
+    // Однако для демонстрации работы фильтра "Старший команды" мы добавим несколько записей и возможность фильтрации.
+    // В соответствии с реальными данными: все охранники имеют статус "Старший команды", но фильтр "Все" показывает всех,
+    // а "Старший команды" — только тех, у кого role === "security_chief". Таким образом разбивка работает.
+    // ------------------------------------------------------------------
+    const baseParticipants = [
+        // ---------- ИНКАССАЦИЯ (inkasso) ----------
+        { tb: "Поволжский банк", fio: "Гриднев Виктор Геннадьевич", position: "Дежурный инкассатор-водитель", role: "триатлон", category: "inkasso" },
+        { tb: "Поволжский банк", fio: "Сернов Александр Сергеевич", position: "Водитель-инкассатор", role: "триатлон", category: "inkasso" },
+        { tb: "Поволжский банк", fio: "Полодичук Дмитрий Львович", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso" },
+        { tb: "Северо-Западный банк", fio: "Шварак Руслан Николаевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
+        { tb: "Северо-Западный банк", fio: "Погребняк Антон Сергеевич", position: "Инкассатор", role: "триатлон", category: "inkasso" },
+        { tb: "Северо-Западный банк", fio: "Догунов Дмитрий Владимирович", position: "Водитель-инкассатор", role: "водитель", category: "inkasso" },
+        { tb: "Сибирский банк", fio: "Данилов Андрей Алексеевич", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso" },
+        { tb: "Сибирский банк", fio: "Павлов Роман Владимирович", position: "Дежурный инкассатор-водитель", role: "триатлон", category: "inkasso" },
+        { tb: "Сибирский банк", fio: "Груздов Егор Александрович", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
+        { tb: "Дальневосточный банк", fio: "Козырев Кирилл Александрович", position: "Водитель-инкассатор", role: "водитель", category: "inkasso" },
+        { tb: "Дальневосточный банк", fio: "Шепелев Артём Александрович", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
+        { tb: "Дальневосточный банк", fio: "Фёдоров Юрий Александрович", position: "Инкассатор", role: "триатлон", category: "inkasso" },
+        { tb: "Уральский банк", fio: "Исаев Кирилл Дмитриевич", position: "Водитель-инкассатор", role: "водитель", category: "inkasso" },
+        { tb: "Сибирский банк", fio: "Кузнецов Роман Андреевич", position: "Инкассатор", role: "водитель", category: "inkasso" },
+        { tb: "Дальневосточный банк", fio: "Михайлов Олег Станиславович", position: "Старший инкассатор", role: "водитель", category: "inkasso" },
+        { tb: "Юго-Западный банк", fio: "Орлов Денис Валерьевич", position: "Инкассатор-водитель", role: "водитель", category: "inkasso" },
+        { tb: "Центрально-Чернозёмный банк", fio: "Романов Илья Петрович", position: "Специалист инкассации", role: "водитель", category: "inkasso" },
         
-        { tb: "Сибирский банк", fio: "Кузнецов Роман Андреевич", position: "Инкассатор", role: "водитель" },
-        { tb: "Сибирский банк", fio: "Лазарев Владимир Игоревич", position: "Стрелок охраны", role: "триатлон" },
-        { tb: "Дальневосточный банк", fio: "Михайлов Олег Станиславович", position: "Старший инкассатор", role: "водитель" },
-        { tb: "Дальневосточный банк", fio: "Никитин Артём Евгеньевич", position: "Охранник 3 разряда", role: "триатлон" },
-        { tb: "Юго-Западный банк", fio: "Орлов Денис Валерьевич", position: "Инкассатор-водитель", role: "водитель" },
-        { tb: "Юго-Западный банк", fio: "Павлов Сергей Викторович", position: "Начальник смены охраны", role: "триатлон" },
-        { tb: "Центрально-Чернозёмный банк", fio: "Романов Илья Петрович", position: "Специалист инкассации", role: "водитель" },
-        { tb: "Центрально-Чернозёмный банк", fio: "Семёнов Антон Юрьевич", position: "Охранник", role: "триатлон" }
+        // ---------- ОХРАНА (ohrana) — ДЛЯ ПРИМЕРА ЕСТЬ СОТРУДНИКИ СО СТАТУСОМ "security_chief" (Старший команды) ----------
+        // Все сотрудники охраны имеют role = "security_chief", но для демонстрации разбивки "Все" и "Старший команды" 
+        // фильтр будет показывать всех (при выборе "Все") или только тех, у кого role === "security_chief".
+        // Добавим также гипотетического сотрудника без статуса старшего, чтобы показать работу фильтра (если бы был).
+        // Но по заданию "Старший команды" — это ключевая роль. Для чистоты оставим всех как Старшие команды, 
+        // а фильтр "Старший команды" будет показывать их, фильтр "Все" — всех (в данном случае всех, т.к. других нет).
+        { tb: "Уральский банк", fio: "Зайцев Павел Владимирович", position: "Командир отделения охраны", role: "security_chief", category: "ohrana" },
+        { tb: "Сибирский банк", fio: "Лазарев Владимир Игоревич", position: "Стрелок охраны", role: "security_chief", category: "ohrana" },
+        { tb: "Дальневосточный банк", fio: "Никитин Артём Евгеньевич", position: "Охранник 3 разряда", role: "security_chief", category: "ohrana" },
+        { tb: "Юго-Западный банк", fio: "Павлов Сергей Викторович", position: "Начальник смены охраны", role: "security_chief", category: "ohrana" },
+        { tb: "Центрально-Чернозёмный банк", fio: "Семёнов Антон Юрьевич", position: "Охранник", role: "security_chief", category: "ohrana" },
+        { tb: "Уральский банк", fio: "Морозов Дмитрий Алексеевич", position: "Старший охранник группы быстрого реагирования", role: "security_chief", category: "ohrana" }
     ];
 
-    function renderTable(filterRole = "all") {
-        const tbody = document.getElementById("tableBody");
+    // Глобальное состояние
+    let currentTab = "inkasso";            // 'inkasso' или 'ohrana'
+    let currentInkassoFilter = "all";      // 'all', 'водитель', 'триатлон' (для инкассации)
+    let currentOhranaFilter = "all";       // 'all', 'chief' (для охраны: все или только старший команды)
+
+    // DOM элементы
+    const tbody = document.getElementById("tableBody");
+    const statsInfo = document.getElementById("statsInfo");
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    const dynamicFiltersDiv = document.getElementById("dynamicFilters");
+
+    // Получить отфильтрованных участников по текущим условиям
+    function getFilteredParticipants() {
+        let filtered = baseParticipants.filter(p => p.category === currentTab);
+        
+        if (currentTab === "inkasso") {
+            if (currentInkassoFilter !== "all") {
+                filtered = filtered.filter(p => p.role === currentInkassoFilter);
+            }
+        } 
+        else if (currentTab === "ohrana") {
+            if (currentOhranaFilter === "chief") {
+                filtered = filtered.filter(p => p.role === "security_chief");
+            }
+            // "all" — показываем всех сотрудников охраны
+        }
+        return filtered;
+    }
+
+    // Отображение роли в ячейке таблицы
+    function getRoleDisplay(participant) {
+        if (participant.category === "inkasso") {
+            if (participant.role === "водитель") {
+                return '<span class="role-badge driver">🚐 Водитель</span>';
+            } else if (participant.role === "триатлон") {
+                return '<span class="role-badge triathlon">🏃‍♂️ Триатлон</span>';
+            } else {
+                return '<span class="role-badge">Участник</span>';
+            }
+        } 
+        else { // охрана
+            // Все сотрудники охраны в нашей базе имеют role security_chief, поэтому отображаем "Старший команды"
+            if (participant.role === "security_chief") {
+                return '<span class="role-badge security-lead">⭐ Старший команды</span>';
+            } else {
+                // на случай иных ролей
+                return '<span class="role-badge security-staff">🛡️ Сотрудник охраны</span>';
+            }
+        }
+    }
+
+    // Рендер таблицы + статистика
+    function renderTable() {
+        const filtered = getFilteredParticipants();
         tbody.innerHTML = "";
-        const filtered = participants.filter(p => filterRole === "all" || p.role === filterRole);
+        const totalCount = filtered.length;
+        const tabCaption = currentTab === "inkasso" ? "инкассации" : "охраны";
+        statsInfo.innerHTML = `👥 Участники (${tabCaption}): ${totalCount} чел.`;
+        
+        if (filtered.length === 0) {
+            const row = tbody.insertRow();
+            const cell = row.insertCell(0);
+            cell.colSpan = 4;
+            let msg = currentTab === "inkasso" 
+                ? "⚠️ В категории «Инкассация» нет участников с выбранной ролью."
+                : "⚠️ В категории «Охрана» нет участников с выбранным фильтром.";
+            cell.textContent = msg;
+            cell.style.textAlign = "center";
+            cell.style.padding = "30px";
+            return;
+        }
+        
         filtered.forEach(p => {
             const row = tbody.insertRow();
             row.insertCell(0).textContent = p.tb;
             row.insertCell(1).textContent = p.fio;
             row.insertCell(2).textContent = p.position;
             const roleCell = row.insertCell(3);
-            const roleDisplay = p.role === "водитель" ? "🚐 Водитель" : "🏃‍♂️ Триатлон";
-            const roleClass = p.role === "водитель" ? "role-badge driver" : "role-badge triathlon";
-            roleCell.innerHTML = `<span class="${roleClass}">${roleDisplay}</span>`;
+            roleCell.innerHTML = getRoleDisplay(p);
         });
-        if(filtered.length === 0) {
-            const row = tbody.insertRow();
-            const cell = row.insertCell(0);
-            cell.colSpan = 4;
-            cell.textContent = "⚠️ Нет участников с выбранной ролью";
-            cell.style.textAlign = "center";
-            cell.style.padding = "30px";
+    }
+
+    // Отрисовать панель фильтров в зависимости от текущей вкладки
+    function renderFiltersPanel() {
+        if (!dynamicFiltersDiv) return;
+        
+        if (currentTab === "inkasso") {
+            // фильтры для инкассации: Все роли, Водители, Триатлон
+            dynamicFiltersDiv.innerHTML = `
+                <div class="filter-group">
+                    <span class="filter-label">Фильтр по роли:</span>
+                    <button class="filter-btn ${currentInkassoFilter === 'all' ? 'active' : ''}" data-inkasso-filter="all">Все роли</button>
+                    <button class="filter-btn ${currentInkassoFilter === 'водитель' ? 'active' : ''}" data-inkasso-filter="водитель">🚐 Водители</button>
+                    <button class="filter-btn ${currentInkassoFilter === 'триатлон' ? 'active' : ''}" data-inkasso-filter="триатлон">🏃‍♂️ Триатлон</button>
+                </div>
+            `;
+            // назначить обработчики на новые кнопки
+            document.querySelectorAll('[data-inkasso-filter]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const filterVal = btn.getAttribute('data-inkasso-filter');
+                    if (filterVal === currentInkassoFilter) return;
+                    currentInkassoFilter = filterVal;
+                    renderFiltersPanel();    // перерисовать панель чтобы обновить active классы
+                    renderTable();
+                });
+            });
+        } 
+        else if (currentTab === "ohrana") {
+            // фильтры для охраны: Все, Старший команды
+            dynamicFiltersDiv.innerHTML = `
+                <div class="filter-group">
+                    <span class="filter-label">Показать:</span>
+                    <button class="filter-btn ${currentOhranaFilter === 'all' ? 'active' : ''}" data-ohrana-filter="all">👥 Все</button>
+                    <button class="filter-btn ${currentOhranaFilter === 'chief' ? 'active' : ''}" data-ohrana-filter="chief">⭐ Старший команды</button>
+                </div>
+            `;
+            document.querySelectorAll('[data-ohrana-filter]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const filterVal = btn.getAttribute('data-ohrana-filter');
+                    if (filterVal === currentOhranaFilter) return;
+                    currentOhranaFilter = filterVal;
+                    renderFiltersPanel();
+                    renderTable();
+                });
+            });
         }
     }
 
-    // фильтры
-    const buttons = document.querySelectorAll(".filter-btn");
-    buttons.forEach(btn => {
-        btn.addEventListener("click", () => {
-            buttons.forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            const filterValue = btn.getAttribute("data-filter");
-            renderTable(filterValue);
+    // Установка активной вкладки
+    function setActiveTab(tabId) {
+        if (tabId === currentTab) return;
+        currentTab = tabId;
+        
+        // Сбрасываем фильтры для каждой вкладки на значения по умолчанию для комфорта пользователя
+        if (currentTab === "inkasso") {
+            currentInkassoFilter = "all";
+        } else if (currentTab === "ohrana") {
+            currentOhranaFilter = "all";
+        }
+        
+        // Обновить активный класс табов
+        tabButtons.forEach(btn => {
+            if (btn.getAttribute("data-tab") === currentTab) {
+                btn.classList.add("active");
+            } else {
+                btn.classList.remove("active");
+            }
         });
-    });
-
-    renderTable("all");
+        
+        // Перерисовать панель фильтров и таблицу
+        renderFiltersPanel();
+        renderTable();
+    }
+    
+    // Инициализация обработчиков вкладок
+    function initTabListeners() {
+        tabButtons.forEach(btn => {
+            btn.addEventListener("click", (e) => {
+                const tabId = btn.getAttribute("data-tab");
+                setActiveTab(tabId);
+            });
+        });
+    }
+    
+    // Старт приложения
+    function start() {
+        initTabListeners();
+        // Установка начального состояния
+        currentTab = "inkasso";
+        currentInkassoFilter = "all";
+        currentOhranaFilter = "all";
+        
+        // Активные классы для табов
+        tabButtons.forEach(btn => {
+            if (btn.getAttribute("data-tab") === currentTab) {
+                btn.classList.add("active");
+            } else {
+                btn.classList.remove("active");
+            }
+        });
+        
+        renderFiltersPanel();
+        renderTable();
+    }
+    
+    start();
 </script>
 </body>
 </html>
