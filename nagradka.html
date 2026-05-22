@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Итоги соревнований | Инкассация и Охрана</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: #f0f4f8;
+            padding: 24px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f2b44 100%);
+            color: white;
+            padding: 28px 20px;
+            border-radius: 32px;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .back-link, .print-btn {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 20px;
+            border-radius: 40px;
+            color: white;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .back-link:hover, .print-btn:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #1e293b;
+            transition: 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #1e3a5f;
+            color: white;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active-pane {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section {
+            background: white;
+            border-radius: 28px;
+            padding: 24px 20px;
+            margin-bottom: 32px;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
+        }
+
+        .section h2 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #0f2b44;
+            border-left: 6px solid #dc2626;
+            padding-left: 18px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            padding: 12px 8px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .rank-1 {
+            background-color: #fef9c3;
+            font-weight: bold;
+        }
+
+        .subnote {
+            margin-top: 16px;
+            font-size: 0.75rem;
+            color: #64748b;
+            text-align: right;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 12px;
+        }
+
+        @media (max-width: 700px) {
+            th, td { padding: 8px 4px; font-size: 0.8rem; }
+            .section h2 { font-size: 1.3rem; }
+            .tab-btn { padding: 8px 18px; font-size: 0.9rem; }
+        }
+
+        @media print {
+            body { background: white; padding: 0; margin: 0; }
+            .container { max-width: 100%; margin: 0; padding: 10px; }
+            .header { background: #1e3a5f; color: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; border-radius: 0; margin-bottom: 15px; }
+            .header-actions, .back-link, .print-btn, .tabs, .tab-btn { display: none !important; }
+            .tab-pane { display: none !important; }
+            .tab-pane.active-pane { display: block !important; }
+            .section { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; padding: 15px; border-radius: 8px; }
+            .table-wrapper { overflow: visible; }
+            table { font-size: 9pt; }
+            th { background: #f0f0f0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .rank-1 { background-color: #fef9c3 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .subnote { font-size: 0.7rem; }
+            footer { display: none; }
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #5c6f87;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🏆 ИТОГИ СОРЕВНОВАНИЙ 2026</h1>
+        <p>Командное и личное первенство · Инкассация и Охрана</p>
+        <div class="header-actions">
+            <a href="#" class="back-link" onclick="history.back(); return false;">← Вернуться на главную</a>
+            <button class="print-btn" onclick="window.print();">🖨️ Печать результатов</button>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" data-tab="inkasso">🚛 ИНКАССАЦИЯ</button>
+        <button class="tab-btn" data-tab="ohrana">🛡️ ОХРАНА</button>
+    </div>
+
+    <!-- ======================= ВКЛАДКА ИНКАССАЦИЯ ======================= -->
+    <div id="inkasso-pane" class="tab-pane active-pane">
+        <!-- Командное первенство -->
+        <div class="section">
+            <h2>🏆 Командное первенство — сумма мест по 4 видам</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr><th>Место</th><th>Команда</th><th>Эстафета (место)</th><th>Практическая стрельба (место)</th><th>Личное первенство водители (место)</th><th>Командный триатлон (место)</th><th>Общая сумма мест</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>Среднерусский банк (СРБ)</strong></td><td>1</td><td>1</td><td>4</td><td>4</td><td>10</td></tr>
+                        <tr><td>🥈 2 место</td><td><strong>Сибирский банк (СИБ)</strong></td><td>2</td><td>2</td><td>5</td><td>6</td><td>15</td></tr>
+                        <tr><td>🥉 3 место</td><td><strong>Поволжский банк (ПВБ)</strong></td><td>3</td><td>3</td><td>6</td><td>5</td><td>17</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="subnote">* При равных значениях суммы мест - приоритетом является результат испытаний по дисциплине "Огневая подготовка".</div>
+        </div>
+
+        <!-- Практическая стрельба -->
+        <div class="section">
+            <h2>🔫 Практическая стрельба (личное первенство)</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Место</th><th>ФИО</th><th>Команда</th><th>Результат (сек)</th></tr></thead>
+                    <tbody>
+                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>Зайцев Артём Викторович</strong></td><td>Среднерусский банк (СРБ)</td><td>45.78</td></tr>
+                        <tr><td>🥈 2 место</td><td><strong>Ковальчук Дмитрий Сергеевич</strong></td><td>Сибирский банк (СИБ)</td><td>47.23</td></tr>
+                        <tr><td>🥉 3 место</td><td><strong>Морозов Илья Андреевич</strong></td><td>Поволжский банк (ПВБ)</td><td>48.91</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="subnote">* Пистолет, автомат. Время в секундах.</div>
+        </div>
+
+        <!-- Личное первенство водители -->
+        <div class="section">
+            <h2>🚛 Личное первенство (водители инкассации)</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Место</th><th>ФИО</th><th>Команда</th><th>Время (мм:сс.сс)</th></tr></thead>
+                    <tbody>
+                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>Гришин Игорь Алексеевич</strong></td><td>Северо-Западный банк (СЗБ)</td><td>7:22.87</td></tr>
+                        <tr><td>🥈 2 место</td><td><strong>Ткаченко Вадим Олегович</strong></td><td>Уральский банк (УБ)</td><td>7:45.32</td></tr>
+                        <tr><td>🥉 3 место</td><td><strong>Фролов Сергей Викторович</strong></td><td>Волго-Вятский банк (ВВБ)</td><td>8:03.19</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="subnote">* Фигурное вождение + маневрирование в СДУ. Суммарное время со штрафами.</div>
+        </div>
+
+        <!-- Эстафета (инкассация) -->
+        <div class="section">
+            <h2>🔄 Эстафета (команда из 2 человек)</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Участник 2</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead>
+                    <tbody>
+                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>Среднерусский банк (СРБ)</strong></td><td>Власов Кирилл Дмитриевич</td><td>Романов Максим Евгеньевич</td><td>2:38.33</td><td>0</td><td>2:38.33</td></tr>
+                        <tr><td>🥈 2 место</td><td><strong>Сибирский банк (СИБ)</strong></td><td>Орлов Сергей Витальевич</td><td>Кузнецов Денис Алексеевич</td><td>2:38.33</td><td>20</td><td>2:58.33</td></tr>
+                        <tr><td>🥉 3 место</td><td><strong>Поволжский банк (ПВБ)</strong></td><td>Соболев Павел Игоревич</td><td>Титов Алексей Геннадьевич</td><td>2:45.00</td><td>20</td><td>3:05.00</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="subnote">* Перенос груза, тактическое вождение. Штраф (сек) за ошибки.</div>
+        </div>
+
+        <!-- Командный триатлон -->
+        <div class="section">
+            <h2>🏋️ Командный триатлон (команда из 2 человек)</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Время1 / штраф1</th><th>Участник 2</th><th>Время2 / штраф2</th><th>Сумма команды</th></tr></thead>
+                    <tbody>
+                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>Северо-Западный банк (СЗБ)</strong></td><td>Беляев Артём Николаевич</td><td>5:12.34 / 0</td><td>Михайлов Иван Владимирович</td><td>5:20.67 / 0</td><td>10:33.01</td></tr>
+                        <tr><td>🥈 2 место</td><td><strong>Уральский банк (УБ)</strong></td><td>Степанов Дмитрий Юрьевич</td><td>5:28.45 / 20</td><td>Медведев Андрей Петрович</td><td>5:35.22 / 0</td><td>11:03.67</td></tr>
+                        <tr><td>🥉 3 место</td><td><strong>Центрально-Черноземный банк (ЦЧБ)</strong></td><td>Щербаков Илья Сергеевич</td><td>5:43.78 / 20</td><td>Фомин Владимир Александрович</td><td>5:49.91 / 40</td><td>11:33.69</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="subnote">* Два участника: стрельба, физическая подготовка. Штраф (сек) за ошибки.</div>
+        </div>
+
+        <!-- Командная эстафета (инкассация) - исправлено -->
+        <div class="section">
+            <h2>🚔🤝 Командная эстафета (охрана + инкассация) — 3 чел. охрана + 2 чел. инкассация</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Место</th><th>Команда (охрана + инкассация)</th><th>Участники охраны (3 чел)</th><th>Участники инкассации (2 чел)</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead>
+                    <tbody>
+                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>ООО "СТБ" + СРБ (инк)</strong></td><td>Шишкин Илья Владимирович, Козырев Егор Дмитриевич, Панкратов Михаил Олегович</td><td>Власов Кирилл Дмитриевич, Романов Максим Евгеньевич</td><td>6:15.33</td><td>0</td><td>6:15.33</td></tr>
+                        <tr><td>🥈 2 место</td><td><strong>ЦОО ЦА и МБ (охрана) + ЦЧБ (инк)</strong></td><td>Дубровин Сергей Александрович, Калинин Алексей Петрович, Соболев Дмитрий Иванович</td><td>Щербаков Илья Сергеевич, Фомин Владимир Александрович</td><td>6:32.55</td><td>20</td><td>6:52.55</td></tr>
+                        <tr><td>🥉 3 место</td><td><strong>СИБ (охрана) + СИБ (инк)</strong></td><td>Назаров Алексей Викторович, Тимофеев Роман Сергеевич, Ефимов Роман Владимирович</td><td>Орлов Сергей Витальевич, Кузнецов Денис Алексеевич</td><td>6:48.99</td><td>40</td><td>7:28.99</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="subnote">* Совместная эстафета: 5 человек (3 охраны + 2 инкассации). Штраф (сек) за ошибки. Составы команд уникальны.</div>
+        </div>
+    </div>
+
+    <!-- ======================= ВКЛАДКА ОХРАНА ======================= -->
+    <div id="ohrana-pane" class="tab-pane">
+        <!-- Командное первенство охраны -->
+        <div class="section">
+            <h2>🏆 Командное первенство (охрана) — по 3 видам</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Место</th><th>Команда</th><th>Стрельба (место)</th><th>Эстафета (место)</th><th>Двоеборье (место)</th><th>Сумма мест</th></tr></thead>
+                    <tbody>
+                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>ООО "СТБ"</strong></td><td>1</td><td>1</td><td>1</td><td>3</td></tr>
+                        <tr><td>🥈 2 место</td><td><strong>Среднерусский банк (СРБ)</strong></td><td>2</td><td>2</td><td>2</td><td>6</td></tr>
+                        <tr><td>🥉 3 место</td><td><strong>Сибирский банк (СИБ)</strong></td><td>3</td><td>3</td><td>4</td><td>10</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="subnote">Командный зачёт по 3 видам: практическая стрельба, эстафета охраны (3 чел), служебное двоеборье (3 чел).</div>
+        </div>
+
+        <!-- Практическая стрельба (охрана) -->
+        <div class="section">
+            <h2>🔫 Практическая стрельба (личное первенство, охрана)</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Место</th><th>ФИО</th><th>Команда</th><th>Результат (сек)</th></tr></thead>
+                    <tbody>
+                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>Степанов Денис Андреевич</strong></td><td>ООО "СТБ"</td><td>41.82</td></tr>
+                        <tr><td>🥈 2 место</td><td><strong>Мельников Павел Викторович</strong></td><td>Среднерусский банк (СРБ)</td><td>43.15</td></tr>
+                        <tr><td>🥉 3 место</td><td><strong>Кравцов Иван Сергеевич</strong></td><td>Сибирский банк (СИБ)</td><td>44.57</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="subnote">* Пистолет Макарова, тактическая стрельба. Время в секундах.</div>
+        </div>
+
+        <!-- Эстафета (охрана) -->
+        <div class="section">
+            <h2>🔄 Эстафета (охрана, команда из 3 человек)</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Участник 2</th><th>Участник 3</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead>
+                    <tbody>
+                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>ООО "СТБ"</strong></td><td>Шишкин Илья Владимирович</td><td>Козырев Егор Дмитриевич</td><td>Панкратов Михаил Олегович</td><td>4:45.22</td><td>0</td><td>4:45.22</td></tr>
+                        <tr><td>🥈 2 место</td><td><strong>Среднерусский банк (СРБ)</strong></td><td>Дубровин Сергей Александрович</td><td>Калинин Алексей Павлович</td><td>Соболев Дмитрий Игоревич</td><td>4:58.67</td><td>20</td><td>5:18.67</td></tr>
+                        <tr><td>🥉 3 место</td><td><strong>Сибирский банк (СИБ)</strong></td><td>Назаров Алексей Валерьевич</td><td>Тимофеев Роман Сергеевич</td><td>Ефимов Роман Владимирович</td><td>5:12.44</td><td>40</td><td>5:52.44</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="subnote">* Этапы: перенос раненого, полоса препятствий, стрельба после бега. Штраф в секундах.</div>
+        </div>
+
+        <!-- Служебное двоеборье -->
+        <div class="section">
+            <h2>🏃‍♂️🎯 Служебное двоеборье (бег 1000 м + стрельба) — команда из 3 человек</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Время1 / штраф1</th><th>Участник 2</th><th>Время2 / штраф2</th><th>Участник 3</th><th>Время3 / штраф3</th><th>Сумма команды</th></tr></thead>
+                    <tbody>
+                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>ООО "СТБ"</strong></td><td>Панкратов Михаил Олегович</td><td>4:22.11 / 0</td><td>Гущин Виталий Андреевич</td><td>4:35.45 / 0</td><td>Смирнов Алексей Викторович</td><td>4:42.78 / 20</td><td>13:40.34</td></tr>
+                        <tr><td>🥈 2 место</td><td><strong>Среднерусский банк (СРБ)</strong></td><td>Соболев Дмитрий Игоревич</td><td>4:30.22 / 20</td><td>Борисов Иван Петрович</td><td>4:45.33 / 0</td><td>Козырев Андрей Сергеевич</td><td>4:55.11 / 20</td><td>14:10.66</td></tr>
+                        <tr><td>🥉 3 место</td><td><strong>Поволжский банк (ПВБ)</strong></td><td>Ефимов Роман Владимирович</td><td>4:48.77 / 20</td><td>Сидоров Николай Викторович</td><td>4:59.23 / 20</td><td>Морозов Леонид Иванович</td><td>5:12.18 / 40</td><td>15:00.18</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="subnote">* Бег 1000 м, затем стрельба из пистолета. Штраф за промахи (20 сек за каждый).</div>
+        </div>
+
+        <!-- Командная эстафета (охрана) - исправлено -->
+        <div class="section">
+            <h2>🚔🤝 Командная эстафета (охрана + инкассация) — 3 чел. охрана + 2 чел. инкассация</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>Место</th><th>Команда (охрана + инкассация)</th><th>Участники охраны (3 чел)</th><th>Участники инкассации (2 чел)</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead>
+                    <tbody>
+                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>ООО "СТБ" + СРБ (инк)</strong></td><td>Шишкин Илья Владимирович, Козырев Егор Дмитриевич, Панкратов Михаил Олегович</td><td>Власов Кирилл Дмитриевич, Романов Максим Евгеньевич</td><td>6:15.33</td><td>0</td><td>6:15.33</td></tr>
+                        <tr><td>🥈 2 место</td><td><strong>СРБ (охрана) + ЦЧБ (инк)</strong></td><td>Дубровин Сергей Александрович, Калинин Алексей Павлович, Соболев Дмитрий Игоревич</td><td>Щербаков Илья Сергеевич, Фомин Владимир Александрович</td><td>6:32.55</td><td>20</td><td>6:52.55</td></tr>
+                        <tr><td>🥉 3 место</td><td><strong>СИБ (охрана) + СИБ (инк)</strong></td><td>Назаров Алексей Викторович, Тимофеев Роман Сергеевич, Ефимов Роман Владимирович</td><td>Орлов Сергей Витальевич, Кузнецов Денис Алексеевич</td><td>6:48.99</td><td>40</td><td>7:28.99</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="subnote">* Совместная эстафета: 5 человек (3 охраны + 2 инкассации). ⚠️ Данная дисциплина НЕ входит в командное первенство охраны. Составы команд уникальны.</div>
+        </div>
+    </div>
+
+    <footer>
+        © Сбербанк, Департамент безопасности, ЦУНДО | Итоговые протоколы 2026<br>
+        Призёры: практическая стрельба (1,2,3) · водители (1,2,3) · эстафета (1,2,3) · триатлон (1,2,3) · командное первенство (1,2,3)
+    </footer>
+</div>
+
+<script>
+    (function() {
+        const tabs = document.querySelectorAll('.tab-btn');
+        const inkassoPane = document.getElementById('inkasso-pane');
+        const ohranaPane = document.getElementById('ohrana-pane');
+
+        function activateTab(tabId) {
+            if (tabId === 'inkasso') {
+                inkassoPane.classList.add('active-pane');
+                ohranaPane.classList.remove('active-pane');
+            } else {
+                ohranaPane.classList.add('active-pane');
+                inkassoPane.classList.remove('active-pane');
+            }
+            tabs.forEach(btn => {
+                if (btn.getAttribute('data-tab') === tabId) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        tabs.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.getAttribute('data-tab');
+                activateTab(tabId);
+            });
+        });
+    })();
+</script>
+</body>
+</html>
