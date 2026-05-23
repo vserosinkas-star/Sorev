@@ -45,7 +45,6 @@
             padding: 10px 28px;
             border-radius: 40px;
             font-weight: bold;
-            margin-top: 16px;
             transition: all 0.2s;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             border: none;
@@ -55,6 +54,13 @@
             background: #ffb83b;
             transform: scale(1.02);
             box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+        .button-group {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 16px;
+            flex-wrap: wrap;
         }
         .disciplines {
             display: grid;
@@ -108,6 +114,7 @@
         @media (max-width: 700px) {
             .disciplines { grid-template-columns: 1fr; }
             .header h1 { font-size: 1.4rem; }
+            .button-group { gap: 12px; }
         }
     </style>
 </head>
@@ -117,7 +124,11 @@
         <h1>🏆 XVI Всероссийские соревнования по многоборью</h1>
         <p>Среди работников подразделений инкассации и охраны ПАО Сбербанк</p>
         <p style="font-size: 0.85rem; margin-top: 8px;">Нижний Тагил, 24–25 июня 2026</p>
-        <a href="participants.html" class="btn-participants">👥 Участники →</a>
+        
+        <div class="button-group">
+            <a href="participants.html" class="btn-participants">👥 Участники →</a>
+            <a href="nagradka.html" class="btn-participants">🏅 Награждение →</a>
+        </div>
     </div>
 
     <div class="disciplines">
