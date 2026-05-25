@@ -82,11 +82,13 @@
         .print-btn { background: #2c5f2d; }
         .stage-info { background: #eef2ff; border-radius: 16px; padding: 12px 20px; margin: 15px 0; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
         .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; }
-        .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 12px; margin: 20px 0; max-height: 500px; overflow-y: auto; padding: 4px; }
-        .penalty-card { background: #f9fafb; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
-        .penalty-card input { width: 24px; height: 24px; margin: 0; cursor: pointer; }
-        .penalty-card label { flex: 1; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 0.9rem; }
-        .penalty-sec { background: #e2e8f0; padding: 4px 10px; border-radius: 40px; font-size: 0.8rem; }
+        .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 12px; margin: 20px 0; max-height: 550px; overflow-y: auto; padding: 4px; }
+        .penalty-card { background: #f9fafb; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: 0.1s; }
+        .penalty-card:hover { background: #f1f5f9; }
+        .penalty-card input { width: 22px; height: 22px; margin: 0; cursor: pointer; }
+        .penalty-card label { flex: 1; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 0.9rem; line-height: 1.3; }
+        .penalty-sec { background: #e2e8f0; padding: 4px 12px; border-radius: 40px; font-size: 0.75rem; font-weight: 600; }
+        .penalty-highlight-green { background: #dcfce7 !important; border-left: 6px solid #15803d !important; }
         .summary-bar { background: #f1f5f9; border-radius: 20px; padding: 16px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-top: 20px; gap: 15px; }
         .total-time { font-size: 1.6rem; font-weight: 800; background: #dcfce7; padding: 6px 18px; border-radius: 40px; }
         .results-table { background: white; border-radius: 24px; overflow-x: auto; padding: 4px; margin-top: 20px; }
@@ -147,6 +149,21 @@
             .print-sign-line { margin-top: 40px; border-top: 1px dashed #aaa; padding-top: 20px; }
         }
         .print-report-area { display: none; }
+        
+        .penalty-count { 
+            background: #1e3a8a; 
+            color: white; 
+            border-radius: 30px; 
+            padding: 2px 10px; 
+            font-size: 0.7rem;
+            margin-left: 8px;
+        }
+        .stage-title {
+            margin-top: 10px;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #1e3a8a;
+        }
     </style>
 </head>
 <body>
@@ -308,36 +325,221 @@
             "Обслуживание ВСП", "Вооруженный преступник", "Общие штрафы"
         ];
         
+        // ========== ПОЛНЫЙ СПИСОК ШТРАФОВ ИЗ estafeta (2).html ==========
         const penaltiesLibrary = [
-            { id: "prop_door", category: "Получение имущества", desc: "Не закрыты двери/дверь СТС в «гараже»", sec: 30 },
+            // === 1. Получение имущества ===
+            { id: "prop_door", category: "Получение имущества", desc: "1. Не закрыты двери/дверь СТС в «гараже»", sec: 30 },
+            { id: "prop_sk", category: "Получение имущества", desc: "Инкассатор: СК не получен", sec: 20 },
+            { id: "prop_yellow_key", category: "Получение имущества", desc: "Инкассатор: Жёлтый ИК-ключ СК не получен", sec: 20 },
+            { id: "prop_nakop_key", category: "Получение имущества", desc: "Инкассатор: Ключ от накопителя не получен", sec: 20 },
+            { id: "prop_dover", category: "Получение имущества", desc: "Инкассатор: Доверенность не получена", sec: 20 },
+            { id: "prop_passport", category: "Получение имущества", desc: "Инкассатор: Паспорт не получен", sec: 20 },
+            { id: "prop_us_key", category: "Получение имущества", desc: "Инкассатор: Ключи от УС не получены", sec: 20 },
+            { id: "prop_tsd", category: "Получение имущества", desc: "Инкассатор: ТСД/радиотерминал не получен", sec: 20 },
+            { id: "prop_ivr", category: "Получение имущества", desc: "Инкассатор: ИВР не получен", sec: 20 },
             { id: "prop_sk_cell", category: "Получение имущества", desc: "Инкассатор: СК не установлен в специальную ячейку", sec: 20 },
-            { id: "prop_belt", category: "Получение имущества", desc: "Бригада не пристегнута ремнями", sec: 30 },
-            { id: "prop_no_radio_start", category: "Получение имущества", desc: "Не доложили по радио о начале движения", sec: 30 },
-            { id: "bank_belt", category: "Получение банковских ценностей", desc: "Бригада не пристегнута ремнями", sec: 30 },
-            { id: "bank_nak_open", category: "Получение банковских ценностей", desc: "Не закрыт накопитель", sec: 30 },
-            { id: "bank_nak", category: "Получение банковских ценностей", desc: "Не заложены ценности в накопитель", sec: 30 },
-            { id: "bank_scan", category: "Получение банковских ценностей", desc: "Не произвел сканирование", sec: 20 },
-            { id: "puncture_no_report", category: "Прокол шины", desc: "Не сообщил о поломке", sec: 30 },
-            { id: "puncture_repair_report", category: "Прокол шины", desc: "Не сообщил об устранении", sec: 30 },
-            { id: "snake_cone", category: "Змейка", desc: "Наезд на конус", sec: 5 },
-            { id: "incass_no_radio", category: "Инкассация объекта", desc: "Инкассатор без радиостанции", sec: 30 },
-            { id: "incass_no_exit_radio", category: "Инкассация объекта", desc: "Не связался о выходе", sec: 30 },
+            { id: "prop_driver_radio", category: "Получение имущества", desc: "Водитель: носимая радиостанция не получена", sec: 20 },
+            { id: "prop_blue_key", category: "Получение имущества", desc: "Водитель: синий ИК-ключ СК не получен", sec: 20 },
+            { id: "prop_car_keys", category: "Получение имущества", desc: "Водитель: ключи от СТС/брелок не получены", sec: 20 },
+            { id: "prop_sumka", category: "Получение имущества", desc: "Не получена сумка-баул для кассет УС", sec: 20 },
+            { id: "prop_check_sk", category: "Получение имущества", desc: "Инкассатор не проверил работоспособность СК с помощью ИК-ключа желтого цвета", sec: 30 },
+            { id: "prop_no_radio_start", category: "Получение имущества", desc: "Не доложили по автомобильной радиостанции о начале движения СТС", sec: 30 },
+            { id: "prop_bad_sk", category: "Получение имущества", desc: "Некорректное обращение с СК (уронил/кинул на землю)", sec: 50 },
+            { id: "prop_belt", category: "Получение имущества", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+            
+            // === 2. Получение банковских ценностей ===
+            { id: "bank_belt", category: "Получение банковских ценностей", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+            { id: "bank_cone_1", category: "Получение банковских ценностей", desc: "СТС вышел за пределы габарита шлюзового бокса/наезд на 1 конус", sec: 5 },
+            { id: "bank_cone_2", category: "Получение банковских ценностей", desc: "Наезд на 2 конуса", sec: 10 },
+            { id: "bank_cone_3", category: "Получение банковских ценностей", desc: "Наезд на 3 конуса", sec: 15 },
+            { id: "bank_cone_4", category: "Получение банковских ценностей", desc: "Наезд на 4 и более конуса", sec: 20 },
+            { id: "bank_sts", category: "Получение банковских ценностей", desc: "СТС не заехал в бокс (СТС установлен вне обозначенного периметра)", sec: 50 },
+            { id: "bank_door_open", category: "Получение банковских ценностей", desc: "Не закрыты двери/дверь СТС в «боксе»", sec: 30 },
+            { id: "bank_nak_open", category: "Получение банковских ценностей", desc: "Не закрыт накопитель СТС в «боксе»", sec: 30 },
+            { id: "bank_no_dok", category: "Получение банковских ценностей", desc: "Инкассатор не предъявил документы", sec: 30 },
+            { id: "bank_bc", category: "Получение банковских ценностей", desc: "Оставление банковских ценностей без охраны", sec: 50 },
+            { id: "bank_scan", category: "Получение банковских ценностей", desc: "Инкассатор не произвел сканирования", sec: 20 },
+            { id: "bank_ostav", category: "Получение банковских ценностей", desc: "Оставление документов", sec: 30 },
+            { id: "bank_nak", category: "Получение банковских ценностей", desc: "Не заложены банковские ценности в накопитель", sec: 30 },
+            { id: "bank_nak_dv", category: "Получение банковских ценностей", desc: "Не была закрыта дверь устройства накопителя до начала движения СТС", sec: 30 },
+            
+            // === 3. Прокол шины ===
+            { id: "puncture_belt", category: "Прокол шины", desc: "Бригада не пристегнута ремнями безопасности", sec: 30 },
+            { id: "puncture_no_report", category: "Прокол шины", desc: "Не сообщил по радио о поломке СТС", sec: 30 },
+            { id: "puncture_hazard", category: "Прокол шины", desc: "Не включена аварийная сигнализация", sec: 30 },
+            { id: "puncture_engine", category: "Прокол шины", desc: "Не выключен двигатель", sec: 20 },
+            { id: "puncture_triangle", category: "Прокол шины", desc: "Не выставлен знак аварийной остановки", sec: 30 },
+            { id: "puncture_triangle_pass", category: "Прокол шины", desc: "Передача знака аварийной остановки", sec: 30 },
+            { id: "puncture_triangle_side", category: "Прокол шины", desc: "Знак выставлен не той стороной", sec: 10 },
+            { id: "puncture_handbrake", category: "Прокол шины", desc: "СТС не заторможен стояночным тормозом", sec: 10 },
+            { id: "puncture_gear", category: "Прокол шины", desc: "Не установлен рычаг передачи", sec: 10 },
+            { id: "puncture_chocks", category: "Прокол шины", desc: "Не подложены упоры", sec: 10 },
+            { id: "puncture_jack_pos", category: "Прокол шины", desc: "Домкрат не в спецместо", sec: 30 },
+            { id: "puncture_jack_doors", category: "Прокол шины", desc: "При поддомкрачивании не закрыты двери", sec: 50 },
+            { id: "puncture_jack_height", category: "Прокол шины", desc: "Не поддомкрачен на требуемую высоту", sec: 50 },
+            { id: "puncture_imitation", category: "Прокол шины", desc: "Не осуществлена имитация замены колеса", sec: 20 },
+            { id: "puncture_cleanup_triangle", category: "Прокол шины", desc: "Не убран знак аварийной остановки", sec: 10 },
+            { id: "puncture_cleanup_chocks", category: "Прокол шины", desc: "Не убраны упоры", sec: 10 },
+            { id: "puncture_cleanup_jack", category: "Прокол шины", desc: "Не убран домкрат", sec: 10 },
+            { id: "puncture_helper", category: "Прокол шины", desc: "Инкассатор помогает водителю", sec: 30 },
+            { id: "puncture_repair_report", category: "Прокол шины", desc: "Не сообщил об устранении неисправности", sec: 30 },
+            
+            // === 4. Змейка ===
+            { id: "snake_cone", category: "Змейка", desc: "Наезд на конус (1)", sec: 5 },
+            { id: "snake_cone1", category: "Змейка", desc: "Наезд на конус (2)", sec: 10 },
+            { id: "snake_cone2", category: "Змейка", desc: "Наезд на конус (3)", sec: 15 },
+            { id: "snake_cone3", category: "Змейка", desc: "Наезд на конус (4+)", sec: 20 },
+            
+            // === 5. Инкассация объекта ===
+            { id: "incass_belt", category: "Инкассация объекта", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "incass_no_radio", category: "Инкассация объекта", desc: "Инкассатор без носимой радиостанции", sec: 30 },
+            { id: "incass_no_docs", category: "Инкассация объекта", desc: "Не предъявил документы", sec: 30 },
+            { id: "incass_no_scan", category: "Инкассация объекта", desc: "Не произвел сканирование", sec: 20 },
+            { id: "incass_no_sign", category: "Инкассация объекта", desc: "Не передал ТСД для подписи", sec: 20 },
+            { id: "incass_open_sk_no_key", category: "Инкассация объекта", desc: "Открыл СК без ИК-ключа", sec: 30 },
+            { id: "incass_not_loaded", category: "Инкассация объекта", desc: "Не заложен пакет в СК", sec: 50 },
             { id: "incass_tumbler_blue", category: "Инкассация объекта", desc: "Не переключил тумблер в синее", sec: 30 },
+            { id: "incass_sk_not_closed", category: "Инкассация объекта", desc: "Не закрыл СК", sec: 30 },
+            { id: "incass_left_docs", category: "Инкассация объекта", desc: "Оставил документы", sec: 30 },
+            { id: "incass_left_packet", category: "Инкассация объекта", desc: "Оставил сейф-пакет", sec: 30 },
+            { id: "incass_left_sk", category: "Инкассация объекта", desc: "Оставил СК", sec: 30 },
+            { id: "incass_no_exit_radio", category: "Инкассация объекта", desc: "Не связался о выходе", sec: 30 },
+            { id: "incass_exit_no_confirm", category: "Инкассация объекта", desc: "Вышел без подтверждения", sec: 30 },
+            { id: "incass_blue_key_from_driver", category: "Инкассация объекта", desc: "Взял ключ не у водителя", sec: 30 },
+            { id: "incass_tumbler_yellow_back", category: "Инкассация объекта", desc: "Не вернул тумблер в жёлтое", sec: 30 },
+            { id: "incass_nakop_after", category: "Инкассация объекта", desc: "Не заложил ценности в накопитель", sec: 50 },
+            { id: "incass_nakop_door_after", category: "Инкассация объекта", desc: "Не закрыл накопитель", sec: 30 },
+            { id: "incass_sk_cell_after", category: "Инкассация объекта", desc: "СК не в спецячейку", sec: 20 },
+            
+            // === 6. Обслуживание УС ===
+            { id: "us_belt", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "us_early_cassette", category: "Обслуживание УС", desc: "Изъятие кассет до остановки", sec: 30 },
+            { id: "us_first_exit", category: "Обслуживание УС", desc: "Инкассатор первым вышел", sec: 30 },
+            { id: "us_engine", category: "Обслуживание УС", desc: "Не заглушен двигатель", sec: 20 },
+            { id: "us_driver_door_lock", category: "Обслуживание УС", desc: "Не закрыл дверь на задвижку", sec: 30 },
             { id: "us_no_command", category: "Обслуживание УС", desc: "Не подал команду на выход", sec: 30 },
             { id: "us_early_exit", category: "Обслуживание УС", desc: "Вышел до команды", sec: 30 },
+            { id: "us_cassette_left", category: "Обслуживание УС", desc: "Оставил кассету в накопителе", sec: 30 },
+            { id: "us_no_bag", category: "Обслуживание УС", desc: "Транспортировка без сумки-баула", sec: 50 },
+            { id: "us_cassette_dropped", category: "Обслуживание УС", desc: "Кассета выпала из сумки", sec: 30 },
+            { id: "us_jam_search", category: "Обслуживание УС", desc: "Не осуществил поиск замятия", sec: 30 },
+            { id: "us_jam_bad_fix", category: "Обслуживание УС", desc: "Некорректное устранение замятия", sec: 30 },
+            { id: "us_kup", category: "Обслуживание УС", desc: "Купюры не уложены в сейф-пакет", sec: 30 },
+            { id: "us_seifpak", category: "Обслуживание УС", desc: "Сейф-пакет не заклеен", sec: 30 },
+            { id: "us_no_scan", category: "Обслуживание УС", desc: "Не отсканирован сейф-пакет", sec: 30 },
+            { id: "us_seifpak_no_bag", category: "Обслуживание УС", desc: "Сейф-пакет не убран в сумку", sec: 30 },
+            { id: "us_safe_not_open", category: "Обслуживание УС", desc: "Не открыл сейф самостоятельно", sec: 30 },
+            { id: "us_not_kas", category: "Обслуживание УС", desc: "Кассеты не по маркировке", sec: 30 },
             { id: "us_no_check", category: "Обслуживание УС", desc: "Не проверил установку кассет", sec: 30 },
+            { id: "us_helper_pack", category: "Обслуживание УС", desc: "Помощь в укладке кассет", sec: 30 },
+            { id: "us_code_not_set", category: "Обслуживание УС", desc: "Не сбил код замка", sec: 30 },
+            { id: "us_left_property", category: "Обслуживание УС", desc: "Оставление имущества", sec: 30 },
+            { id: "us_senior_first_seat", category: "Обслуживание УС", desc: "Первым сел старший бригады", sec: 30 },
+            { id: "us_simultaneous_seat", category: "Обслуживание УС", desc: "Одновременная посадка", sec: 30 },
+            { id: "us_nakop_load", category: "Обслуживание УС", desc: "Не заложены ценности в накопитель", sec: 50 },
+            { id: "us_nakop_door", category: "Обслуживание УС", desc: "Не закрыт накопитель", sec: 30 },
+            { id: "us_broken_key", category: "Обслуживание УС", desc: "Сломал/погнул ключ", sec: 30 },
+            { id: "us_belt2", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            
+            // === 7. Стрельба ===
+            { id: "shoot_belt", category: "Стрельба", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "shoot_position", category: "Стрельба", desc: "СТС не на стоп-линии", sec: 30 },
+            { id: "shoot_engine", category: "Стрельба", desc: "Не заглушен двигатель", sec: 20 },
+            { id: "shoot_door_open", category: "Стрельба", desc: "Не закрыты двери", sec: 30 },
             { id: "shoot_miss", category: "Стрельба", desc: "Не сбита мишень", sec: 10 },
-            { id: "fire_ext", category: "Пожар", desc: "Не достал огнетушитель", sec: 30 },
+            { id: "shoot_belt2", category: "Стрельба", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            
+            // === 8. Пожар ===
+            { id: "fire_belt", category: "Пожар", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "fire_position", category: "Пожар", desc: "СТС не на безопасном расстоянии", sec: 30 },
+            { id: "fire_engine", category: "Пожар", desc: "Не заглушен двигатель", sec: 20 },
+            { id: "fire_no_report", category: "Пожар", desc: "Не сообщил о пожаре", sec: 30 },
+            { id: "fire_avar", category: "Пожар", desc: "Не включена аварийная сигнализация", sec: 10 },
+            { id: "fire_mayak", category: "Пожар", desc: "Не включен маячок", sec: 10 },
+            { id: "fire_dver_ruk", category: "Пожар", desc: "Открыл дверь руками", sec: 30 },
+            { id: "fire_ext", category: "Пожар", desc: "Не достал огнетушитель из СТС", sec: 30 },
+            { id: "fire_not_been", category: "Пожар", desc: "Не осуществил тушение", sec: 50 },
+            { id: "fire_no_location", category: "Пожар", desc: "Эвакуация не в обозначенное место", sec: 30 },
             { id: "fire_evac", category: "Пожар", desc: "Не все ценности эвакуированы", sec: 30 },
+            { id: "fire_bad_sk", category: "Пожар", desc: "Некорректное обращение с СК", sec: 50 },
+            { id: "fire_flag", category: "Пожар", desc: "Перенос ценностей до команды", sec: 30 },
+            { id: "fire_vmeste", category: "Пожар", desc: "Совместный перенос ценностей", sec: 30 },
+            { id: "fire_close_dver_ruk", category: "Пожар", desc: "Закрыл дверь руками", sec: 30 },
+            { id: "fire_cen", category: "Пожар", desc: "Не заложены ценности в накопитель", sec: 30 },
+            { id: "fire_nak", category: "Пожар", desc: "Не закрыт накопитель", sec: 30 },
+            { id: "fire_sk_cell", category: "Пожар", desc: "СК не в спецячейку", sec: 20 },
+            { id: "fire_belt2", category: "Пожар", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "fire_repair_report", category: "Пожар", desc: "Не сообщил о тушении", sec: 30 },
+            
+            // === 9. Медицина ===
+            { id: "med_belt", category: "Медицина", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "med_position", category: "Медицина", desc: "СТС не на стоп-линии", sec: 30 },
+            { id: "med_no_report", category: "Медицина", desc: "Не сообщил о необходимости помощи", sec: 30 },
+            { id: "med_engine", category: "Медицина", desc: "Не заглушен двигатель", sec: 20 },
             { id: "med_tourniquet", category: "Медицина", desc: "Неправильное наложение турникета", sec: 30 },
-            { id: "handcuff_no_warning", category: "Наручники", desc: "Не предупредил о наручниках", sec: 10 },
-            { id: "handcuff_no_report", category: "Наручники", desc: "Не доложил о надевании", sec: 10 },
+            { id: "med_time", category: "Медицина", desc: "Не обозначено время наложения", sec: 30 },
+            { id: "med_tourniquet_povtor", category: "Медицина", desc: "Повторное кровотечение от турникета", sec: 30 },
+            { id: "med_ipp", category: "Медицина", desc: "Неправильное наложение ИПП", sec: 30 },
+            { id: "med_ipp_razm", category: "Медицина", desc: "Не полностью размотан ИПП", sec: 20 },
+            { id: "med_ipp_povtor", category: "Медицина", desc: "Повторное кровотечение от ИПП", sec: 30 },
+            { id: "med_ipp_rasl", category: "Медицина", desc: "Не повторное наложение", sec: 30 },
+            { id: "med_stretcher", category: "Медицина", desc: "Уронил манекен", sec: 30 },
+            { id: "med_stretcher_ukr", category: "Медицина", desc: "Не переместил в укрытие", sec: 30 },
+            { id: "med_belt2", category: "Медицина", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            
+            // === 10. Наручники ===
+            { id: "handcuff_belt", category: "Наручники", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "handcuff_no_warning", category: "Наручники", desc: "Не предупредил о применении наручников", sec: 10 },
+            { id: "handcuff_loose", category: "Наручники", desc: "Наручники не надежно зафиксированы", sec: 30 },
+            { id: "handcuff_no_report", category: "Наручники", desc: "Не доложил «Наручники надеты»", sec: 10 },
+            { id: "handcuff_no_radio_exit", category: "Наручники", desc: "Не связался о выходе", sec: 30 },
+            { id: "handcuff_boarding_no_confirm", category: "Наручники", desc: "Посадка без подтверждения", sec: 30 },
+            { id: "handcuff_driver_no_confirm", category: "Наручники", desc: "Водитель не подтвердил выход", sec: 30 },
+            
+            // === 11. Обслуживание ВСП ===
+            { id: "vsp_belt", category: "Обслуживание ВСП", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "vsp_nak", category: "Обслуживание ВСП", desc: "Не закрыл накопитель", sec: 30 },
+            { id: "vsp_seif", category: "Обслуживание ВСП", desc: "Не вложил сейф-пакет в СК", sec: 30 },
+            { id: "vsp_sk", category: "Обслуживание ВСП", desc: "Не закрыл крышку СК", sec: 30 },
             { id: "vsp_no_radio", category: "Обслуживание ВСП", desc: "Обслуживает без радиостанции", sec: 30 },
+            { id: "vsp_no_key", category: "Обслуживание ВСП", desc: "Открыл СК без ИК-ключа", sec: 30 },
+            { id: "vsp_no_imit", category: "Обслуживание ВСП", desc: "Не осуществил имитацию сканирования", sec: 30 },
+            { id: "vsp_no_pak", category: "Обслуживание ВСП", desc: "Не вложил сейф-пакет в тележку", sec: 30 },
+            { id: "vsp_no_plomb", category: "Обслуживание ВСП", desc: "Не опломбировал тележку", sec: 30 },
+            { id: "vsp_ostav", category: "Обслуживание ВСП", desc: "Оставил СК/имущество", sec: 30 },
+            { id: "vsp_no_svyaz", category: "Обслуживание ВСП", desc: "Не связался о выходе", sec: 30 },
+            { id: "vsp_no_ok", category: "Обслуживание ВСП", desc: "Водитель не подтвердил выход", sec: 30 },
+            { id: "vsp_sel", category: "Обслуживание ВСП", desc: "Посадка без подтверждения", sec: 30 },
+            { id: "vsp_sk_cell", category: "Обслуживание ВСП", desc: "СК не в спецячейку", sec: 30 },
+            { id: "vsp_belt2", category: "Обслуживание ВСП", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            
+            // === 12. Вооруженный преступник ===
             { id: "prestupnik_mish", category: "Вооруженный преступник", desc: "Не сдвинута мишень", sec: 30 },
-            { id: "obsh_bez", category: "Общие штрафы", desc: "Нарушение безопасности", sec: 50 }
+            { id: "prestupnik_cone", category: "Вооруженный преступник", desc: "Выезд за линию/наезд на конус (1)", sec: 5 },
+            { id: "prestupnik_cone1", category: "Вооруженный преступник", desc: "Наезд на конус (2)", sec: 10 },
+            { id: "prestupnik_cone2", category: "Вооруженный преступник", desc: "Наезд на конус (3)", sec: 15 },
+            { id: "prestupnik_cone3", category: "Вооруженный преступник", desc: "Наезд на конус (4+)", sec: 20 },
+            { id: "prestupnik_shluz", category: "Вооруженный преступник", desc: "Выход за габарит шлюза", sec: 5 },
+            { id: "prestupnik_ogr_cone", category: "Вооруженный преступник", desc: "Наезд на ограждающий конус", sec: 5 },
+            
+            // === 13. Общие штрафы ===
+            { id: "obsh_bez", category: "Общие штрафы", desc: "Нарушение безопасности (выезд за границы)", sec: 50 },
+            { id: "obsh_lic", category: "Общие штрафы", desc: "Проход за ограждение без разрешения", sec: 30 },
+            { id: "obsh_svyaz", category: "Общие штрафы", desc: "Уронил радиостанцию", sec: 30 },
+            { id: "obsh_ivr", category: "Общие штрафы", desc: "Уронил ИВР", sec: 30 },
+            { id: "obsh_tsd", category: "Общие штрафы", desc: "Уронил ТСД", sec: 30 },
+            { id: "obsh_gun", category: "Общие штрафы", desc: "Выпадение пистолета из кобуры", sec: 20 },
+            { id: "obsh_sts", category: "Общие штрафы", desc: "Нарушение порядка посадки/выхода", sec: 20 }
         ];
         
-        const greenHighlightIds = ["prop_no_radio_start", "prop_sk_cell", "prop_belt", "bank_belt", "bank_nak_open", "bank_nak", "bank_scan", "puncture_no_report", "puncture_repair_report", "incass_no_radio", "incass_no_exit_radio", "incass_tumbler_blue", "us_no_command", "us_early_exit", "us_no_check", "shoot_miss", "fire_ext", "fire_evac", "med_tourniquet", "handcuff_no_warning", "handcuff_no_report"];
+        const greenHighlightIds = [
+            "prop_no_radio_start", "prop_sk_cell", "prop_belt", "bank_belt", "bank_nak_open", 
+            "bank_nak", "bank_scan", "puncture_no_report", "puncture_repair_report", "incass_no_radio", 
+            "incass_no_exit_radio", "incass_tumbler_blue", "us_no_command", "us_early_exit", 
+            "us_no_check", "shoot_miss", "fire_ext", "fire_evac", "med_tourniquet", 
+            "handcuff_no_warning", "handcuff_no_report"
+        ];
+        
         function isGreenHighlight(id) { return greenHighlightIds.includes(id); }
         
         const teamNames = {
@@ -375,7 +577,7 @@
                     judgesDatabase[`${stage}_2`] = [];
                 });
                 // Добавляем тестовых судей
-                judgesDatabase["Получение имущества_1"] = ["Иванов Иван Иванович"];
+                judgesDatabase["Получение имущества_1"] = ["Сосновских Александр Павлович"];
                 judgesDatabase["Получение имущества_2"] = ["Петров Петр Петрович"];
                 judgesDatabase["Стрельба_1"] = ["Сидоров Сидор Сидорович"];
                 judgesDatabase["Стрельба_2"] = ["Кузнецов Кузьма Кузьмич"];
@@ -453,21 +655,74 @@
         }
         
         function renderPenaltiesJudge(){
-            if(!currentUser.direction||!currentTeam){ document.getElementById('penaltiesContainer').innerHTML='<div>Выберите банк</div>'; return; }
-            let stagePen=penaltiesLibrary.filter(p=>p.category===currentUser.stage);
-            if(stagePen.length===0){ document.getElementById('penaltiesContainer').innerHTML='<div>Нет штрафов для этого этапа</div>'; return; }
-            let html='';
-            for(let p of stagePen){
-                let checked=!!tempPenalties[p.id];
-                const greenClass = isGreenHighlight(p.id) ? 'penalty-highlight-green' : '';
-                html+=`<div class="penalty-card ${greenClass}"><input type="checkbox" id="chk_${p.id}" data-id="${p.id}" ${checked?'checked':''}><label>${p.desc}<span class="penalty-sec">+${p.sec} сек</span></label></div>`;
+            if(!currentUser.direction||!currentTeam){ 
+                document.getElementById('penaltiesContainer').innerHTML='<div style="grid-column:1/-1; text-align:center; padding:20px;">⚙️ Выберите банк для отображения штрафов</div>'; 
+                return; 
             }
-            document.getElementById('penaltiesContainer').innerHTML=html;
+            let stagePen = penaltiesLibrary.filter(p => p.category === currentUser.stage);
+            if(stagePen.length === 0){ 
+                document.getElementById('penaltiesContainer').innerHTML=`<div style="grid-column:1/-1; text-align:center; padding:20px;">📭 Для этапа "${currentUser.stage}" нет штрафных нарушений</div>`; 
+                return; 
+            }
+            
+            // Группировка по подкатегориям (для удобства)
+            let html = `<div class="stage-title">📋 Штрафные нарушения этапа "${currentUser.stage}" (${stagePen.length} шт.)</div>`;
             for(let p of stagePen){
-                let cb=document.getElementById(`chk_${p.id}`);
-                if(cb) cb.onchange=(e)=>{ if(e.target.checked) tempPenalties[p.id]=true; else delete tempPenalties[p.id]; hasUnsavedChanges=true; updateJudgeSummary(); };
+                let checked = !!tempPenalties[p.id];
+                const greenClass = isGreenHighlight(p.id) ? 'penalty-highlight-green' : '';
+                html += `<div class="penalty-card ${greenClass}" data-id="${p.id}">
+                            <input type="checkbox" id="chk_${p.id}" data-id="${p.id}" ${checked?'checked':''}>
+                            <label for="chk_${p.id}" style="display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer;">
+                                <span style="flex:1;">${p.desc}</span>
+                                <span class="penalty-sec">+${p.sec} сек</span>
+                            </label>
+                         </div>`;
+            }
+            document.getElementById('penaltiesContainer').innerHTML = html;
+            
+            // Добавляем обработчики
+            for(let p of stagePen){
+                let cb = document.getElementById(`chk_${p.id}`);
+                let card = document.querySelector(`.penalty-card[data-id="${p.id}"]`);
+                if(cb){
+                    cb.onchange = (e) => {
+                        e.stopPropagation();
+                        if(e.target.checked) tempPenalties[p.id]=true;
+                        else delete tempPenalties[p.id];
+                        hasUnsavedChanges=true;
+                        updateJudgeSummary();
+                        updateUnsavedBadge();
+                    };
+                }
+                if(card){
+                    card.onclick = (e) => {
+                        if(e.target.tagName !== 'INPUT'){
+                            let chk = card.querySelector('input');
+                            if(chk){
+                                chk.checked = !chk.checked;
+                                if(chk.checked) tempPenalties[p.id]=true;
+                                else delete tempPenalties[p.id];
+                                hasUnsavedChanges=true;
+                                updateJudgeSummary();
+                                updateUnsavedBadge();
+                            }
+                        }
+                    };
+                }
             }
             updateJudgeSummary();
+        }
+        
+        function updateUnsavedBadge() {
+            let div = document.getElementById('stageInfo');
+            let old = div.querySelector('.unsaved-badge');
+            if(old) old.remove();
+            if(hasUnsavedChanges && currentTeam){
+                let badge = document.createElement('span');
+                badge.className = 'unsaved-badge';
+                badge.innerText = '⚠️ Есть несохранённые изменения';
+                div.appendChild(badge);
+            }
         }
         
         async function updateJudgeSummary(){
@@ -475,9 +730,15 @@
             let data=await loadTeamData(currentUser.direction, currentTeam);
             let savedPen=data?.penalties||{};
             let otherSum=0;
-            for(let id in savedPen) if(savedPen[id] && !tempPenalties[id]){ let p=penaltiesLibrary.find(p=>p.id===id); if(p) otherSum+=p.sec; }
+            for(let id in savedPen) if(savedPen[id] && !tempPenalties[id]){ 
+                let p=penaltiesLibrary.find(p=>p.id===id); 
+                if(p && p.category !== currentUser.stage) otherSum+=p.sec; 
+            }
             let tempSum=0;
-            for(let id in tempPenalties){ let p=penaltiesLibrary.find(p=>p.id===id); if(p) tempSum+=p.sec; }
+            for(let id in tempPenalties){ 
+                let p=penaltiesLibrary.find(p=>p.id===id); 
+                if(p) tempSum+=p.sec; 
+            }
             document.getElementById('totalPenaltyDisplay').innerText=otherSum+tempSum;
             let raw=data?.raw_seconds??null;
             let total=raw!==null?raw+otherSum+tempSum:null;
@@ -489,13 +750,16 @@
             let existing=await loadTeamData(currentUser.direction, currentTeam);
             let penaltiesObj=existing?.penalties||{};
             let stageIds=penaltiesLibrary.filter(p=>p.category===currentUser.stage).map(p=>p.id);
+            // Удаляем старые нарушения этого этапа
             for(let id of stageIds) delete penaltiesObj[id];
+            // Добавляем новые
             for(let id in tempPenalties) if(tempPenalties[id]) penaltiesObj[id]=true;
             await saveTeamData(currentUser.direction, currentTeam, existing?.raw_seconds??null, penaltiesObj);
             hasUnsavedChanges=false;
             await refreshCurrentTeamData();
             await loadAllResultsForJudge();
-            alert('Сохранено');
+            updateUnsavedBadge();
+            alert('Ошибки этапа сохранены');
         }
         
         async function saveRawTimeJudge(){
@@ -507,7 +771,7 @@
                 let minutes=parseInt(parts[0])||0;
                 let seconds=parts[1]?parseFloat(parts[1]):0;
                 rawSeconds=minutes*60+seconds;
-                if(isNaN(rawSeconds)) { alert('Неверный формат'); return; }
+                if(isNaN(rawSeconds)) { alert('Неверный формат. Используйте мм:сс.сс'); return; }
             }
             let existing=await loadTeamData(currentUser.direction, currentTeam);
             await saveTeamData(currentUser.direction, currentTeam, rawSeconds, existing?.penalties||{});
@@ -518,12 +782,22 @@
         
         async function resetTeamPenalties(){
             if(!currentUser.direction||!currentTeam){ alert('Выберите команду'); return; }
-            if(!confirm('Сбросить ВСЕ ошибки для этой команды?')) return;
+            if(!confirm('Сбросить ВСЕ ошибки для этой команды (все этапы)?')) return;
             let existing=await loadTeamData(currentUser.direction, currentTeam);
             await saveTeamData(currentUser.direction, currentTeam, existing?.raw_seconds??null, {});
             await refreshCurrentTeamData();
             await loadAllResultsForJudge();
             alert('Все ошибки сброшены');
+        }
+        
+        async function resetStagePenalties(){
+            if(!currentUser.direction||!currentTeam){ alert('Выберите команду'); return; }
+            let stageIds = penaltiesLibrary.filter(p=>p.category===currentUser.stage).map(p=>p.id);
+            for(let id of stageIds) delete tempPenalties[id];
+            hasUnsavedChanges = true;
+            renderPenaltiesJudge();
+            updateUnsavedBadge();
+            alert('Чекбоксы сброшены. Не забудьте сохранить изменения!');
         }
         
         async function loadAllResultsForJudge(){
@@ -545,6 +819,9 @@
                 if(r.total!==null && rank===1) tr.classList.add('rank-1');
                 tr.innerHTML=`<td>${r.total!==null?rank++:'—'}</td><td>${r.name} (${r.team})</strong></td><td>${r.dir}</strong></td><td>${r.raw!==null?formatTime(r.raw):'—'}</td><td>${r.penalty}</td><td class="total-cell">${r.total!==null?formatTime(r.total):'—'}</td>`;
                 tbody.appendChild(tr);
+            }
+            if(rows.length === 0){
+                tbody.innerHTML = '<tr><td colspan="6">Нет данных. Внесите результаты.</td></tr>';
             }
         }
         
@@ -596,13 +873,16 @@
         }
         
         function initJudgeUI(){
-            document.getElementById('teamSelect').addEventListener('change', ()=> { currentTeam=document.getElementById('teamSelect').value||null; refreshCurrentTeamData(); });
-            document.getElementById('saveStageBtn').onclick=saveStageJudge;
-            document.getElementById('saveRawTimeBtn').onclick=saveRawTimeJudge;
-            document.getElementById('resetStageBtn').onclick=()=>refreshCurrentTeamData();
-            document.getElementById('resetTeamBtn').onclick=resetTeamPenalties;
-            document.getElementById('printReportBtn').onclick=printFullReport;
-            document.getElementById('logoutBtn').onclick=()=>{ clearUserSession(); showAuth(); };
+            document.getElementById('teamSelect').addEventListener('change', ()=> { 
+                currentTeam = document.getElementById('teamSelect').value || null; 
+                refreshCurrentTeamData(); 
+            });
+            document.getElementById('saveStageBtn').onclick = saveStageJudge;
+            document.getElementById('saveRawTimeBtn').onclick = saveRawTimeJudge;
+            document.getElementById('resetStageBtn').onclick = resetStagePenalties;
+            document.getElementById('resetTeamBtn').onclick = resetTeamPenalties;
+            document.getElementById('printReportBtn').onclick = printFullReport;
+            document.getElementById('logoutBtn').onclick = () => { clearUserSession(); showAuth(); };
             refreshCurrentTeamData();
             loadAllResultsForJudge();
         }
@@ -613,12 +893,8 @@
             for(let [key, judges] of Object.entries(judgesDatabase)){
                 if(!judges) judges = [];
                 let [stage, dir] = key.split('_');
-                html += `<tr><td><strong>${stage}</strong></td><td>Направление ${dir}</td><td>${judges.length > 0 ? judges.join(', ') : '<span style="color:#999;">— нет судей —</span>'}</td>
-                          <td><button class="delete-judge-btn" data-key="${key}" data-judge="all">🗑️ Очистить</button></td></tr>`;
-                for(let judge of judges){
-                    html += `<tr style="background:#f9fafb;"><td></td><td></td><td style="padding-left:30px;">👤 ${judge}</td>
-                              <td><button class="delete-judge-btn" data-key="${key}" data-judge="${judge}">❌ Удалить</button></td></tr>`;
-                }
+                html += `<tr><td style="vertical-align:top;"><strong>${stage}</strong></td><td style="vertical-align:top;">Направление ${dir}</strong></td><td>${judges.length > 0 ? judges.join('<br>') : '<span style="color:#999;">— нет судей —</span>'}</td>
+                           <td style="vertical-align:top;"><button class="delete-judge-btn" data-key="${key}" data-judge="all">🗑️ Очистить</button></td></tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
@@ -777,7 +1053,7 @@
         function checkConnection() {
             let statusDiv = document.getElementById('connectionStatus');
             if(statusDiv) {
-                statusDiv.innerHTML = '<span class="status-ok">✅ Работает в локальном режиме</span>';
+                statusDiv.innerHTML = '<span class="status-ok">✅ Работает в локальном режиме. Все штрафы загружены.</span>';
             }
         }
         checkConnection();
