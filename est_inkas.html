@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Эстафета — Админ-панель и судейство</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f0f4f8; margin: 0; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        
+        .auth-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .auth-card {
+            background: white;
+            border-radius: 32px;
+            padding: 32px 28px;
+            width: 90%;
+            max-width: 460px;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .auth-card h2 { margin-top: 0; color: #1e3a8a; }
+        .auth-card select, .auth-card input {
+            width: 100%;
+            padding: 14px;
+            margin: 12px 0;
+            border-radius: 40px;
+            border: 1px solid #cbd5e1;
+            font-size: 1rem;
+            background: white;
+        }
+        .auth-card button {
+            background: #1e3a8a;
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 1rem;
+            margin-top: 10px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .error-msg { color: #b91c1c; margin-top: 12px; font-size: 0.85rem; }
+        .judge-badge {
+            background: #eef2ff;
+            padding: 8px 16px;
+            border-radius: 40px;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .admin-badge { background: #ede9fe; color: #5b21b6; }
+        .logout-btn {
+            background: #475569;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        .hidden { display: none !important; }
+        
+        .judge-panel { background: white; border-radius: 20px; padding: 20px 24px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .judge-controls { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; margin-bottom: 20px; }
+        .control-group { display: flex; flex-direction: column; gap: 6px; min-width: 160px; flex: 1; }
+        .control-group label { font-weight: 600; font-size: 0.85rem; color: #2c3e66; }
+        select, input { padding: 12px 14px; border-radius: 12px; border: 1px solid #cbd5e1; background: white; font-size: 1rem; width: 100%; }
+        button { background: #1e3a8a; color: white; border: none; padding: 12px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #1e40af; }
+        .reset-stage-btn { background: #f97316; }
+        .reset-team-btn { background: #475569; }
+        .print-btn { background: #2c5f2d; }
+        .stage-info { background: #eef2ff; border-radius: 16px; padding: 12px 20px; margin: 15px 0; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; }
+        .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 12px; margin: 20px 0; max-height: 500px; overflow-y: auto; padding: 4px; }
+        .penalty-card { background: #f9fafb; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+        .penalty-card input { width: 24px; height: 24px; margin: 0; cursor: pointer; }
+        .penalty-card label { flex: 1; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 0.9rem; }
+        .penalty-sec { background: #e2e8f0; padding: 4px 10px; border-radius: 40px; font-size: 0.8rem; }
+        .penalty-highlight-green { background: #dcfce7 !important; border-left: 6px solid #15803d !important; }
+        .summary-bar { background: #f1f5f9; border-radius: 20px; padding: 16px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-top: 20px; gap: 15px; }
+        .total-time { font-size: 1.6rem; font-weight: 800; background: #dcfce7; padding: 6px 18px; border-radius: 40px; }
+        .results-table { background: white; border-radius: 24px; overflow-x: auto; padding: 4px; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; }
+        .rank-1 { background-color: #fef9c3; font-weight: bold; }
+        
+        .admin-panel {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .judge-list-table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+        .judge-list-table th, .judge-list-table td { text-align: left; padding: 10px 8px; border-bottom: 1px solid #e2e8f0; }
+        .delete-judge-btn { background: #dc2626; padding: 6px 12px; font-size: 0.8rem; }
+        .add-judge-form {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 20px;
+            margin-top: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-end;
+        }
+        .add-judge-form .control-group { flex: 1; min-width: 180px; }
+        .add-judge-form button { background: #10b981; }
+        .tab-buttons { display: flex; gap: 12px; margin-bottom: 24px; }
+        .tab-btn { background: #e2e8f0; color: #1e293b; }
+        .tab-btn.active { background: #1e3a8a; color: white; }
+        .direction-badge {
+            display: inline-block;
+            background: #e2e8f0;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-left: 10px;
+        }
+        .status-ok { background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; display: inline-block; }
+        .status-error { background: #fee2e2; color: #991b1b; }
+        .status-warning { background: #fed7aa; color: #9b4a0c; }
+        
+        @media print {
+            body { background: white; padding: 0; margin: 0; }
+            .judge-panel, .results-table, .stage-info, .judge-controls, .penalties-grid, .summary-bar,
+            .unsaved-badge, #printReportBtn, #saveRawTimeBtn, #resetTeamBtn, #saveStageBtn, #resetStageBtn,
+            select, input, .logout-btn, .judge-badge, .admin-panel, .tab-buttons { display: none !important; }
+            .print-report-area { display: block !important; }
+            .print-sign-line { margin-top: 40px; border-top: 1px dashed #aaa; padding-top: 20px; }
+        }
+        .print-report-area { display: none; }
+    </style>
+</head>
+<body>
+<div class="container" id="appContainer">
+    <div id="authPanel" class="auth-overlay">
+        <div class="auth-card">
+            <h2>👨‍⚖️ Вход в систему</h2>
+            <p style="color:#475569;">Выберите роль и войдите</p>
+            <select id="authRoleSelect">
+                <option value="judge">👨‍⚖️ Судья этапа</option>
+                <option value="admin">👑 Администратор</option>
+            </select>
+            <div id="judgeAuthBlock">
+                <select id="authStageSelect">
+                    <option value="">-- Выберите этап --</option>
+                </select>
+                <select id="authJudgeSelect" disabled>
+                    <option value="">-- Сначала выберите этап --</option>
+                </select>
+            </div>
+            <div id="adminAuthBlock" class="hidden">
+                <input type="password" id="adminPassword" placeholder="Введите пароль администратора">
+            </div>
+            <button id="loginBtn">🔐 Войти</button>
+            <div id="authError" class="error-msg"></div>
+        </div>
+    </div>
+
+    <div id="judgeInterface" class="hidden">
+        <div class="judge-panel">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <h2>⚡ Эстафета — судейство этапа: <span id="currentStageBadge" style="background:#dcfce7; padding:4px 16px; border-radius:30px;"></span>
+                    <span id="directionBadge" class="direction-badge"></span>
+                </h2>
+                <div class="judge-badge">
+                    <span>👤 <span id="judgeNameSpan"></span></span>
+                    <button id="logoutBtn" class="logout-btn">🚪 Выйти</button>
+                </div>
+            </div>
+            <div id="connectionStatus" style="margin-bottom: 15px;"></div>
+            
+            <div class="judge-controls">
+                <div class="control-group">
+                    <label>🏦 Территориальный банк</label>
+                    <select id="teamSelect">
+                        <option value="">-- выбрать --</option>
+                        <option value="УБ">Уральский (УБ)</option>
+                        <option value="ДВБ">Дальневосточный (ДВБ)</option>
+                        <option value="ББ">Байкальский (ББ)</option>
+                        <option value="МРД">Московский (МРД)</option>
+                        <option value="ЦЧБ">Центрально-Черноземный (ЦЧБ)</option>
+                        <option value="ЮЗБ">Юго-Западный (ЮЗБ)</option>
+                        <option value="ПВБ">Поволжский (ПВБ)</option>
+                        <option value="СИБ">Сибирский (СИБ)</option>
+                        <option value="СРБ">Среднерусский (СРБ)</option>
+                        <option value="СЗБ">Северо-Западный (СЗБ)</option>
+                        <option value="ВВБ">Волго-Вятский (ВВБ)</option>
+                    </select>
+                </div>
+                <button id="printReportBtn" class="print-btn" style="background:#2c5f2d; margin-left: auto;">🖨️ Печать отчета</button>
+            </div>
+
+            <div class="judge-controls" style="margin-top: 0;">
+                <div class="control-group" style="min-width: 220px;">
+                    <label>⏱️ Чистое время заезда (мм:сс.сс)</label>
+                    <input type="text" id="rawTimeInput" placeholder="например 5:42.35">
+                </div>
+                <button id="saveRawTimeBtn">💾 Зафиксировать время</button>
+                <button id="resetTeamBtn" class="reset-team-btn">🔄 Сбросить ВСЕ ошибки команды</button>
+            </div>
+
+            <div id="stageInfo" class="stage-info">
+                <span>✅ Штрафные нарушения (ваш этап)</span>
+                <div style="display: flex; gap: 10px;">
+                    <button id="saveStageBtn" style="background: #2b6e3c;">💾 Сохранить ошибки этапа</button>
+                    <button id="resetStageBtn" class="reset-stage-btn">🗑️ Сбросить ошибки этапа</button>
+                </div>
+            </div>
+
+            <div id="penaltiesContainer" class="penalties-grid">
+                <div style="grid-column:1/-1; text-align:center;">⚙️ Выберите команду</div>
+            </div>
+
+            <div class="summary-bar">
+                <span><strong>Штраф (ваш этап+другие):</strong> <span id="totalPenaltyDisplay">0</span> сек</span>
+                <span><strong>Чистое время:</strong> <span id="rawTimeDisplay">—</span></span>
+                <span class="total-time"><strong>ИТОГО:</strong> <span id="totalTimeDisplay">—</span></span>
+            </div>
+        </div>
+
+        <div class="results-table">
+            <h3>🏆 Общий зачёт (все команды)</h3>
+            <table id="resultsTable">
+                <thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
+                <tbody id="resultsBody"><tr><td colspan="6">Загрузка...</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="adminInterface" class="hidden">
+        <div class="admin-panel">
+            <div class="admin-header">
+                <h2>👑 Админ-панель управления судьями</h2>
+                <div class="judge-badge admin-badge">
+                    <span>👑 Администратор</span>
+                    <button id="adminLogoutBtn" class="logout-btn">🚪 Выйти</button>
+                </div>
+            </div>
+            <div class="tab-buttons">
+                <button id="tabJudgesBtn" class="tab-btn active">📋 Список судей</button>
+                <button id="tabResultsBtn" class="tab-btn">🏆 Результаты команд</button>
+            </div>
+            <div id="judgesTab">
+                <h3>🗂️ Судьи по этапам и направлениям</h3>
+                <div id="judgesListContainer"></div>
+                <div class="add-judge-form">
+                    <div class="control-group">
+                        <label>Этап</label>
+                        <select id="adminStageSelect"></select>
+                    </div>
+                    <div class="control-group">
+                        <label>Направление</label>
+                        <select id="adminDirectionSelect">
+                            <option value="1">Направление 1</option>
+                            <option value="2">Направление 2</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>ФИО судьи</label>
+                        <input type="text" id="newJudgeName" placeholder="Иванов Иван Иванович">
+                    </div>
+                    <button id="addJudgeBtn">➕ Добавить судью</button>
+                </div>
+            </div>
+            <div id="resultsTab" class="hidden">
+                <h3>📊 Все результаты команд</h3>
+                <div class="results-table" style="margin-top: 0;">
+                    <table id="adminResultsTable">
+                        <thead><tr><th>Место</th><th>Команда</th><th>Направление</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
+                        <tbody id="adminResultsBody"></tbody>
+                    </table>
+                </div>
+                <button id="adminRefreshBtn" style="margin-top: 16px; background: #3b82f6;">🔄 Обновить</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="printReportContainer" class="print-report-area"></div>
+
+<script>
+    (function() {
+        const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        const stages = [
+            "Получение имущества", "Получение банковских ценностей", "Прокол шины", "Змейка",
+            "Инкассация объекта", "Обслуживание УС", "Стрельба", "Пожар", "Медицина", "Наручники",
+            "Обслуживание ВСП", "Вооруженный преступник", "Общие штрафы"
+        ];
+        
+        // ========== ПОЛНЫЙ СПИСОК ШТРАФОВ ИЗ estafeta (2).html ==========
+        const penaltiesLibrary = [
+            // === 1. Получение имущества ===
+            { id: "prop_door", category: "Получение имущества", desc: "Не закрыты двери/дверь СТС в «гараже»", sec: 30 },
+            { id: "prop_sk", category: "Получение имущества", desc: "Инкассатор: СК не получен", sec: 20 },
+            { id: "prop_yellow_key", category: "Получение имущества", desc: "Инкассатор: Жёлтый ИК-ключ СК не получен", sec: 20 },
+            { id: "prop_nakop_key", category: "Получение имущества", desc: "Инкассатор: Ключ от накопителя не получен", sec: 20 },
+            { id: "prop_dover", category: "Получение имущества", desc: "Инкассатор: Доверенность не получена", sec: 20 },
+            { id: "prop_passport", category: "Получение имущества", desc: "Инкассатор: Паспорт не получен", sec: 20 },
+            { id: "prop_us_key", category: "Получение имущества", desc: "Инкассатор: Ключи от УС не получены", sec: 20 },
+            { id: "prop_tsd", category: "Получение имущества", desc: "Инкассатор: ТСД/радиотерминал не получен", sec: 20 },
+            { id: "prop_ivr", category: "Получение имущества", desc: "Инкассатор: ИВР не получен", sec: 20 },
+            { id: "prop_sk_cell", category: "Получение имущества", desc: "Инкассатор: СК не установлен в специальную ячейку", sec: 20 },
+            { id: "prop_driver_radio", category: "Получение имущества", desc: "Водитель: носимая радиостанция не получена", sec: 20 },
+            { id: "prop_blue_key", category: "Получение имущества", desc: "Водитель: синий ИК-ключ СК не получен", sec: 20 },
+            { id: "prop_car_keys", category: "Получение имущества", desc: "Водитель: ключи от СТС/брелок не получены", sec: 20 },
+            { id: "prop_sumka", category: "Получение имущества", desc: "Не получена сумка-баул для кассет УС", sec: 20 },
+            { id: "prop_check_sk", category: "Получение имущества", desc: "Инкассатор не проверил работоспособность СК с помощью ИК-ключа желтого цвета", sec: 30 },
+            { id: "prop_no_radio_start", category: "Получение имущества", desc: "Не доложили по радио о начале движения СТС", sec: 30 },
+            { id: "prop_bad_sk", category: "Получение имущества", desc: "Некорректное обращение с СК (уронил/кинул на землю)", sec: 50 },
+            { id: "prop_belt", category: "Получение имущества", desc: "Бригада не пристегнута ремнями безопасности", sec: 30 },
+            
+            // === 2. Получение банковских ценностей ===
+            { id: "bank_belt", category: "Получение банковских ценностей", desc: "Бригада не пристегнута ремнями безопасности", sec: 30 },
+            { id: "bank_cone_1", category: "Получение банковских ценностей", desc: "Наезд на 1 конус/выход за габарит", sec: 5 },
+            { id: "bank_cone_2", category: "Получение банковских ценностей", desc: "Наезд на 2 конуса", sec: 10 },
+            { id: "bank_cone_3", category: "Получение банковских ценностей", desc: "Наезд на 3 конуса", sec: 15 },
+            { id: "bank_cone_4", category: "Получение банковских ценностей", desc: "Наезд на 4 и более конуса", sec: 20 },
+            { id: "bank_sts", category: "Получение банковских ценностей", desc: "СТС не заехал в бокс", sec: 50 },
+            { id: "bank_door_open", category: "Получение банковских ценностей", desc: "Не закрыты двери/дверь СТС в «боксе»", sec: 30 },
+            { id: "bank_nak_open", category: "Получение банковских ценностей", desc: "Не закрыт накопитель СТС в «боксе»", sec: 30 },
+            { id: "bank_no_dok", category: "Получение банковских ценностей", desc: "Инкассатор не предъявил документы", sec: 30 },
+            { id: "bank_bc", category: "Получение банковских ценностей", desc: "Оставление банковских ценностей без охраны", sec: 50 },
+            { id: "bank_scan", category: "Получение банковских ценностей", desc: "Инкассатор не произвел сканирования", sec: 20 },
+            { id: "bank_ostav", category: "Получение банковских ценностей", desc: "Оставление документов", sec: 30 },
+            { id: "bank_nak", category: "Получение банковских ценностей", desc: "Не заложены ценности в накопитель", sec: 30 },
+            { id: "bank_nak_dv", category: "Получение банковских ценностей", desc: "Не закрыта дверь накопителя", sec: 30 },
+            
+            // === 3. Прокол шины ===
+            { id: "puncture_belt", category: "Прокол шины", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "puncture_no_report", category: "Прокол шины", desc: "Не сообщил о поломке СТС", sec: 30 },
+            { id: "puncture_hazard", category: "Прокол шины", desc: "Не включена аварийная сигнализация", sec: 30 },
+            { id: "puncture_engine", category: "Прокол шины", desc: "Не заглушен двигатель", sec: 20 },
+            { id: "puncture_triangle", category: "Прокол шины", desc: "Не выставлен знак аварийной остановки", sec: 30 },
+            { id: "puncture_triangle_pass", category: "Прокол шины", desc: "Передача знака аварийной остановки", sec: 30 },
+            { id: "puncture_triangle_side", category: "Прокол шины", desc: "Знак выставлен не той стороной", sec: 10 },
+            { id: "puncture_handbrake", category: "Прокол шины", desc: "СТС не заторможен стояночным тормозом", sec: 10 },
+            { id: "puncture_gear", category: "Прокол шины", desc: "Не установлена передача", sec: 10 },
+            { id: "puncture_chocks", category: "Прокол шины", desc: "Не подложены упоры", sec: 10 },
+            { id: "puncture_jack_pos", category: "Прокол шины", desc: "Домкрат не в спецместо", sec: 30 },
+            { id: "puncture_jack_doors", category: "Прокол шины", desc: "Не закрыты двери при поддомкрачивании", sec: 50 },
+            { id: "puncture_jack_height", category: "Прокол шины", desc: "Не поддомкрачен на требуемую высоту", sec: 50 },
+            { id: "puncture_imitation", category: "Прокол шины", desc: "Не осуществлена имитация замены колеса", sec: 20 },
+            { id: "puncture_cleanup_triangle", category: "Прокол шины", desc: "Не убран знак", sec: 10 },
+            { id: "puncture_cleanup_chocks", category: "Прокол шины", desc: "Не убраны упоры", sec: 10 },
+            { id: "puncture_cleanup_jack", category: "Прокол шины", desc: "Не убран домкрат", sec: 10 },
+            { id: "puncture_helper", category: "Прокол шины", desc: "Инкассатор помогает водителю", sec: 30 },
+            { id: "puncture_repair_report", category: "Прокол шины", desc: "Не сообщил об устранении неисправности", sec: 30 },
+            
+            // === 4. Змейка ===
+            { id: "snake_cone", category: "Змейка", desc: "Наезд на конус (1)", sec: 5 },
+            { id: "snake_cone1", category: "Змейка", desc: "Наезд на конус (2)", sec: 10 },
+            { id: "snake_cone2", category: "Змейка", desc: "Наезд на конус (3)", sec: 15 },
+            { id: "snake_cone3", category: "Змейка", desc: "Наезд на конус (4+)", sec: 20 },
+            
+            // === 5. Инкассация объекта ===
+            { id: "incass_belt", category: "Инкассация объекта", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "incass_no_radio", category: "Инкассация объекта", desc: "Инкассатор без носимой радиостанции", sec: 30 },
+            { id: "incass_no_docs", category: "Инкассация объекта", desc: "Не предъявил документы", sec: 30 },
+            { id: "incass_no_scan", category: "Инкассация объекта", desc: "Не произвел сканирование", sec: 20 },
+            { id: "incass_no_sign", category: "Инкассация объекта", desc: "Не передал ТСД для подписи", sec: 20 },
+            { id: "incass_open_sk_no_key", category: "Инкассация объекта", desc: "Открыл СК без ИК-ключа", sec: 30 },
+            { id: "incass_not_loaded", category: "Инкассация объекта", desc: "Не заложен пакет в СК", sec: 50 },
+            { id: "incass_tumbler_blue", category: "Инкассация объекта", desc: "Не переключил тумблер в синее", sec: 30 },
+            { id: "incass_sk_not_closed", category: "Инкассация объекта", desc: "Не закрыл СК", sec: 30 },
+            { id: "incass_left_docs", category: "Инкассация объекта", desc: "Оставил документы", sec: 30 },
+            { id: "incass_left_packet", category: "Инкассация объекта", desc: "Оставил сейф-пакет", sec: 30 },
+            { id: "incass_left_sk", category: "Инкассация объекта", desc: "Оставил СК", sec: 30 },
+            { id: "incass_no_exit_radio", category: "Инкассация объекта", desc: "Не связался о выходе", sec: 30 },
+            { id: "incass_exit_no_confirm", category: "Инкассация объекта", desc: "Вышел без подтверждения", sec: 30 },
+            { id: "incass_blue_key_from_driver", category: "Инкассация объекта", desc: "Взял ключ не у водителя", sec: 30 },
+            { id: "incass_tumbler_yellow_back", category: "Инкассация объекта", desc: "Не вернул тумблер в жёлтое", sec: 30 },
+            { id: "incass_nakop_after", category: "Инкассация объекта", desc: "Не заложил ценности в накопитель", sec: 50 },
+            { id: "incass_nakop_door_after", category: "Инкассация объекта", desc: "Не закрыл накопитель", sec: 30 },
+            { id: "incass_sk_cell_after", category: "Инкассация объекта", desc: "СК не в спецячейку", sec: 20 },
+            
+            // === 6. Обслуживание УС ===
+            { id: "us_belt", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "us_early_cassette", category: "Обслуживание УС", desc: "Изъятие кассет до остановки", sec: 30 },
+            { id: "us_first_exit", category: "Обслуживание УС", desc: "Инкассатор первым вышел", sec: 30 },
+            { id: "us_engine", category: "Обслуживание УС", desc: "Не заглушен двигатель", sec: 20 },
+            { id: "us_driver_door_lock", category: "Обслуживание УС", desc: "Не закрыл дверь на задвижку", sec: 30 },
+            { id: "us_no_command", category: "Обслуживание УС", desc: "Не подал команду на выход", sec: 30 },
+            { id: "us_early_exit", category: "Обслуживание УС", desc: "Вышел до команды", sec: 30 },
+            { id: "us_cassette_left", category: "Обслуживание УС", desc: "Оставил кассету в накопителе", sec: 30 },
+            { id: "us_no_bag", category: "Обслуживание УС", desc: "Транспортировка без сумки-баула", sec: 50 },
+            { id: "us_cassette_dropped", category: "Обслуживание УС", desc: "Кассета выпала из сумки", sec: 30 },
+            { id: "us_jam_search", category: "Обслуживание УС", desc: "Не осуществил поиск замятия", sec: 30 },
+            { id: "us_jam_bad_fix", category: "Обслуживание УС", desc: "Некорректное устранение замятия", sec: 30 },
+            { id: "us_kup", category: "Обслуживание УС", desc: "Купюры не уложены в сейф-пакет", sec: 30 },
+            { id: "us_seifpak", category: "Обслуживание УС", desc: "Сейф-пакет не заклеен", sec: 30 },
+            { id: "us_no_scan", category: "Обслуживание УС", desc: "Не отсканирован сейф-пакет", sec: 30 },
+            { id: "us_seifpak_no_bag", category: "Обслуживание УС", desc: "Сейф-пакет не убран в сумку", sec: 30 },
+            { id: "us_safe_not_open", category: "Обслуживание УС", desc: "Не открыл сейф самостоятельно", sec: 30 },
+            { id: "us_not_kas", category: "Обслуживание УС", desc: "Кассеты не по маркировке", sec: 30 },
+            { id: "us_no_check", category: "Обслуживание УС", desc: "Не проверил установку кассет", sec: 30 },
+            { id: "us_helper_pack", category: "Обслуживание УС", desc: "Помощь в укладке кассет", sec: 30 },
+            { id: "us_code_not_set", category: "Обслуживание УС", desc: "Не сбил код замка", sec: 30 },
+            { id: "us_left_property", category: "Обслуживание УС", desc: "Оставление имущества", sec: 30 },
+            { id: "us_senior_first_seat", category: "Обслуживание УС", desc: "Первым сел старший бригады", sec: 30 },
+            { id: "us_simultaneous_seat", category: "Обслуживание УС", desc: "Одновременная посадка", sec: 30 },
+            { id: "us_nakop_load", category: "Обслуживание УС", desc: "Не заложены ценности в накопитель", sec: 50 },
+            { id: "us_nakop_door", category: "Обслуживание УС", desc: "Не закрыт накопитель", sec: 30 },
+            { id: "us_broken_key", category: "Обслуживание УС", desc: "Сломал/погнул ключ", sec: 30 },
+            { id: "us_belt2", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            
+            // === 7. Стрельба ===
+            { id: "shoot_belt", category: "Стрельба", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "shoot_position", category: "Стрельба", desc: "СТС не на стоп-линии", sec: 30 },
+            { id: "shoot_engine", category: "Стрельба", desc: "Не заглушен двигатель", sec: 20 },
+            { id: "shoot_door_open", category: "Стрельба", desc: "Не закрыты двери", sec: 30 },
+            { id: "shoot_miss", category: "Стрельба", desc: "Не сбита мишень", sec: 10 },
+            { id: "shoot_belt2", category: "Стрельба", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            
+            // === 8. Пожар ===
+            { id: "fire_belt", category: "Пожар", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "fire_position", category: "Пожар", desc: "СТС не на безопасном расстоянии", sec: 30 },
+            { id: "fire_engine", category: "Пожар", desc: "Не заглушен двигатель", sec: 20 },
+            { id: "fire_no_report", category: "Пожар", desc: "Не сообщил о пожаре", sec: 30 },
+            { id: "fire_avar", category: "Пожар", desc: "Не включена аварийная сигнализация", sec: 10 },
+            { id: "fire_mayak", category: "Пожар", desc: "Не включен маячок", sec: 10 },
+            { id: "fire_dver_ruk", category: "Пожар", desc: "Открыл дверь руками", sec: 30 },
+            { id: "fire_ext", category: "Пожар", desc: "Не достал огнетушитель из СТС", sec: 30 },
+            { id: "fire_not_been", category: "Пожар", desc: "Не осуществил тушение", sec: 50 },
+            { id: "fire_no_location", category: "Пожар", desc: "Эвакуация не в обозначенное место", sec: 30 },
+            { id: "fire_evac", category: "Пожар", desc: "Не все ценности эвакуированы", sec: 30 },
+            { id: "fire_bad_sk", category: "Пожар", desc: "Некорректное обращение с СК", sec: 50 },
+            { id: "fire_flag", category: "Пожар", desc: "Перенос ценностей до команды", sec: 30 },
+            { id: "fire_vmeste", category: "Пожар", desc: "Совместный перенос ценностей", sec: 30 },
+            { id: "fire_close_dver_ruk", category: "Пожар", desc: "Закрыл дверь руками", sec: 30 },
+            { id: "fire_cen", category: "Пожар", desc: "Не заложены ценности в накопитель", sec: 30 },
+            { id: "fire_nak", category: "Пожар", desc: "Не закрыт накопитель", sec: 30 },
+            { id: "fire_sk_cell", category: "Пожар", desc: "СК не в спецячейку", sec: 20 },
+            { id: "fire_belt2", category: "Пожар", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "fire_repair_report", category: "Пожар", desc: "Не сообщил о тушении", sec: 30 },
+            
+            // === 9. Медицина ===
+            { id: "med_belt", category: "Медицина", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "med_position", category: "Медицина", desc: "СТС не на стоп-линии", sec: 30 },
+            { id: "med_no_report", category: "Медицина", desc: "Не сообщил о необходимости помощи", sec: 30 },
+            { id: "med_engine", category: "Медицина", desc: "Не заглушен двигатель", sec: 20 },
+            { id: "med_tourniquet", category: "Медицина", desc: "Неправильное наложение турникета", sec: 30 },
+            { id: "med_time", category: "Медицина", desc: "Не обозначено время наложения", sec: 30 },
+            { id: "med_tourniquet_povtor", category: "Медицина", desc: "Повторное кровотечение", sec: 30 },
+            { id: "med_ipp", category: "Медицина", desc: "Неправильное наложение ИПП", sec: 30 },
+            { id: "med_ipp_razm", category: "Медицина", desc: "Не полностью размотан ИПП", sec: 20 },
+            { id: "med_ipp_povtor", category: "Медицина", desc: "Повторное кровотечение от ИПП", sec: 30 },
+            { id: "med_ipp_rasl", category: "Медицина", desc: "Не повторное наложение", sec: 30 },
+            { id: "med_stretcher", category: "Медицина", desc: "Уронил манекен", sec: 30 },
+            { id: "med_stretcher_ukr", category: "Медицина", desc: "Не переместил в укрытие", sec: 30 },
+            { id: "med_belt2", category: "Медицина", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            
+            // === 10. Наручники ===
+            { id: "handcuff_belt", category: "Наручники", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "handcuff_no_warning", category: "Наручники", desc: "Не предупредил о применении наручников", sec: 10 },
+            { id: "handcuff_loose", category: "Наручники", desc: "Наручники не надежно зафиксированы", sec: 30 },
+            { id: "handcuff_no_report", category: "Наручники", desc: "Не доложил «Наручники надеты»", sec: 10 },
+            { id: "handcuff_no_radio_exit", category: "Наручники", desc: "Не связался о выходе", sec: 30 },
+            { id: "handcuff_boarding_no_confirm", category: "Наручники", desc: "Посадка без подтверждения", sec: 30 },
+            { id: "handcuff_driver_no_confirm", category: "Наручники", desc: "Водитель не подтвердил выход", sec: 30 },
+            
+            // === 11. Обслуживание ВСП ===
+            { id: "vsp_belt", category: "Обслуживание ВСП", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            { id: "vsp_nak", category: "Обслуживание ВСП", desc: "Не закрыл накопитель", sec: 30 },
+            { id: "vsp_seif", category: "Обслуживание ВСП", desc: "Не вложил сейф-пакет в СК", sec: 30 },
+            { id: "vsp_sk", category: "Обслуживание ВСП", desc: "Не закрыл крышку СК", sec: 30 },
+            { id: "vsp_no_radio", category: "Обслуживание ВСП", desc: "Обслуживает без радиостанции", sec: 30 },
+            { id: "vsp_no_key", category: "Обслуживание ВСП", desc: "Открыл СК без ИК-ключа", sec: 30 },
+            { id: "vsp_no_imit", category: "Обслуживание ВСП", desc: "Не осуществил имитацию сканирования", sec: 30 },
+            { id: "vsp_no_pak", category: "Обслуживание ВСП", desc: "Не вложил сейф-пакет в тележку", sec: 30 },
+            { id: "vsp_no_plomb", category: "Обслуживание ВСП", desc: "Не опломбировал тележку", sec: 30 },
+            { id: "vsp_ostav", category: "Обслуживание ВСП", desc: "Оставил СК/имущество", sec: 30 },
+            { id: "vsp_no_svyaz", category: "Обслуживание ВСП", desc: "Не связался о выходе", sec: 30 },
+            { id: "vsp_no_ok", category: "Обслуживание ВСП", desc: "Водитель не подтвердил выход", sec: 30 },
+            { id: "vsp_sel", category: "Обслуживание ВСП", desc: "Посадка без подтверждения", sec: 30 },
+            { id: "vsp_sk_cell", category: "Обслуживание ВСП", desc: "СК не в спецячейку", sec: 30 },
+            { id: "vsp_belt2", category: "Обслуживание ВСП", desc: "Бригада не пристегнута ремнями", sec: 30 },
+            
+            // === 12. Вооруженный преступник ===
+            { id: "prestupnik_mish", category: "Вооруженный преступник", desc: "Не сдвинута мишень", sec: 30 },
+            { id: "prestupnik_cone", category: "Вооруженный преступник", desc: "Наезд на конус (1)", sec: 5 },
+            { id: "prestupnik_cone1", category: "Вооруженный преступник", desc: "Наезд на конус (2)", sec: 10 },
+            { id: "prestupnik_cone2", category: "Вооруженный преступник", desc: "Наезд на конус (3)", sec: 15 },
+            { id: "prestupnik_cone3", category: "Вооруженный преступник", desc: "Наезд на конус (4+)", sec: 20 },
+            { id: "prestupnik_shluz", category: "Вооруженный преступник", desc: "Выход за габарит шлюза", sec: 5 },
+            { id: "prestupnik_ogr_cone", category: "Вооруженный преступник", desc: "Наезд на ограждающий конус", sec: 5 },
+            
+            // === 13. Общие штрафы ===
+            { id: "obsh_bez", category: "Общие штрафы", desc: "Нарушение безопасности (выезд за границы)", sec: 50 },
+            { id: "obsh_lic", category: "Общие штрафы", desc: "Проход за ограждение без разрешения", sec: 30 },
+            { id: "obsh_svyaz", category: "Общие штрафы", desc: "Уронил радиостанцию", sec: 30 },
+            { id: "obsh_ivr", category: "Общие штрафы", desc: "Уронил ИВР", sec: 30 },
+            { id: "obsh_tsd", category: "Общие штрафы", desc: "Уронил ТСД", sec: 30 },
+            { id: "obsh_gun", category: "Общие штрафы", desc: "Выпадение пистолета из кобуры", sec: 20 },
+            { id: "obsh_sts", category: "Общие штрафы", desc: "Нарушение порядка посадки/выхода", sec: 20 }
+        ];
+        
+        const greenHighlightIds = [
+            "prop_no_radio_start", "prop_sk_cell", "prop_belt", "bank_belt", "bank_nak_open", "bank_nak", "bank_scan",
+            "puncture_no_report", "puncture_repair_report", "incass_no_radio", "incass_no_exit_radio", "incass_tumbler_blue",
+            "us_no_command", "us_early_exit", "us_no_check", "shoot_miss", "fire_ext", "fire_evac", "med_tourniquet",
+            "handcuff_no_warning", "handcuff_no_report"
+        ];
+        
+        function isGreenHighlight(penaltyId) { return greenHighlightIds.includes(penaltyId); }
+        
+        const teamNames = {
+            "УБ": "Уральский", "ДВБ": "Дальневосточный", "ББ": "Байкальский", "МРД": "Московский",
+            "ЦЧБ": "Центрально-Черноземный", "ЮЗБ": "Юго-Западный", "ПВБ": "Поволжский",
+            "СИБ": "Сибирский", "СРБ": "Среднерусский", "СЗБ": "Северо-Западный", "ВВБ": "Волго-Вятский"
+        };
+        
+        let judgesDatabase = {};
+        
+        function loadJudgesFromStorage() {
+            const saved = localStorage.getItem('estafeta_judges_db_full');
+            if (saved) { try { judgesDatabase = JSON.parse(saved); } catch(e) {} }
+            if (Object.keys(judgesDatabase).length === 0) {
+                stages.forEach(stage => {
+                    judgesDatabase[`${stage}_1`] = [`Судья ${stage} напр.1`];
+                    judgesDatabase[`${stage}_2`] = [`Судья ${stage} напр.2`];
+                });
+                saveJudgesToStorage();
+            }
+        }
+        function saveJudgesToStorage() { localStorage.setItem('estafeta_judges_db_full', JSON.stringify(judgesDatabase)); }
+        loadJudgesFromStorage();
+        
+        const ADMIN_PASSWORD = "admin123";
+        let currentUser = { role: null, stage: null, name: null, direction: null };
+        
+        function saveUserSession() { localStorage.setItem('estafeta_user_full', JSON.stringify({ role: currentUser.role, stage: currentUser.stage, name: currentUser.name, direction: currentUser.direction })); }
+        function loadUserSession() {
+            const saved = localStorage.getItem('estafeta_user_full');
+            if (saved) { try { const u = JSON.parse(saved); if (u.role) currentUser = u; return true; } catch(e) {} }
+            return false;
+        }
+        function clearUserSession() { localStorage.removeItem('estafeta_user_full'); currentUser = { role: null, stage: null, name: null, direction: null }; }
+        
+        function showAuth() {
+            document.getElementById('authPanel').classList.remove('hidden');
+            document.getElementById('judgeInterface').classList.add('hidden');
+            document.getElementById('adminInterface').classList.add('hidden');
+        }
+        function showJudgeInterface() {
+            document.getElementById('authPanel').classList.add('hidden');
+            document.getElementById('judgeInterface').classList.remove('hidden');
+            document.getElementById('adminInterface').classList.add('hidden');
+            document.getElementById('currentStageBadge').innerText = currentUser.stage;
+            document.getElementById('directionBadge').innerText = `Направление ${currentUser.direction}`;
+            document.getElementById('judgeNameSpan').innerText = currentUser.name;
+            initJudgeUI();
+        }
+        function showAdminInterface() {
+            document.getElementById('authPanel').classList.add('hidden');
+            document.getElementById('judgeInterface').classList.add('hidden');
+            document.getElementById('adminInterface').classList.remove('hidden');
+            renderAdminJudgesList();
+            loadAllResultsForAdmin();
+        }
+        
+        let currentTeam = null, tempPenalties = {}, hasUnsavedChanges = false;
+        function formatTime(sec) { if (!sec && sec!==0) return "—"; let m = Math.floor(sec/60), s = (sec%60).toFixed(2); return m+":"+s.toString().padStart(5,'0'); }
+        function getPenaltySum(penObj) { let sum=0; for(let id in penObj) if(penObj[id]){ let p=penaltiesLibrary.find(p=>p.id===id); if(p) sum+=p.sec; } return sum; }
+        
+        async function loadTeamData(dir, team) {
+            if(!dir||!team) return null;
+            let {data, error} = await supabaseClient.from('estafeta_results').select('raw_seconds, penalties').eq('direction', dir).eq('team_code', team).maybeSingle();
+            if(error) return null;
+            return data;
+        }
+        async function saveTeamData(dir, team, rawSeconds, penalties) {
+            await supabaseClient.from('estafeta_results').upsert({direction:dir, team_code:team, raw_seconds:rawSeconds, penalties:penalties, updated_at:new Date().toISOString()}, {onConflict:'direction, team_code'});
+        }
+        
+        async function refreshCurrentTeamData(){
+            if(!currentUser.direction||!currentTeam) return;
+            let data=await loadTeamData(currentUser.direction, currentTeam);
+            let penaltiesObj=data?.penalties||{};
+            let raw=data?.raw_seconds??null;
+            document.getElementById('rawTimeDisplay').innerText=raw!==null?formatTime(raw):'—';
+            let totalPen=getPenaltySum(penaltiesObj);
+            document.getElementById('totalPenaltyDisplay').innerText=totalPen;
+            let totalTime=raw!==null?raw+totalPen:null;
+            document.getElementById('totalTimeDisplay').innerText=totalTime!==null?formatTime(totalTime):'—';
+            document.getElementById('rawTimeInput').value=raw!==null?formatTime(raw):'';
+            let stageIds=penaltiesLibrary.filter(p=>p.category===currentUser.stage).map(p=>p.id);
+            tempPenalties={};
+            for(let id of stageIds) if(penaltiesObj[id]) tempPenalties[id]=true;
+            renderPenaltiesJudge();
+        }
+        
+        function renderPenaltiesJudge(){
+            if(!currentUser.direction||!currentTeam){ document.getElementById('penaltiesContainer').innerHTML='<div>Выберите банк</div>'; return; }
+            let stagePen=penaltiesLibrary.filter(p=>p.category===currentUser.stage);
+            if(stagePen.length===0){ document.getElementById('penaltiesContainer').innerHTML='<div>Нет штрафов для этого этапа</div>'; return; }
+            let html='';
+            for(let p of stagePen){
+                let checked=!!tempPenalties[p.id];
+                const greenClass = isGreenHighlight(p.id) ? 'penalty-highlight-green' : '';
+                html+=`<div class="penalty-card ${greenClass}"><input type="checkbox" id="chk_${p.id}" data-id="${p.id}" ${checked?'checked':''}><label>${p.desc}<span class="penalty-sec">+${p.sec} сек</span></label></div>`;
+            }
+            document.getElementById('penaltiesContainer').innerHTML=html;
+            for(let p of stagePen){
+                let cb=document.getElementById(`chk_${p.id}`);
+                if(cb) cb.onchange=(e)=>{ if(e.target.checked) tempPenalties[p.id]=true; else delete tempPenalties[p.id]; hasUnsavedChanges=true; updateJudgeSummary(); };
+            }
+            updateJudgeSummary();
+        }
+        
+        async function updateJudgeSummary(){
+            if(!currentUser.direction||!currentTeam) return;
+            let data=await loadTeamData(currentUser.direction, currentTeam);
+            let savedPen=data?.penalties||{};
+            let otherSum=0;
+            for(let id in savedPen) if(savedPen[id] && !tempPenalties[id]){ let p=penaltiesLibrary.find(p=>p.id===id); if(p) otherSum+=p.sec; }
+            let tempSum=0;
+            for(let id in tempPenalties){ let p=penaltiesLibrary.find(p=>p.id===id); if(p) tempSum+=p.sec; }
+            document.getElementById('totalPenaltyDisplay').innerText=otherSum+tempSum;
+            let raw=data?.raw_seconds??null;
+            let total=raw!==null?raw+otherSum+tempSum:null;
+            document.getElementById('totalTimeDisplay').innerText=total!==null?formatTime(total):'—';
+        }
+        
+        async function saveStageJudge(){
+            if(!currentUser.direction||!currentTeam){ alert('Выберите команду'); return; }
+            let existing=await loadTeamData(currentUser.direction, currentTeam);
+            let penaltiesObj=existing?.penalties||{};
+            let stageIds=penaltiesLibrary.filter(p=>p.category===currentUser.stage).map(p=>p.id);
+            for(let id of stageIds) delete penaltiesObj[id];
+            for(let id in tempPenalties) if(tempPenalties[id]) penaltiesObj[id]=true;
+            await saveTeamData(currentUser.direction, currentTeam, existing?.raw_seconds??null, penaltiesObj);
+            hasUnsavedChanges=false;
+            await refreshCurrentTeamData();
+            await loadAllResultsForJudge();
+            alert('Сохранено');
+        }
+        
+        async function saveRawTimeJudge(){
+            if(!currentUser.direction||!currentTeam){ alert('Выберите команду'); return; }
+            let rawStr=document.getElementById('rawTimeInput').value.trim();
+            let rawSeconds=null;
+            if(rawStr){
+                let parts=rawStr.split(':');
+                let minutes=parseInt(parts[0])||0;
+                let seconds=parts[1]?parseFloat(parts[1]):0;
+                rawSeconds=minutes*60+seconds;
+                if(isNaN(rawSeconds)) { alert('Неверный формат'); return; }
+            }
+            let existing=await loadTeamData(currentUser.direction, currentTeam);
+            await saveTeamData(currentUser.direction, currentTeam, rawSeconds, existing?.penalties||{});
+            await refreshCurrentTeamData();
+            await loadAllResultsForJudge();
+            alert('Время сохранено');
+        }
+        
+        async function resetTeamPenalties(){
+            if(!currentUser.direction||!currentTeam){ alert('Выберите команду'); return; }
+            if(!confirm('Сбросить ВСЕ ошибки для этой команды?')) return;
+            let existing=await loadTeamData(currentUser.direction, currentTeam);
+            await saveTeamData(currentUser.direction, currentTeam, existing?.raw_seconds??null, {});
+            await refreshCurrentTeamData();
+            await loadAllResultsForJudge();
+            alert('Все ошибки сброшены');
+        }
+        
+        async function loadAllResultsForJudge(){
+            let {data}=await supabaseClient.from('estafeta_results').select('direction, team_code, raw_seconds, penalties');
+            if(!data) return;
+            let rows=[];
+            for(let r of data){
+                let raw=r.raw_seconds;
+                let penalty=getPenaltySum(r.penalties);
+                let total=raw!==null?raw+penalty:null;
+                rows.push({team:r.team_code, name:teamNames[r.team_code]||r.team_code, dir:r.direction, raw, penalty, total});
+            }
+            rows.sort((a,b)=>(a.total||9999)-(b.total||9999));
+            let tbody=document.getElementById('resultsBody');
+            tbody.innerHTML='';
+            let rank=1;
+            for(let r of rows){
+                let tr=document.createElement('tr');
+                if(r.total!==null && rank===1) tr.classList.add('rank-1');
+                tr.innerHTML=`<td>${r.total!==null?rank++:'—'}</td><td>${r.name} (${r.team})</strong></td><td>${r.dir}</strong></td><td>${r.raw!==null?formatTime(r.raw):'—'}</td><td>${r.penalty}</td><td>${r.total!==null?formatTime(r.total):'—'}</td>`;
+                tbody.appendChild(tr);
+            }
+        }
+        
+        async function printFullReport() {
+            if(!currentUser.direction||!currentTeam){ alert('Выберите команду'); return; }
+            const data = await loadTeamData(currentUser.direction, currentTeam);
+            if(!data) { alert('Нет данных'); return; }
+            const rawSec = data.raw_seconds;
+            const penaltiesObj = data.penalties || {};
+            const activePenalties = [];
+            for(let [id, active] of Object.entries(penaltiesObj)) if(active===true){
+                let p = penaltiesLibrary.find(p=>p.id===id);
+                if(p) activePenalties.push(p);
+            }
+            const grouped = {};
+            for(let p of activePenalties) { if(!grouped[p.category]) grouped[p.category]=[]; grouped[p.category].push(p); }
+            const totalPenalty = getPenaltySum(penaltiesObj);
+            const totalTime = rawSec !== null ? rawSec + totalPenalty : null;
+            const teamFullName = teamNames[currentUser.direction] || currentUser.direction;
+            const now = new Date().toLocaleString('ru-RU');
+            const printHtml = `<div style="font-family:'Segoe UI',sans-serif;max-width:1000px;margin:0 auto;padding:20px;">
+                <h1 style="text-align:center;">🏁 ОТЧЕТ О ПРОХОЖДЕНИИ ЭСТАФЕТЫ</h1>
+                <div style="text-align:center;margin-bottom:24px;">Дата: ${now}</div>
+                <div style="background:#f8fafc;padding:16px;border-radius:16px;margin-bottom:24px;">
+                    <div><strong>Команда:</strong> ${teamFullName} (${currentTeam})</div>
+                    <div><strong>Направление:</strong> ${currentUser.direction}</div>
+                    <div><strong>Этап:</strong> ${currentUser.stage}</div>
+                    <div><strong>Судья:</strong> ${currentUser.name}</div>
+                    <div><strong>Чистое время:</strong> ${rawSec!==null?formatTime(rawSec):'—'}</div>
+                    <div><strong>Общий штраф:</strong> ${totalPenalty} сек</div>
+                    <div><strong>Итоговое время:</strong> ${totalTime!==null?formatTime(totalTime):'—'}</div>
+                </div>
+                <h3>📋 Штрафные нарушения:</h3>
+                ${Object.keys(grouped).length===0?'<p>✅ Штрафные нарушения отсутствуют.</p>':''}
+                ${Object.entries(grouped).map(([stageName, arr])=>`<div style="margin-bottom:20px;"><h4>🎯 ${stageName}</h4>
+                <table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#e2e8f0;"><th style="padding:8px;text-align:left;">Нарушение</th><th>Штраф</th></tr></thead>
+                <tbody>${arr.map(p=>`<tr><td style="padding:8px;">${p.desc}</td><td style="padding:8px;">+${p.sec}</td></tr>`).join('')}</tbody></table></div>`).join('')}
+                <div class="print-sign-line" style="margin-top:48px;border-top:1px dashed #aaa;padding-top:24px;">
+                    <div style="display:flex;justify-content:space-between;"><div><strong>Представитель команды:</strong> __________________</div><div><strong>Судья:</strong> __________________</div></div>
+                    <div style="margin-top:20px;text-align:center;">Подпись подтверждает согласие с результатами</div>
+                </div>
+            </div>`;
+            const container = document.getElementById('printReportContainer');
+            container.innerHTML = printHtml;
+            container.style.display = 'block';
+            window.print();
+            container.style.display = 'none';
+            container.innerHTML = '';
+        }
+        
+        function initJudgeUI(){
+            document.getElementById('teamSelect').addEventListener('change', ()=> { currentTeam=document.getElementById('teamSelect').value||null; refreshCurrentTeamData(); });
+            document.getElementById('saveStageBtn').onclick=saveStageJudge;
+            document.getElementById('saveRawTimeBtn').onclick=saveRawTimeJudge;
+            document.getElementById('resetStageBtn').onclick=()=>refreshCurrentTeamData();
+            document.getElementById('resetTeamBtn').onclick=resetTeamPenalties;
+            document.getElementById('printReportBtn').onclick=printFullReport;
+            document.getElementById('logoutBtn').onclick=()=>{ clearUserSession(); showAuth(); };
+            refreshCurrentTeamData();
+            loadAllResultsForJudge();
+        }
+        
+        function renderAdminJudgesList(){
+            let container = document.getElementById('judgesListContainer');
+            let html = '<table class="judge-list-table"><thead><tr><th>Этап</th><th>Направление</th><th>Судьи</th><th>Действия</th></tr></thead><tbody>';
+            for(let [key, judges] of Object.entries(judgesDatabase)){
+                let [stage, dir] = key.split('_');
+                html += `<tr><td><strong>${stage}</strong></td><td>Направление ${dir}</td><td>${judges.join(', ') || '—'}</td>
+                        <td><button class="delete-judge-btn" data-key="${key}" data-judge="all">🗑️ Очистить</button></td></tr>`;
+                for(let judge of judges){
+                    html += `<tr style="background:#f9fafb;"><td></td><td></td><td style="padding-left:30px;">👤 ${judge}</td>
+                            <td><button class="delete-judge-btn" data-key="${key}" data-judge="${judge}">❌ Удалить</button></td></tr>`;
+                }
+            }
+            html += '</tbody></table>';
+            container.innerHTML = html;
+            document.querySelectorAll('.delete-judge-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    let key = btn.dataset.key;
+                    let judgeName = btn.dataset.judge;
+                    if(judgeName === 'all') { if(confirm('Удалить всех?')) judgesDatabase[key] = []; }
+                    else { judgesDatabase[key] = judgesDatabase[key].filter(j => j !== judgeName); }
+                    saveJudgesToStorage();
+                    renderAdminJudgesList();
+                });
+            });
+        }
+        
+        document.getElementById('addJudgeBtn').addEventListener('click', () => {
+            let stage = document.getElementById('adminStageSelect').value;
+            let direction = document.getElementById('adminDirectionSelect').value;
+            let name = document.getElementById('newJudgeName').value.trim();
+            if(!stage || !name) { alert('Выберите этап и введите ФИО'); return; }
+            let key = `${stage}_${direction}`;
+            if(!judgesDatabase[key]) judgesDatabase[key] = [];
+            if(judgesDatabase[key].includes(name)) { alert('Такой судья уже есть'); return; }
+            judgesDatabase[key].push(name);
+            saveJudgesToStorage();
+            renderAdminJudgesList();
+            document.getElementById('newJudgeName').value = '';
+            alert('Судья добавлен');
+        });
+        
+        async function loadAllResultsForAdmin(){
+            let {data}=await supabaseClient.from('estafeta_results').select('direction, team_code, raw_seconds, penalties');
+            if(!data) return;
+            let rows=[];
+            for(let r of data){
+                let raw=r.raw_seconds;
+                let penalty=getPenaltySum(r.penalties);
+                let total=raw!==null?raw+penalty:null;
+                rows.push({team:r.team_code, name:teamNames[r.team_code]||r.team_code, dir:r.direction, raw, penalty, total});
+            }
+            rows.sort((a,b)=>(a.total||9999)-(b.total||9999));
+            let tbody=document.getElementById('adminResultsBody');
+            tbody.innerHTML='';
+            let rank=1;
+            for(let r of rows){
+                let tr=document.createElement('tr');
+                tr.innerHTML=`<td>${r.total!==null?rank++:'—'}</td><td>${r.name} (${r.team})</strong></td><td>${r.dir}</strong></td><td>${r.raw!==null?formatTime(r.raw):'—'}</td><td>${r.penalty}</td><td>${r.total!==null?formatTime(r.total):'—'}</td>`;
+                tbody.appendChild(tr);
+            }
+        }
+        
+        document.getElementById('tabJudgesBtn').onclick = () => {
+            document.getElementById('tabJudgesBtn').classList.add('active');
+            document.getElementById('tabResultsBtn').classList.remove('active');
+            document.getElementById('judgesTab').classList.remove('hidden');
+            document.getElementById('resultsTab').classList.add('hidden');
+            renderAdminJudgesList();
+        };
+        document.getElementById('tabResultsBtn').onclick = () => {
+            document.getElementById('tabResultsBtn').classList.add('active');
+            document.getElementById('tabJudgesBtn').classList.remove('active');
+            document.getElementById('judgesTab').classList.add('hidden');
+            document.getElementById('resultsTab').classList.remove('hidden');
+            loadAllResultsForAdmin();
+        };
+        document.getElementById('adminRefreshBtn').onclick = () => loadAllResultsForAdmin();
+        document.getElementById('adminLogoutBtn').onclick = () => { clearUserSession(); showAuth(); };
+        
+        const authRoleSelect = document.getElementById('authRoleSelect');
+        const judgeAuthBlock = document.getElementById('judgeAuthBlock');
+        const adminAuthBlock = document.getElementById('adminAuthBlock');
+        authRoleSelect.addEventListener('change', () => {
+            if(authRoleSelect.value === 'admin') {
+                judgeAuthBlock.classList.add('hidden');
+                adminAuthBlock.classList.remove('hidden');
+            } else {
+                judgeAuthBlock.classList.remove('hidden');
+                adminAuthBlock.classList.add('hidden');
+            }
+        });
+        
+        function populateStageSelects() {
+            const selects = [document.getElementById('authStageSelect'), document.getElementById('adminStageSelect')];
+            selects.forEach(select => {
+                if(select) {
+                    let oldValue = select.value;
+                    select.innerHTML = '<option value="">-- Выберите этап --</option>' + stages.map(s => `<option value="${s}">${s}</option>`).join('');
+                    if(oldValue) select.value = oldValue;
+                }
+            });
+        }
+        populateStageSelects();
+        
+        function updateJudgeSelect() {
+            const stage = document.getElementById('authStageSelect').value;
+            const select = document.getElementById('authJudgeSelect');
+            select.innerHTML = '';
+            if(!stage) {
+                select.disabled = true;
+                select.innerHTML = '<option value="">-- Сначала выберите этап --</option>';
+                return;
+            }
+            let allJudges = [];
+            for(let [key, judges] of Object.entries(judgesDatabase)) {
+                if(key.startsWith(stage + '_')) {
+                    allJudges.push(...judges.map(j => ({ name: j, direction: key.split('_')[1] })));
+                }
+            }
+            if(allJudges.length === 0) {
+                select.disabled = true;
+                select.innerHTML = '<option value="">-- Нет судей на этом этапе --</option>';
+                return;
+            }
+            select.disabled = false;
+            select.innerHTML = '<option value="">-- Выберите судью --</option>' + allJudges.map(j => `<option value="${j.name}" data-dir="${j.direction}">${j.name} (напр. ${j.direction})</option>`).join('');
+        }
+        document.getElementById('authStageSelect').addEventListener('change', updateJudgeSelect);
+        updateJudgeSelect();
+        
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            const role = authRoleSelect.value;
+            if(role === 'admin') {
+                const pwd = document.getElementById('adminPassword').value;
+                if(pwd === ADMIN_PASSWORD) {
+                    currentUser = { role: 'admin', stage: null, name: 'Администратор', direction: null };
+                    saveUserSession();
+                    showAdminInterface();
+                } else {
+                    document.getElementById('authError').innerText = 'Неверный пароль администратора';
+                }
+            } else {
+                const stage = document.getElementById('authStageSelect').value;
+                const judgeOption = document.getElementById('authJudgeSelect').selectedOptions[0];
+                const judgeName = document.getElementById('authJudgeSelect').value;
+                if(!stage || !judgeName) { document.getElementById('authError').innerText = 'Выберите этап и судью'; return; }
+                const direction = judgeOption ? judgeOption.getAttribute('data-dir') : null;
+                if(!direction) { document.getElementById('authError').innerText = 'Ошибка: не удалось определить направление'; return; }
+                currentUser = { role: 'judge', stage: stage, name: judgeName, direction: direction };
+                saveUserSession();
+                showJudgeInterface();
+            }
+        });
+        
+        async function checkConnection() {
+            let statusDiv = document.getElementById('connectionStatus');
+            if(statusDiv) {
+                try {
+                    let { error } = await supabaseClient.from('estafeta_results').select('count', { count: 'exact', head: true });
+                    if(error) throw error;
+                    statusDiv.innerHTML = '<span class="status-ok">✅ Подключено к Supabase</span>';
+                } catch(err) {
+                    statusDiv.innerHTML = `<span class="status-error">❌ Ошибка подключения</span>`;
+                }
+            }
+        }
+        checkConnection();
+        
+        if(loadUserSession() && currentUser.role === 'admin') showAdminInterface();
+        else if(loadUserSession() && currentUser.role === 'judge') showJudgeInterface();
+        else showAuth();
+    })();
+</script>
+</body>
+</html>
