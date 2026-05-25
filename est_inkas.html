@@ -51,7 +51,6 @@
             cursor: pointer;
         }
         .error-msg { color: #b91c1c; margin-top: 12px; font-size: 0.85rem; }
-        .success-msg { color: #15803d; margin-top: 12px; font-size: 0.85rem; }
         .judge-badge {
             background: #eef2ff;
             padding: 8px 16px;
@@ -88,7 +87,6 @@
         .penalty-card input { width: 24px; height: 24px; margin: 0; cursor: pointer; }
         .penalty-card label { flex: 1; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 0.9rem; }
         .penalty-sec { background: #e2e8f0; padding: 4px 10px; border-radius: 40px; font-size: 0.8rem; }
-        .penalty-highlight-green { background: #dcfce7 !important; border-left: 6px solid #15803d !important; }
         .summary-bar { background: #f1f5f9; border-radius: 20px; padding: 16px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-top: 20px; gap: 15px; }
         .total-time { font-size: 1.6rem; font-weight: 800; background: #dcfce7; padding: 6px 18px; border-radius: 40px; }
         .results-table { background: white; border-radius: 24px; overflow-x: auto; padding: 4px; margin-top: 20px; }
@@ -139,10 +137,6 @@
             font-size: 0.8rem;
             margin-left: 10px;
         }
-        .status-ok { background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; display: inline-block; }
-        .status-error { background: #fee2e2; color: #991b1b; }
-        .status-warning { background: #fed7aa; color: #9b4a0c; }
-        .sync-btn { background: #6366f1; font-size: 0.8rem; padding: 6px 12px; }
         
         @media print {
             body { background: white; padding: 0; margin: 0; }
@@ -247,8 +241,7 @@
             <h3>🏆 Общий зачёт (все команды)</h3>
             <table id="resultsTable">
                 <thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
-                <tbody id="resultsBody"><tr><td colspan="6">Загрузка...</td></tr>
-                </tbody>
+                <tbody id="resultsBody"><tr><td colspan="6">Загрузка...</td></tr></tbody>
             </table>
         </div>
     </div>
@@ -259,7 +252,6 @@
                 <h2>👑 Админ-панель управления судьями</h2>
                 <div class="judge-badge admin-badge">
                     <span>👑 Администратор</span>
-                    <button id="syncJudgesBtn" class="sync-btn" style="background:#6366f1;">🔄 Синхронизировать</button>
                     <button id="adminLogoutBtn" class="logout-btn">🚪 Выйти</button>
                 </div>
             </div>
@@ -268,7 +260,6 @@
                 <button id="tabResultsBtn" class="tab-btn">🏆 Результаты команд</button>
             </div>
             <div id="judgesTab">
-                <div id="syncStatus" style="margin-bottom: 10px; font-size: 0.8rem;"></div>
                 <h3>🗂️ Судьи по этапам и направлениям</h3>
                 <div id="judgesListContainer"></div>
                 <div class="add-judge-form">
@@ -317,7 +308,6 @@
             "Обслуживание ВСП", "Вооруженный преступник", "Общие штрафы"
         ];
         
-        // Штрафы
         const penaltiesLibrary = [
             { id: "prop_door", category: "Получение имущества", desc: "Не закрыты двери/дверь СТС в «гараже»", sec: 30 },
             { id: "prop_sk_cell", category: "Получение имущества", desc: "Инкассатор: СК не установлен в специальную ячейку", sec: 20 },
@@ -356,68 +346,9 @@
             "СИБ": "Сибирский", "СРБ": "Среднерусский", "СЗБ": "Северо-Западный", "ВВБ": "Волго-Вятский"
         };
         
-        // БАЗА СУДЕЙ - с синхронизацией с Supabase
+        // База судей - только localStorage
         let judgesDatabase = {};
-        let isOnline = true;
         
-        // Таблица в Supabase для судей
-        const JUDGES_TABLE = 'estafeta_judges';
-        
-        // Загрузка судей из Supabase
-        async function loadJudgesFromSupabase() {
-            try {
-                const { data, error } = await supabaseClient.from(JUDGES_TABLE).select('*');
-                if (error) throw error;
-                if (data && data.length > 0) {
-                    const newDb = {};
-                    for (let row of data) {
-                        const key = `${row.stage}_${row.direction}`;
-                        if (!newDb[key]) newDb[key] = [];
-                        newDb[key].push(row.judge_name);
-                    }
-                    judgesDatabase = newDb;
-                    saveJudgesToLocal();
-                    return true;
-                }
-                return false;
-            } catch (e) {
-                console.error('Ошибка загрузки судей из Supabase:', e);
-                return false;
-            }
-        }
-        
-        // Сохранение судей в Supabase
-        async function saveJudgesToSupabase() {
-            if (!isOnline) return false;
-            try {
-                // Сначала очистим таблицу
-                await supabaseClient.from(JUDGES_TABLE).delete().neq('id', 0);
-                // Загружаем новые данные
-                const records = [];
-                for (let [key, judges] of Object.entries(judgesDatabase)) {
-                    const [stage, direction] = key.split('_');
-                    for (let judge of judges) {
-                        records.push({ stage, direction: parseInt(direction), judge_name: judge });
-                    }
-                }
-                if (records.length > 0) {
-                    const { error } = await supabaseClient.from(JUDGES_TABLE).insert(records);
-                    if (error) throw error;
-                }
-                return true;
-            } catch (e) {
-                console.error('Ошибка сохранения судей в Supabase:', e);
-                isOnline = false;
-                return false;
-            }
-        }
-        
-        // Сохранение в localStorage
-        function saveJudgesToLocal() {
-            localStorage.setItem('estafeta_judges_complete', JSON.stringify(judgesDatabase));
-        }
-        
-        // Загрузка из localStorage
         function loadJudgesFromLocal() {
             const saved = localStorage.getItem('estafeta_judges_complete');
             if (saved && saved !== 'undefined') {
@@ -432,52 +363,27 @@
             return false;
         }
         
-        // Инициализация базы судей
-        async function initJudgesDatabase() {
-            // Пытаемся загрузить из Supabase
-            const loadedFromCloud = await loadJudgesFromSupabase();
-            if (!loadedFromCloud) {
-                // Если не получилось, загружаем из локального хранилища
-                const loadedFromLocal = loadJudgesFromLocal();
-                if (!loadedFromLocal) {
-                    // Создаём пустую базу
-                    stages.forEach(stage => {
-                        judgesDatabase[`${stage}_1`] = [];
-                        judgesDatabase[`${stage}_2`] = [];
-                    });
-                    // Добавляем тестовых судей
-                    judgesDatabase["Получение имущества_1"] = ["Иванов Иван Иванович"];
-                    judgesDatabase["Получение имущества_2"] = ["Петров Петр Петрович"];
-                    judgesDatabase["Стрельба_1"] = ["Сидоров Сидор Сидорович"];
-                    saveJudgesToLocal();
-                    // Пробуем синхронизировать в облако при возможности
-                    if (isOnline) await saveJudgesToSupabase();
-                }
-            }
-            console.log('База судей инициализирована:', judgesDatabase);
+        function saveJudgesToLocal() {
+            localStorage.setItem('estafeta_judges_complete', JSON.stringify(judgesDatabase));
         }
         
-        // Синхронизация (админская кнопка)
-        async function syncJudges() {
-            const statusDiv = document.getElementById('syncStatus');
-            if (statusDiv) {
-                statusDiv.innerHTML = '<span class="status-warning">⏳ Синхронизация...</span>';
-            }
-            const success = await loadJudgesFromSupabase();
-            if (success) {
+        function initJudgesDatabase() {
+            const loaded = loadJudgesFromLocal();
+            if (!loaded) {
+                stages.forEach(stage => {
+                    judgesDatabase[`${stage}_1`] = [];
+                    judgesDatabase[`${stage}_2`] = [];
+                });
+                // Добавляем тестовых судей
+                judgesDatabase["Получение имущества_1"] = ["Иванов Иван Иванович"];
+                judgesDatabase["Получение имущества_2"] = ["Петров Петр Петрович"];
+                judgesDatabase["Стрельба_1"] = ["Сидоров Сидор Сидорович"];
+                judgesDatabase["Стрельба_2"] = ["Кузнецов Кузьма Кузьмич"];
+                judgesDatabase["Пожар_1"] = ["Орлов Олег Олегович"];
+                judgesDatabase["Медицина_2"] = ["Соловьева Светлана Сергеевна"];
                 saveJudgesToLocal();
-                if (statusDiv) {
-                    statusDiv.innerHTML = '<span class="status-ok">✅ Синхронизация с сервером выполнена</span>';
-                    setTimeout(() => { statusDiv.innerHTML = ''; }, 3000);
-                }
-                renderAdminJudgesList();
-                updateJudgeSelectForAuth();
-            } else {
-                if (statusDiv) {
-                    statusDiv.innerHTML = '<span class="status-error">❌ Не удалось синхронизировать. Проверьте интернет.</span>';
-                    setTimeout(() => { statusDiv.innerHTML = ''; }, 3000);
-                }
             }
+            console.log('База судей загружена:', judgesDatabase);
         }
         
         const ADMIN_PASSWORD = "admin123";
@@ -707,31 +613,29 @@
             for(let [key, judges] of Object.entries(judgesDatabase)){
                 if(!judges) judges = [];
                 let [stage, dir] = key.split('_');
-                html += `<tr><td><strong>${stage}</strong></td><td>Направление ${dir}</strong></td><td>${judges.length > 0 ? judges.join(', ') : '<span style="color:#999;">— нет судей —</span>'}</td>
+                html += `<tr><td><strong>${stage}</strong></td><td>Направление ${dir}</td><td>${judges.length > 0 ? judges.join(', ') : '<span style="color:#999;">— нет судей —</span>'}</td>
                           <td><button class="delete-judge-btn" data-key="${key}" data-judge="all">🗑️ Очистить</button></td></tr>`;
                 for(let judge of judges){
-                    html += `<tr style="background:#f9fafb;"></td><td colspan="2"></td><td style="padding-left:30px;">👤 ${judge}</td>
+                    html += `<tr style="background:#f9fafb;"><td></td><td></td><td style="padding-left:30px;">👤 ${judge}</td>
                               <td><button class="delete-judge-btn" data-key="${key}" data-judge="${judge}">❌ Удалить</button></td></tr>`;
                 }
             }
             html += '</tbody></table>';
             container.innerHTML = html;
             document.querySelectorAll('.delete-judge-btn').forEach(btn => {
-                btn.addEventListener('click', async () => {
+                btn.addEventListener('click', () => {
                     let key = btn.dataset.key;
                     let judgeName = btn.dataset.judge;
                     if(judgeName === 'all') { 
                         if(confirm('Удалить всех судей с этого этапа/направления?')) {
                             judgesDatabase[key] = [];
                             saveJudgesToLocal();
-                            await saveJudgesToSupabase();
                             renderAdminJudgesList();
                             updateJudgeSelectForAuth();
                         }
                     } else {
                         judgesDatabase[key] = judgesDatabase[key].filter(j => j !== judgeName);
                         saveJudgesToLocal();
-                        await saveJudgesToSupabase();
                         renderAdminJudgesList();
                         updateJudgeSelectForAuth();
                     }
@@ -739,8 +643,7 @@
             });
         }
         
-        // Добавление судьи
-        document.getElementById('addJudgeBtn').addEventListener('click', async () => {
+        document.getElementById('addJudgeBtn').addEventListener('click', () => {
             let stage = document.getElementById('adminStageSelect').value;
             let direction = document.getElementById('adminDirectionSelect').value;
             let name = document.getElementById('newJudgeName').value.trim();
@@ -751,7 +654,6 @@
             if(judgesDatabase[key].includes(name)) { alert('Такой судья уже есть на этом этапе и направлении'); return; }
             judgesDatabase[key].push(name);
             saveJudgesToLocal();
-            await saveJudgesToSupabase();
             renderAdminJudgesList();
             document.getElementById('newJudgeName').value = '';
             updateJudgeSelectForAuth();
@@ -795,7 +697,6 @@
         };
         document.getElementById('adminRefreshBtn').onclick = () => loadAllResultsForAdmin();
         document.getElementById('adminLogoutBtn').onclick = () => { clearUserSession(); showAuth(); };
-        document.getElementById('syncJudgesBtn').onclick = () => syncJudges();
         
         const authRoleSelect = document.getElementById('authRoleSelect');
         const judgeAuthBlock = document.getElementById('judgeAuthBlock');
@@ -849,7 +750,7 @@
         document.getElementById('authStageSelect').addEventListener('change', updateJudgeSelectForAuth);
         updateJudgeSelectForAuth();
         
-        document.getElementById('loginBtn').addEventListener('click', async () => {
+        document.getElementById('loginBtn').addEventListener('click', () => {
             const role = authRoleSelect.value;
             if(role === 'admin') {
                 const pwd = document.getElementById('adminPassword').value;
@@ -873,24 +774,15 @@
             }
         });
         
-        async function checkConnection() {
+        function checkConnection() {
             let statusDiv = document.getElementById('connectionStatus');
             if(statusDiv) {
-                try {
-                    let { error } = await supabaseClient.from('estafeta_results').select('count', { count: 'exact', head: true });
-                    if(error) throw error;
-                    isOnline = true;
-                    statusDiv.innerHTML = '<span class="status-ok">✅ Подключено к Supabase</span>';
-                } catch(err) {
-                    isOnline = false;
-                    statusDiv.innerHTML = `<span class="status-error">❌ Офлайн-режим. Данные сохраняются локально.</span>`;
-                }
+                statusDiv.innerHTML = '<span class="status-ok">✅ Работает в локальном режиме</span>';
             }
         }
         checkConnection();
         
-        // Инициализация базы судей
-        await initJudgesDatabase();
+        initJudgesDatabase();
         
         if(loadUserSession() && currentUser.role === 'admin') showAdminInterface();
         else if(loadUserSession() && currentUser.role === 'judge') showJudgeInterface();
