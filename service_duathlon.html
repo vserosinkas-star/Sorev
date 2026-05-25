@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Служебное двоеборье — судейская панель | Бег 1280 м + стрельба + граната</title>
     <style>
         * {
@@ -136,6 +136,7 @@
             width: 22px;
             height: 22px;
             margin: 0;
+            flex-shrink: 0;
         }
 
         .penalty-card label {
@@ -145,6 +146,7 @@
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
+            gap: 8px;
         }
 
         .penalty-sec {
@@ -153,6 +155,7 @@
             border-radius: 30px;
             font-size: 0.75rem;
             font-weight: 600;
+            white-space: nowrap;
         }
 
         .time-row, .double-row {
@@ -242,14 +245,6 @@
             font-weight: bold;
         }
 
-        .status-ok {
-            background: #dcfce7;
-            color: #166534;
-            padding: 4px 12px;
-            border-radius: 30px;
-            display: inline-block;
-        }
-
         .radio-group {
             display: flex;
             gap: 20px;
@@ -271,13 +266,9 @@
             cursor: pointer;
         }
 
-        hr {
-            margin: 16px 0;
-            border-color: #e2e8f0;
-        }
-
-        /* ===== МОБИЛЬНАЯ АДАПТАЦИЯ (исправлено смещение гранаты) ===== */
+        /* ===== МОБИЛЬНАЯ АДАПТАЦИЯ - ПОЛНОЕ ВЫРАВНИВАНИЕ ===== */
         @media (max-width: 700px) {
+            /* Все сетки и флексы становятся колонками */
             .penalties-grid {
                 grid-template-columns: 1fr;
             }
@@ -286,26 +277,28 @@
                 width: 100%;
             }
 
-            /* Главное исправление: блок гранаты на мобильных становится вертикальным */
+            /* Главное: блок гранаты, штрафы, ряды – вертикально */
             .radio-group {
                 flex-direction: column;
                 align-items: flex-start;
                 gap: 12px;
                 border-radius: 28px;
+                width: 100%;
             }
 
-            /* Дополнительно улучшаем отображение двойных рядов */
             .double-row {
                 flex-direction: column;
+                gap: 16px;
             }
 
             .time-row {
                 flex-direction: column;
                 align-items: stretch;
+                gap: 12px;
             }
 
             .time-row button {
-                margin-top: 8px;
+                margin-top: 4px;
             }
 
             .participant-title {
@@ -321,6 +314,30 @@
             .summary-bar {
                 flex-direction: column;
                 gap: 8px;
+            }
+
+            /* Штрафные карточки: полная ширина + текст не сжимается */
+            .penalty-card {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .penalty-card label {
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+
+            .penalty-sec {
+                white-space: normal;
+            }
+
+            /* Убираем лишние отступы */
+            .judge-panel {
+                padding: 16px;
+            }
+
+            .participant-card {
+                padding: 12px;
             }
         }
     </style>
@@ -669,7 +686,7 @@
         const grenadeHitRadio = document.querySelector("input[name='grenadeResult'][value='hit']");
         const grenadeMissRadio = document.querySelector("input[name='grenadeResult'][value='miss']");
         if (currentAthlete.grenadeMiss) grenadeMissRadio.checked = true;
-        else grenadeHitRadio.checked = true;
+        else if (grenadeHitRadio) grenadeHitRadio.checked = true;
         renderPenalties();
         unsavedChanges = false;
         updateSummaryAndBadge();
@@ -720,7 +737,6 @@
         if (!currentTeam) { alert("Выберите команду"); return; }
         // сохраняем текущего участника перед синхронизацией
         saveCurrentToStorage();
-        // дополнительно пересохраняем всех участников из storage (уже сохранены)
         persistStorage();
         renderOverallTable();
         alert(`Команда ${currentTeam} синхронизирована. Все данные сохранены.`);
@@ -790,7 +806,7 @@
             if (r.team_total !== null && rank === 1) tr.classList.add('rank-1');
             tr.innerHTML = `
                 <td>${r.team_total !== null ? rank++ : '—'}</td>
-                <td><strong>${r.name}</strong> (${r.code})</strong></td>
+                <td><strong>${r.name}</strong> (${r.code})</td>
                 <td>${r.p1_name}</td>
                 <td>${r.p1_total !== null ? formatTime(r.p1_total) : '—'}</td>
                 <td>${r.p2_name}</td>
@@ -819,7 +835,7 @@
     }
 
     // Смена команды
-    async function onTeamChange() {
+    function onTeamChange() {
         currentTeam = teamSelect.value || null;
         if (!currentTeam) {
             participantCardDiv.style.display = 'none';
