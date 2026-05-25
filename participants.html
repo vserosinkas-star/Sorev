@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Участники — Сбербанк Многоборье 2026</title>
+    <!-- Подключаем библиотеку SheetJS для работы с Excel (XLSX) -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -44,7 +46,6 @@
             border-left: 4px solid #f5a623;
             padding-left: 16px;
         }
-        /* Стили для вкладок */
         .tabs {
             display: flex;
             gap: 12px;
@@ -66,10 +67,6 @@
             gap: 8px;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
-        .tab-btn i {
-            font-style: normal;
-            font-size: 1.2rem;
-        }
         .tab-btn.active {
             background: #1e3a5f;
             color: white;
@@ -79,13 +76,52 @@
             background: #cbd5e1;
             transform: translateY(-1px);
         }
-        /* панель фильтров — универсальная, содержимое меняется в зависимости от вкладки */
+        .top-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
         .filters-panel {
             background: white;
             padding: 16px 20px;
             border-radius: 40px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            margin-bottom: 24px;
+            flex: 2;
+            min-width: 220px;
+        }
+        .export-btn-group {
+            background: white;
+            padding: 8px 16px;
+            border-radius: 40px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .export-btn {
+            background: #1e8f3e;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 32px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .export-btn:hover {
+            background: #0f6c2f;
+            transform: translateY(-1px);
+        }
+        .export-icon {
+            font-size: 1.1rem;
         }
         .filter-group {
             display: flex;
@@ -115,7 +151,6 @@
             color: #334155;
             margin-right: 4px;
         }
-        /* информационная плашка */
         .info-stats {
             font-size: 0.85rem;
             background: #f1f5f9;
@@ -147,7 +182,6 @@
         tr:hover td {
             background-color: #fef9e6;
         }
-        /* бейджи для инкассации */
         .role-badge {
             display: inline-block;
             background: #e0f2fe;
@@ -165,7 +199,6 @@
             background: #fff3e3;
             color: #b45309;
         }
-        /* бейдж для охраны (Старший команды) */
         .role-badge.security-lead {
             background: linear-gradient(135deg, #e9e9ff 0%, #dfe2fd 100%);
             color: #1f3a6b;
@@ -174,11 +207,6 @@
             letter-spacing: 0.3px;
             box-shadow: inset 0 0 0 1px rgba(30,58,95,0.2);
             font-size: 0.8rem;
-        }
-        /* бейдж для охраны (обычный сотрудник, если потребуется, но у нас все старшие, но на будущее) */
-        .role-badge.security-staff {
-            background: #eef2ff;
-            color: #334155;
         }
         .footer {
             margin-top: 40px;
@@ -191,29 +219,29 @@
             .filter-group { gap: 8px; }
             .filter-btn { padding: 4px 14px; font-size: 0.8rem; }
             .tab-btn { padding: 6px 18px; font-size: 0.85rem; }
-        }
-        .divider-text {
-            color: #cbd5e1;
-            padding: 0 4px;
+            .export-btn { padding: 6px 14px; font-size: 0.8rem; }
+            .top-actions { flex-direction: column; align-items: stretch; }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <a href="index.html" class="back-link">← На главную</a>
+    <a href="#" class="back-link" onclick="alert('Переход на главную (гипотетический)'); return false;">← На главную</a>
     <h1>👥 Участники соревнований</h1>
     <div class="sub">XVI Всероссийское многоборье — Нижний Тагил, 24–25 июня 2026</div>
 
-    <!-- Вкладки: ИНКАССАЦИЯ и ОХРАНА -->
     <div class="tabs">
         <button class="tab-btn active" data-tab="inkasso">🚛 ИНКАССАЦИЯ</button>
         <button class="tab-btn" data-tab="ohrana">🛡️ ОХРАНА</button>
     </div>
 
-    <!-- Динамическая панель фильтров (содержимое меняется в зависимости от вкладки) -->
-    <div id="filtersPanel" class="filters-panel">
-        <!-- сюда js подставит кнопки фильтров для инкассации или охраны -->
-        <div id="dynamicFilters"></div>
+    <div class="top-actions">
+        <div id="filtersPanel" class="filters-panel">
+            <div id="dynamicFilters"></div>
+        </div>
+        <div class="export-btn-group">
+            <button id="exportExcelBtn" class="export-btn">📎 Выгрузить в Excel (XLSX)</button>
+        </div>
     </div>
 
     <div id="statsInfo" class="info-stats"></div>
@@ -222,23 +250,14 @@
         <thead>
             <tr><th>ТБ (территориальный банк)</th><th>ФИО полностью</th><th>Должность</th><th>Роль / Статус</th></tr>
         </thead>
-        <tbody id="tableBody">
-            <!-- динамическое наполнение -->
-        </tbody>
+        <tbody id="tableBody"></tbody>
     </table>
-    <div class="footer">* Инкассация: фильтр по ролям (Водители / Триатлон). Охрана: фильтр «Все» или «Старший команды» (показываются сотрудники с соответствующим статусом).</div>
+    <div class="footer">* Инкассация: фильтр по ролям (Водители / Триатлон). Охрана: фильтр «Все» или «Старший команды». Кнопка «Выгрузить в Excel (XLSX)» создаёт полноценный Excel-файл с данными текущей вкладки с учётом активных фильтров.</div>
 </div>
 
 <script>
     // ------------------------------------------------------------------
     // ПОЛНЫЙ СПИСОК УЧАСТНИКОВ 
-    // Каждый участник имеет: tb, fio, position, role, category
-    // category: "inkasso" (инкассация) или "ohrana" (охрана)
-    // Для инкассации role может быть "водитель" или "триатлон"
-    // Для охраны role может быть "security_chief" (Старший команды) — в данной версии все сотрудники охраны имеют этот статус.
-    // Однако для демонстрации работы фильтра "Старший команды" мы добавим несколько записей и возможность фильтрации.
-    // В соответствии с реальными данными: все охранники имеют статус "Старший команды", но фильтр "Все" показывает всех,
-    // а "Старший команды" — только тех, у кого role === "security_chief". Таким образом разбивка работает.
     // ------------------------------------------------------------------
     const baseParticipants = [
         // ---------- ИНКАССАЦИЯ (inkasso) ----------
@@ -257,19 +276,11 @@
         { tb: "Среднерусский банк", fio: "Карпухин Алексей Сергеевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
         { tb: "Среднерусский банк", fio: "Большунов Владислав Григорьевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
         { tb: "Среднерусский банк", fio: "Карпухин Алексей Сергеевич", position: "Водитель-инкассатор", role: "водитель", category: "inkasso" },
-        { tb: "Волго-Вятский банк", fio: "Михайлов Иван Владимирович", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
+        { tb: "Волго-Вятский банк", fio: "Поярков Евгений Александрович", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
         { tb: "Волго-Вятский банк", fio: "Соколов Александр Сергеевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Волго-Вятский банк", fio: "Поярков Евгений Александрович", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso" },
+        { tb: "Волго-Вятский банк", fio: "Михайлов Иван Владимирович", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso" },
         
-        
-       
-        
-        // ---------- ОХРАНА (ohrana) — ДЛЯ ПРИМЕРА ЕСТЬ СОТРУДНИКИ СО СТАТУСОМ "security_chief" (Старший команды) ----------
-        // Все сотрудники охраны имеют role = "security_chief", но для демонстрации разбивки "Все" и "Старший команды" 
-        // фильтр будет показывать всех (при выборе "Все") или только тех, у кого role === "security_chief".
-        // Добавим также гипотетического сотрудника без статуса старшего, чтобы показать работу фильтра (если бы был).
-        // Но по заданию "Старший команды" — это ключевая роль. Для чистоты оставим всех как Старшие команды, 
-        // а фильтр "Старший команды" будет показывать их, фильтр "Все" — всех (в данном случае всех, т.к. других нет).
+        // ---------- ОХРАНА (ohrana) ----------
         { tb: "Уральский банк", fio: "Зайцев Павел Владимирович", position: "Командир отделения охраны", role: "security_chief", category: "ohrana" },
         { tb: "Сибирский банк", fio: "Лазарев Владимир Игоревич", position: "Стрелок охраны", role: "security_chief", category: "ohrana" },
         { tb: "Дальневосточный банк", fio: "Никитин Артём Евгеньевич", position: "Охранник 3 разряда", role: "security_chief", category: "ohrana" },
@@ -279,17 +290,17 @@
     ];
 
     // Глобальное состояние
-    let currentTab = "inkasso";            // 'inkasso' или 'ohrana'
-    let currentInkassoFilter = "all";      // 'all', 'водитель', 'триатлон' (для инкассации)
-    let currentOhranaFilter = "all";       // 'all', 'chief' (для охраны: все или только старший команды)
+    let currentTab = "inkasso";
+    let currentInkassoFilter = "all";
+    let currentOhranaFilter = "all";
 
-    // DOM элементы
     const tbody = document.getElementById("tableBody");
     const statsInfo = document.getElementById("statsInfo");
     const tabButtons = document.querySelectorAll(".tab-btn");
     const dynamicFiltersDiv = document.getElementById("dynamicFilters");
+    const exportBtn = document.getElementById("exportExcelBtn");
 
-    // Получить отфильтрованных участников по текущим условиям
+    // Получить отфильтрованных участников
     function getFilteredParticipants() {
         let filtered = baseParticipants.filter(p => p.category === currentTab);
         
@@ -302,34 +313,40 @@
             if (currentOhranaFilter === "chief") {
                 filtered = filtered.filter(p => p.role === "security_chief");
             }
-            // "all" — показываем всех сотрудников охраны
         }
         return filtered;
     }
 
-    // Отображение роли в ячейке таблицы
+    // Отображение роли в ячейке таблицы (HTML)
     function getRoleDisplay(participant) {
         if (participant.category === "inkasso") {
             if (participant.role === "водитель") {
                 return '<span class="role-badge driver">🚐 Водитель</span>';
             } else if (participant.role === "триатлон") {
                 return '<span class="role-badge triathlon">🏃‍♂️ Триатлон</span>';
-            } else {
-                return '<span class="role-badge">Участник</span>';
             }
-        } 
-        else { // охрана
-            // Все сотрудники охраны в нашей базе имеют role security_chief, поэтому отображаем "Старший команды"
+            return '<span class="role-badge">Участник</span>';
+        } else {
             if (participant.role === "security_chief") {
                 return '<span class="role-badge security-lead">⭐ Старший команды</span>';
-            } else {
-                // на случай иных ролей
-                return '<span class="role-badge security-staff">🛡️ Сотрудник охраны</span>';
             }
+            return '<span class="role-badge">🛡️ Сотрудник охраны</span>';
+        }
+    }
+    
+    // Получить текстовое представление роли для Excel (без HTML)
+    function getRoleText(participant) {
+        if (participant.category === "inkasso") {
+            if (participant.role === "водитель") return "Водитель";
+            if (participant.role === "триатлон") return "Триатлон";
+            return "Участник инкассации";
+        } else {
+            if (participant.role === "security_chief") return "Старший команды";
+            return "Сотрудник охраны";
         }
     }
 
-    // Рендер таблицы + статистика
+    // Рендер таблицы
     function renderTable() {
         const filtered = getFilteredParticipants();
         tbody.innerHTML = "";
@@ -360,12 +377,11 @@
         });
     }
 
-    // Отрисовать панель фильтров в зависимости от текущей вкладки
+    // Панель фильтров
     function renderFiltersPanel() {
         if (!dynamicFiltersDiv) return;
         
         if (currentTab === "inkasso") {
-            // фильтры для инкассации: Все роли, Водители, Триатлон
             dynamicFiltersDiv.innerHTML = `
                 <div class="filter-group">
                     <span class="filter-label">Фильтр по роли:</span>
@@ -374,19 +390,17 @@
                     <button class="filter-btn ${currentInkassoFilter === 'триатлон' ? 'active' : ''}" data-inkasso-filter="триатлон">🏃‍♂️ Триатлон</button>
                 </div>
             `;
-            // назначить обработчики на новые кнопки
             document.querySelectorAll('[data-inkasso-filter]').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const filterVal = btn.getAttribute('data-inkasso-filter');
                     if (filterVal === currentInkassoFilter) return;
                     currentInkassoFilter = filterVal;
-                    renderFiltersPanel();    // перерисовать панель чтобы обновить active классы
+                    renderFiltersPanel();    
                     renderTable();
                 });
             });
         } 
         else if (currentTab === "ohrana") {
-            // фильтры для охраны: Все, Старший команды
             dynamicFiltersDiv.innerHTML = `
                 <div class="filter-group">
                     <span class="filter-label">Показать:</span>
@@ -406,19 +420,101 @@
         }
     }
 
+    // ------------------------------------------------------------------
+    // ЭКСПОРТ В ФОРМАТЕ XLSX с использованием библиотеки SheetJS
+    // ------------------------------------------------------------------
+    function exportToXLSX() {
+        const dataToExport = getFilteredParticipants();
+        
+        if (dataToExport.length === 0) {
+            alert("Нет данных для экспорта. Измените фильтры или выберите другую вкладку.");
+            return;
+        }
+        
+        // Подготовка данных для SheetJS: массив массивов (заголовок + строки)
+        const worksheetData = [];
+        
+        // Заголовки
+        worksheetData.push([
+            "Территориальный банк (ТБ)", 
+            "ФИО полностью", 
+            "Должность", 
+            "Роль / Статус"
+        ]);
+        
+        // Добавляем строки с данными
+        dataToExport.forEach(p => {
+            worksheetData.push([
+                p.tb,
+                p.fio,
+                p.position,
+                getRoleText(p)
+            ]);
+        });
+        
+        // Создаём рабочую книгу и лист
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+        
+        // Настройка ширины колонок (для удобства)
+        ws['!cols'] = [
+            { wch: 28 },  // Территориальный банк
+            { wch: 32 },  // ФИО
+            { wch: 30 },  // Должность
+            { wch: 22 }   // Роль/Статус
+        ];
+        
+        // Стилизация заголовков (жирный шрифт) через настройку ячеек
+        // SheetJS не поддерживает прямое форматирование без дополнительных инструментов,
+        // но можно добавить простые стили через свойство s. Используем базовое форматирование для шапки.
+        const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:D1');
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+            const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C });
+            if (!ws[cellAddress]) continue;
+            ws[cellAddress].s = {
+                font: { bold: true, sz: 12, name: "Segoe UI" },
+                fill: { fgColor: { rgb: "D6E4F0" } },
+                alignment: { horizontal: "center" }
+            };
+        }
+        
+        // Добавляем лист в книгу
+        XLSX.utils.book_append_sheet(wb, ws, "Участники");
+        
+        // Формируем имя файла
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        let tabName = currentTab === "inkasso" ? "Инкассация" : "Охрана";
+        let filterSuffix = "";
+        if (currentTab === "inkasso" && currentInkassoFilter !== "all") {
+            filterSuffix = `_${currentInkassoFilter === "водитель" ? "Водители" : "Триатлон"}`;
+        } else if (currentTab === "ohrana" && currentOhranaFilter === "chief") {
+            filterSuffix = "_СтаршиеКоманды";
+        }
+        const filename = `Участники_${tabName}${filterSuffix}_${dateStr}.xlsx`;
+        
+        // Сохраняем файл
+        XLSX.writeFile(wb, filename);
+    }
+    
+    // Функция для экспорта ВСЕХ участников (без фильтров) - дополнительная возможность,
+    // но по заданию нужна выгрузка списков с учётом фильтров, поэтому оставляем основную функцию.
+    // Однако добавим также кнопку экспорта всех данных по текущей вкладке (уже реализовано)
+    
+    // Вторая кнопка (можно было бы добавить, но по ТЗ достаточно одной кнопки с учётом фильтров)
+    // Просто убедимся, что экспорт берёт данные getFilteredParticipants().
+    
     // Установка активной вкладки
     function setActiveTab(tabId) {
         if (tabId === currentTab) return;
         currentTab = tabId;
         
-        // Сбрасываем фильтры для каждой вкладки на значения по умолчанию для комфорта пользователя
         if (currentTab === "inkasso") {
             currentInkassoFilter = "all";
         } else if (currentTab === "ohrana") {
             currentOhranaFilter = "all";
         }
         
-        // Обновить активный класс табов
         tabButtons.forEach(btn => {
             if (btn.getAttribute("data-tab") === currentTab) {
                 btn.classList.add("active");
@@ -427,12 +523,11 @@
             }
         });
         
-        // Перерисовать панель фильтров и таблицу
         renderFiltersPanel();
         renderTable();
     }
     
-    // Инициализация обработчиков вкладок
+    // Обработчики вкладок
     function initTabListeners() {
         tabButtons.forEach(btn => {
             btn.addEventListener("click", (e) => {
@@ -442,15 +537,20 @@
         });
     }
     
-    // Старт приложения
+    // Экспорт по клику
+    function initExportListener() {
+        if (exportBtn) {
+            exportBtn.addEventListener("click", exportToXLSX);
+        }
+    }
+    
     function start() {
         initTabListeners();
-        // Установка начального состояния
+        initExportListener();
         currentTab = "inkasso";
         currentInkassoFilter = "all";
         currentOhranaFilter = "all";
         
-        // Активные классы для табов
         tabButtons.forEach(btn => {
             if (btn.getAttribute("data-tab") === currentTab) {
                 btn.classList.add("active");
