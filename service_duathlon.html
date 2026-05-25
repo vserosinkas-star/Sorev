@@ -258,6 +258,7 @@
             border-radius: 40px;
             border: 1px solid #cbd5e1;
             margin-top: 5px;
+            flex-wrap: wrap;
         }
 
         .radio-group label {
@@ -267,6 +268,7 @@
             font-weight: normal;
             margin: 0;
             color: #1e293b;
+            cursor: pointer;
         }
 
         hr {
@@ -274,6 +276,7 @@
             border-color: #e2e8f0;
         }
 
+        /* ===== МОБИЛЬНАЯ АДАПТАЦИЯ (исправлено смещение гранаты) ===== */
         @media (max-width: 700px) {
             .penalties-grid {
                 grid-template-columns: 1fr;
@@ -281,6 +284,43 @@
 
             button {
                 width: 100%;
+            }
+
+            /* Главное исправление: блок гранаты на мобильных становится вертикальным */
+            .radio-group {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+                border-radius: 28px;
+            }
+
+            /* Дополнительно улучшаем отображение двойных рядов */
+            .double-row {
+                flex-direction: column;
+            }
+
+            .time-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .time-row button {
+                margin-top: 8px;
+            }
+
+            .participant-title {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .participant-title input {
+                margin-left: 0 !important;
+                width: 100%;
+            }
+
+            .summary-bar {
+                flex-direction: column;
+                gap: 8px;
             }
         }
     </style>
@@ -750,7 +790,7 @@
             if (r.team_total !== null && rank === 1) tr.classList.add('rank-1');
             tr.innerHTML = `
                 <td>${r.team_total !== null ? rank++ : '—'}</td>
-                <td><strong>${r.name}</strong> (${r.code})</td>
+                <td><strong>${r.name}</strong> (${r.code})</strong></td>
                 <td>${r.p1_name}</td>
                 <td>${r.p1_total !== null ? formatTime(r.p1_total) : '—'}</td>
                 <td>${r.p2_name}</td>
