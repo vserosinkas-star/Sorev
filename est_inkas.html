@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Эстафета — Система судейства (мультиэтап)</title>
+    <title>Эстафета Инкассация</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
@@ -140,8 +140,36 @@
             margin-left: 10px;
         }
         .status-ok { background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; display: inline-block; }
+        .status-error { background: #fee2e2; color: #991b1b; }
         .status-warning { background: #fed7aa; color: #9b4a0c; }
         .sync-btn { background: #6366f1; font-size: 0.8rem; padding: 6px 12px; }
+        
+        @media print {
+            body { background: white; padding: 0; margin: 0; }
+            .judge-panel, .results-table, .stage-info, .judge-controls, .penalties-grid, .summary-bar,
+            .unsaved-badge, #printReportBtn, #saveRawTimeBtn, #resetTeamBtn, #saveStageBtn, #resetStageBtn,
+            select, input, .logout-btn, .judge-badge, .admin-panel, .tab-buttons { display: none !important; }
+            .print-report-area {
+                display: block !important;
+                margin: 0;
+                padding: 20px;
+                font-size: 12pt;
+            }
+            .print-sign-line {
+                margin-top: 40px;
+                border-top: 1px dashed #aaa;
+                padding-top: 20px;
+            }
+            .print-footer {
+                margin-top: 30px;
+                font-size: 9pt;
+                text-align: center;
+            }
+        }
+        .print-report-area {
+            display: none;
+        }
+        
         .stage-title { margin: 10px 0 5px 0; font-weight: 700; color: #1e3a8a; font-size: 1rem; }
         .judge-info-card {
             background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
@@ -263,7 +291,7 @@
             <h3>🏆 Общий зачёт (все команды)</h3>
             <table id="resultsTable">
                 <thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
-                <tbody id="resultsBody"><tr><td colspan="6">Загрузка......</td></tr></tbody>
+                <tbody id="resultsBody"><td><td colspan="6">Загрузка......</td></tr></tbody>
             </table>
         </div>
     </div>
@@ -333,7 +361,7 @@
             "Обслуживание ВСП", "Вооруженный преступник", "Общие штрафы"
         ];
         
-        // ========== ШТРАФЫ (полный список) ==========
+        // ========== ПОЛНЫЙ СПИСОК ШТРАФОВ (как в est_inkas.html) ==========
         const penaltiesLibrary = [
             { id: "prop_door", category: "Получение имущества", desc: "Не закрыты двери/дверь СТС в «гараже»", sec: 30 },
             { id: "prop_sk", category: "Получение имущества", desc: "Инкассатор: СК не получен", sec: 20 },
@@ -537,9 +565,7 @@
                     for (let row of data) {
                         const key = `${row.stage}_${row.direction}`;
                         if (!newDb[key]) newDb[key] = [];
-                        if (!newDb[key].includes(row.judge_name)) {
-                            newDb[key].push(row.judge_name);
-                        }
+                        if (!newDb[key].includes(row.judge_name)) newDb[key].push(row.judge_name);
                     }
                     judgesDatabase = newDb;
                     saveJudgesToLocal();
@@ -561,9 +587,7 @@
                 for (let [key, judges] of Object.entries(judgesDatabase)) {
                     const [stage, direction] = key.split('_');
                     for (let judge of judges) {
-                        if (judge && judge.trim()) {
-                            records.push({ stage, direction: parseInt(direction), judge_name: judge.trim() });
-                        }
+                        if (judge && judge.trim()) records.push({ stage, direction: parseInt(direction), judge_name: judge.trim() });
                     }
                 }
                 if (records.length > 0) {
@@ -578,20 +602,11 @@
             }
         }
         
-        function saveJudgesToLocal() {
-            localStorage.setItem('estafeta_judges_complete_v4', JSON.stringify(judgesDatabase));
-        }
-        
+        function saveJudgesToLocal() { localStorage.setItem('estafeta_judges_complete_v5', JSON.stringify(judgesDatabase)); }
         function loadJudgesFromLocal() {
-            const saved = localStorage.getItem('estafeta_judges_complete_v4');
+            const saved = localStorage.getItem('estafeta_judges_complete_v5');
             if (saved && saved !== 'undefined') {
-                try {
-                    const parsed = JSON.parse(saved);
-                    if (parsed && typeof parsed === 'object') {
-                        judgesDatabase = parsed;
-                        return true;
-                    }
-                } catch(e) {}
+                try { judgesDatabase = JSON.parse(saved); return true; } catch(e) {}
             }
             return false;
         }
@@ -607,10 +622,10 @@
                     });
                     // Тестовые судьи (один судья на нескольких этапах)
                     judgesDatabase["Получение имущества_1"] = ["Сосновских Александр Павлович"];
-                    judgesDatabase["Прокол шины_1"] = ["Сосновских Александр Павлович"];  // тот же судья на другом этапе
+                    judgesDatabase["Прокол шины_1"] = ["Сосновских Александр Павлович"];
                     judgesDatabase["Стрельба_1"] = ["Сосновских Александр Павлович"];
                     judgesDatabase["Получение имущества_2"] = ["Петров Петр Петрович"];
-                    judgesDatabase["Стрельба_1"] = ["Сидоров Сидор Сидорович"];
+                    judgesDatabase["Стрельба_2"] = ["Сидоров Сидор Сидорович"];
                     judgesDatabase["Пожар_1"] = ["Орлов Олег Олегович"];
                     judgesDatabase["Медицина_2"] = ["Соловьева Светлана Сергеевна"];
                     saveJudgesToLocal();
@@ -625,32 +640,28 @@
             const success = await loadJudgesFromSupabase();
             if (success) {
                 saveJudgesToLocal();
-                if (statusDiv) {
-                    statusDiv.innerHTML = '<span class="status-ok">✅ Синхронизация выполнена</span>';
-                    setTimeout(() => { if(statusDiv) statusDiv.innerHTML = ''; }, 3000);
-                }
+                if (statusDiv) statusDiv.innerHTML = '<span class="status-ok">✅ Синхронизация выполнена</span>';
+                setTimeout(() => { if(statusDiv) statusDiv.innerHTML = ''; }, 3000);
                 renderAdminJudgesList();
                 updateJudgeSelectList();
             } else {
-                if (statusDiv) {
-                    statusDiv.innerHTML = '<span class="status-warning">⚠️ Офлайн-режим, данные локально</span>';
-                    setTimeout(() => { if(statusDiv) statusDiv.innerHTML = ''; }, 3000);
-                }
+                if (statusDiv) statusDiv.innerHTML = '<span class="status-warning">⚠️ Офлайн-режим</span>';
+                setTimeout(() => { if(statusDiv) statusDiv.innerHTML = ''; }, 3000);
             }
         }
         
         const ADMIN_PASSWORD = "admin123";
         let currentUser = { role: null, stage: null, name: null, direction: null };
         
-        function saveUserSession() { localStorage.setItem('estafeta_user_v4', JSON.stringify({ role: currentUser.role, stage: currentUser.stage, name: currentUser.name, direction: currentUser.direction })); }
+        function saveUserSession() { localStorage.setItem('estafeta_user_v5', JSON.stringify({ role: currentUser.role, stage: currentUser.stage, name: currentUser.name, direction: currentUser.direction })); }
         function loadUserSession() {
-            const saved = localStorage.getItem('estafeta_user_v4');
+            const saved = localStorage.getItem('estafeta_user_v5');
             if (saved) {
                 try { const u = JSON.parse(saved); if (u.role) currentUser = u; return true; } catch(e) {}
             }
             return false;
         }
-        function clearUserSession() { localStorage.removeItem('estafeta_user_v4'); currentUser = { role: null, stage: null, name: null, direction: null }; }
+        function clearUserSession() { localStorage.removeItem('estafeta_user_v5'); currentUser = { role: null, stage: null, name: null, direction: null }; }
         
         function showAuth() {
             document.getElementById('authPanel').classList.remove('hidden');
@@ -707,13 +718,7 @@
         
         function updateConnectionStatus() {
             const statusDiv = document.getElementById('connectionStatus');
-            if(statusDiv) {
-                if(isOnline) {
-                    statusDiv.innerHTML = '<span class="status-ok">🟢 Онлайн-режим</span>';
-                } else {
-                    statusDiv.innerHTML = '<span class="status-warning">🟡 Офлайн-режим</span>';
-                }
-            }
+            if(statusDiv) statusDiv.innerHTML = isOnline ? '<span class="status-ok">🟢 Онлайн-режим</span>' : '<span class="status-warning">🟡 Офлайн-режим</span>';
         }
         
         async function refreshCurrentTeamData(){
@@ -743,7 +748,6 @@
                 document.getElementById('penaltiesContainer').innerHTML=`<div style="grid-column:1/-1; text-align:center; padding:20px;">📭 Для этапа "${currentUser.stage}" нет штрафов</div>`; 
                 return; 
             }
-            
             let html = `<div class="stage-title">📋 Штрафные нарушения этапа "${currentUser.stage}" (${stagePen.length} шт.)</div>`;
             for(let p of stagePen){
                 let checked = !!tempPenalties[p.id];
@@ -757,7 +761,6 @@
                          </div>`;
             }
             document.getElementById('penaltiesContainer').innerHTML = html;
-            
             for(let p of stagePen){
                 let cb = document.getElementById(`chk_${p.id}`);
                 let card = document.querySelector(`.penalty-card[data-id="${p.id}"]`);
@@ -893,54 +896,85 @@
                 for(let r of rows){
                     let tr=document.createElement('tr');
                     if(r.total!==null && rank===1) tr.classList.add('rank-1');
-                    tr.innerHTML=`<td>${r.total!==null?rank++:'—'}</td><td>${r.name} (${r.team})</strong></td><td>${r.dir}</strong></td><td>${r.raw!==null?formatTime(r.raw):'—'}<td><td>${r.penalty}</td><td>${r.total!==null?formatTime(r.total):'—'}</td>`;
+                    tr.innerHTML=`<td>${r.total!==null?rank++:'—'}</td><td>${r.name} (${r.team})</strong></td><td>${r.dir}</strong></td><td>${r.raw!==null?formatTime(r.raw):'—'}<td><td>${r.penalty} \u00A0</td><td class="total-cell">${r.total!==null?formatTime(r.total):'—'}</td>`;
                     tbody.appendChild(tr);
                 }
                 isOnline = true;
-            } catch(e) {
-                isOnline = false;
-            }
+            } catch(e) { isOnline = false; }
             updateConnectionStatus();
         }
         
+        // ========== ПЕЧАТЬ ОТЧЕТА (как в est_inkas.html) ==========
         async function printFullReport() {
-            if(!currentUser.direction||!currentTeam){ alert('Выберите команду'); return; }
+            if (!currentUser.direction || !currentTeam) {
+                alert('Сначала выберите команду!');
+                return;
+            }
             const data = await loadTeamData(currentUser.direction, currentTeam);
-            if(!data) { alert('Нет данных'); return; }
+            if (!data) {
+                alert('Нет сохранённых данных для этой команды. Сначала зафиксируйте время или ошибки.');
+                return;
+            }
             const rawSec = data.raw_seconds;
             const penaltiesObj = data.penalties || {};
             const activePenalties = [];
-            for(let [id, active] of Object.entries(penaltiesObj)) if(active===true){
-                let p = penaltiesLibrary.find(p=>p.id===id);
-                if(p) activePenalties.push(p);
+            for (let [id, active] of Object.entries(penaltiesObj)) {
+                if (active === true) {
+                    const penaltyInfo = penaltiesLibrary.find(p => p.id === id);
+                    if (penaltyInfo) activePenalties.push(penaltyInfo);
+                }
             }
             const grouped = {};
-            for(let p of activePenalties) { if(!grouped[p.category]) grouped[p.category]=[]; grouped[p.category].push(p); }
+            for (let p of activePenalties) {
+                if (!grouped[p.category]) grouped[p.category] = [];
+                grouped[p.category].push(p);
+            }
             const totalPenalty = getPenaltySum(penaltiesObj);
-            const totalTime = rawSec !== null ? rawSec + totalPenalty : null;
+            const totalTime = (rawSec !== null && rawSec !== undefined) ? rawSec + totalPenalty : null;
             const teamFullName = teamNames[currentTeam] || currentTeam;
             const now = new Date().toLocaleString('ru-RU');
-            const printHtml = `<div style="font-family:'Segoe UI',sans-serif;max-width:1000px;margin:0 auto;padding:20px;">
-                <h1 style="text-align:center;">🏁 ОТЧЕТ О ПРОХОЖДЕНИИ ЭСТАФЕТЫ</h1>
-                <div style="text-align:center;margin-bottom:24px;">${now}</div>
-                <div style="background:#f8fafc;padding:16px;border-radius:16px;margin-bottom:24px;">
-                    <div><strong>Команда:</strong> ${teamFullName} (${currentTeam})</div>
-                    <div><strong>Направление:</strong> ${currentUser.direction}</div>
-                    <div><strong>Этап:</strong> ${currentUser.stage}</div>
-                    <div><strong>Судья:</strong> ${currentUser.name}</div>
-                    <div><strong>Чистое время:</strong> ${rawSec!==null?formatTime(rawSec):'—'}</div>
-                    <div><strong>Общий штраф:</strong> ${totalPenalty} сек</div>
-                    <div><strong>Итоговое время:</strong> ${totalTime!==null?formatTime(totalTime):'—'}</div>
+            const printHtml = `
+                <div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px;">
+                    <h1 style="text-align: center; margin-bottom: 8px;">🏁 ОТЧЕТ О ПРОХОЖДЕНИИ ЭСТАФЕТЫ</h1>
+                    <div style="text-align: center; margin-bottom: 24px; color: #2c3e66;">Дата формирования: ${now}</div>
+                    <div style="background: #f8fafc; padding: 16px; border-radius: 16px; margin-bottom: 24px;">
+                        <div><strong>Команда (территориальный банк):</strong> ${teamFullName} (${currentTeam})</div>
+                        <div><strong>Направление:</strong> ${currentUser.direction}</div>
+                        <div><strong>Чистое время заезда:</strong> ${rawSec !== null ? formatTime(rawSec) : '—'}</div>
+                        <div><strong>Общий штраф:</strong> ${totalPenalty} секунд</div>
+                        <div><strong>Итоговое время:</strong> ${totalTime !== null ? formatTime(totalTime) : '—'}</div>
+                    </div>
+                    <h3>📋 Перечень допущенных ошибок (штрафных нарушений):</h3>
+                    ${Object.keys(grouped).length === 0 ? '<p style="color: green;">✅ Штрафные нарушения отсутствуют.</p>' : ''}
+                    ${Object.entries(grouped).map(([stageName, penaltiesArr]) => `
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="background: #eef2ff; padding: 8px 12px; border-radius: 12px;">🎯 ${stageName}</h4>
+                            <table style="width: 100%; border-collapse: collapse; margin-top: 8px;">
+                                <thead><tr style="background: #e2e8f0;"><th style="padding: 8px; text-align: left;">Нарушение</th><th style="padding: 8px; width: 100px;">Штраф (сек)</th> </tr></thead>
+                                <tbody>
+                                    ${penaltiesArr.map(p => `<tr style="border-bottom: 1px solid #cbd5e1;"><td style="padding: 8px;">${p.desc}</td><td style="padding: 8px;">+${p.sec}</td></tr>`).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `).join('')}
+                    
+                    <div class="print-sign-line" style="margin-top: 48px; border-top: 1px dashed #aaa; padding-top: 24px;">
+                        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px;">
+                            <div style="min-width: 250px;"><strong>Представитель команды:</strong> __________________</div>
+                            <div style="min-width: 200px;"><strong>Главный Судья (ФИО):</strong> __________________</div>
+                        </div>
+                        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                            <div><strong>Дата:</strong> __________________</div>
+                        </div>
+                        <div style="margin-top: 20px; font-size: 10px; color: #4b5563; text-align: center;">
+                            Подпись представителя команды подтверждает согласие с зафиксированными результатами и отсутствие претензий.
+                        </div>
+                    </div>
+                    <div class="print-footer" style="margin-top: 40px; font-size: 9pt; text-align: center; color: #6c757d;">
+                        Официальный протокол дисциплины "Эстафета"
+                    </div>
                 </div>
-                <h3>📋 Штрафные нарушения:</h3>
-                ${Object.keys(grouped).length===0?'<p>✅ Штрафы отсутствуют.</p>':''}
-                ${Object.entries(grouped).map(([stageName, arr])=>`<div><h4>🎯 ${stageName}</h4>
-                <table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#e2e8f0;"><th>Нарушение</th><th>Штраф</th></tr></thead>
-                <tbody>${arr.map(p=>`<tr><td style="padding:8px;">${p.desc}</td><td>+${p.sec}</td></tr>`).join('')}</tbody>}</table></div>`).join('')}
-                <div style="margin-top:48px;border-top:1px dashed #aaa;padding-top:24px;">
-                    <div style="display:flex;justify-content:space-between;"><div><strong>Представитель команды:</strong> __________________</div><div><strong>Судья:</strong> __________________</div></div>
-                </div>
-            </div>`;
+            `;
             const container = document.getElementById('printReportContainer');
             container.innerHTML = printHtml;
             container.style.display = 'block';
@@ -971,8 +1005,8 @@
             for(let [key, judges] of Object.entries(judgesDatabase)){
                 if(!judges) judges = [];
                 let [stage, dir] = key.split('_');
-                html += `<tr><td style="vertical-align:top;"><strong>${stage}</strong></td><td style="vertical-align:top;">Направление ${dir}</strong></td><td>${judges.length > 0 ? judges.join('<br>') : '<span style="color:#999;">— нет —</span>'}</td>
-                            <td style="vertical-align:top;"><button class="delete-judge-btn" data-key="${key}" data-judge="all">🗑️ Очистить</button></td></tr>`;
+                html += `<tr><td style="vertical-align:top;"><strong>${stage}</strong></td><td style="vertical-align:top;">Направление ${dir}</td><td>${judges.length > 0 ? judges.join('<br>') : '<span style="color:#999;">— нет —</span>'}</td>
+                           <td style="vertical-align:top;"><button class="delete-judge-btn" data-key="${key}" data-judge="all">🗑️ Очистить</button></td></tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
@@ -1024,7 +1058,7 @@
                 let rank=1;
                 for(let r of rows){
                     let tr=document.createElement('tr');
-                    tr.innerHTML=`<td>${r.total!==null?rank++:'—'}<td><td>${r.name}</strong> (${r.team})</strong></td><td>${r.dir}</strong></td><td>${r.raw!==null?formatTime(r.raw):'—'}</td><td>${r.penalty}</td><td>${r.total!==null?formatTime(r.total):'—'}</td>`;
+                    tr.innerHTML=`<td>${r.total!==null?rank++:'—'}</td><td><strong>${r.name}</strong> (${r.team})</td><td>${r.dir}</td><td>${r.raw!==null?formatTime(r.raw):'—'}</td><td>${r.penalty}</td><td class="total-cell">${r.total!==null?formatTime(r.total):'—'}</td>`;
                     tbody.appendChild(tr);
                 }
             } catch(e) {}
@@ -1064,63 +1098,38 @@
         function populateStageSelects() {
             const selects = [document.getElementById('adminStageSelect')];
             selects.forEach(select => {
-                if(select) {
-                    select.innerHTML = '<option value="">-- Выберите этап --</option>' + stages.map(s => `<option value="${s}">${s}</option>`).join('');
-                }
+                if(select) select.innerHTML = '<option value="">-- Выберите этап --</option>' + stages.map(s => `<option value="${s}">${s}</option>`).join('');
             });
         }
         populateStageSelects();
         
-        // Построение списка судей (уникальные фамилии)
         function updateJudgeSelectList() {
             const judgeSelect = document.getElementById('authJudgeSelect');
             judgeSelect.innerHTML = '<option value="">-- Выберите свою фамилию --</option>';
-            const judgeMap = new Map(); // фамилия -> { stages: Set, direction: число }
-            
+            const judgeMap = new Map();
             for (let [key, judges] of Object.entries(judgesDatabase)) {
                 const [stage, direction] = key.split('_');
                 for (let judge of judges) {
-                    if (!judgeMap.has(judge)) {
-                        judgeMap.set(judge, { stages: new Set(), direction: direction });
-                    }
+                    if (!judgeMap.has(judge)) judgeMap.set(judge, { stages: new Set(), direction: direction });
                     const entry = judgeMap.get(judge);
                     entry.stages.add(stage);
-                    // Проверяем, что направление одинаково для всех этапов этого судьи
-                    if (entry.direction !== direction) {
-                        console.warn(`У судьи ${judge} разные направления: ${entry.direction} и ${direction}`);
-                    }
                 }
             }
-            
             for (let [judge, info] of judgeMap.entries()) {
                 let option = document.createElement('option');
                 option.value = JSON.stringify({ name: judge, stages: Array.from(info.stages), direction: info.direction });
                 option.textContent = `${judge} — ${Array.from(info.stages).join(', ')} (напр. ${info.direction})`;
                 judgeSelect.appendChild(option);
             }
-            
-            // При изменении выбора фамилии показываем выбор этапа
             judgeSelect.addEventListener('change', function() {
                 const stageSelectBlock = document.getElementById('stageSelectBlock');
                 const stageSelect = document.getElementById('authStageForJudge');
-                if (!this.value) {
-                    stageSelectBlock.style.display = 'none';
-                    return;
-                }
+                if (!this.value) { stageSelectBlock.style.display = 'none'; return; }
                 try {
                     const data = JSON.parse(this.value);
-                    const stagesList = data.stages;
-                    stageSelect.innerHTML = '<option value="">-- Выберите этап --</option>';
-                    for (let s of stagesList) {
-                        let opt = document.createElement('option');
-                        opt.value = s;
-                        opt.textContent = s;
-                        stageSelect.appendChild(opt);
-                    }
+                    stageSelect.innerHTML = '<option value="">-- Выберите этап --</option>' + data.stages.map(s => `<option value="${s}">${s}</option>`).join('');
                     stageSelectBlock.style.display = 'block';
-                } catch(e) {
-                    stageSelectBlock.style.display = 'none';
-                }
+                } catch(e) { stageSelectBlock.style.display = 'none'; }
             });
         }
         
@@ -1137,28 +1146,15 @@
                 }
             } else {
                 const judgeValue = document.getElementById('authJudgeSelect').value;
-                if (!judgeValue) {
-                    document.getElementById('authError').innerText = 'Выберите фамилию';
-                    return;
-                }
+                if (!judgeValue) { document.getElementById('authError').innerText = 'Выберите фамилию'; return; }
                 const stageValue = document.getElementById('authStageForJudge').value;
-                if (!stageValue) {
-                    document.getElementById('authError').innerText = 'Выберите этап';
-                    return;
-                }
+                if (!stageValue) { document.getElementById('authError').innerText = 'Выберите этап'; return; }
                 try {
                     const judgeData = JSON.parse(judgeValue);
-                    currentUser = {
-                        role: 'judge',
-                        stage: stageValue,
-                        name: judgeData.name,
-                        direction: judgeData.direction
-                    };
+                    currentUser = { role: 'judge', stage: stageValue, name: judgeData.name, direction: judgeData.direction };
                     saveUserSession();
                     showJudgeInterface();
-                } catch(e) {
-                    document.getElementById('authError').innerText = 'Ошибка данных';
-                }
+                } catch(e) { document.getElementById('authError').innerText = 'Ошибка данных'; }
             }
         });
         
