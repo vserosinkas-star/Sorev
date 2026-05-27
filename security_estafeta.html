@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Эстафета (охрана) — судейская панель (мгновенное обновление)</title>
+    <title>Эстафета (охрана) — судейская панель </title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
@@ -641,7 +641,7 @@
             try {
                 let { error } = await supabaseClient.from('security_estafeta_results').select('count', { count: 'exact', head: true });
                 if (error) throw error;
-                statusDiv.innerHTML = '<span class="status-ok">✅ Подключено к Supabase (мгновенное обновление)</span>';
+                statusDiv.innerHTML = '<span class="status-ok">✅ Подключено</span>';
             } catch (err) {
                 statusDiv.innerHTML = `<span class="status-error">❌ Ошибка: ${err.message}. Работа возможна, но сохранение не гарантировано.</span>`;
             }
