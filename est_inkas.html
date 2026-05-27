@@ -83,11 +83,14 @@
         .stage-info { background: #eef2ff; border-radius: 16px; padding: 12px 20px; margin: 15px 0; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
         .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; }
         .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 10px; margin: 20px 0; max-height: 550px; overflow-y: auto; padding: 4px; }
-        .penalty-card { background: #f9fafb; border: 1px solid #e2e8f0; border-radius: 14px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: 0.1s; }
-        .penalty-card:hover { background: #f1f5f9; }
+        .penalty-card { background: #f9fafb; border: 1px solid #e2e8f0; border-radius: 14px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .penalty-card .desc { flex: 2; font-size: 0.9rem; font-weight: 500; }
         .penalty-card input { width: 20px; height: 20px; margin: 0; cursor: pointer; }
         .penalty-card label { flex: 1; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 0.85rem; line-height: 1.3; }
-        .penalty-sec { background: #e2e8f0; padding: 3px 10px; border-radius: 30px; font-size: 0.7rem; font-weight: 600; }
+        .penalty-sec { background: #e2e8f0; padding: 3px 10px; border-radius: 30px; font-size: 0.7rem; font-weight: 600; margin-left: 8px; white-space: nowrap; }
+        .counter-control { display: flex; align-items: center; gap: 8px; background: white; border-radius: 40px; padding: 4px 12px; border: 1px solid #cbd5e1; }
+        .counter-control button { background: #e2e8f0; color: #1e293b; padding: 2px 10px; font-size: 1.2rem; line-height: 1; margin: 0; width: auto; }
+        .counter-control span { min-width: 32px; text-align: center; font-weight: bold; }
         .penalty-highlight-green { background: #dcfce7 !important; border-left: 5px solid #15803d !important; }
         .summary-bar { background: #f1f5f9; border-radius: 20px; padding: 16px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-top: 20px; gap: 15px; }
         .total-time { font-size: 1.5rem; font-weight: 800; background: #dcfce7; padding: 6px 18px; border-radius: 40px; }
@@ -308,7 +311,8 @@
             <h3>🏆 Общий зачёт (все команды)</h3>
             <table id="resultsTable">
                 <thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
-                <tbody id="resultsBody"><tr><td colspan="6">Загрузка......</td></tr></tbody>
+                <tbody id="resultsBody"><tr><td colspan="6">Загрузка......</td></tr>
+                </tbody>
             </table>
         </div>
     </div>
@@ -357,7 +361,7 @@
                     <table id="adminResultsTable">
                         <thead><tr><th>Место</th><th>Команда</th><th>Направление</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
                         <tbody id="adminResultsBody"></tbody>
-                    </table>
+                     </table>
                 </div>
                 <button id="adminRefreshBtn" style="margin-top: 16px; background: #3b82f6;">🔄 Обновить</button>
             </div>
@@ -378,9 +382,9 @@
             "Обслуживание ВСП", "Вооруженный преступник", "Общие штрафы"
         ];
         
-        // ========== ПОЛНЫЙ СПИСОК ШТРАФОВ (из estafeta (2).html) ==========
+        // ========== ШТРАФЫ ПОЛНОСТЬЮ (как в estafeta) ==========
         const penaltiesLibrary = [
-            // === 1. Получение имущества ===
+            // Получение имущества
             { id: "prop_door", category: "Получение имущества", desc: "1. Не закрыты двери/дверь СТС в «гараже»", sec: 30 },
             { id: "prop_sk", category: "Получение имущества", desc: "Инкассатор: СК не получен", sec: 20 },
             { id: "prop_yellow_key", category: "Получение имущества", desc: "Инкассатор: Жёлтый ИК-ключ СК не получен", sec: 20 },
@@ -399,10 +403,9 @@
             { id: "prop_no_radio_start", category: "Получение имущества", desc: "Не доложили по автомобильной радиостанции дежурному/оператору ЦМ о начале движения СТС по маршруту", sec: 30 },
             { id: "prop_bad_sk", category: "Получение имущества", desc: "Некорректное обращение с СК (уронил/кинул на землю)", sec: 50 },
             { id: "prop_belt", category: "Получение имущества", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            
-            // === 2. Получение банковских ценностей ===
+            // Получение банковских ценностей
             { id: "bank_belt", category: "Получение банковских ценностей", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            { id: "bank_cone_1", category: "Получение банковских ценностей", desc: "СТС вышел за пределы габарита шлюзового бокса/совершил наезд на ограждающий конус", sec: 5 },
+            { id: "bank_cone_1", category: "Получение банковских ценностей", desc: "Наезд на 1 конус", sec: 5 },
             { id: "bank_cone_2", category: "Получение банковских ценностей", desc: "Наезд на 2 конуса", sec: 10 },
             { id: "bank_cone_3", category: "Получение банковских ценностей", desc: "Наезд на 3 конуса", sec: 15 },
             { id: "bank_cone_4", category: "Получение банковских ценностей", desc: "Наезд на 4 и более конуса", sec: 20 },
@@ -415,8 +418,7 @@
             { id: "bank_ostav", category: "Получение банковских ценностей", desc: "Оставление документов (паспорт, доверенность и т.д.)", sec: 30 },
             { id: "bank_nak", category: "Получение банковских ценностей", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 30 },
             { id: "bank_nak_dv", category: "Получение банковских ценностей", desc: "Не была закрыта дверь устройства накопителя до начала движения СТС", sec: 30 },
-            
-            // === 3. Прокол шины ===
+            // Прокол шины
             { id: "puncture_belt", category: "Прокол шины", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "puncture_no_report", category: "Прокол шины", desc: "Водитель-инкассатор не сообщил по автомобильной радиостанции дежурному/оператору ЦМ о поломке СТС.", sec: 30 },
             { id: "puncture_hazard", category: "Прокол шины", desc: "Не включена на СТС аварийная сигнализация", sec: 30 },
@@ -436,14 +438,12 @@
             { id: "puncture_cleanup_jack", category: "Прокол шины", desc: "Не откатан в сторону из под СТС домкрат", sec: 10 },
             { id: "puncture_helper", category: "Прокол шины", desc: "Инкассатор оказывает помощь водителю-инкассатору в выполнении данного упражнения", sec: 30 },
             { id: "puncture_repair_report", category: "Прокол шины", desc: "Водитель-инкассатор не сообщил по автомобильной радиостанции дежурному/оператору ЦМ об устранении неисправности СТС", sec: 30 },
-            
-            // === 4. Змейка ===
-            { id: "snake_cone", category: "Змейка", desc: "Наезд на ограничивающие конструкции (бочка/конус)/не проезд конуса.", sec: 5 },
-            { id: "snake_cone1", category: "Змейка", desc: "Наезд на ограничивающие конструкции (бочка/конус)/не проезд конуса.", sec: 10 },
-            { id: "snake_cone2", category: "Змейка", desc: "Наезд на ограничивающие конструкции (бочка/конус)/не проезд конуса.", sec: 15 },
-            { id: "snake_cone3", category: "Змейка", desc: "Наезд на ограничивающие конструкции (бочка/конус)/не проезд конуса.", sec: 20 },
-            
-            // === 5. Инкассация объекта ===
+            // Змейка
+            { id: "snake_cone", category: "Змейка", desc: "Наезд на конус (1)", sec: 5 },
+            { id: "snake_cone1", category: "Змейка", desc: "Наезд на конус (2)", sec: 10 },
+            { id: "snake_cone2", category: "Змейка", desc: "Наезд на конус (3)", sec: 15 },
+            { id: "snake_cone3", category: "Змейка", desc: "Наезд на конус (4 и более)", sec: 20 },
+            // Инкассация объекта
             { id: "incass_belt", category: "Инкассация объекта", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "incass_no_radio", category: "Инкассация объекта", desc: "Инкассатор инкассирует клиента без носимой радиостанции (не получил у водителя-инкассатора)", sec: 30 },
             { id: "incass_no_docs", category: "Инкассация объекта", desc: "Инкассатор не предъявил документы (паспорт, доверенность)", sec: 30 },
@@ -463,8 +463,7 @@
             { id: "incass_nakop_after", category: "Инкассация объекта", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 50 },
             { id: "incass_nakop_door_after", category: "Инкассация объекта", desc: "Не была закрыта дверь устройства накопителя", sec: 30 },
             { id: "incass_sk_cell_after", category: "Инкассация объекта", desc: "СК не установлен в специальную ячейку", sec: 20 },
-            
-            // === 6. Обслуживание УС ===
+            // Обслуживание УС
             { id: "us_belt", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "us_early_cassette", category: "Обслуживание УС", desc: "Изъятие инкассатором кассет УС из накопителя СТС произведено до остановки СТС", sec: 30 },
             { id: "us_first_exit", category: "Обслуживание УС", desc: "Инкассатор первым вышел из СТС", sec: 30 },
@@ -492,15 +491,13 @@
             { id: "us_nakop_load", category: "Обслуживание УС", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 50 },
             { id: "us_nakop_door", category: "Обслуживание УС", desc: "Не была закрыта дверь устройства накопителя", sec: 30 },
             { id: "us_broken_key", category: "Обслуживание УС", desc: "Инкассатор при обслуживании УС сломал/погнул/потерял ключ от УС", sec: 30 },
-            
-            // === 7. Стрельба ===
+            // Стрельба
             { id: "shoot_belt", category: "Стрельба", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "shoot_position", category: "Стрельба", desc: "СТС не установлен в обозначенном месте, которое обозначено «Г» образной стоп линией", sec: 30 },
             { id: "shoot_engine", category: "Стрельба", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
             { id: "shoot_door_open", category: "Стрельба", desc: "Не закрыты двери/дверь СТС", sec: 30 },
             { id: "shoot_miss", category: "Стрельба", desc: "Не сбита мишень", sec: 10 },
-            
-            // === 8. Пожар ===
+            // Пожар
             { id: "fire_belt", category: "Пожар", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "fire_position", category: "Пожар", desc: "СТС не установлен на безопасном расстоянии от огня, которое обозначено «Г» образной стоп линией", sec: 30 },
             { id: "fire_engine", category: "Пожар", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
@@ -520,8 +517,7 @@
             { id: "fire_nak", category: "Пожар", desc: "Не была закрыта дверь устройства накопителя после вложения банковских ценностей", sec: 30 },
             { id: "fire_sk_cell", category: "Пожар", desc: "Инкассатор: СК не установлен в специальную ячейку", sec: 20 },
             { id: "fire_repair_report", category: "Пожар", desc: "Водитель-инкассатор не сообщил по автомобильной радиостанции дежурному/оператору ЦМ о тушение пожара СТС", sec: 30 },
-            
-            // === 9. Медицина ===
+            // Медицина
             { id: "med_belt", category: "Медицина", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "med_position", category: "Медицина", desc: "СТС не установлен на безопасном расстоянии от огня, которое обозначено «Г» образной стоп линией", sec: 30 },
             { id: "med_no_report", category: "Медицина", desc: "Водитель-инкассатор по автомобильной радиостанции не сообщил дежурному/оператору ЦМ о «необходимости оказания первой помощи пострадавшему»", sec: 30 },
@@ -535,8 +531,7 @@
             { id: "med_ipp_rasl", category: "Медицина", desc: "В случае расслабления или соскальзывания турникета и/или ИПП с манекена во время транспортировки не осуществлено его повторное наложение", sec: 30 },
             { id: "med_stretcher", category: "Медицина", desc: "Бригада при транспортировки манекена бригада уронила его на землю", sec: 30 },
             { id: "med_stretcher_ukr", category: "Медицина", desc: "Бригада не переместила манекен в укрытие (обозначенное место)", sec: 30 },
-            
-            // === 10. Наручники ===
+            // Наручники
             { id: "handcuff_belt", category: "Наручники", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "handcuff_no_warning", category: "Наручники", desc: "Не предупредил о применении наручников", sec: 10 },
             { id: "handcuff_loose", category: "Наручники", desc: "Наручники не надежно зафиксированы", sec: 30 },
@@ -544,8 +539,7 @@
             { id: "handcuff_no_radio_exit", category: "Наручники", desc: "Не связался о выходе", sec: 30 },
             { id: "handcuff_boarding_no_confirm", category: "Наручники", desc: "Посадка без подтверждения", sec: 30 },
             { id: "handcuff_driver_no_confirm", category: "Наручники", desc: "Водитель не подтвердил выход", sec: 30 },
-            
-            // === 11. Обслуживание ВСП ===
+            // Обслуживание ВСП
             { id: "vsp_belt", category: "Обслуживание ВСП", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "vsp_nak", category: "Обслуживание ВСП", desc: "Инкассатор не закрыл накопитель после изъятия из него сейф-пакета с денежной наличностью", sec: 30 },
             { id: "vsp_seif", category: "Обслуживание ВСП", desc: "Инкассатор не вложил сейф-пакет с денежной наличностью в СК", sec: 30 },
@@ -560,17 +554,15 @@
             { id: "vsp_no_ok", category: "Обслуживание ВСП", desc: "Водитель-инкассатор не подтвердил по радиостанции возможность выхода", sec: 30 },
             { id: "vsp_sel", category: "Обслуживание ВСП", desc: "Инкассатор осуществил посадку в СТС без подтверждения от водителя-инкассатора", sec: 30 },
             { id: "vsp_sk_cell", category: "Обслуживание ВСП", desc: "СК не установлен в специальную ячейку", sec: 30 },
-            
-            // === 12. Вооруженный преступник ===
+            // Вооруженный преступник
             { id: "prestupnik_mish", category: "Вооруженный преступник", desc: "Не сдвинута бампером СТС с места выставленная специальная поясная мишень (с оружием)/не коснулся бампером СТС выставленную специальную поясную мишень (с оружием)", sec: 30 },
-            { id: "prestupnik_cone", category: "Вооруженный преступник", desc: "СТС передними колесами вышел за обозначенную линию соединяющую дальние конусы периметра /совершил наезд на ограждающий конус", sec: 5 },
-            { id: "prestupnik_cone1", category: "Вооруженный преступник", desc: "СТС передними колесами вышел за обозначенную линию соединяющую дальние конусы периметра /совершил наезд на ограждающий конус", sec: 10 },
-            { id: "prestupnik_cone2", category: "Вооруженный преступник", desc: "СТС передними колесами вышел за обозначенную линию соединяющую дальние конусы периметра /совершил наезд на ограждающий конус", sec: 15 },
-            { id: "prestupnik_cone3", category: "Вооруженный преступник", desc: "СТС передними колесами вышел за обозначенную линию соединяющую дальние конусы периметра /совершил наезд на ограждающий конус", sec: 20 },
+            { id: "prestupnik_cone", category: "Вооруженный преступник", desc: "Наезд на конус (1)", sec: 5 },
+            { id: "prestupnik_cone1", category: "Вооруженный преступник", desc: "Наезд на конус (2)", sec: 10 },
+            { id: "prestupnik_cone2", category: "Вооруженный преступник", desc: "Наезд на конус (3)", sec: 15 },
+            { id: "prestupnik_cone3", category: "Вооруженный преступник", desc: "Наезд на конус (4 и более)", sec: 20 },
             { id: "prestupnik_shluz", category: "Вооруженный преступник", desc: "СТС вышел за пределы габарита шлюзового бокса", sec: 5 },
             { id: "prestupnik_ogr_cone", category: "Вооруженный преступник", desc: "СТС совершил наезд на ограждающий конус", sec: 5 },
-            
-            // === 13. Общие штрафы ===
+            // Общие штрафы
             { id: "obsh_bez", category: "Общие штрафы", desc: "Нарушение безопасности движения в результате выезда за границы маршрута (наезда на ограничивающие маршрут конструкции)", sec: 50 },
             { id: "obsh_lic", category: "Общие штрафы", desc: "Проход лиц за ограждение, на территорию площадки, во время проведения упражнения «Эстафета» без разрешения главного судьи", sec: 30 },
             { id: "obsh_svyaz", category: "Общие штрафы", desc: "Неаккуратное обращение со средствами связи (уронил носимую радиостанцию на пол в СТС/на дорожное покрытие)", sec: 30 },
@@ -580,11 +572,18 @@
             { id: "obsh_sts", category: "Общие штрафы", desc: "Выход из СТС/посадка в СТС не осуществлена в следующем порядке: инкассатор через заднюю правую дверь, водитель-инкассатор через левую переднюю дверь", sec: 20 }
         ];
         
+        // Идентификаторы нарушений, которые должны быть счётчиками (количество действий)
+        const counterPenaltyIds = [
+            'puncture_helper', 'us_cassette_dropped', 'us_jam_search', 'us_jam_bad_fix',
+            'us_not_kas', 'us_left_property', 'fire_bad_sk', 'obsh_svyaz', 'obsh_ivr',
+            'obsh_tsd', 'obsh_gun', 'obsh_sts'
+        ];
+        
         const greenHighlightIds = [
-            "prop_no_radio_start", "prop_sk_cell", "prop_belt", "bank_belt", "bank_nak_open", 
-            "bank_nak", "bank_scan", "puncture_no_report", "puncture_repair_report", "incass_no_radio", 
-            "incass_no_exit_radio", "incass_tumbler_blue", "us_no_command", "us_early_exit", 
-            "us_no_check", "shoot_miss", "fire_ext", "fire_evac", "med_tourniquet", 
+            "prop_no_radio_start", "prop_sk_cell", "prop_belt", "bank_belt", "bank_nak_open",
+            "bank_nak", "bank_scan", "puncture_no_report", "puncture_repair_report", "incass_no_radio",
+            "incass_no_exit_radio", "incass_tumbler_blue", "us_no_command", "us_early_exit",
+            "us_no_check", "shoot_miss", "fire_ext", "fire_evac", "med_tourniquet",
             "handcuff_no_warning", "handcuff_no_report"
         ];
         
@@ -596,40 +595,29 @@
             "СИБ": "Сибирский", "СРБ": "Среднерусский", "СЗБ": "Северо-Западный", "ВВБ": "Волго-Вятский"
         };
         
-        // ========== БАЗА СУДЕЙ (приоритет - Supabase) ==========
+        // ========== БАЗА СУДЕЙ (без изменений) ==========
         let judgesDatabase = {};
         let isLoadingComplete = false;
         const JUDGES_TABLE = 'estafeta_judges';
         
-        async function loadJudgesFromSupabase() {
+        async function loadJudgesFromSupabase() { /* ... */ 
             try {
                 console.log('🔄 Загрузка судей из Supabase...');
                 const { data, error } = await supabaseClient.from(JUDGES_TABLE).select('*');
                 if (error) throw error;
-                
-                console.log('📦 Данные из Supabase:', data);
                 if (data && data.length > 0) {
                     const newDb = {};
                     for (let row of data) {
                         const key = `${row.stage}_${row.direction}`;
                         if (!newDb[key]) newDb[key] = [];
-                        if (!newDb[key].includes(row.judge_name)) {
-                            newDb[key].push(row.judge_name);
-                        }
+                        if (!newDb[key].includes(row.judge_name)) newDb[key].push(row.judge_name);
                     }
                     judgesDatabase = newDb;
                     console.log('✅ Судьи загружены из Supabase');
                     return true;
-                } else {
-                    console.log('⚠️ В Supabase нет данных о судьях');
-                    return false;
-                }
-            } catch (e) {
-                console.error('❌ Ошибка загрузки судей из Supabase:', e.message);
-                return false;
-            }
+                } else return false;
+            } catch(e) { console.error(e); return false; }
         }
-        
         async function saveJudgesToSupabase() {
             try {
                 await supabaseClient.from(JUDGES_TABLE).delete().neq('id', 0);
@@ -637,45 +625,21 @@
                 for (let [key, judges] of Object.entries(judgesDatabase)) {
                     const [stage, direction] = key.split('_');
                     for (let judge of judges) {
-                        if (judge && judge.trim()) {
-                            records.push({ stage, direction: parseInt(direction), judge_name: judge.trim() });
-                        }
+                        if (judge && judge.trim()) records.push({ stage, direction: parseInt(direction), judge_name: judge.trim() });
                     }
                 }
-                if (records.length > 0) {
-                    const { error } = await supabaseClient.from(JUDGES_TABLE).insert(records);
-                    if (error) throw error;
-                    console.log(`✅ Сохранено ${records.length} записей судей в Supabase`);
-                }
+                if (records.length > 0) await supabaseClient.from(JUDGES_TABLE).insert(records);
                 return true;
-            } catch (e) {
-                console.error('❌ Ошибка сохранения судей в Supabase:', e.message);
-                return false;
-            }
+            } catch(e) { console.error(e); return false; }
         }
-        
-        function saveJudgesToLocal() {
-            localStorage.setItem('estafeta_judges_backup', JSON.stringify(judgesDatabase));
-        }
-        
+        function saveJudgesToLocal() { localStorage.setItem('estafeta_judges_backup', JSON.stringify(judgesDatabase)); }
         function loadJudgesFromLocal() {
             const saved = localStorage.getItem('estafeta_judges_backup');
-            if (saved && saved !== 'undefined') {
-                try {
-                    judgesDatabase = JSON.parse(saved);
-                    console.log('📦 Загружены судьи из localStorage (резерв)');
-                    return true;
-                } catch(e) {}
-            }
+            if (saved && saved !== 'undefined') { try { judgesDatabase = JSON.parse(saved); return true; } catch(e) {} }
             return false;
         }
-        
         function createTestJudges() {
-            console.log('🆕 Создание тестовых судей...');
-            stages.forEach(stage => {
-                judgesDatabase[`${stage}_1`] = [];
-                judgesDatabase[`${stage}_2`] = [];
-            });
+            stages.forEach(stage => { judgesDatabase[`${stage}_1`] = []; judgesDatabase[`${stage}_2`] = []; });
             judgesDatabase["Получение имущества_1"] = ["Сосновских Александр Павлович"];
             judgesDatabase["Прокол шины_1"] = ["Сосновских Александр Павлович"];
             judgesDatabase["Стрельба_1"] = ["Сосновских Александр Павлович"];
@@ -685,24 +649,16 @@
             judgesDatabase["Медицина_2"] = ["Соловьева Светлана Сергеевна"];
             saveJudgesToLocal();
         }
-        
         async function initJudgesDatabase() {
-            console.log('🚀 Инициализация базы судей...');
             const loadedFromCloud = await loadJudgesFromSupabase();
             if (!loadedFromCloud || Object.keys(judgesDatabase).length === 0) {
                 const loadedFromLocal = loadJudgesFromLocal();
-                if (!loadedFromLocal) {
-                    createTestJudges();
-                }
-                if (!loadedFromCloud && Object.keys(judgesDatabase).length > 0) {
-                    await saveJudgesToSupabase();
-                }
+                if (!loadedFromLocal) createTestJudges();
+                if (!loadedFromCloud && Object.keys(judgesDatabase).length > 0) await saveJudgesToSupabase();
             }
-            console.log('🏁 Итоговая база судей:', judgesDatabase);
             isLoadingComplete = true;
         }
-        
-        async function syncJudges() {
+        async function syncJudges() { /* ... */
             const statusDiv = document.getElementById('syncStatus');
             if (statusDiv) statusDiv.innerHTML = '<span class="status-warning">⏳ Синхронизация...</span>';
             const success = await loadJudgesFromSupabase();
@@ -720,13 +676,10 @@
         
         const ADMIN_PASSWORD = "admin123";
         let currentUser = { role: null, stage: null, name: null, direction: null };
-        
         function saveUserSession() { localStorage.setItem('estafeta_user', JSON.stringify({ role: currentUser.role, stage: currentUser.stage, name: currentUser.name, direction: currentUser.direction })); }
         function loadUserSession() {
             const saved = localStorage.getItem('estafeta_user');
-            if (saved) {
-                try { const u = JSON.parse(saved); if (u.role) currentUser = u; return true; } catch(e) {}
-            }
+            if (saved) { try { const u = JSON.parse(saved); if (u.role) currentUser = u; return true; } catch(e) {} }
             return false;
         }
         function clearUserSession() { localStorage.removeItem('estafeta_user'); currentUser = { role: null, stage: null, name: null, direction: null }; }
@@ -753,93 +706,395 @@
             loadAllResultsForAdmin();
         }
         
-        let currentTeam = null, tempPenalties = {}, hasUnsavedChanges = false;
-        function formatTime(sec) { if (!sec && sec!==0) return "—"; let m = Math.floor(sec/60), s = (sec%60).toFixed(2); return m+":"+s.toString().padStart(5,'0'); }
-        function getPenaltySum(penObj) { let sum=0; for(let id in penObj) if(penObj[id]){ let p=penaltiesLibrary.find(p=>p.id===id); if(p) sum+=p.sec; } return sum; }
-        
-        async function loadTeamData(dir, team) {
-            if(!dir||!team) return null;
-            try {
-                let {data, error} = await supabaseClient.from('estafeta_results').select('raw_seconds, penalties').eq('direction', dir).eq('team_code', team).maybeSingle();
-                if(error) throw error;
-                return data;
-            } catch(e) {
-                console.warn('Ошибка загрузки:', e);
-                return null;
-            }
+        // ========== ОБЩИЕ ФУНКЦИИ ==========
+        function formatTime(sec) { if (sec === null || isNaN(sec)) return "—"; let m = Math.floor(sec/60), s = (sec%60).toFixed(2); return m+":"+s.toString().padStart(5,'0'); }
+        function parseTime(str) {
+            if (!str.trim()) return null;
+            let parts = str.split(':');
+            let minutes = 0, seconds = 0;
+            if (parts.length === 2) {
+                minutes = parseInt(parts[0]) || 0;
+                let secPart = parts[1];
+                let dotIndex = secPart.indexOf('.');
+                if (dotIndex !== -1) {
+                    seconds = parseInt(secPart.substring(0, dotIndex)) || 0;
+                    let fraction = parseFloat('0.' + secPart.substring(dotIndex + 1)) || 0;
+                    seconds += fraction;
+                } else seconds = parseInt(secPart) || 0;
+            } else if (parts.length === 1) {
+                let secPart = parts[0];
+                let dotIndex = secPart.indexOf('.');
+                if (dotIndex !== -1) seconds = parseFloat(secPart);
+                else seconds = parseInt(secPart) || 0;
+                minutes = 0;
+            } else return null;
+            let total = minutes * 60 + seconds;
+            return isNaN(total) ? null : total;
         }
         
+        function getPenaltySum(penObj) {
+            if (!penObj) return 0;
+            let sum = 0;
+            for (let id in penObj) {
+                let p = penaltiesLibrary.find(p => p.id === id);
+                if (!p) continue;
+                let val = penObj[id];
+                if (typeof val === 'number') sum += val * p.sec;
+                else if (val === true) sum += p.sec;
+            }
+            return sum;
+        }
+        
+        // Функции для конусов (как в estafeta)
+        function getBankConesCount(penObj) {
+            if (!penObj) return 0;
+            if (penObj.bank_cone_4) return 4;
+            if (penObj.bank_cone_3) return 3;
+            if (penObj.bank_cone_2) return 2;
+            if (penObj.bank_cone_1) return 1;
+            return 0;
+        }
+        function setBankConesCount(count) {
+            delete tempPenalties.bank_cone_1;
+            delete tempPenalties.bank_cone_2;
+            delete tempPenalties.bank_cone_3;
+            delete tempPenalties.bank_cone_4;
+            if (count === 1) tempPenalties.bank_cone_1 = true;
+            else if (count === 2) tempPenalties.bank_cone_2 = true;
+            else if (count === 3) tempPenalties.bank_cone_3 = true;
+            else if (count >= 4) tempPenalties.bank_cone_4 = true;
+        }
+        function getSnakeConesCount(penObj) {
+            if (!penObj) return 0;
+            if (penObj.snake_cone3) return 4;
+            if (penObj.snake_cone2) return 3;
+            if (penObj.snake_cone1) return 2;
+            if (penObj.snake_cone) return 1;
+            return 0;
+        }
+        function setSnakeConesCount(count) {
+            delete tempPenalties.snake_cone;
+            delete tempPenalties.snake_cone1;
+            delete tempPenalties.snake_cone2;
+            delete tempPenalties.snake_cone3;
+            if (count === 1) tempPenalties.snake_cone = true;
+            else if (count === 2) tempPenalties.snake_cone1 = true;
+            else if (count === 3) tempPenalties.snake_cone2 = true;
+            else if (count >= 4) tempPenalties.snake_cone3 = true;
+        }
+        function getPrestupnikConesCount(penObj) {
+            if (!penObj) return 0;
+            if (penObj.prestupnik_cone3) return 4;
+            if (penObj.prestupnik_cone2) return 3;
+            if (penObj.prestupnik_cone1) return 2;
+            if (penObj.prestupnik_cone) return 1;
+            return 0;
+        }
+        function setPrestupnikConesCount(count) {
+            delete tempPenalties.prestupnik_cone;
+            delete tempPenalties.prestupnik_cone1;
+            delete tempPenalties.prestupnik_cone2;
+            delete tempPenalties.prestupnik_cone3;
+            if (count === 1) tempPenalties.prestupnik_cone = true;
+            else if (count === 2) tempPenalties.prestupnik_cone1 = true;
+            else if (count === 3) tempPenalties.prestupnik_cone2 = true;
+            else if (count >= 4) tempPenalties.prestupnik_cone3 = true;
+        }
+        
+        // ========== РАБОТА С ДАННЫМИ ==========
+        async function loadTeamData(dir, team) {
+            if (!dir || !team) return null;
+            try {
+                let { data, error } = await supabaseClient.from('estafeta_results').select('raw_seconds, penalties').eq('direction', dir).eq('team_code', team).maybeSingle();
+                if (error) throw error;
+                return data;
+            } catch(e) { console.warn(e); return null; }
+        }
         async function saveTeamData(dir, team, rawSeconds, penalties) {
             try {
                 await supabaseClient.from('estafeta_results').upsert({direction:dir, team_code:team, raw_seconds:rawSeconds, penalties:penalties, updated_at:new Date().toISOString()}, {onConflict:'direction, team_code'});
                 return true;
-            } catch(e) {
-                console.warn('Ошибка сохранения:', e);
-                return false;
+            } catch(e) { console.warn(e); return false; }
+        }
+        
+        let currentTeam = null;
+        let tempPenalties = {};   // для текущего этапа: bool или число
+        let hasUnsavedChanges = false;
+        
+        async function refreshCurrentTeamData() {
+            if (!currentUser.direction || !currentTeam) {
+                document.getElementById('rawTimeDisplay').innerText = '—';
+                document.getElementById('totalPenaltyDisplay').innerText = '0';
+                document.getElementById('totalTimeDisplay').innerText = '—';
+                document.getElementById('rawTimeInput').value = '';
+                return;
             }
+            let data = await loadTeamData(currentUser.direction, currentTeam);
+            let penaltiesObj = data?.penalties || {};
+            let raw = data?.raw_seconds ?? null;
+            document.getElementById('rawTimeDisplay').innerText = raw !== null ? formatTime(raw) : '—';
+            document.getElementById('totalPenaltyDisplay').innerText = getPenaltySum(penaltiesObj);
+            let total = raw !== null ? raw + getPenaltySum(penaltiesObj) : null;
+            document.getElementById('totalTimeDisplay').innerText = total !== null ? formatTime(total) : '—';
+            document.getElementById('rawTimeInput').value = raw !== null ? formatTime(raw) : '';
+            
+            // Инициализируем tempPenalties для текущего этапа
+            let stagePenalties = penaltiesLibrary.filter(p => p.category === currentUser.stage);
+            tempPenalties = {};
+            for (let p of stagePenalties) {
+                let saved = penaltiesObj[p.id];
+                if (saved !== undefined) {
+                    if (typeof saved === 'number') tempPenalties[p.id] = saved;
+                    else if (saved === true) tempPenalties[p.id] = true;
+                    else if (saved === false) tempPenalties[p.id] = false;
+                    else tempPenalties[p.id] = saved;
+                } else {
+                    if (counterPenaltyIds.includes(p.id)) tempPenalties[p.id] = 0;
+                    else tempPenalties[p.id] = false;
+                }
+            }
+            hasUnsavedChanges = false;
+            renderPenalties();
+            updateBadge();
         }
         
-        async function refreshCurrentTeamData(){
-            if(!currentUser.direction||!currentTeam) return;
-            let data=await loadTeamData(currentUser.direction, currentTeam);
-            let penaltiesObj=data?.penalties||{};
-            let raw=data?.raw_seconds??null;
-            document.getElementById('rawTimeDisplay').innerText=raw!==null?formatTime(raw):'—';
-            let totalPen=getPenaltySum(penaltiesObj);
-            document.getElementById('totalPenaltyDisplay').innerText=totalPen;
-            let totalTime=raw!==null?raw+totalPen:null;
-            document.getElementById('totalTimeDisplay').innerText=totalTime!==null?formatTime(totalTime):'—';
-            document.getElementById('rawTimeInput').value=raw!==null?formatTime(raw):'';
-            let stageIds=penaltiesLibrary.filter(p=>p.category===currentUser.stage).map(p=>p.id);
-            tempPenalties={};
-            for(let id of stageIds) if(penaltiesObj[id]) tempPenalties[id]=true;
-            renderPenaltiesJudge();
-        }
-        
-        function renderPenaltiesJudge(){
-            if(!currentUser.direction||!currentTeam){ 
-                document.getElementById('penaltiesContainer').innerHTML='<div style="grid-column:1/-1; text-align:center; padding:20px;">⚙️ Выберите банк</div>'; 
-                return; 
+        function renderPenalties() {
+            if (!currentUser.direction || !currentTeam) {
+                document.getElementById('penaltiesContainer').innerHTML = '<div style="grid-column:1/-1; text-align:center;">⚠️ Выберите команду</div>';
+                return;
             }
             let stagePen = penaltiesLibrary.filter(p => p.category === currentUser.stage);
-            if(stagePen.length === 0){ 
-                document.getElementById('penaltiesContainer').innerHTML=`<div style="grid-column:1/-1; text-align:center; padding:20px;">📭 Для этапа "${currentUser.stage}" нет штрафов</div>`; 
-                return; 
+            if (stagePen.length === 0) {
+                document.getElementById('penaltiesContainer').innerHTML = `<div>📭 Для этапа "${currentUser.stage}" нет ошибок</div>`;
+                return;
             }
-            let html = `<div class="stage-title">📋 Штрафные нарушения этапа "${currentUser.stage}" (${stagePen.length} шт.)</div>`;
-            for(let p of stagePen){
-                let checked = !!tempPenalties[p.id];
+            
+            const isBankStage = (currentUser.stage === "Получение банковских ценностей");
+            const isSnakeStage = (currentUser.stage === "Змейка");
+            const isPrestupnikStage = (currentUser.stage === "Вооруженный преступник");
+            
+            let bankCones = 0;
+            if (isBankStage) bankCones = getBankConesCount(tempPenalties);
+            let snakeCones = 0;
+            if (isSnakeStage) snakeCones = getSnakeConesCount(tempPenalties);
+            let prestupnikCones = 0;
+            if (isPrestupnikStage) prestupnikCones = getPrestupnikConesCount(tempPenalties);
+            
+            let html = '';
+            for (let p of stagePen) {
+                // Конусы банк
+                if (isBankStage && (p.id === 'bank_cone_1' || p.id === 'bank_cone_2' || p.id === 'bank_cone_3' || p.id === 'bank_cone_4')) {
+                    if (p.id === 'bank_cone_1') {
+                        let conePenalty = 0;
+                        if (bankCones === 1) conePenalty = 5;
+                        else if (bankCones === 2) conePenalty = 10;
+                        else if (bankCones === 3) conePenalty = 15;
+                        else if (bankCones >= 4) conePenalty = 20;
+                        html += `<div class="penalty-card">
+                                    <div class="desc"><strong>Наезд на конусы (количество)</strong><span class="penalty-sec">+5 сек/конус (макс. 20)</span></div>
+                                    <div class="counter-control">
+                                        <button class="cones-dec">−</button>
+                                        <span class="cones-count">${bankCones}</span>
+                                        <button class="cones-inc">+</button>
+                                    </div>
+                                    <div style="font-size:0.75rem;">Штраф: +${conePenalty} сек</div>
+                                </div>`;
+                    }
+                    continue;
+                }
+                // Змейка конусы
+                if (isSnakeStage && (p.id === 'snake_cone' || p.id === 'snake_cone1' || p.id === 'snake_cone2' || p.id === 'snake_cone3')) {
+                    if (p.id === 'snake_cone') {
+                        let conePenalty = snakeCones * 5;
+                        html += `<div class="penalty-card">
+                                    <div class="desc"><strong>Наезд на конус/бочку</strong><span class="penalty-sec">+5 сек за каждый</span></div>
+                                    <div class="counter-control">
+                                        <button class="snake-cones-dec">−</button>
+                                        <span class="snake-cones-count">${snakeCones}</span>
+                                        <button class="snake-cones-inc">+</button>
+                                    </div>
+                                    <div style="font-size:0.75rem;">Штраф: +${conePenalty} сек</div>
+                                </div>`;
+                    }
+                    continue;
+                }
+                // Преступник конусы
+                if (isPrestupnikStage && (p.id === 'prestupnik_cone' || p.id === 'prestupnik_cone1' || p.id === 'prestupnik_cone2' || p.id === 'prestupnik_cone3')) {
+                    if (p.id === 'prestupnik_cone') {
+                        let conePenalty = prestupnikCones * 5;
+                        html += `<div class="penalty-card">
+                                    <div class="desc"><strong>Наезд на конус (преступник)</strong><span class="penalty-sec">+5 сек за каждый</span></div>
+                                    <div class="counter-control">
+                                        <button class="prest-cones-dec">−</button>
+                                        <span class="prest-cones-count">${prestupnikCones}</span>
+                                        <button class="prest-cones-inc">+</button>
+                                    </div>
+                                    <div style="font-size:0.75rem;">Штраф: +${conePenalty} сек</div>
+                                </div>`;
+                    }
+                    continue;
+                }
+                // Счётчики
+                if (counterPenaltyIds.includes(p.id)) {
+                    let currentVal = (typeof tempPenalties[p.id] === 'number') ? tempPenalties[p.id] : 0;
+                    let totalSec = currentVal * p.sec;
+                    html += `<div class="penalty-card">
+                                <div class="desc">${p.desc}<span class="penalty-sec">+${p.sec} сек/каждое</span></div>
+                                <div class="counter-control">
+                                    <button class="counter-dec" data-id="${p.id}">−</button>
+                                    <span class="counter-val" data-id="${p.id}">${currentVal}</span>
+                                    <button class="counter-inc" data-id="${p.id}">+</button>
+                                </div>
+                                <div style="font-size:0.75rem;">Штраф: +${totalSec} сек</div>
+                            </div>`;
+                    continue;
+                }
+                // Обычные чекбоксы
+                let checked = tempPenalties[p.id] === true;
                 const greenClass = isGreenHighlight(p.id) ? 'penalty-highlight-green' : '';
-                html += `<div class="penalty-card ${greenClass}" data-id="${p.id}">
-                            <input type="checkbox" id="chk_${p.id}" data-id="${p.id}" ${checked?'checked':''}>
-                            <label for="chk_${p.id}" style="display: flex; justify-content: space-between; align-items: center; width: 100%; cursor: pointer;">
-                                <span style="flex:1;">${p.desc}</span>
-                                <span class="penalty-sec">+${p.sec} сек</span>
-                            </label>
+                html += `<div class="penalty-card ${greenClass}">
+                            <input type="checkbox" id="chk_${p.id}" data-id="${p.id}" ${checked ? 'checked' : ''}>
+                            <label for="chk_${p.id}">${p.desc}<span class="penalty-sec">+${p.sec} сек</span></label>
                          </div>`;
             }
             document.getElementById('penaltiesContainer').innerHTML = html;
-            for(let p of stagePen){
+            
+            // Привязка событий
+            for (let p of stagePen) {
+                if (counterPenaltyIds.includes(p.id)) continue;
+                if (isBankStage && (p.id === 'bank_cone_1' || p.id === 'bank_cone_2' || p.id === 'bank_cone_3' || p.id === 'bank_cone_4')) continue;
+                if (isSnakeStage && (p.id === 'snake_cone' || p.id === 'snake_cone1' || p.id === 'snake_cone2' || p.id === 'snake_cone3')) continue;
+                if (isPrestupnikStage && (p.id === 'prestupnik_cone' || p.id === 'prestupnik_cone1' || p.id === 'prestupnik_cone2' || p.id === 'prestupnik_cone3')) continue;
                 let cb = document.getElementById(`chk_${p.id}`);
-                if(cb){
+                if (cb) {
                     cb.onchange = (e) => {
-                        e.stopPropagation();
-                        if(e.target.checked) tempPenalties[p.id]=true;
-                        else delete tempPenalties[p.id];
-                        hasUnsavedChanges=true;
-                        updateJudgeSummary();
-                        updateUnsavedBadge();
+                        let id = e.target.getAttribute('data-id');
+                        if (e.target.checked) tempPenalties[id] = true;
+                        else tempPenalties[id] = false;
+                        hasUnsavedChanges = true;
+                        updateSummaryFromTemp();
+                        updateBadge();
                     };
                 }
             }
-            updateJudgeSummary();
+            // Счётчики
+            for (let p of stagePen.filter(p => counterPenaltyIds.includes(p.id))) {
+                let dec = document.querySelector(`.counter-dec[data-id="${p.id}"]`);
+                let inc = document.querySelector(`.counter-inc[data-id="${p.id}"]`);
+                let span = document.querySelector(`.counter-val[data-id="${p.id}"]`);
+                if (dec && inc && span) {
+                    const updateCounter = (delta) => {
+                        let old = (typeof tempPenalties[p.id] === 'number') ? tempPenalties[p.id] : 0;
+                        let newVal = Math.max(0, old + delta);
+                        tempPenalties[p.id] = newVal;
+                        span.innerText = newVal;
+                        let totalSec = newVal * p.sec;
+                        let parent = span.closest('.penalty-card');
+                        let secDiv = parent.querySelector('div:last-child');
+                        if (secDiv) secDiv.innerText = `Штраф: +${totalSec} сек`;
+                        hasUnsavedChanges = true;
+                        updateSummaryFromTemp();
+                        updateBadge();
+                    };
+                    dec.onclick = () => updateCounter(-1);
+                    inc.onclick = () => updateCounter(1);
+                }
+            }
+            // Конусы банк
+            if (isBankStage) {
+                const decBtn = document.querySelector('.cones-dec');
+                const incBtn = document.querySelector('.cones-inc');
+                const countSpan = document.querySelector('.cones-count');
+                if (decBtn && incBtn && countSpan) {
+                    const updateCones = (newCount) => {
+                        if (newCount < 0) newCount = 0;
+                        setBankConesCount(newCount);
+                        countSpan.innerText = newCount;
+                        let conePenalty = 0;
+                        if (newCount === 1) conePenalty = 5;
+                        else if (newCount === 2) conePenalty = 10;
+                        else if (newCount === 3) conePenalty = 15;
+                        else if (newCount >= 4) conePenalty = 20;
+                        const penaltySpan = document.querySelector('.penalty-card .counter-control + div');
+                        if (penaltySpan) penaltySpan.innerText = `Штраф: +${conePenalty} сек`;
+                        hasUnsavedChanges = true;
+                        updateSummaryFromTemp();
+                        updateBadge();
+                    };
+                    decBtn.onclick = () => updateCones(parseInt(countSpan.innerText) - 1);
+                    incBtn.onclick = () => updateCones(parseInt(countSpan.innerText) + 1);
+                }
+            }
+            // Конусы змейка
+            if (isSnakeStage) {
+                const decBtn = document.querySelector('.snake-cones-dec');
+                const incBtn = document.querySelector('.snake-cones-inc');
+                const countSpan = document.querySelector('.snake-cones-count');
+                if (decBtn && incBtn && countSpan) {
+                    const updateCones = (newCount) => {
+                        if (newCount < 0) newCount = 0;
+                        setSnakeConesCount(newCount);
+                        countSpan.innerText = newCount;
+                        let conePenalty = newCount * 5;
+                        const penaltySpan = document.querySelector('.penalty-card .counter-control + div');
+                        if (penaltySpan) penaltySpan.innerText = `Штраф: +${conePenalty} сек`;
+                        hasUnsavedChanges = true;
+                        updateSummaryFromTemp();
+                        updateBadge();
+                    };
+                    decBtn.onclick = () => updateCones(parseInt(countSpan.innerText) - 1);
+                    incBtn.onclick = () => updateCones(parseInt(countSpan.innerText) + 1);
+                }
+            }
+            // Конусы преступник
+            if (isPrestupnikStage) {
+                const decBtn = document.querySelector('.prest-cones-dec');
+                const incBtn = document.querySelector('.prest-cones-inc');
+                const countSpan = document.querySelector('.prest-cones-count');
+                if (decBtn && incBtn && countSpan) {
+                    const updateCones = (newCount) => {
+                        if (newCount < 0) newCount = 0;
+                        setPrestupnikConesCount(newCount);
+                        countSpan.innerText = newCount;
+                        let conePenalty = newCount * 5;
+                        const penaltySpan = document.querySelector('.penalty-card .counter-control + div');
+                        if (penaltySpan) penaltySpan.innerText = `Штраф: +${conePenalty} сек`;
+                        hasUnsavedChanges = true;
+                        updateSummaryFromTemp();
+                        updateBadge();
+                    };
+                    decBtn.onclick = () => updateCones(parseInt(countSpan.innerText) - 1);
+                    incBtn.onclick = () => updateCones(parseInt(countSpan.innerText) + 1);
+                }
+            }
+            updateSummaryFromTemp();
         }
         
-        function updateUnsavedBadge() {
+        async function updateSummaryFromTemp() {
+            if (!currentUser.direction || !currentTeam) return;
+            let data = await loadTeamData(currentUser.direction, currentTeam);
+            let savedPen = data?.penalties || {};
+            // Объединяем: все сохранённые, кроме текущего этапа, плюс temp
+            let merged = { ...savedPen };
+            let stageIds = penaltiesLibrary.filter(p => p.category === currentUser.stage).map(p => p.id);
+            for (let id of stageIds) delete merged[id];
+            for (let id in tempPenalties) {
+                let val = tempPenalties[id];
+                if (val === true || (typeof val === 'number' && val !== 0)) merged[id] = val;
+                else if (val === false || val === 0) delete merged[id];
+            }
+            let totalPen = getPenaltySum(merged);
+            document.getElementById('totalPenaltyDisplay').innerText = totalPen;
+            let raw = data?.raw_seconds ?? null;
+            let total = raw !== null ? raw + totalPen : null;
+            document.getElementById('totalTimeDisplay').innerText = total !== null ? formatTime(total) : '—';
+        }
+        
+        function updateBadge() {
             let div = document.getElementById('stageInfo');
             let old = div.querySelector('.unsaved-badge');
-            if(old) old.remove();
-            if(hasUnsavedChanges && currentTeam){
+            if (old) old.remove();
+            if (hasUnsavedChanges && currentTeam) {
                 let badge = document.createElement('span');
                 badge.className = 'unsaved-badge';
                 badge.innerText = '⚠️ Есть несохранённые изменения';
@@ -847,114 +1102,108 @@
             }
         }
         
-        async function updateJudgeSummary(){
-            if(!currentUser.direction||!currentTeam) return;
-            let data=await loadTeamData(currentUser.direction, currentTeam);
-            let savedPen=data?.penalties||{};
-            let otherSum=0;
-            for(let id in savedPen) if(savedPen[id] && !tempPenalties[id]){ 
-                let p=penaltiesLibrary.find(p=>p.id===id); 
-                if(p && p.category !== currentUser.stage) otherSum+=p.sec; 
+        async function saveStageJudge() {
+            if (!currentUser.direction || !currentTeam) { alert('Выберите команду'); return; }
+            let existing = await loadTeamData(currentUser.direction, currentTeam);
+            let penaltiesObj = existing?.penalties || {};
+            // Удаляем старые штрафы текущего этапа
+            let stagePenalties = penaltiesLibrary.filter(p => p.category === currentUser.stage);
+            for (let p of stagePenalties) delete penaltiesObj[p.id];
+            // Добавляем новые из tempPenalties
+            for (let id in tempPenalties) {
+                let val = tempPenalties[id];
+                if (val === true || (typeof val === 'number' && val !== 0)) {
+                    penaltiesObj[id] = val;
+                } else if (val === false || val === 0) {
+                    delete penaltiesObj[id];
+                }
             }
-            let tempSum=0;
-            for(let id in tempPenalties){ 
-                let p=penaltiesLibrary.find(p=>p.id===id); 
-                if(p) tempSum+=p.sec; 
-            }
-            document.getElementById('totalPenaltyDisplay').innerText=otherSum+tempSum;
-            let raw=data?.raw_seconds??null;
-            let total=raw!==null?raw+otherSum+tempSum:null;
-            document.getElementById('totalTimeDisplay').innerText=total!==null?formatTime(total):'—';
-        }
-        
-        async function saveStageJudge(){
-            if(!currentUser.direction||!currentTeam){ alert('Выберите команду'); return; }
-            let existing=await loadTeamData(currentUser.direction, currentTeam);
-            let penaltiesObj=existing?.penalties||{};
-            let stageIds=penaltiesLibrary.filter(p=>p.category===currentUser.stage).map(p=>p.id);
-            for(let id of stageIds) delete penaltiesObj[id];
-            for(let id in tempPenalties) if(tempPenalties[id]) penaltiesObj[id]=true;
-            await saveTeamData(currentUser.direction, currentTeam, existing?.raw_seconds??null, penaltiesObj);
-            hasUnsavedChanges=false;
+            let rawSeconds = existing?.raw_seconds ?? null;
+            await saveTeamData(currentUser.direction, currentTeam, rawSeconds, penaltiesObj);
+            hasUnsavedChanges = false;
             await refreshCurrentTeamData();
             await loadAllResultsForJudge();
-            updateUnsavedBadge();
+            updateBadge();
             alert('Ошибки этапа сохранены');
         }
         
-        async function saveRawTimeJudge(){
-            if(!currentUser.direction||!currentTeam){ alert('Выберите команду'); return; }
-            let rawStr=document.getElementById('rawTimeInput').value.trim();
-            let rawSeconds=null;
-            if(rawStr){
-                let parts=rawStr.split(':');
-                let minutes=parseInt(parts[0])||0;
-                let seconds=parts[1]?parseFloat(parts[1]):0;
-                rawSeconds=minutes*60+seconds;
-                if(isNaN(rawSeconds)) { alert('Неверный формат. Используйте мм:сс.сс'); return; }
-            }
-            let existing=await loadTeamData(currentUser.direction, currentTeam);
-            await saveTeamData(currentUser.direction, currentTeam, rawSeconds, existing?.penalties||{});
+        async function saveRawTimeJudge() {
+            if (!currentUser.direction || !currentTeam) { alert('Выберите команду'); return; }
+            let rawStr = document.getElementById('rawTimeInput').value.trim();
+            let rawSeconds = rawStr === '' ? null : parseTime(rawStr);
+            if (rawStr !== '' && rawSeconds === null) { alert('Неверный формат. Используйте мм:сс.сс'); return; }
+            let existing = await loadTeamData(currentUser.direction, currentTeam);
+            await saveTeamData(currentUser.direction, currentTeam, rawSeconds, existing?.penalties || {});
             await refreshCurrentTeamData();
             await loadAllResultsForJudge();
             alert('Время сохранено');
         }
         
-        async function resetTeamPenalties(){
-            if(!currentUser.direction||!currentTeam){ alert('Выберите команду'); return; }
-            if(!confirm('Сбросить ВСЕ ошибки для этой команды?')) return;
-            let existing=await loadTeamData(currentUser.direction, currentTeam);
-            await saveTeamData(currentUser.direction, currentTeam, existing?.raw_seconds??null, {});
+        async function resetTeamPenalties() {
+            if (!currentUser.direction || !currentTeam) { alert('Выберите команду'); return; }
+            if (!confirm('Сбросить ВСЕ ошибки для этой команды?')) return;
+            let existing = await loadTeamData(currentUser.direction, currentTeam);
+            await saveTeamData(currentUser.direction, currentTeam, existing?.raw_seconds ?? null, {});
             await refreshCurrentTeamData();
             await loadAllResultsForJudge();
             alert('Все ошибки сброшены');
         }
         
-        async function resetStagePenalties(){
-            if(!currentUser.direction||!currentTeam){ alert('Выберите команду'); return; }
-            let stageIds = penaltiesLibrary.filter(p=>p.category===currentUser.stage).map(p=>p.id);
-            for(let id of stageIds) delete tempPenalties[id];
+        function resetStagePenalties() {
+            if (!currentUser.direction || !currentTeam) { alert('Выберите команду'); return; }
+            let stagePenalties = penaltiesLibrary.filter(p => p.category === currentUser.stage);
+            for (let p of stagePenalties) {
+                if (counterPenaltyIds.includes(p.id)) tempPenalties[p.id] = 0;
+                else tempPenalties[p.id] = false;
+            }
+            // Обнуляем конусы, если есть
+            if (currentUser.stage === "Получение банковских ценностей") setBankConesCount(0);
+            if (currentUser.stage === "Змейка") setSnakeConesCount(0);
+            if (currentUser.stage === "Вооруженный преступник") setPrestupnikConesCount(0);
             hasUnsavedChanges = true;
-            renderPenaltiesJudge();
-            updateUnsavedBadge();
-            alert('Чекбоксы сброшены. Не забудьте сохранить!');
+            renderPenalties();
+            updateBadge();
+            alert('Чекбоксы и счётчики сброшены. Не забудьте сохранить!');
         }
         
-        async function loadAllResultsForJudge(){
+        async function loadAllResultsForJudge() {
             try {
-                let {data}=await supabaseClient.from('estafeta_results').select('direction, team_code, raw_seconds, penalties');
-                if(!data) return;
-                let rows=[];
-                for(let r of data){
-                    let raw=r.raw_seconds;
-                    let penalty=getPenaltySum(r.penalties);
-                    let total=raw!==null?raw+penalty:null;
-                    rows.push({team:r.team_code, name:teamNames[r.team_code]||r.team_code, dir:r.direction, raw, penalty, total});
+                let { data } = await supabaseClient.from('estafeta_results').select('direction, team_code, raw_seconds, penalties');
+                if (!data) return;
+                let rows = [];
+                for (let r of data) {
+                    let raw = r.raw_seconds;
+                    let penalty = getPenaltySum(r.penalties);
+                    let total = raw !== null ? raw + penalty : null;
+                    rows.push({ team: r.team_code, name: teamNames[r.team_code] || r.team_code, dir: r.direction, raw, penalty, total });
                 }
-                rows.sort((a,b)=>(a.total||9999)-(b.total||9999));
-                let tbody=document.getElementById('resultsBody');
-                tbody.innerHTML='';
-                let rank=1;
-                for(let r of rows){
-                    let tr=document.createElement('tr');
-                    if(r.total!==null && rank===1) tr.classList.add('rank-1');
-                    tr.innerHTML=`<td>${r.total!==null?rank++:'—'}</td><td>${r.name} (${r.team})</strong></td><td>${r.dir}</strong></td><td>${r.raw!==null?formatTime(r.raw):'—'}</td><td>${r.penalty} \u00A0<td class="total-cell">${r.total!==null?formatTime(r.total):'—'}</td>`;
+                rows.sort((a,b) => (a.total||9999) - (b.total||9999));
+                let tbody = document.getElementById('resultsBody');
+                tbody.innerHTML = '';
+                let rank = 1;
+                for (let r of rows) {
+                    let tr = document.createElement('tr');
+                    if (r.total !== null && rank === 1) tr.classList.add('rank-1');
+                    tr.innerHTML = `<td>${r.total !== null ? rank++ : '—'} <td><strong>${r.name}</strong> (${r.team}) <td>${r.dir} <td>${r.raw !== null ? formatTime(r.raw) : '—'} <td>${r.penalty} <td class="total-cell">${r.total !== null ? formatTime(r.total) : '—'}`;
                     tbody.appendChild(tr);
                 }
             } catch(e) { console.warn(e); }
         }
         
-        async function printFullReport() {
+        async function printFullReport() { /* идентично предыдущей версии */
             if (!currentUser.direction || !currentTeam) { alert('Сначала выберите команду!'); return; }
             const data = await loadTeamData(currentUser.direction, currentTeam);
             if (!data) { alert('Нет сохранённых данных для этой команды'); return; }
             const rawSec = data.raw_seconds;
             const penaltiesObj = data.penalties || {};
             const activePenalties = [];
-            for (let [id, active] of Object.entries(penaltiesObj)) {
-                if (active === true) {
+            for (let [id, val] of Object.entries(penaltiesObj)) {
+                if (val === true || (typeof val === 'number' && val > 0)) {
                     const penaltyInfo = penaltiesLibrary.find(p => p.id === id);
-                    if (penaltyInfo) activePenalties.push(penaltyInfo);
+                    if (penaltyInfo) {
+                        let count = (typeof val === 'number') ? val : 1;
+                        for (let i = 0; i < count; i++) activePenalties.push({ ...penaltyInfo });
+                    }
                 }
             }
             const grouped = {};
@@ -966,38 +1215,36 @@
             const totalTime = (rawSec !== null && rawSec !== undefined) ? rawSec + totalPenalty : null;
             const teamFullName = teamNames[currentTeam] || currentTeam;
             const now = new Date().toLocaleString('ru-RU');
-            const printHtml = `
-                <div style="font-family: 'Segoe UI', sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px;">
-                    <h1 style="text-align: center;">🏁 ОТЧЕТ О ПРОХОЖДЕНИИ ЭСТАФЕТЫ</h1>
-                    <div style="text-align: center; margin-bottom: 24px;">Дата: ${now}</div>
-                    <div style="background: #f8fafc; padding: 16px; border-radius: 16px; margin-bottom: 24px;">
-                        <div><strong>Команда:</strong> ${teamFullName} (${currentTeam})</div>
-                        <div><strong>Направление:</strong> ${currentUser.direction}</div>
-                        <div><strong>Этап:</strong> ${currentUser.stage}</div>
-                        <div><strong>Судья:</strong> ${currentUser.name}</div>
-                        <div><strong>Чистое время:</strong> ${rawSec !== null ? formatTime(rawSec) : '—'}</div>
-                        <div><strong>Общий штраф:</strong> ${totalPenalty} сек</div>
-                        <div><strong>Итоговое время:</strong> ${totalTime !== null ? formatTime(totalTime) : '—'}</div>
-                    </div>
-                    <h3>📋 Штрафные нарушения:</h3>
-                    ${Object.keys(grouped).length === 0 ? '<p>✅ Штрафные нарушения отсутствуют.</p>' : ''}
-                    ${Object.entries(grouped).map(([stageName, arr]) => `
-                        <div style="margin-bottom: 20px;">
-                            <h4>🎯 ${stageName}</h4>
-                            <table style="width:100%; border-collapse: collapse;">
-                                <thead><tr style="background:#e2e8f0;"><th>Нарушение</th><th>Штраф</th></tr></thead>
-                                <tbody>${arr.map(p => `<tr><td style="padding:8px;">${p.desc}</td><td>+${p.sec}</td></tr>`).join('')}</tbody>
-                            </table>
-                        </div>
-                    `).join('')}
-                    <div style="margin-top: 48px; border-top: 1px dashed #aaa; padding-top: 24px;">
-                        <div><strong>Представитель команды:</strong> __________________</div>
-                        <div><strong>Судья:</strong> __________________</div>
-                        <div><strong>Дата:</strong> __________________</div>
-                    </div>
-                    <div style="margin-top: 30px; font-size: 9pt; text-align: center;">Официальный протокол дисциплины "Эстафета"</div>
+            const printHtml = `<div style="font-family: 'Segoe UI', sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px;">
+                <h1 style="text-align: center;">🏁 ОТЧЕТ О ПРОХОЖДЕНИИ ЭСТАФЕТЫ</h1>
+                <div style="text-align: center; margin-bottom: 24px;">Дата: ${now}</div>
+                <div style="background: #f8fafc; padding: 16px; border-radius: 16px; margin-bottom: 24px;">
+                    <div><strong>Команда:</strong> ${teamFullName} (${currentTeam})</div>
+                    <div><strong>Направление:</strong> ${currentUser.direction}</div>
+                    <div><strong>Этап:</strong> ${currentUser.stage}</div>
+                    <div><strong>Судья:</strong> ${currentUser.name}</div>
+                    <div><strong>Чистое время:</strong> ${rawSec !== null ? formatTime(rawSec) : '—'}</div>
+                    <div><strong>Общий штраф:</strong> ${totalPenalty} сек</div>
+                    <div><strong>Итоговое время:</strong> ${totalTime !== null ? formatTime(totalTime) : '—'}</div>
                 </div>
-            `;
+                <h3>📋 Штрафные нарушения:</h3>
+                ${Object.keys(grouped).length === 0 ? '<p>✅ Штрафные нарушения отсутствуют.</p>' : ''}
+                ${Object.entries(grouped).map(([stageName, arr]) => `
+                    <div style="margin-bottom: 20px;">
+                        <h4>🎯 ${stageName}</h4>
+                        <table style="width:100%; border-collapse: collapse;">
+                            <thead><tr style="background:#e2e8f0;"><th>Нарушение</th><th>Штраф</th></tr></thead>
+                            <tbody>${arr.map(p => `<tr><td style="padding:8px;">${p.desc}</td><td>+${p.sec}</td></tr>`).join('')}</tbody>
+                        </table>
+                    </div>
+                `).join('')}
+                <div style="margin-top: 48px; border-top: 1px dashed #aaa; padding-top: 24px;">
+                    <div><strong>Представитель команды:</strong> __________________</div>
+                    <div><strong>Судья:</strong> __________________</div>
+                    <div><strong>Дата:</strong> __________________</div>
+                </div>
+                <div style="margin-top: 30px; font-size: 9pt; text-align: center;">Официальный протокол дисциплины "Эстафета"</div>
+            </div>`;
             const container = document.getElementById('printReportContainer');
             container.innerHTML = printHtml;
             container.style.display = 'block';
@@ -1006,7 +1253,7 @@
             container.innerHTML = '';
         }
         
-        function initJudgeUI(){
+        function initJudgeUI() {
             document.getElementById('teamSelect').addEventListener('change', ()=> { 
                 currentTeam = document.getElementById('teamSelect').value || null; 
                 refreshCurrentTeamData(); 
@@ -1021,20 +1268,18 @@
             loadAllResultsForJudge();
         }
         
-        function renderAdminJudgesList(){
+        // ========== АДМИНКА (без изменений) ==========
+        function renderAdminJudgesList() { /* ... */ 
             let container = document.getElementById('judgesListContainer');
             let html = '<table class="judge-list-table"><thead><tr><th>Этап</th><th>Направление</th><th>Судьи</th><th>Действия</th></tr></thead><tbody>';
-            for(let [key, judges] of Object.entries(judgesDatabase)){
-                if(!judges || judges.length === 0) continue;
+            for (let [key, judges] of Object.entries(judgesDatabase)) {
+                if (!judges || judges.length === 0) continue;
                 let [stage, dir] = key.split('_');
-                html += `<tr><td style="vertical-align:top;"><strong>${stage}</strong></td><td style="vertical-align:top;">Направление ${dir}</td><td>${judges.join('<br>')}</td>
-                          <td style="vertical-align:top;"><button class="delete-judge-btn" data-key="${key}" data-judge="all">🗑️ Очистить</button></td></tr>`;
+                html += `<tr><td><strong>${stage}</strong></td><td>Направление ${dir}</td><td>${judges.join('<br>')}</td>
+                          <td><button class="delete-judge-btn" data-key="${key}" data-judge="all">🗑️ Очистить</button></td></tr>`;
             }
-            if(html === '<table class="judge-list-table"><thead>…</thead><tbody>') {
-                html = '<p>Нет судей. Добавьте через форму ниже.</p>';
-            } else {
-                html += '</tbody></table>';
-            }
+            if (html === '<table class="judge-list-table"><thead>…</thead><tbody>') html = '<p>Нет судей. Добавьте через форму ниже.</p>';
+            else html += '</tbody></table>';
             container.innerHTML = html;
             document.querySelectorAll('.delete-judge-btn').forEach(btn => {
                 btn.addEventListener('click', async () => {
@@ -1049,7 +1294,6 @@
                 });
             });
         }
-        
         document.getElementById('addJudgeBtn').addEventListener('click', async () => {
             let stage = document.getElementById('adminStageSelect').value;
             let direction = document.getElementById('adminDirectionSelect').value;
@@ -1066,8 +1310,7 @@
             updateJudgeSelectList();
             alert('Судья добавлен');
         });
-        
-        async function loadAllResultsForAdmin(){
+        async function loadAllResultsForAdmin() { /* ... */
             try {
                 let {data}=await supabaseClient.from('estafeta_results').select('direction, team_code, raw_seconds, penalties');
                 if(!data) return;
@@ -1084,12 +1327,11 @@
                 let rank=1;
                 for(let r of rows){
                     let tr=document.createElement('tr');
-                    tr.innerHTML=`<td>${r.total!==null?rank++:'—'}<td>}<td><strong>${r.name}</strong> (${r.team})</td><td>${r.dir}</strong></td><td>${r.raw!==null?formatTime(r.raw):'—'}</td><td>${r.penalty}</td><td class="total-cell">${r.total!==null?formatTime(r.total):'—'}</td>`;
+                    tr.innerHTML=`<td>${r.total!==null?rank++:'—'} <td><strong>${r.name}</strong> (${r.team}) <td>${r.dir} <td>${r.raw!==null?formatTime(r.raw):'—'} <td>${r.penalty} <td>${r.total!==null?formatTime(r.total):'—'}`;
                     tbody.appendChild(tr);
                 }
             } catch(e) {}
         }
-        
         document.getElementById('tabJudgesBtn').onclick = () => {
             document.getElementById('tabJudgesBtn').classList.add('active');
             document.getElementById('tabResultsBtn').classList.remove('active');
@@ -1120,7 +1362,6 @@
                 adminAuthBlock.classList.add('hidden');
             }
         });
-        
         function populateStageSelects() {
             const selects = [document.getElementById('adminStageSelect')];
             selects.forEach(select => {
@@ -1128,7 +1369,6 @@
             });
         }
         populateStageSelects();
-        
         function updateJudgeSelectList() {
             const judgeSelect = document.getElementById('authJudgeSelect');
             judgeSelect.innerHTML = '<option value="">-- Выберите свою фамилию --</option>';
@@ -1158,7 +1398,6 @@
                 } catch(e) { stageSelectBlock.style.display = 'none'; }
             });
         }
-        
         document.getElementById('loginBtn').addEventListener('click', () => {
             const role = authRoleSelect.value;
             if (role === 'admin') {
@@ -1184,7 +1423,6 @@
             }
         });
         
-        // ЗАПУСК
         initJudgesDatabase().then(() => {
             updateJudgeSelectList();
             if (loadUserSession() && currentUser.role === 'admin') showAdminInterface();
