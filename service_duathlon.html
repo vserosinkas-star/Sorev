@@ -22,7 +22,6 @@
             margin: 0 auto;
         }
 
-        /* Глобальные стили (как в приложенном файле) */
         .header {
             background: linear-gradient(135deg, #1e3a5f, #0f2b44);
             color: white;
@@ -266,9 +265,7 @@
             cursor: pointer;
         }
 
-        /* ===== МОБИЛЬНАЯ АДАПТАЦИЯ - ПОЛНОЕ ВЫРАВНИВАНИЕ ===== */
         @media (max-width: 700px) {
-            /* Все сетки и флексы становятся колонками */
             .penalties-grid {
                 grid-template-columns: 1fr;
             }
@@ -277,7 +274,6 @@
                 width: 100%;
             }
 
-            /* Главное: блок гранаты, штрафы, ряды – вертикально */
             .radio-group {
                 flex-direction: column;
                 align-items: flex-start;
@@ -316,7 +312,6 @@
                 gap: 8px;
             }
 
-            /* Штрафные карточки: полная ширина + текст не сжимается */
             .penalty-card {
                 width: 100%;
                 flex-wrap: wrap;
@@ -331,7 +326,6 @@
                 white-space: normal;
             }
 
-            /* Убираем лишние отступы */
             .judge-panel {
                 padding: 16px;
             }
@@ -366,19 +360,16 @@
                 <option value="СРБ">Среднерусский (СРБ)</option>
                 <option value="СЗБ">Северо-Западный (СЗБ)</option>
                 <option value="ВВБ">Волго-Вятский (ВВБ)</option>
-                <option value="СТБ">СТБ </option>
-
+                <option value="СТБ">СТБ</option>
             </select>
         </div>
 
-        <!-- Кнопки выбора участника -->
         <div class="participant-selector" id="participantSwitch">
             <button class="participant-btn active" data-participant="1">👤 Участник 1</button>
             <button class="participant-btn" data-participant="2">👤 Участник 2</button>
             <button class="participant-btn" data-participant="3">👤 Участник 3</button>
         </div>
 
-        <!-- Карточка активного участника -->
         <div id="participantCard" style="display: none;">
             <div class="participant-card">
                 <div class="participant-title">
@@ -457,20 +448,11 @@
 </div>
 
 <script>
-    // --------------------------------------------------------------
-    // ПРАВИЛА (согласно документу "Служебное двоеборье")
-    // Промах из ПМ = штрафной круг 50 м = +30 сек
-    // Попадание из Сайги-12 = –10 сек (бонус)
-    // Непопадание гранатой = +10 сек (3 попытки, достаточно одного попадания)
-    // Штрафы: фальстарт(+5), падение пистолета(+20), падение патронов(+20), не пристёгнут ремешок(+20),
-    //         невыполнение упражнения (оббег препятствий и т.д.) +120 сек.
-    // Итог = чистое время + штраф_промахи + граната_штраф + сумма_ошибок - бонус_сайга
-    // --------------------------------------------------------------
-    const PENALTY_PER_MISS_PM = 30;      // 1 промах ПМ = +30 сек
-    const SAIGA_BONUS_PER_HIT = 10;      // 1 попадание Сайга = -10 сек
-    const GRENADE_MISS_PENALTY = 10;     // непопадание гранатой = +10 сек
+    // Правила (константы)
+    const PENALTY_PER_MISS_PM = 30;
+    const SAIGA_BONUS_PER_HIT = 10;
+    const GRENADE_MISS_PENALTY = 10;
 
-    // Список всех возможных штрафов согласно регламенту
     const penaltiesCatalog = [
         { id: "falsestart", label: "Фальстарт", seconds: 5 },
         { id: "gun_drop", label: "Падение пистолета (оружие коснулось земли)", seconds: 20 },
@@ -479,20 +461,41 @@
         { id: "exercise_fail", label: "Невыполнение любого упражнения (оббег препятствий и т.д.)", seconds: 120 }
     ];
 
-    // Список всех команд
-    const teamCodes = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
+    // Список команд (обновлён: МРД заменён на ЦА, добавлен СТБ)
+    const teamCodes = ["УБ","ДВБ","ББ","ЦА","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ","СТБ"];
     const teamNames = {
-        "УБ":"Уральский", "ДВБ":"Дальневосточный", "ББ":"Байкальский", "МРД":"Московский",
-        "ЦЧБ":"Центрально-Черноземный", "ЮЗБ":"Юго-Западный", "ПВБ":"Поволжский",
-        "СИБ":"Сибирский", "СРБ":"Среднерусский", "СЗБ":"Северо-Западный", "ВВБ":"Волго-Вятский"
+        "УБ":"Уральский",
+        "ДВБ":"Дальневосточный",
+        "ББ":"Байкальский",
+        "ЦА":"ЦОО ЦА и МБ",
+        "ЦЧБ":"Центрально-Черноземный",
+        "ЮЗБ":"Юго-Западный",
+        "ПВБ":"Поволжский",
+        "СИБ":"Сибирский",
+        "СРБ":"Среднерусский",
+        "СЗБ":"Северо-Западный",
+        "ВВБ":"Волго-Вятский",
+        "СТБ":"СТБ"
     };
 
-    // Глобальное хранилище (localStorage)
-    let storageData = {};   // { "УБ": { 1: { name, rawSeconds, missesPM, hitsSaiga, grenadeMiss, penalties }, ... } }
+    // Предустановленные имена участников (кроме УБ и СТБ — там пустые)
+    const defaultNames = {
+        "ДВБ": ["Степанов Андрей Сергеевич", "Нестеров Владимир Владимирович", "Гончаров Дмитрий Александрович"],
+        "ББ": ["Журав Сергей Александрович", "Какора Анатолий Сергеевич", "Ширко Иван Александрович"],
+        "ЦА": ["Новичкин Александр Иванович", "Дитятьев Дмитрий Алексеевич", "Сергиенко Павел Геннадьевич"],
+        "ЦЧБ": ["Валюкевич Виктор Владиславович", "Горяйнов Александр Михайлович", "Кондратов Игорь Сергеевич"],
+        "ЮЗБ": ["Соколенко Александр Витальевич", "Загрядский Максим Владимирович", "Шамсиев Артур Агаевич"],
+        "ПВБ": ["Щербина Алексей Юрьевич", "Шевыряев Евгений Викторович", "Юнгов Владимир Сергеевич"],
+        "СИБ": ["Чубченко Виктор Константинович", "Шавкин Дамир Дмитриевич", "Савинов Андрей Викторович"],
+        "СРБ": ["Стукалов Александр Александрович", "Мухин Алексей Николаевич", "Елисеев Антон Сергеевич"],
+        "СЗБ": ["Щеголихин Александр Николаевич", "Ольховский Станислав Иванович", "Котлобаев Рамиль Камильевич"],
+        "ВВБ": ["Баженов Владимир Вадимович", "Мурзыев Арсен Адисович", "Сафиулов Ильдар Рафаэлевич"]
+        // УБ и СТБ не заданы — останутся пустыми
+    };
 
-    // Текущее состояние UI
+    let storageData = {};
     let currentTeam = null;
-    let currentParticipant = 1;   // 1,2,3
+    let currentParticipant = 1;
     let currentAthlete = {
         name: "",
         rawSeconds: null,
@@ -517,7 +520,7 @@
     const syncTeamBtn = document.getElementById('syncTeamBtn');
     const resetTeamBtn = document.getElementById('resetTeamBtn');
 
-    // ---------- Вспомогательные функции ----------
+    // Вспомогательные функции
     function formatTime(sec) {
         if (sec === null || isNaN(sec) || sec === undefined) return "—";
         let minutes = Math.floor(sec / 60);
@@ -533,11 +536,8 @@
             let parts = s.split(":");
             minutes = parseInt(parts[0]) || 0;
             let secPart = parts[1];
-            if (secPart.includes(".")) {
-                seconds = parseFloat(secPart);
-            } else {
-                seconds = parseInt(secPart);
-            }
+            if (secPart.includes(".")) seconds = parseFloat(secPart);
+            else seconds = parseInt(secPart);
         } else {
             seconds = parseFloat(s);
         }
@@ -545,7 +545,6 @@
         return minutes * 60 + seconds;
     }
 
-    // Получить сумму штрафов из объекта penalties
     function getPenaltySum(penObj) {
         let sum = 0;
         for (let id in penObj) {
@@ -557,30 +556,27 @@
         return sum;
     }
 
-    // Вычисление итогового времени участника
     function computeTotalTime(athlete) {
         if (athlete.rawSeconds === null || athlete.rawSeconds === undefined) return null;
         let total = athlete.rawSeconds;
-        // штраф за промахи ПМ
-        const missPenalty = (athlete.missesPM || 0) * PENALTY_PER_MISS_PM;
-        total += missPenalty;
-        // граната
+        total += (athlete.missesPM || 0) * PENALTY_PER_MISS_PM;
         if (athlete.grenadeMiss) total += GRENADE_MISS_PENALTY;
-        // сумма штрафов за ошибки
-        const penaltiesSum = getPenaltySum(athlete.penalties || {});
-        total += penaltiesSum;
-        // бонус за попадания из Сайги
-        const saigaBonus = (athlete.hitsSaiga || 0) * SAIGA_BONUS_PER_HIT;
-        total -= saigaBonus;
+        total += getPenaltySum(athlete.penalties || {});
+        total -= (athlete.hitsSaiga || 0) * SAIGA_BONUS_PER_HIT;
         return Math.max(0, total);
     }
 
-    // Сохранение всей структуры в localStorage
     function persistStorage() {
         localStorage.setItem("duathlon_official_v3", JSON.stringify(storageData));
     }
 
-    // Инициализация/загрузка из localStorage
+    // Заполнение недостающих имён по умолчанию (не перезаписывает существующие)
+    function fillDefaultNames(team, participantData, index) {
+        if (defaultNames[team] && defaultNames[team][index] && (!participantData.name || participantData.name.trim() === "")) {
+            participantData.name = defaultNames[team][index];
+        }
+    }
+
     function loadStorage() {
         const saved = localStorage.getItem("duathlon_official_v3");
         if (saved) {
@@ -589,7 +585,18 @@
             } catch(e) { storageData = {}; }
         }
         if (!storageData) storageData = {};
-        // Гарантируем структуру для каждой команды и трёх участников
+
+        // Миграция: старый ключ "МРД" -> "ЦА"
+        if (storageData["МРД"] && !storageData["ЦА"]) {
+            storageData["ЦА"] = storageData["МРД"];
+            delete storageData["МРД"];
+        } else if (storageData["МРД"] && storageData["ЦА"]) {
+            // если оба существуют, можно объединить (но лучше перезаписать новым)
+            storageData["ЦА"] = storageData["МРД"];
+            delete storageData["МРД"];
+        }
+
+        // Гарантируем структуру для каждой команды из teamCodes
         for (let team of teamCodes) {
             if (!storageData[team]) {
                 storageData[team] = {
@@ -598,20 +605,21 @@
                     3: { name: "", rawSeconds: null, missesPM: 0, hitsSaiga: 0, grenadeMiss: false, penalties: {} }
                 };
             } else {
-                // миграция недостающих полей
-                for (let i=1;i<=3;i++) {
+                // Дополняем недостающие поля и заполняем имена по умолчанию
+                for (let i = 1; i <= 3; i++) {
                     if (!storageData[team][i]) storageData[team][i] = { name: "", rawSeconds: null, missesPM: 0, hitsSaiga: 0, grenadeMiss: false, penalties: {} };
                     if (storageData[team][i].missesPM === undefined) storageData[team][i].missesPM = 0;
                     if (storageData[team][i].hitsSaiga === undefined) storageData[team][i].hitsSaiga = 0;
                     if (storageData[team][i].grenadeMiss === undefined) storageData[team][i].grenadeMiss = false;
                     if (!storageData[team][i].penalties) storageData[team][i].penalties = {};
+                    // Подстановка имени по умолчанию, если пусто
+                    fillDefaultNames(team, storageData[team][i], i-1);
                 }
             }
         }
         persistStorage();
     }
 
-    // Отображение чекбоксов штрафов
     function renderPenalties() {
         let html = '';
         for (let p of penaltiesCatalog) {
@@ -627,7 +635,6 @@
             `;
         }
         penaltiesContainer.innerHTML = html;
-        // назначить события
         for (let p of penaltiesCatalog) {
             const cb = document.getElementById(`chk_${p.id}`);
             if (cb) {
@@ -641,7 +648,6 @@
         }
     }
 
-    // Обновление сводки и бейджа изменений
     function updateSummaryAndBadge() {
         const penaltyErrors = getPenaltySum(currentAthlete.penalties);
         const missesVal = currentAthlete.missesPM || 0;
@@ -660,7 +666,6 @@
         document.getElementById('rawTimeDisplay').innerText = raw !== null ? formatTime(raw) : '—';
         document.getElementById('totalTimeDisplay').innerHTML = total !== null ? `${total.toFixed(2)} сек (${formatTime(total)})` : '—';
 
-        // Показать/скрыть бейдж несохранённых изменений
         const btnContainer = saveAllBtn.parentNode;
         let badge = btnContainer.querySelector('.unsaved-badge');
         if (unsavedChanges && currentTeam) {
@@ -673,18 +678,15 @@
         } else if (badge) badge.remove();
     }
 
-    // Загрузить данные текущего участника в форму и в currentAthlete
     function loadCurrentAthleteToForm() {
         if (!currentTeam || !storageData[currentTeam]) return;
         const data = storageData[currentTeam][currentParticipant];
         if (!data) return;
         currentAthlete = JSON.parse(JSON.stringify(data));
-        // заполнить поля формы
         participantNameInput.value = currentAthlete.name || "";
         rawTimeInput.value = currentAthlete.rawSeconds !== null ? formatTime(currentAthlete.rawSeconds) : "";
         missesPMInput.value = currentAthlete.missesPM || 0;
         hitsSaigaInput.value = currentAthlete.hitsSaiga || 0;
-        // граната
         const grenadeHitRadio = document.querySelector("input[name='grenadeResult'][value='hit']");
         const grenadeMissRadio = document.querySelector("input[name='grenadeResult'][value='miss']");
         if (currentAthlete.grenadeMiss) grenadeMissRadio.checked = true;
@@ -694,10 +696,8 @@
         updateSummaryAndBadge();
     }
 
-    // Сохранить текущего участника в storage из формы (синхронизация currentAthlete -> storage)
     function saveCurrentToStorage() {
         if (!currentTeam) return false;
-        // синхронизируем поля из формы в currentAthlete
         currentAthlete.name = participantNameInput.value.trim();
         const rawStr = rawTimeInput.value.trim();
         let rawSec = rawStr === "" ? null : parseTimeToSeconds(rawStr);
@@ -712,8 +712,6 @@
         if (currentAthlete.hitsSaiga < 0 || currentAthlete.hitsSaiga > 4) { alert("Попадания Сайги от 0 до 4"); return false; }
         const grenadeMissRadio = document.querySelector("input[name='grenadeResult']:checked");
         currentAthlete.grenadeMiss = (grenadeMissRadio && grenadeMissRadio.value === "miss");
-        // штрафы уже лежат в currentAthlete.penalties (из чекбоксов)
-        // сохраняем в общее хранилище
         storageData[currentTeam][currentParticipant] = JSON.parse(JSON.stringify(currentAthlete));
         persistStorage();
         unsavedChanges = false;
@@ -722,29 +720,27 @@
         return true;
     }
 
-    // Сброс участника
     function resetCurrentAthlete() {
         if (!currentTeam) return;
         if (!confirm(`Сбросить данные участника №${currentParticipant}?`)) return;
         const emptyAthlete = { name: "", rawSeconds: null, missesPM: 0, hitsSaiga: 0, grenadeMiss: false, penalties: {} };
         storageData[currentTeam][currentParticipant] = emptyAthlete;
+        // Заполним имя по умолчанию, если есть
+        fillDefaultNames(currentTeam, storageData[currentTeam][currentParticipant], currentParticipant-1);
         persistStorage();
         loadCurrentAthleteToForm();
         renderOverallTable();
         alert(`Участник ${currentParticipant} сброшен`);
     }
 
-    // Синхронизировать всю команду (сохраняет текущего, а потом пересохраняет всех)
     function syncFullTeam() {
         if (!currentTeam) { alert("Выберите команду"); return; }
-        // сохраняем текущего участника перед синхронизацией
         saveCurrentToStorage();
         persistStorage();
         renderOverallTable();
         alert(`Команда ${currentTeam} синхронизирована. Все данные сохранены.`);
     }
 
-    // Сброс всей команды
     function resetTeam() {
         if (!currentTeam) { alert("Выберите команду"); return; }
         if (!confirm(`Сбросить ВСЕХ участников команды ${currentTeam}? Это действие необратимо.`)) return;
@@ -753,19 +749,23 @@
             2: { name: "", rawSeconds: null, missesPM: 0, hitsSaiga: 0, grenadeMiss: false, penalties: {} },
             3: { name: "", rawSeconds: null, missesPM: 0, hitsSaiga: 0, grenadeMiss: false, penalties: {} }
         };
+        // Подставим имена по умолчанию после сброса
+        for (let i = 1; i <= 3; i++) {
+            fillDefaultNames(currentTeam, storageData[currentTeam][i], i-1);
+        }
         persistStorage();
         if (currentTeam) loadCurrentAthleteToForm();
         renderOverallTable();
         alert(`Команда ${currentTeam} сброшена`);
     }
 
-    // Отрисовка таблицы рейтинга команд
     function renderOverallTable() {
         const tbody = document.getElementById('resultsBody');
         if (!tbody) return;
         const rows = [];
         for (let code of teamCodes) {
             const members = storageData[code];
+            if (!members) continue;
             let pTimes = [null, null, null];
             let pNames = ["—", "—", "—"];
             let teamTotal = 0;
@@ -784,7 +784,7 @@
             }
             rows.push({
                 code: code,
-                name: teamNames[code],
+                name: teamNames[code] || code,
                 p1_name: pNames[0],
                 p1_total: pTimes[0],
                 p2_name: pNames[1],
@@ -794,7 +794,6 @@
                 team_total: hasAny ? teamTotal : null
             });
         }
-        // сортировка по сумме (меньше — лучше)
         rows.sort((a,b) => {
             if (a.team_total === null && b.team_total === null) return 0;
             if (a.team_total === null) return 1;
@@ -824,19 +823,15 @@
         }
     }
 
-    // Переключение участника
     function setActiveParticipant(partNum) {
         currentParticipant = partNum;
         document.querySelectorAll('.participant-btn').forEach(btn => {
             if (parseInt(btn.getAttribute('data-participant')) === partNum) btn.classList.add('active');
             else btn.classList.remove('active');
         });
-        if (currentTeam) {
-            loadCurrentAthleteToForm();
-        }
+        if (currentTeam) loadCurrentAthleteToForm();
     }
 
-    // Смена команды
     function onTeamChange() {
         currentTeam = teamSelect.value || null;
         if (!currentTeam) {
@@ -850,13 +845,14 @@
                 2: { name: "", rawSeconds: null, missesPM: 0, hitsSaiga: 0, grenadeMiss: false, penalties: {} },
                 3: { name: "", rawSeconds: null, missesPM: 0, hitsSaiga: 0, grenadeMiss: false, penalties: {} }
             };
+            for (let i = 1; i <= 3; i++) fillDefaultNames(currentTeam, storageData[currentTeam][i], i-1);
             persistStorage();
         }
         loadCurrentAthleteToForm();
         renderOverallTable();
     }
 
-    // Обработчики событий
+    // Обработчики
     teamSelect.addEventListener('change', onTeamChange);
     document.querySelectorAll('.participant-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -879,21 +875,17 @@
 
     saveAllBtn.addEventListener('click', () => {
         if (!currentTeam) { alert("Выберите команду"); return; }
-        if (saveCurrentToStorage()) {
-            alert(`Участник ${currentParticipant} сохранён`);
-        }
+        if (saveCurrentToStorage()) alert(`Участник ${currentParticipant} сохранён`);
     });
 
     resetParticipantBtn.addEventListener('click', resetCurrentAthlete);
     syncTeamBtn.addEventListener('click', syncFullTeam);
     resetTeamBtn.addEventListener('click', resetTeam);
 
-    // Дополнительные слушатели для полей (чтобы обновлять сводку в реальном времени)
     const liveFields = [participantNameInput, rawTimeInput, missesPMInput, hitsSaigaInput];
     liveFields.forEach(field => {
         field.addEventListener('input', () => {
             if (!currentTeam) return;
-            // синхронизируем текущие значения из формы в currentAthlete (без сохранения в storage)
             currentAthlete.name = participantNameInput.value.trim();
             const rawStr = rawTimeInput.value.trim();
             currentAthlete.rawSeconds = rawStr === "" ? null : parseTimeToSeconds(rawStr);
@@ -914,7 +906,7 @@
         });
     });
 
-    // ИНИЦИАЛИЗАЦИЯ
+    // Инициализация
     loadStorage();
     renderOverallTable();
     participantCardDiv.style.display = 'none';
