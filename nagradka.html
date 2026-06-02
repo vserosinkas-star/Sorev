@@ -45,7 +45,7 @@
             align-items: center;
         }
 
-        .back-link, .print-btn {
+        .back-link, .print-btn, .pptx-btn {
             display: inline-block;
             background: rgba(255, 255, 255, 0.2);
             padding: 8px 20px;
@@ -57,6 +57,13 @@
             border: none;
             cursor: pointer;
             font-weight: 600;
+        }
+
+        .pptx-btn {
+            background: rgba(46, 125, 50, 0.85);
+        }
+        .pptx-btn:hover {
+            background: #2e7d32;
         }
 
         .back-link:hover, .print-btn:hover {
@@ -163,7 +170,7 @@
             body { background: white; padding: 0; margin: 0; }
             .container { max-width: 100%; margin: 0; padding: 10px; }
             .header { background: #1e3a5f; color: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; border-radius: 0; margin-bottom: 15px; }
-            .header-actions, .back-link, .print-btn, .tabs, .tab-btn { display: none !important; }
+            .header-actions, .back-link, .print-btn, .pptx-btn, .tabs, .tab-btn { display: none !important; }
             .tab-pane { display: none !important; }
             .tab-pane.active-pane { display: block !important; }
             .section { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; padding: 15px; border-radius: 8px; }
@@ -182,6 +189,9 @@
             font-size: 0.75rem;
         }
     </style>
+    <!-- Подключаем библиотеки для работы с pptx -->
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
 </head>
 <body>
 <div class="container">
@@ -191,6 +201,7 @@
         <div class="header-actions">
             <a href="#" class="back-link" onclick="history.back(); return false;">← Вернуться на главную</a>
             <button class="print-btn" onclick="window.print();">🖨️ Печать результатов</button>
+            <button class="pptx-btn" id="exportPptxBtn">📊 Выгрузить в презентацию (.pptx)</button>
         </div>
     </div>
 
@@ -202,7 +213,7 @@
     <!-- ======================= ВКЛАДКА ИНКАССАЦИЯ ======================= -->
     <div id="inkasso-pane" class="tab-pane active-pane">
         <!-- Командное первенство -->
-        <div class="section">
+        <div class="section" data-pptx-section="team_inkasso">
             <h2>🏆 Командное первенство — сумма мест по 4 видам</h2>
             <div class="table-wrapper">
                 <table>
@@ -220,7 +231,7 @@
         </div>
 
         <!-- Практическая стрельба -->
-        <div class="section">
+        <div class="section" data-pptx-section="shoot_inkasso">
             <h2>🔫 Практическая стрельба (личное первенство)</h2>
             <div class="table-wrapper">
                 <table>
@@ -236,7 +247,7 @@
         </div>
 
         <!-- Личное первенство водители -->
-        <div class="section">
+        <div class="section" data-pptx-section="drivers_inkasso">
             <h2>🚛 Личное первенство (водители инкассации)</h2>
             <div class="table-wrapper">
                 <table>
@@ -252,7 +263,7 @@
         </div>
 
         <!-- Эстафета (инкассация) -->
-        <div class="section">
+        <div class="section" data-pptx-section="estafeta_inkasso">
             <h2>🔄 Эстафета (команда из 2 человек)</h2>
             <div class="table-wrapper">
                 <table>
@@ -268,7 +279,7 @@
         </div>
 
         <!-- Командный триатлон -->
-        <div class="section">
+        <div class="section" data-pptx-section="triathlon_inkasso">
             <h2>🏋️ Командный триатлон (команда из 2 человек)</h2>
             <div class="table-wrapper">
                 <table>
@@ -283,8 +294,8 @@
             <div class="subnote">* Два участника: стрельба, физическая подготовка. Штраф (сек) за ошибки.</div>
         </div>
 
-        <!-- Командная эстафета (инкассация) - исправлено -->
-        <div class="section">
+        <!-- Командная эстафета (охрана + инкассация) -->
+        <div class="section" data-pptx-section="joint_estafeta_inkasso">
             <h2>🚔🤝 Командная эстафета (охрана + инкассация) — 3 чел. охрана + 2 чел. инкассация</h2>
             <div class="table-wrapper">
                 <table>
@@ -303,7 +314,7 @@
     <!-- ======================= ВКЛАДКА ОХРАНА ======================= -->
     <div id="ohrana-pane" class="tab-pane">
         <!-- Командное первенство охраны -->
-        <div class="section">
+        <div class="section" data-pptx-section="team_ohrana">
             <h2>🏆 Командное первенство (охрана) — по 3 видам</h2>
             <div class="table-wrapper">
                 <table>
@@ -319,7 +330,7 @@
         </div>
 
         <!-- Практическая стрельба (охрана) -->
-        <div class="section">
+        <div class="section" data-pptx-section="shoot_ohrana">
             <h2>🔫 Практическая стрельба (личное первенство, охрана)</h2>
             <div class="table-wrapper">
                 <table>
@@ -335,7 +346,7 @@
         </div>
 
         <!-- Эстафета (охрана) -->
-        <div class="section">
+        <div class="section" data-pptx-section="estafeta_ohrana">
             <h2>🔄 Эстафета (охрана, команда из 3 человек)</h2>
             <div class="table-wrapper">
                 <table>
@@ -351,7 +362,7 @@
         </div>
 
         <!-- Служебное двоеборье -->
-        <div class="section">
+        <div class="section" data-pptx-section="dvoeborye_ohrana">
             <h2>🏃‍♂️🎯 Служебное двоеборье (бег 1000 м + стрельба) — команда из 3 человек</h2>
             <div class="table-wrapper">
                 <table>
@@ -366,8 +377,8 @@
             <div class="subnote">* Бег 1000 м, затем стрельба из пистолета. Штраф за промахи (20 сек за каждый).</div>
         </div>
 
-        <!-- Командная эстафета (охрана) - исправлено -->
-        <div class="section">
+        <!-- Командная эстафета (охрана+инкассация) охрана вкладка -->
+        <div class="section" data-pptx-section="joint_estafeta_ohrana">
             <h2>🚔🤝 Командная эстафета (охрана + инкассация) — 3 чел. охрана + 2 чел. инкассация</h2>
             <div class="table-wrapper">
                 <table>
@@ -419,6 +430,118 @@
             });
         });
     })();
+
+    // Функция экспорта в PPTX с использованием html-to-image для рендеринга секций
+    document.getElementById('exportPptxBtn').addEventListener('click', async function() {
+        const PptxGenJS = window.PptxGenJS;
+        const htmlToImage = window.htmlToImage;
+        if (!PptxGenJS || !htmlToImage) {
+            alert('Ошибка загрузки библиотек. Проверьте соединение с интернетом.');
+            return;
+        }
+
+        const pptx = new PptxGenJS();
+        pptx.layout = 'LAYOUT_WIDE'; // Широкоэкранный формат (16:9)
+        
+        // Заголовок презентации - титульный слайд
+        let titleSlide = pptx.addSlide();
+        titleSlide.addText('ИТОГИ СОРЕВНОВАНИЙ 2026', { x: 0.5, y: 1.2, w: '90%', h: 1.5, fontSize: 36, bold: true, color: '1E3A5F', align: 'center' });
+        titleSlide.addText('Командное и личное первенство\nИнкассация и Охрана', { x: 0.5, y: 2.8, w: '90%', h: 1.0, fontSize: 22, color: '444444', align: 'center' });
+        titleSlide.addText('Сбербанк — Департамент безопасности, ЦУНДО | 2026', { x: 0.5, y: 4.8, w: '90%', h: 0.6, fontSize: 14, color: '666666', align: 'center' });
+
+        // Функция добавления слайда с содержанием блока (секции)
+        async function addSectionToPpt(sectionElement, slideTitle) {
+            if (!sectionElement) return;
+            // Клонируем элемент, чтобы не влиять на отображение в браузере (и убираем лишние hover эффекты)
+            const cloneSection = sectionElement.cloneNode(true);
+            cloneSection.style.width = '100%';
+            cloneSection.style.margin = '0';
+            cloneSection.style.padding = '15px';
+            cloneSection.style.backgroundColor = '#ffffff';
+            cloneSection.style.borderRadius = '12px';
+            cloneSection.style.boxShadow = 'none';
+            // Убираем подписи для печати, оставляем только таблицы и заголовки
+            const subnotes = cloneSection.querySelectorAll('.subnote');
+            subnotes.forEach(note => note.style.fontSize = '10px');
+            
+            // Создаем временный контейнер для рендеринга
+            const container = document.createElement('div');
+            container.style.position = 'absolute';
+            container.style.top = '-9999px';
+            container.style.left = '-9999px';
+            container.style.width = '900px';  // оптимальная ширина для скриншота
+            container.style.backgroundColor = '#fff';
+            container.style.padding = '20px';
+            container.appendChild(cloneSection);
+            document.body.appendChild(container);
+            
+            try {
+                // Ждем отрисовки
+                await new Promise(r => setTimeout(r, 100));
+                const dataUrl = await htmlToImage.toPng(container, { quality: 0.95, pixelRatio: 2 });
+                // Добавляем слайд
+                let slide = pptx.addSlide();
+                slide.addImage({ data: dataUrl, x: 0.5, y: 0.5, w: 9.0, h: 5.2 }); // Широкий слайд ~9.5x5.4
+                // Заголовок также можно добавить текстом поверх, но картинка уже содержит заголовок секции
+            } catch (error) {
+                console.error('Ошибка при создании изображения секции:', error);
+                let slide = pptx.addSlide();
+                slide.addText(`Ошибка отображения: ${slideTitle}`, { x: 0.5, y: 2.0, w: 9, h: 1, fontSize: 16, color: 'FF0000' });
+            } finally {
+                document.body.removeChild(container);
+            }
+        }
+
+        // Получаем текущую активную вкладку (то что видит пользователь)
+        const activePane = document.querySelector('.tab-pane.active-pane');
+        const isInkassoActive = (activePane.id === 'inkasso-pane');
+        
+        // Определяем список секций в соответствии с активной вкладкой
+        let sectionsToExport = [];
+        if (isInkassoActive) {
+            sectionsToExport = [
+                { elem: document.querySelector('#inkasso-pane [data-pptx-section="team_inkasso"]'), title: 'Командное первенство (инкассация)' },
+                { elem: document.querySelector('#inkasso-pane [data-pptx-section="shoot_inkasso"]'), title: 'Практическая стрельба (инкассация)' },
+                { elem: document.querySelector('#inkasso-pane [data-pptx-section="drivers_inkasso"]'), title: 'Личное первенство водители' },
+                { elem: document.querySelector('#inkasso-pane [data-pptx-section="estafeta_inkasso"]'), title: 'Эстафета инкассации' },
+                { elem: document.querySelector('#inkasso-pane [data-pptx-section="triathlon_inkasso"]'), title: 'Командный триатлон' },
+                { elem: document.querySelector('#inkasso-pane [data-pptx-section="joint_estafeta_inkasso"]'), title: 'Совместная эстафета (охрана+инкассация)' }
+            ];
+        } else {
+            sectionsToExport = [
+                { elem: document.querySelector('#ohrana-pane [data-pptx-section="team_ohrana"]'), title: 'Командное первенство (охрана)' },
+                { elem: document.querySelector('#ohrana-pane [data-pptx-section="shoot_ohrana"]'), title: 'Практическая стрельба (охрана)' },
+                { elem: document.querySelector('#ohrana-pane [data-pptx-section="estafeta_ohrana"]'), title: 'Эстафета охраны' },
+                { elem: document.querySelector('#ohrana-pane [data-pptx-section="dvoeborye_ohrana"]'), title: 'Служебное двоеборье' },
+                { elem: document.querySelector('#ohrana-pane [data-pptx-section="joint_estafeta_ohrana"]'), title: 'Совместная эстафета (охрана+инкассация)' }
+            ];
+        }
+        
+        // Добавляем информационный слайд о выбранном разделе
+        let infoSlide = pptx.addSlide();
+        infoSlide.addText(`Раздел: ${isInkassoActive ? 'ИНКАССАЦИЯ' : 'ОХРАНА'}`, { x: 0.5, y: 1.5, w: 9, h: 1, fontSize: 28, bold: true, color: '1E3A5F' });
+        infoSlide.addText('Полные итоговые протоколы (только призовые места, победители и призёры)', { x: 0.5, y: 2.8, w: 9, h: 0.8, fontSize: 16, color: '555555' });
+        
+        // Проходим по секциям и добавляем каждую как отдельный слайд
+        for (let item of sectionsToExport) {
+            if (item.elem) {
+                await addSectionToPpt(item.elem, item.title);
+            } else {
+                console.warn('Секция не найдена', item.title);
+                let slideErr = pptx.addSlide();
+                slideErr.addText(`Данные не загружены: ${item.title}`, { x: 0.5, y: 2.5, w: 9, h: 1, fontSize: 14, color: '999999' });
+            }
+        }
+        
+        // Добавим финальный слайд с благодарностью
+        let finalSlide = pptx.addSlide();
+        finalSlide.addText('Спасибо за участие!', { x: 0.5, y: 2.2, w: 9, h: 1, fontSize: 32, bold: true, color: '1E3A5F', align: 'center' });
+        finalSlide.addText('© Сбербанк, Департамент безопасности, ЦУНДО — 2026', { x: 0.5, y: 4.5, w: 9, h: 0.6, fontSize: 14, color: '777777', align: 'center' });
+        
+        // Сохраняем презентацию
+        const fileName = `itogi_sorevnovaniy_${isInkassoActive ? 'inkassatsiya' : 'ohrana'}_2026.pptx`;
+        await pptx.writeFile({ fileName });
+    });
 </script>
 </body>
 </html>
