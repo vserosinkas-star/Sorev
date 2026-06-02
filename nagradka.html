@@ -188,10 +188,29 @@
             color: #5c6f87;
             font-size: 0.75rem;
         }
+        
+        .toast-notify {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e3a5f;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 40px;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            animation: fadeInOut 2.5s ease forwards;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(20px); visibility: hidden; }
+        }
     </style>
-    <!-- Подключаем библиотеки для работы с pptx -->
     <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
 </head>
 <body>
 <div class="container">
@@ -201,7 +220,7 @@
         <div class="header-actions">
             <a href="#" class="back-link" onclick="history.back(); return false;">← Вернуться на главную</a>
             <button class="print-btn" onclick="window.print();">🖨️ Печать результатов</button>
-            <button class="pptx-btn" id="exportPptxBtn">📊 Выгрузить в презентацию (.pptx)</button>
+            <button class="pptx-btn" id="exportPptxBtn">📊 Стильная презентация (.pptx)</button>
         </div>
     </div>
 
@@ -212,14 +231,11 @@
 
     <!-- ======================= ВКЛАДКА ИНКАССАЦИЯ ======================= -->
     <div id="inkasso-pane" class="tab-pane active-pane">
-        <!-- Командное первенство -->
-        <div class="section" data-pptx-section="team_inkasso">
+        <div class="section" data-section-title="КОМАНДНОЕ ПЕРВЕНСТВО" data-section-sub="Сумма мест по 4 видам" data-section-note="* При равных значениях суммы мест - приоритетом является результат испытаний по дисциплине &quot;Огневая подготовка&quot;.">
             <h2>🏆 Командное первенство — сумма мест по 4 видам</h2>
             <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr><th>Место</th><th>Команда</th><th>Эстафета (место)</th><th>Практическая стрельба (место)</th><th>Личное первенство водители (место)</th><th>Командный триатлон (место)</th><th>Общая сумма мест</th></tr>
-                    </thead>
+                <table class="export-table">
+                    <thead><tr><th>Место</th><th>Команда</th><th>Эстафета</th><th>Стрельба</th><th>Водители</th><th>Триатлон</th><th>Сумма</th></tr></thead>
                     <tbody>
                         <tr class="rank-1"><td>🥇 1 место</td><td><strong>Среднерусский банк (СРБ)</strong></td><td>1</td><td>1</td><td>4</td><td>4</td><td>10</td></tr>
                         <tr><td>🥈 2 место</td><td><strong>Сибирский банк (СИБ)</strong></td><td>2</td><td>2</td><td>5</td><td>6</td><td>15</td></tr>
@@ -230,11 +246,10 @@
             <div class="subnote">* При равных значениях суммы мест - приоритетом является результат испытаний по дисциплине "Огневая подготовка".</div>
         </div>
 
-        <!-- Практическая стрельба -->
-        <div class="section" data-pptx-section="shoot_inkasso">
+        <div class="section" data-section-title="ПРАКТИЧЕСКАЯ СТРЕЛЬБА" data-section-sub="Личное первенство" data-section-note="* Пистолет, автомат. Время в секундах.">
             <h2>🔫 Практическая стрельба (личное первенство)</h2>
             <div class="table-wrapper">
-                <table>
+                <table class="export-table">
                     <thead><tr><th>Место</th><th>ФИО</th><th>Команда</th><th>Результат (сек)</th></tr></thead>
                     <tbody>
                         <tr class="rank-1"><td>🥇 1 место</td><td><strong>Зайцев Артём Викторович</strong></td><td>Среднерусский банк (СРБ)</td><td>45.78</td></tr>
@@ -246,12 +261,11 @@
             <div class="subnote">* Пистолет, автомат. Время в секундах.</div>
         </div>
 
-        <!-- Личное первенство водители -->
-        <div class="section" data-pptx-section="drivers_inkasso">
+        <div class="section" data-section-title="ВОДИТЕЛИ ИНКАССАЦИИ" data-section-sub="Личное первенство" data-section-note="* Фигурное вождение + маневрирование в СДУ. Суммарное время со штрафами.">
             <h2>🚛 Личное первенство (водители инкассации)</h2>
             <div class="table-wrapper">
-                <table>
-                    <thead><tr><th>Место</th><th>ФИО</th><th>Команда</th><th>Время (мм:сс.сс)</th></tr></thead>
+                <table class="export-table">
+                    <thead><tr><th>Место</th><th>ФИО</th><th>Команда</th><th>Время</th></tr></thead>
                     <tbody>
                         <tr class="rank-1"><td>🥇 1 место</td><td><strong>Гришин Игорь Алексеевич</strong></td><td>Северо-Западный банк (СЗБ)</td><td>7:22.87</td></tr>
                         <tr><td>🥈 2 место</td><td><strong>Ткаченко Вадим Олегович</strong></td><td>Уральский банк (УБ)</td><td>7:45.32</td></tr>
@@ -262,63 +276,59 @@
             <div class="subnote">* Фигурное вождение + маневрирование в СДУ. Суммарное время со штрафами.</div>
         </div>
 
-        <!-- Эстафета (инкассация) -->
-        <div class="section" data-pptx-section="estafeta_inkasso">
+        <div class="section" data-section-title="ЭСТАФЕТА" data-section-sub="Команда из 2 человек" data-section-note="* Перенос груза, тактическое вождение. Штраф (сек) за ошибки.">
             <h2>🔄 Эстафета (команда из 2 человек)</h2>
             <div class="table-wrapper">
-                <table>
-                    <thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Участник 2</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead>
+                <table class="export-table">
+                    <thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Участник 2</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
                     <tbody>
-                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>Среднерусский банк (СРБ)</strong></td><td>Власов Кирилл Дмитриевич</td><td>Романов Максим Евгеньевич</td><td>2:38.33</td><td>0</td><td>2:38.33</td></tr>
-                        <tr><td>🥈 2 место</td><td><strong>Сибирский банк (СИБ)</strong></td><td>Орлов Сергей Витальевич</td><td>Кузнецов Денис Алексеевич</td><td>2:38.33</td><td>20</td><td>2:58.33</td></tr>
-                        <tr><td>🥉 3 место</td><td><strong>Поволжский банк (ПВБ)</strong></td><td>Соболев Павел Игоревич</td><td>Титов Алексей Геннадьевич</td><td>2:45.00</td><td>20</td><td>3:05.00</td></tr>
+                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>Среднерусский банк (СРБ)</strong></td><td>Власов Кирилл Д.</td><td>Романов Максим Е.</td><td>2:38.33</td><td>0</td><td>2:38.33</td></tr>
+                        <tr><td>🥈 2 место</td><td><strong>Сибирский банк (СИБ)</strong></td><td>Орлов Сергей В.</td><td>Кузнецов Денис А.</td><td>2:38.33</td><td>20</td><td>2:58.33</td></tr>
+                        <tr><td>🥉 3 место</td><td><strong>Поволжский банк (ПВБ)</strong></td><td>Соболев Павел И.</td><td>Титов Алексей Г.</td><td>2:45.00</td><td>20</td><td>3:05.00</td></tr>
                     </tbody>
                 </table>
             </div>
             <div class="subnote">* Перенос груза, тактическое вождение. Штраф (сек) за ошибки.</div>
         </div>
 
-        <!-- Командный триатлон -->
-        <div class="section" data-pptx-section="triathlon_inkasso">
+        <div class="section" data-section-title="КОМАНДНЫЙ ТРИАТЛОН" data-section-sub="Команда из 2 человек" data-section-note="* Два участника: стрельба, физическая подготовка. Штраф (сек) за ошибки.">
             <h2>🏋️ Командный триатлон (команда из 2 человек)</h2>
             <div class="table-wrapper">
-                <table>
-                    <thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Время1 / штраф1</th><th>Участник 2</th><th>Время2 / штраф2</th><th>Сумма команды</th></tr></thead>
+                <table class="export-table">
+                    <thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Результат 1</th><th>Участник 2</th><th>Результат 2</th><th>Сумма</th></tr></thead>
                     <tbody>
-                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>Северо-Западный банк (СЗБ)</strong></td><td>Беляев Артём Николаевич</td><td>5:12.34 / 0</td><td>Михайлов Иван Владимирович</td><td>5:20.67 / 0</td><td>10:33.01</td></tr>
-                        <tr><td>🥈 2 место</td><td><strong>Уральский банк (УБ)</strong></td><td>Степанов Дмитрий Юрьевич</td><td>5:28.45 / 20</td><td>Медведев Андрей Петрович</td><td>5:35.22 / 0</td><td>11:03.67</td></tr>
-                        <tr><td>🥉 3 место</td><td><strong>Центрально-Черноземный банк (ЦЧБ)</strong></td><td>Щербаков Илья Сергеевич</td><td>5:43.78 / 20</td><td>Фомин Владимир Александрович</td><td>5:49.91 / 40</td><td>11:33.69</td></tr>
+                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>Северо-Западный банк (СЗБ)</strong></td><td>Беляев Артём Н.</td><td>5:12.34 / 0</td><td>Михайлов Иван В.</td><td>5:20.67 / 0</td><td>10:33.01</td></tr>
+                        <tr><td>🥈 2 место</td><td><strong>Уральский банк (УБ)</strong></td><td>Степанов Дмитрий Ю.</td><td>5:28.45 / 20</td><td>Медведев Андрей П.</td><td>5:35.22 / 0</td><td>11:03.67</td></tr>
+                        <tr><td>🥉 3 место</td><td><strong>Центрально-Черноземный банк (ЦЧБ)</strong></td><td>Щербаков Илья С.</td><td>5:43.78 / 20</td><td>Фомин Владимир А.</td><td>5:49.91 / 40</td><td>11:33.69</td></tr>
                     </tbody>
                 </table>
             </div>
             <div class="subnote">* Два участника: стрельба, физическая подготовка. Штраф (сек) за ошибки.</div>
         </div>
 
-        <!-- Командная эстафета (охрана + инкассация) -->
-        <div class="section" data-pptx-section="joint_estafeta_inkasso">
-            <h2>🚔🤝 Командная эстафета (охрана + инкассация) — 3 чел. охрана + 2 чел. инкассация</h2>
+        <div class="section" data-section-title="СОВМЕСТНАЯ ЭСТАФЕТА" data-section-sub="Охрана (3 чел) + Инкассация (2 чел)" data-section-note="* Совместная эстафета: 5 человек. Штраф (сек) за ошибки.">
+            <h2>🚔🤝 Командная эстафета (охрана + инкассация)</h2>
             <div class="table-wrapper">
-                <table>
-                    <thead><tr><th>Место</th><th>Команда (охрана + инкассация)</th><th>Участники охраны (3 чел)</th><th>Участники инкассации (2 чел)</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead>
+                <table class="export-table">
+                    <thead><tr><th>Место</th><th>Команда</th><th>Участники охраны</th><th>Участники инкассации</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
                     <tbody>
-                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>ООО "СТБ" + СРБ (инк)</strong></td><td>Шишкин Илья Владимирович, Козырев Егор Дмитриевич, Панкратов Михаил Олегович</td><td>Власов Кирилл Дмитриевич, Романов Максим Евгеньевич</td><td>6:15.33</td><td>0</td><td>6:15.33</td></tr>
-                        <tr><td>🥈 2 место</td><td><strong>ЦОО ЦА и МБ (охрана) + ЦЧБ (инк)</strong></td><td>Дубровин Сергей Александрович, Калинин Алексей Петрович, Соболев Дмитрий Иванович</td><td>Щербаков Илья Сергеевич, Фомин Владимир Александрович</td><td>6:32.55</td><td>20</td><td>6:52.55</td></tr>
-                        <tr><td>🥉 3 место</td><td><strong>СИБ (охрана) + СИБ (инк)</strong></td><td>Назаров Алексей Викторович, Тимофеев Роман Сергеевич, Ефимов Роман Владимирович</td><td>Орлов Сергей Витальевич, Кузнецов Денис Алексеевич</td><td>6:48.99</td><td>40</td><td>7:28.99</td></tr>
+                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>ООО "СТБ" + СРБ</strong></td><td>Шишкин, Козырев, Панкратов</td><td>Власов, Романов</td><td>6:15.33</td><td>0</td><td>6:15.33</td></tr>
+                        <tr><td>🥈 2 место</td><td><strong>ЦОО ЦА и МБ + ЦЧБ</strong></td><td>Дубровин, Калинин, Соболев</td><td>Щербаков, Фомин</td><td>6:32.55</td><td>20</td><td>6:52.55</td></tr>
+                        <tr><td>🥉 3 место</td><td><strong>СИБ (охрана) + СИБ</strong></td><td>Назаров, Тимофеев, Ефимов</td><td>Орлов, Кузнецов</td><td>6:48.99</td><td>40</td><td>7:28.99</td></tr>
                     </tbody>
                 </table>
             </div>
-            <div class="subnote">* Совместная эстафета: 5 человек (3 охраны + 2 инкассации). Штраф (сек) за ошибки. Составы команд уникальны.</div>
+            <div class="subnote">* Совместная эстафета: 5 человек (3 охраны + 2 инкассации).</div>
         </div>
     </div>
 
     <!-- ======================= ВКЛАДКА ОХРАНА ======================= -->
     <div id="ohrana-pane" class="tab-pane">
-        <!-- Командное первенство охраны -->
-        <div class="section" data-pptx-section="team_ohrana">
+        <div class="section" data-section-title="КОМАНДНОЕ ПЕРВЕНСТВО (ОХРАНА)" data-section-sub="По 3 видам" data-section-note="Командный зачёт по 3 видам: практическая стрельба, эстафета охраны, служебное двоеборье.">
             <h2>🏆 Командное первенство (охрана) — по 3 видам</h2>
             <div class="table-wrapper">
-                <table>
-                    <thead><tr><th>Место</th><th>Команда</th><th>Стрельба (место)</th><th>Эстафета (место)</th><th>Двоеборье (место)</th><th>Сумма мест</th></tr></thead>
+                <table class="export-table">
+                    <thead><tr><th>Место</th><th>Команда</th><th>Стрельба</th><th>Эстафета</th><th>Двоеборье</th><th>Сумма</th></tr></thead>
                     <tbody>
                         <tr class="rank-1"><td>🥇 1 место</td><td><strong>ООО "СТБ"</strong></td><td>1</td><td>1</td><td>1</td><td>3</td></tr>
                         <tr><td>🥈 2 место</td><td><strong>Среднерусский банк (СРБ)</strong></td><td>2</td><td>2</td><td>2</td><td>6</td></tr>
@@ -329,11 +339,10 @@
             <div class="subnote">Командный зачёт по 3 видам: практическая стрельба, эстафета охраны (3 чел), служебное двоеборье (3 чел).</div>
         </div>
 
-        <!-- Практическая стрельба (охрана) -->
-        <div class="section" data-pptx-section="shoot_ohrana">
+        <div class="section" data-section-title="ПРАКТИЧЕСКАЯ СТРЕЛЬБА (ОХРАНА)" data-section-sub="Личное первенство" data-section-note="* Пистолет Макарова, тактическая стрельба. Время в секундах.">
             <h2>🔫 Практическая стрельба (личное первенство, охрана)</h2>
             <div class="table-wrapper">
-                <table>
+                <table class="export-table">
                     <thead><tr><th>Место</th><th>ФИО</th><th>Команда</th><th>Результат (сек)</th></tr></thead>
                     <tbody>
                         <tr class="rank-1"><td>🥇 1 место</td><td><strong>Степанов Денис Андреевич</strong></td><td>ООО "СТБ"</td><td>41.82</td></tr>
@@ -345,58 +354,54 @@
             <div class="subnote">* Пистолет Макарова, тактическая стрельба. Время в секундах.</div>
         </div>
 
-        <!-- Эстафета (охрана) -->
-        <div class="section" data-pptx-section="estafeta_ohrana">
+        <div class="section" data-section-title="ЭСТАФЕТА (ОХРАНА)" data-section-sub="Команда из 3 человек" data-section-note="* Этапы: перенос раненого, полоса препятствий, стрельба после бега.">
             <h2>🔄 Эстафета (охрана, команда из 3 человек)</h2>
             <div class="table-wrapper">
-                <table>
-                    <thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Участник 2</th><th>Участник 3</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead>
+                <table class="export-table">
+                    <thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Участник 2</th><th>Участник 3</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
                     <tbody>
-                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>ООО "СТБ"</strong></td><td>Шишкин Илья Владимирович</td><td>Козырев Егор Дмитриевич</td><td>Панкратов Михаил Олегович</td><td>4:45.22</td><td>0</td><td>4:45.22</td></tr>
-                        <tr><td>🥈 2 место</td><td><strong>Среднерусский банк (СРБ)</strong></td><td>Дубровин Сергей Александрович</td><td>Калинин Алексей Павлович</td><td>Соболев Дмитрий Игоревич</td><td>4:58.67</td><td>20</td><td>5:18.67</td></tr>
-                        <tr><td>🥉 3 место</td><td><strong>Сибирский банк (СИБ)</strong></td><td>Назаров Алексей Валерьевич</td><td>Тимофеев Роман Сергеевич</td><td>Ефимов Роман Владимирович</td><td>5:12.44</td><td>40</td><td>5:52.44</td></tr>
+                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>ООО "СТБ"</strong></td><td>Шишкин Илья</td><td>Козырев Егор</td><td>Панкратов Михаил</td><td>4:45.22</td><td>0</td><td>4:45.22</td></tr>
+                        <tr><td>🥈 2 место</td><td><strong>Среднерусский банк (СРБ)</strong></td><td>Дубровин С.</td><td>Калинин А.</td><td>Соболев Д.</td><td>4:58.67</td><td>20</td><td>5:18.67</td></tr>
+                        <tr><td>🥉 3 место</td><td><strong>Сибирский банк (СИБ)</strong></td><td>Назаров А.</td><td>Тимофеев Р.</td><td>Ефимов Р.</td><td>5:12.44</td><td>40</td><td>5:52.44</td></tr>
                     </tbody>
                 </table>
             </div>
             <div class="subnote">* Этапы: перенос раненого, полоса препятствий, стрельба после бега. Штраф в секундах.</div>
         </div>
 
-        <!-- Служебное двоеборье -->
-        <div class="section" data-pptx-section="dvoeborye_ohrana">
-            <h2>🏃‍♂️🎯 Служебное двоеборье (бег 1000 м + стрельба) — команда из 3 человек</h2>
+        <div class="section" data-section-title="СЛУЖЕБНОЕ ДВОЕБОРЬЕ" data-section-sub="Бег 1000 м + стрельба (команда 3 чел)" data-section-note="* Бег 1000 м, затем стрельба из пистолета. Штраф за промахи (20 сек).">
+            <h2>🏃‍♂️🎯 Служебное двоеборье (бег 1000 м + стрельба)</h2>
             <div class="table-wrapper">
-                <table>
-                    <thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Время1 / штраф1</th><th>Участник 2</th><th>Время2 / штраф2</th><th>Участник 3</th><th>Время3 / штраф3</th><th>Сумма команды</th></tr></thead>
+                <table class="export-table">
+                    <thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Участник 2</th><th>Участник 3</th><th>Сумма команды</th></tr></thead>
                     <tbody>
-                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>ООО "СТБ"</strong></td><td>Панкратов Михаил Олегович</td><td>4:22.11 / 0</td><td>Гущин Виталий Андреевич</td><td>4:35.45 / 0</td><td>Смирнов Алексей Викторович</td><td>4:42.78 / 20</td><td>13:40.34</td></tr>
-                        <tr><td>🥈 2 место</td><td><strong>Среднерусский банк (СРБ)</strong></td><td>Соболев Дмитрий Игоревич</td><td>4:30.22 / 20</td><td>Борисов Иван Петрович</td><td>4:45.33 / 0</td><td>Козырев Андрей Сергеевич</td><td>4:55.11 / 20</td><td>14:10.66</td></tr>
-                        <tr><td>🥉 3 место</td><td><strong>Поволжский банк (ПВБ)</strong></td><td>Ефимов Роман Владимирович</td><td>4:48.77 / 20</td><td>Сидоров Николай Викторович</td><td>4:59.23 / 20</td><td>Морозов Леонид Иванович</td><td>5:12.18 / 40</td><td>15:00.18</td></tr>
+                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>ООО "СТБ"</strong></td><td>Панкратов М. (4:22.11 / 0)</td><td>Гущин В. (4:35.45 / 0)</td><td>Смирнов А. (4:42.78 / 20)</td><td>13:40.34</td></tr>
+                        <tr><td>🥈 2 место</td><td><strong>Среднерусский банк (СРБ)</strong></td><td>Соболев Д. (4:30.22 / 20)</td><td>Борисов И. (4:45.33 / 0)</td><td>Козырев А. (4:55.11 / 20)</td><td>14:10.66</td></tr>
+                        <tr><td>🥉 3 место</td><td><strong>Поволжский банк (ПВБ)</strong></td><td>Ефимов Р. (4:48.77 / 20)</td><td>Сидоров Н. (4:59.23 / 20)</td><td>Морозов Л. (5:12.18 / 40)</td><td>15:00.18</td></tr>
                     </tbody>
                 </table>
             </div>
             <div class="subnote">* Бег 1000 м, затем стрельба из пистолета. Штраф за промахи (20 сек за каждый).</div>
         </div>
 
-        <!-- Командная эстафета (охрана+инкассация) охрана вкладка -->
-        <div class="section" data-pptx-section="joint_estafeta_ohrana">
-            <h2>🚔🤝 Командная эстафета (охрана + инкассация) — 3 чел. охрана + 2 чел. инкассация</h2>
+        <div class="section" data-section-title="СОВМЕСТНАЯ ЭСТАФЕТА" data-section-sub="Охрана + Инкассация" data-section-note="* Совместная эстафета: 5 человек. НЕ входит в командное первенство охраны.">
+            <h2>🚔🤝 Командная эстафета (охрана + инкассация)</h2>
             <div class="table-wrapper">
-                <table>
-                    <thead><tr><th>Место</th><th>Команда (охрана + инкассация)</th><th>Участники охраны (3 чел)</th><th>Участники инкассации (2 чел)</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead>
+                <table class="export-table">
+                    <thead><tr><th>Место</th><th>Команда</th><th>Участники охраны</th><th>Участники инкассации</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
                     <tbody>
-                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>ООО "СТБ" + СРБ (инк)</strong></td><td>Шишкин Илья Владимирович, Козырев Егор Дмитриевич, Панкратов Михаил Олегович</td><td>Власов Кирилл Дмитриевич, Романов Максим Евгеньевич</td><td>6:15.33</td><td>0</td><td>6:15.33</td></tr>
-                        <tr><td>🥈 2 место</td><td><strong>СРБ (охрана) + ЦЧБ (инк)</strong></td><td>Дубровин Сергей Александрович, Калинин Алексей Павлович, Соболев Дмитрий Игоревич</td><td>Щербаков Илья Сергеевич, Фомин Владимир Александрович</td><td>6:32.55</td><td>20</td><td>6:52.55</td></tr>
-                        <tr><td>🥉 3 место</td><td><strong>СИБ (охрана) + СИБ (инк)</strong></td><td>Назаров Алексей Викторович, Тимофеев Роман Сергеевич, Ефимов Роман Владимирович</td><td>Орлов Сергей Витальевич, Кузнецов Денис Алексеевич</td><td>6:48.99</td><td>40</td><td>7:28.99</td></tr>
+                        <tr class="rank-1"><td>🥇 1 место</td><td><strong>ООО "СТБ" + СРБ</strong></td><td>Шишкин, Козырев, Панкратов</td><td>Власов, Романов</td><td>6:15.33</td><td>0</td><td>6:15.33</td></tr>
+                        <tr><td>🥈 2 место</td><td><strong>СРБ (охрана) + ЦЧБ</strong></td><td>Дубровин, Калинин, Соболев</td><td>Щербаков, Фомин</td><td>6:32.55</td><td>20</td><td>6:52.55</td></tr>
+                        <tr><td>🥉 3 место</td><td><strong>СИБ (охрана) + СИБ</strong></td><td>Назаров, Тимофеев, Ефимов</td><td>Орлов, Кузнецов</td><td>6:48.99</td><td>40</td><td>7:28.99</td></tr>
                     </tbody>
                 </table>
             </div>
-            <div class="subnote">* Совместная эстафета: 5 человек (3 охраны + 2 инкассации). ⚠️ Данная дисциплина НЕ входит в командное первенство охраны. Составы команд уникальны.</div>
+            <div class="subnote">* Совместная эстафета: 5 человек. ⚠️ НЕ входит в командное первенство охраны.</div>
         </div>
     </div>
 
     <footer>
-        © Сбербанк, Департамент безопасности, ЦУНДО | Итоговые протоколы 2026<br>
-        Призёры: практическая стрельба (1,2,3) · водители (1,2,3) · эстафета (1,2,3) · триатлон (1,2,3) · командное первенство (1,2,3)
+        © Сбербанк, Департамент безопасности, ЦУНДО | Итоговые протоколы 2026
     </footer>
 </div>
 
@@ -415,132 +420,110 @@
                 inkassoPane.classList.remove('active-pane');
             }
             tabs.forEach(btn => {
-                if (btn.getAttribute('data-tab') === tabId) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
+                if (btn.getAttribute('data-tab') === tabId) btn.classList.add('active');
+                else btn.classList.remove('active');
             });
         }
-
-        tabs.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const tabId = btn.getAttribute('data-tab');
-                activateTab(tabId);
-            });
-        });
+        tabs.forEach(btn => btn.addEventListener('click', () => activateTab(btn.getAttribute('data-tab'))));
     })();
 
-    // Функция экспорта в PPTX с использованием html-to-image для рендеринга секций
+    function showToast(msg) {
+        let toast = document.querySelector('.toast-notify');
+        if(toast) toast.remove();
+        toast = document.createElement('div');
+        toast.className = 'toast-notify';
+        toast.innerText = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2600);
+    }
+
     document.getElementById('exportPptxBtn').addEventListener('click', async function() {
         const PptxGenJS = window.PptxGenJS;
-        const htmlToImage = window.htmlToImage;
-        if (!PptxGenJS || !htmlToImage) {
-            alert('Ошибка загрузки библиотек. Проверьте соединение с интернетом.');
-            return;
-        }
-
+        if (!PptxGenJS) { alert('Ошибка загрузки библиотеки'); return; }
+        
         const pptx = new PptxGenJS();
-        pptx.layout = 'LAYOUT_WIDE'; // Широкоэкранный формат (16:9)
+        pptx.layout = 'LAYOUT_WIDE';
+        pptx.defineLayout({ name:'WIDE', width:10, height:5.625 });
         
-        // Заголовок презентации - титульный слайд
-        let titleSlide = pptx.addSlide();
-        titleSlide.addText('ИТОГИ СОРЕВНОВАНИЙ 2026', { x: 0.5, y: 1.2, w: '90%', h: 1.5, fontSize: 36, bold: true, color: '1E3A5F', align: 'center' });
-        titleSlide.addText('Командное и личное первенство\nИнкассация и Охрана', { x: 0.5, y: 2.8, w: '90%', h: 1.0, fontSize: 22, color: '444444', align: 'center' });
-        titleSlide.addText('Сбербанк — Департамент безопасности, ЦУНДО | 2026', { x: 0.5, y: 4.8, w: '90%', h: 0.6, fontSize: 14, color: '666666', align: 'center' });
-
-        // Функция добавления слайда с содержанием блока (секции)
-        async function addSectionToPpt(sectionElement, slideTitle) {
-            if (!sectionElement) return;
-            // Клонируем элемент, чтобы не влиять на отображение в браузере (и убираем лишние hover эффекты)
-            const cloneSection = sectionElement.cloneNode(true);
-            cloneSection.style.width = '100%';
-            cloneSection.style.margin = '0';
-            cloneSection.style.padding = '15px';
-            cloneSection.style.backgroundColor = '#ffffff';
-            cloneSection.style.borderRadius = '12px';
-            cloneSection.style.boxShadow = 'none';
-            // Убираем подписи для печати, оставляем только таблицы и заголовки
-            const subnotes = cloneSection.querySelectorAll('.subnote');
-            subnotes.forEach(note => note.style.fontSize = '10px');
-            
-            // Создаем временный контейнер для рендеринга
-            const container = document.createElement('div');
-            container.style.position = 'absolute';
-            container.style.top = '-9999px';
-            container.style.left = '-9999px';
-            container.style.width = '900px';  // оптимальная ширина для скриншота
-            container.style.backgroundColor = '#fff';
-            container.style.padding = '20px';
-            container.appendChild(cloneSection);
-            document.body.appendChild(container);
-            
-            try {
-                // Ждем отрисовки
-                await new Promise(r => setTimeout(r, 100));
-                const dataUrl = await htmlToImage.toPng(container, { quality: 0.95, pixelRatio: 2 });
-                // Добавляем слайд
-                let slide = pptx.addSlide();
-                slide.addImage({ data: dataUrl, x: 0.5, y: 0.5, w: 9.0, h: 5.2 }); // Широкий слайд ~9.5x5.4
-                // Заголовок также можно добавить текстом поверх, но картинка уже содержит заголовок секции
-            } catch (error) {
-                console.error('Ошибка при создании изображения секции:', error);
-                let slide = pptx.addSlide();
-                slide.addText(`Ошибка отображения: ${slideTitle}`, { x: 0.5, y: 2.0, w: 9, h: 1, fontSize: 16, color: 'FF0000' });
-            } finally {
-                document.body.removeChild(container);
-            }
-        }
-
-        // Получаем текущую активную вкладку (то что видит пользователь)
         const activePane = document.querySelector('.tab-pane.active-pane');
-        const isInkassoActive = (activePane.id === 'inkasso-pane');
+        const isInkasso = (activePane.id === 'inkasso-pane');
+        const category = isInkasso ? 'ИНКАССАЦИЯ' : 'ОХРАНА';
         
-        // Определяем список секций в соответствии с активной вкладкой
-        let sectionsToExport = [];
-        if (isInkassoActive) {
-            sectionsToExport = [
-                { elem: document.querySelector('#inkasso-pane [data-pptx-section="team_inkasso"]'), title: 'Командное первенство (инкассация)' },
-                { elem: document.querySelector('#inkasso-pane [data-pptx-section="shoot_inkasso"]'), title: 'Практическая стрельба (инкассация)' },
-                { elem: document.querySelector('#inkasso-pane [data-pptx-section="drivers_inkasso"]'), title: 'Личное первенство водители' },
-                { elem: document.querySelector('#inkasso-pane [data-pptx-section="estafeta_inkasso"]'), title: 'Эстафета инкассации' },
-                { elem: document.querySelector('#inkasso-pane [data-pptx-section="triathlon_inkasso"]'), title: 'Командный триатлон' },
-                { elem: document.querySelector('#inkasso-pane [data-pptx-section="joint_estafeta_inkasso"]'), title: 'Совместная эстафета (охрана+инкассация)' }
-            ];
-        } else {
-            sectionsToExport = [
-                { elem: document.querySelector('#ohrana-pane [data-pptx-section="team_ohrana"]'), title: 'Командное первенство (охрана)' },
-                { elem: document.querySelector('#ohrana-pane [data-pptx-section="shoot_ohrana"]'), title: 'Практическая стрельба (охрана)' },
-                { elem: document.querySelector('#ohrana-pane [data-pptx-section="estafeta_ohrana"]'), title: 'Эстафета охраны' },
-                { elem: document.querySelector('#ohrana-pane [data-pptx-section="dvoeborye_ohrana"]'), title: 'Служебное двоеборье' },
-                { elem: document.querySelector('#ohrana-pane [data-pptx-section="joint_estafeta_ohrana"]'), title: 'Совместная эстафета (охрана+инкассация)' }
-            ];
-        }
+        // Титульный слайд
+        let slide1 = pptx.addSlide();
+        slide1.addText('🏆 ИТОГИ СОРЕВНОВАНИЙ 2026', { x: 0.5, y: 1.2, w: '90%', h: 1.2, fontSize: 36, bold: true, color: '1E3A5F', align: 'center' });
+        slide1.addText(`Командное и личное первенство\n${category}`, { x: 0.5, y: 2.6, w: '90%', h: 1.0, fontSize: 24, color: '666666', align: 'center' });
+        slide1.addText('Сбербанк — Департамент безопасности, ЦУНДО | 2026', { x: 0.5, y: 4.6, w: '90%', h: 0.6, fontSize: 14, color: 'AAAAAA', align: 'center' });
         
-        // Добавляем информационный слайд о выбранном разделе
-        let infoSlide = pptx.addSlide();
-        infoSlide.addText(`Раздел: ${isInkassoActive ? 'ИНКАССАЦИЯ' : 'ОХРАНА'}`, { x: 0.5, y: 1.5, w: 9, h: 1, fontSize: 28, bold: true, color: '1E3A5F' });
-        infoSlide.addText('Полные итоговые протоколы (только призовые места, победители и призёры)', { x: 0.5, y: 2.8, w: 9, h: 0.8, fontSize: 16, color: '555555' });
-        
-        // Проходим по секциям и добавляем каждую как отдельный слайд
-        for (let item of sectionsToExport) {
-            if (item.elem) {
-                await addSectionToPpt(item.elem, item.title);
-            } else {
-                console.warn('Секция не найдена', item.title);
-                let slideErr = pptx.addSlide();
-                slideErr.addText(`Данные не загружены: ${item.title}`, { x: 0.5, y: 2.5, w: 9, h: 1, fontSize: 14, color: '999999' });
+        const sections = activePane.querySelectorAll('.section');
+        for (let section of sections) {
+            let title = section.getAttribute('data-section-title') || 'Результаты';
+            let subtitle = section.getAttribute('data-section-sub') || '';
+            let note = section.getAttribute('data-section-note') || '';
+            let tableElem = section.querySelector('table');
+            if (!tableElem) continue;
+            
+            let rows = tableElem.querySelectorAll('tr');
+            let tableData = [];
+            rows.forEach((row, ri) => {
+                let cells = row.querySelectorAll('th, td');
+                let rowArr = [];
+                cells.forEach(cell => rowArr.push(cell.innerText.trim()));
+                if (rowArr.length) tableData.push(rowArr);
+            });
+            if (!tableData.length) continue;
+            
+            let slide = pptx.addSlide();
+            // Фоновый цвет для заголовка
+            slide.addText(title, { x: 0.3, y: 0.2, w: 9.4, h: 0.7, fontSize: 22, bold: true, color: 'FFFFFF', fill: { color: '1E3A5F' }, align: 'center' });
+            if (subtitle) {
+                slide.addText(subtitle, { x: 0.3, y: 0.9, w: 9.4, h: 0.4, fontSize: 13, color: '666666', align: 'center', italic: true });
+            }
+            
+            // Преобразуем таблицу в формат pptx с цветами для призёров
+            let pptxRows = [];
+            for (let i = 0; i < tableData.length; i++) {
+                let rowCells = [];
+                for (let j = 0; j < tableData[i].length; j++) {
+                    let cellText = tableData[i][j];
+                    let isFirstColMedal = (j === 0 && (cellText.includes('1 место') || cellText.includes('🥇')));
+                    let isFirstColSilver = (j === 0 && (cellText.includes('2 место') || cellText.includes('🥈')));
+                    let isFirstColBronze = (j === 0 && (cellText.includes('3 место') || cellText.includes('🥉')));
+                    let isGoldRow = (i === 1 && tableData[0] && (tableData[0][0].includes('Место') || tableData[0][0].includes('место'))) || cellText.includes('🥇');
+                    let isSilverRow = (i === 2 && tableData[0] && tableData[0][0].includes('Место')) || cellText.includes('🥈');
+                    let isBronzeRow = (i === 3 && tableData[0] && tableData[0][0].includes('Место')) || cellText.includes('🥉');
+                    let fillColor = null;
+                    if (isGoldRow || isFirstColMedal) fillColor = 'FEF9C3';
+                    else if (isSilverRow || isFirstColSilver) fillColor = 'F0F0F0';
+                    else if (isBronzeRow || isFirstColBronze) fillColor = 'FFE0B5';
+                    
+                    rowCells.push({ text: cellText, options: { bold: i === 0 || cellText.includes('🥇') || cellText.includes('🥈') || cellText.includes('🥉'), fill: fillColor } });
+                }
+                pptxRows.push(rowCells);
+            }
+            
+            let yPos = subtitle ? 1.4 : 1.1;
+            let tableHeight = Math.min(3.8, pptxRows.length * 0.4);
+            slide.addTable(pptxRows, {
+                x: 0.3, y: yPos, w: 9.4, h: tableHeight,
+                border: { pt: 1, color: 'CCCCCC' },
+                fontSize: 10,
+                align: 'center',
+                valign: 'middle',
+                rowH: 0.4
+            });
+            
+            if (note) {
+                slide.addText(note, { x: 0.3, y: yPos + tableHeight + 0.1, w: 9.4, h: 0.4, fontSize: 8, color: '888888', italic: true });
             }
         }
         
-        // Добавим финальный слайд с благодарностью
         let finalSlide = pptx.addSlide();
-        finalSlide.addText('Спасибо за участие!', { x: 0.5, y: 2.2, w: 9, h: 1, fontSize: 32, bold: true, color: '1E3A5F', align: 'center' });
-        finalSlide.addText('© Сбербанк, Департамент безопасности, ЦУНДО — 2026', { x: 0.5, y: 4.5, w: 9, h: 0.6, fontSize: 14, color: '777777', align: 'center' });
+        finalSlide.addText('СПАСИБО ЗА УЧАСТИЕ!', { x: 0.5, y: 2.0, w: 9, h: 0.8, fontSize: 28, bold: true, color: '1E3A5F', align: 'center' });
+        finalSlide.addText('© Сбербанк, Департамент безопасности, ЦУНДО — 2026', { x: 0.5, y: 4.0, w: 9, h: 0.5, fontSize: 14, color: '999999', align: 'center' });
         
-        // Сохраняем презентацию
-        const fileName = `itogi_sorevnovaniy_${isInkassoActive ? 'inkassatsiya' : 'ohrana'}_2026.pptx`;
-        await pptx.writeFile({ fileName });
+        await pptx.writeFile({ fileName: `results_${isInkasso ? 'inkass' : 'ohrana'}_2026.pptx` });
+        showToast('✅ Презентация успешно создана!');
     });
 </script>
 </body>
