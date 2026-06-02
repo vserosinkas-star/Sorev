@@ -365,7 +365,7 @@
                 <h3>📊 Все результаты команд</h3>
                 <div class="results-table" style="margin-top: 0;">
                     <table id="adminResultsTable">
-                        <thead><tr><th>Место</th><th>Команда</th><th>Направление</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
+                        <thead><th>Место</th><th>Команда</th><th>Направление</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></thead>
                         <tbody id="adminResultsBody"></tbody>
                     </table>
                 </div>
@@ -578,6 +578,13 @@
             { id: "obsh_sts", category: "Общие штрафы", desc: "Выход из СТС/посадка в СТС не осуществлена в следующем порядке: инкассатор через заднюю правую дверь, водитель-инкассатор через левую переднюю дверь", sec: 20 }
         ];
         
+        // Добавляем два специальных штрафа для этапа "Стрельба" (не в библиотеке, т.к. обрабатываются отдельно)
+        // Они будут храниться в объекте penalties как shoot_pm_misses (число) и shoot_saiga_hits (число)
+        const SHOOT_PM_MISS_ID = 'shoot_pm_misses';
+        const SHOOT_SAIGA_HITS_ID = 'shoot_saiga_hits';
+        const PENALTY_PER_MISS_PM = 30;
+        const SAIGA_BONUS_PER_HIT = 10;
+        
         const counterPenaltyIds = [
             'puncture_helper', 'us_cassette_dropped', 'us_jam_search', 'us_jam_bad_fix',
             'us_not_kas', 'us_left_property', 'fire_bad_sk', 'obsh_svyaz', 'obsh_ivr',
@@ -777,11 +784,17 @@
             let sum = 0;
             for (let id in penObj) {
                 let p = penaltiesLibrary.find(p => p.id === id);
-                if (!p) continue;
-                let val = penObj[id];
-                if (typeof val === 'number') sum += val * p.sec;
-                else if (val === true) sum += p.sec;
+                if (p) {
+                    let val = penObj[id];
+                    if (typeof val === 'number') sum += val * p.sec;
+                    else if (val === true) sum += p.sec;
+                }
             }
+            // Добавляем штраф за промахи ПМ и бонус за попадания Сайги
+            let pmMisses = penObj[SHOOT_PM_MISS_ID] || 0;
+            let saigaHits = penObj[SHOOT_SAIGA_HITS_ID] || 0;
+            sum += pmMisses * PENALTY_PER_MISS_PM;
+            sum -= saigaHits * SAIGA_BONUS_PER_HIT;
             return sum;
         }
         
@@ -891,6 +904,17 @@
                     else tempPenalties[p.id] = false;
                 }
             }
+            // Для этапа стрельба загружаем специальные счётчики
+            if (currentUser.stage === "Стрельба") {
+                let pm = penaltiesObj[SHOOT_PM_MISS_ID];
+                let saiga = penaltiesObj[SHOOT_SAIGA_HITS_ID];
+                tempPenalties[SHOOT_PM_MISS_ID] = (typeof pm === 'number') ? pm : 0;
+                tempPenalties[SHOOT_SAIGA_HITS_ID] = (typeof saiga === 'number') ? saiga : 0;
+            } else {
+                // удаляем на случай, если они были
+                delete tempPenalties[SHOOT_PM_MISS_ID];
+                delete tempPenalties[SHOOT_SAIGA_HITS_ID];
+            }
             hasUnsavedChanges = false;
             renderPenalties();
             updateBadge();
@@ -901,6 +925,103 @@
                 document.getElementById('penaltiesContainer').innerHTML = '<div style="grid-column:1/-1; text-align:center;">⚠️ Выберите команду</div>';
                 return;
             }
+            // Спецобработка для этапа "Стрельба" — добавляем счётчики ПМ и Сайги
+            if (currentUser.stage === "Стрельба") {
+                let pmMisses = tempPenalties[SHOOT_PM_MISS_ID] || 0;
+                let saigaHits = tempPenalties[SHOOT_SAIGA_HITS_ID] || 0;
+                let pmPenalty = pmMisses * PENALTY_PER_MISS_PM;
+                let saigaBonus = saigaHits * SAIGA_BONUS_PER_HIT;
+                let html = `
+                    <div class="penalty-card">
+                        <div class="desc"><strong>🔫 ПМ (4 выстрела) — ПРОМАХИ (1 промах = +30 сек)</strong></div>
+                        <div class="counter-control">
+                            <button class="pm-dec">−</button>
+                            <span class="pm-count">${pmMisses}</span>
+                            <button class="pm-inc">+</button>
+                        </div>
+                        <div style="font-size:0.75rem;">Штраф: +${pmPenalty} сек</div>
+                    </div>
+                    <div class="penalty-card">
+                        <div class="desc"><strong>🎯 САЙГА-12 (4 выстрела) — ПОПАДАНИЯ (1 попадание = –10 сек)</strong></div>
+                        <div class="counter-control">
+                            <button class="saiga-dec">−</button>
+                            <span class="saiga-count">${saigaHits}</span>
+                            <button class="saiga-inc">+</button>
+                        </div>
+                        <div style="font-size:0.75rem;">Бонус: –${saigaBonus} сек</div>
+                    </div>
+                `;
+                // Добавляем остальные чекбоксы этого этапа (исключая shoot_miss, который уже есть в библиотеке)
+                let stagePen = penaltiesLibrary.filter(p => p.category === "Стрельба");
+                for (let p of stagePen) {
+                    let checked = tempPenalties[p.id] === true;
+                    const greenClass = isGreenHighlight(p.id) ? 'penalty-highlight-green' : '';
+                    html += `<div class="penalty-card ${greenClass}">
+                                <input type="checkbox" id="chk_${p.id}" data-id="${p.id}" ${checked ? 'checked' : ''}>
+                                <label for="chk_${p.id}">${p.desc}<span class="penalty-sec">+${p.sec} сек</span></label>
+                             </div>`;
+                }
+                document.getElementById('penaltiesContainer').innerHTML = html;
+                // Обработчики для ПМ и Сайги
+                const pmDec = document.querySelector('.pm-dec');
+                const pmInc = document.querySelector('.pm-inc');
+                const pmSpan = document.querySelector('.pm-count');
+                if (pmDec && pmInc && pmSpan) {
+                    const updatePM = (delta) => {
+                        let newVal = Math.max(0, Math.min(4, pmMisses + delta));
+                        pmMisses = newVal;
+                        tempPenalties[SHOOT_PM_MISS_ID] = newVal;
+                        pmSpan.innerText = newVal;
+                        let penalty = newVal * PENALTY_PER_MISS_PM;
+                        let parent = pmSpan.closest('.penalty-card');
+                        let secDiv = parent.querySelector('div:last-child');
+                        if (secDiv) secDiv.innerText = `Штраф: +${penalty} сек`;
+                        hasUnsavedChanges = true;
+                        updateSummaryFromTemp();
+                        updateBadge();
+                    };
+                    pmDec.onclick = () => updatePM(-1);
+                    pmInc.onclick = () => updatePM(1);
+                }
+                const saigaDec = document.querySelector('.saiga-dec');
+                const saigaInc = document.querySelector('.saiga-inc');
+                const saigaSpan = document.querySelector('.saiga-count');
+                if (saigaDec && saigaInc && saigaSpan) {
+                    const updateSaiga = (delta) => {
+                        let newVal = Math.max(0, Math.min(4, saigaHits + delta));
+                        saigaHits = newVal;
+                        tempPenalties[SHOOT_SAIGA_HITS_ID] = newVal;
+                        saigaSpan.innerText = newVal;
+                        let bonus = newVal * SAIGA_BONUS_PER_HIT;
+                        let parent = saigaSpan.closest('.penalty-card');
+                        let secDiv = parent.querySelector('div:last-child');
+                        if (secDiv) secDiv.innerText = `Бонус: –${bonus} сек`;
+                        hasUnsavedChanges = true;
+                        updateSummaryFromTemp();
+                        updateBadge();
+                    };
+                    saigaDec.onclick = () => updateSaiga(-1);
+                    saigaInc.onclick = () => updateSaiga(1);
+                }
+                // Обработчики для чекбоксов
+                for (let p of stagePen) {
+                    let cb = document.getElementById(`chk_${p.id}`);
+                    if (cb) {
+                        cb.onchange = (e) => {
+                            let id = e.target.getAttribute('data-id');
+                            if (e.target.checked) tempPenalties[id] = true;
+                            else tempPenalties[id] = false;
+                            hasUnsavedChanges = true;
+                            updateSummaryFromTemp();
+                            updateBadge();
+                        };
+                    }
+                }
+                updateSummaryFromTemp();
+                return;
+            }
+            
+            // Обычная отрисовка для других этапов (с конусами и счётчиками)
             let stagePen = penaltiesLibrary.filter(p => p.category === currentUser.stage);
             if (stagePen.length === 0) {
                 document.getElementById('penaltiesContainer').innerHTML = `<div>📭 Для этапа "${currentUser.stage}" нет ошибок</div>`;
@@ -1143,6 +1264,7 @@
                     delete penaltiesObj[id];
                 }
             }
+            // Для этапа стрельба также сохраняем PM и Saiga (они уже в tempPenalties)
             let rawSeconds = existing?.raw_seconds ?? null;
             await saveTeamData(currentUser.direction, currentTeam, rawSeconds, penaltiesObj);
             hasUnsavedChanges = false;
@@ -1184,6 +1306,10 @@
             if (currentUser.stage === "Получение банковских ценностей") setBankConesCount(0);
             if (currentUser.stage === "Змейка") setSnakeConesCount(0);
             if (currentUser.stage === "Вооруженный преступник") setPrestupnikConesCount(0);
+            if (currentUser.stage === "Стрельба") {
+                tempPenalties[SHOOT_PM_MISS_ID] = 0;
+                tempPenalties[SHOOT_SAIGA_HITS_ID] = 0;
+            }
             hasUnsavedChanges = true;
             renderPenalties();
             updateBadge();
@@ -1230,6 +1356,15 @@
                     }
                 }
             }
+            // Добавим отдельные записи для промахов ПМ и попаданий Сайги
+            let pmMisses = penaltiesObj[SHOOT_PM_MISS_ID] || 0;
+            let saigaHits = penaltiesObj[SHOOT_SAIGA_HITS_ID] || 0;
+            if (pmMisses > 0) {
+                activePenalties.push({ category: "Стрельба", desc: `Промахи из ПМ (${pmMisses} шт.)`, sec: pmMisses * PENALTY_PER_MISS_PM });
+            }
+            if (saigaHits > 0) {
+                activePenalties.push({ category: "Стрельба", desc: `Попадания из Сайги-12 (${saigaHits} шт.)`, sec: -saigaHits * SAIGA_BONUS_PER_HIT });
+            }
             const grouped = {};
             for (let p of activePenalties) {
                 if (!grouped[p.category]) grouped[p.category] = [];
@@ -1259,7 +1394,7 @@
                         <h4>🎯 ${stageName}</h4>
                         <table style="width:100%; border-collapse: collapse;">
                             <thead><tr style="background:#e2e8f0;"><th>Нарушение</th><th>Штраф</th></tr></thead>
-                            <tbody>${arr.map(p => `<tr><td style="padding:8px;">${p.desc}</td><td>+${p.sec}</td></tr>`).join('')}</tbody>
+                            <tbody>${arr.map(p => `<tr><td style="padding:8px;">${p.desc}</td><td>${p.sec >= 0 ? '+' : ''}${p.sec}</td></tr>`).join('')}</tbody>
                         </table>
                     </div>
                 `).join('')}
@@ -1323,7 +1458,7 @@
                         <td>
                             <button class="edit-phone-btn" data-key="${key}" data-index="${idx}">📞 Изменить телефон</button>
                             <button class="delete-judge-btn" data-key="${key}" data-index="${idx}">❌ Удалить</button>
-                         </td>
+                        </td>
                     </tr>`;
                 }
             }
