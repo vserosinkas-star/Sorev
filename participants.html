@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Участники — Сбербанк Многоборье 2026</title>
-    <!-- Подключаем библиотеку SheetJS для работы с Excel (XLSX) -->
+    <!-- SheetJS для экспорта Excel -->
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * {
             margin: 0;
@@ -120,8 +122,11 @@
             background: #0f6c2f;
             transform: translateY(-1px);
         }
-        .export-icon {
-            font-size: 1.1rem;
+        .add-btn {
+            background: #1e3a5f;
+        }
+        .add-btn:hover {
+            background: #0f2b44;
         }
         .filter-group {
             display: flex;
@@ -208,11 +213,94 @@
             box-shadow: inset 0 0 0 1px rgba(30,58,95,0.2);
             font-size: 0.8rem;
         }
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        .edit-btn, .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 4px 8px;
+            border-radius: 20px;
+            transition: 0.2s;
+        }
+        .edit-btn:hover {
+            background: #e2e8f0;
+        }
+        .delete-btn:hover {
+            background: #fee2e2;
+            color: #dc2626;
+        }
         .footer {
             margin-top: 40px;
             text-align: center;
             font-size: 0.8rem;
             color: #64748b;
+        }
+
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 28px;
+            padding: 28px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.2);
+        }
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #1e3a5f;
+        }
+        .modal-content input, .modal-content select {
+            width: 100%;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 40px;
+            font-size: 0.95rem;
+        }
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+        .modal-buttons button {
+            padding: 10px 24px;
+            border-radius: 40px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .modal-save {
+            background: #1e3a5f;
+            color: white;
+        }
+        .modal-cancel {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #1e3a5f;
         }
         @media (max-width: 700px) {
             th, td { padding: 10px 8px; font-size: 0.85rem; }
@@ -221,12 +309,12 @@
             .tab-btn { padding: 6px 18px; font-size: 0.85rem; }
             .export-btn { padding: 6px 14px; font-size: 0.8rem; }
             .top-actions { flex-direction: column; align-items: stretch; }
+            .action-buttons { flex-direction: column; gap: 4px; }
         }
     </style>
 </head>
 <body>
 <div class="container">
-    <!-- ССЫЛКА НА ГЛАВНУЮ ИСПРАВЛЕНА: ведёт на sorev.vercel.app -->
     <a href="https://sorev.vercel.app/index.html" class="back-link">← На главную</a>
     <h1>👥 Участники соревнований</h1>
     <div class="sub">XVI Всероссийское многоборье — Нижний Тагил, 24–25 июня 2026</div>
@@ -241,6 +329,7 @@
             <div id="dynamicFilters"></div>
         </div>
         <div class="export-btn-group">
+            <button id="addParticipantBtn" class="export-btn add-btn">➕ Добавить</button>
             <button id="exportExcelBtn" class="export-btn">📎 Выгрузить в Excel</button>
         </div>
     </div>
@@ -249,108 +338,163 @@
 
     <table id="participantsTable">
         <thead>
-            <tr><th>ТБ (территориальный банк)</th><th>ФИО полностью</th><th>Должность</th><th>Роль / Статус</th></tr>
+            <tr><th>ТБ (территориальный банк)</th><th>ФИО полностью</th><th>Должность</th><th>Роль / Статус</th><th></th></tr>
         </thead>
         <tbody id="tableBody"></tbody>
     </table>
-    <div class="footer">* Инкассация: фильтр по ролям (Водители / Триатлон). Охрана: фильтр «Все» или «Старший команды». Кнопка «Выгрузить в Excel» создаёт полноценный Excel-файл с данными текущей вкладки с учётом активных фильтров.</div>
+    <div class="footer">* Инкассация: фильтр по ролям (Водители / Триатлон). Охрана: фильтр «Все» или «Старший команды». Кнопка «Выгрузить в Excel» создаёт Excel-файл с текущими данными.</div>
+</div>
+
+<!-- Modal для добавления/редактирования -->
+<div id="participantModal" class="modal">
+    <div class="modal-content">
+        <h3 id="modalTitle">Добавить участника</h3>
+        <input type="text" id="modalTb" placeholder="Территориальный банк" required>
+        <input type="text" id="ModalFio" placeholder="ФИО полностью" required>
+        <input type="text" id="modalPosition" placeholder="Должность" required>
+        <select id="modalRole">
+            <option value="водитель">Водитель (инкассация)</option>
+            <option value="триатлон">Триатлон (инкассация)</option>
+            <option value="security_chief">Старший команды (охрана)</option>
+            <option value="Охранник">Сотрудник охраны</option>
+        </select>
+        <select id="modalCategory">
+            <option value="inkasso">Инкассация</option>
+            <option value="ohrana">Охрана</option>
+        </select>
+        <div class="modal-buttons">
+            <button class="modal-cancel" id="modalCancel">Отмена</button>
+            <button class="modal-save" id="modalSave">Сохранить</button>
+        </div>
+    </div>
 </div>
 
 <script>
-    // ------------------------------------------------------------------
-    // ПОЛНЫЙ СПИСОК УЧАСТНИКОВ 
-    // ------------------------------------------------------------------
-    const baseParticipants = [
-        // ---------- ИНКАССАЦИЯ (inkasso) ----------
-        { tb: "Поволжский банк", fio: "Гриднев Виктор Геннадьевич", position: "Дежурный инкассатор-водитель", role: "триатлон", category: "inkasso" },
-        { tb: "Поволжский банк", fio: "Сернов Александр Сергеевич", position: "Водитель-инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Поволжский банк", fio: "Полодичук Дмитрий Львович", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso" },
-        { tb: "Северо-Западный банк", fio: "Шварак Руслан Николаевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Северо-Западный банк", fio: "Погребняк Антон Сергеевич", position: "Инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Северо-Западный банк", fio: "Догунов Дмитрий Владимирович", position: "Водитель-инкассатор", role: "водитель", category: "inkasso" },
-        { tb: "Сибирский банк", fio: "Данилов Андрей Алексеевич", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso" },
-        { tb: "Сибирский банк", fio: "Павлов Роман Владимирович", position: "Дежурный инкассатор-водитель", role: "триатлон", category: "inkasso" },
-        { tb: "Сибирский банк", fio: "Груздов Егор Александрович", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Дальневосточный банк", fio: "Козырев Кирилл Александрович", position: "Водитель-инкассатор", role: "водитель", category: "inkasso" },
-        { tb: "Дальневосточный банк", fio: "Шепелев Артём Александрович", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Дальневосточный банк", fio: "Фёдоров Юрий Александрович", position: "Инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Среднерусский банк", fio: "Карпухин Алексей Сергеевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Среднерусский банк", fio: "Большунов Владислав Григорьевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Среднерусский банк", fio: "Воронин Антон Николаевич", position: "Водитель-инкассатор", role: "водитель", category: "inkasso" },
-        { tb: "Волго-Вятский банк", fio: "Поярков Евгений Александрович", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso" },
-        { tb: "Волго-Вятский банк", fio: "Соколов Александр Сергеевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Волго-Вятский банк", fio: "Михайлов Иван Владимирович", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "ПЦП МРД ЦУНДО", fio: "Лобанов Евгений Юрьевич", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso" },
-        { tb: "ПЦП МРД ЦУНДО", fio: "Сомкин Григорий Николаевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "ПЦП МРД ЦУНДО", fio: "Алексеев Данила Алексеевич", position: "Инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Центрально-Черноземный банк", fio: "Васильев Александр Леонидович", position: "Водитель-инкассатор", role: "водитель", category: "inkasso" },
-        { tb: "Центрально-Черноземный банк", fio: "Давыдюк Ярослав Владимирович", position: "Водитель-инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Центрально-Черноземный банк", fio: "Папин Александр Николаевич", position: "Инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Юго-Западный банк", fio: "Болдырев Владимир Александрович", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso" },
-        { tb: "Юго-Западный банк", fio: "Кочиев Матвей Аслангиреевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Юго-Западный банк", fio: "Емельяненко Вячеслав Вячеславович", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Байкальский банк", fio: "Горбунов Виталий Андреевич", position: "Водитель-инкассатор", role: "водитель", category: "inkasso" },
-        { tb: "Байкальский банк", fio: "Коновалов Александр Андреевич", position: "Водитель-инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Байкальский банк", fio: "Веселков Артем Владимирович", position: "Инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Уральский банк", fio: "Кудрявцев Максим Николаевич", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso" },
-        { tb: "Уральский банк", fio: "Москвин Станислав Сергеевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
-        { tb: "Уральский банк", fio: "Марамыгин Марк Юрьевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso" },
-
-        
-
-        // ---------- ОХРАНА (ohrana) ----------
-        { tb: "Байкальский банк", fio: "Жулаев Сергей  Александрович", position: "Старший охранник", role: "security_chief", category: "ohrana" },
-        { tb: "Байкальский банк", fio: "Какора Анатолий  Сергеевич", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Байкальский банк", fio: "Ширко Иван Александрович", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Поволжский банк", fio: "Щербина Алексей Юрьевич", position: "Охранник", role: "security_chief", category: "ohrana" },
-        { tb: "Поволжский банк", fio: "Шевыряев Евгений Викторович", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Поволжский банк", fio: "Юнгов Владимир Сергеевич", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Северо-Западный банк", fio: "Щеголихин Александр Николаевич", position: "Старший охранник", role: "security_chief", category: "ohrana" },
-        { tb: "Северо-Западный банк", fio: "Ольховский Станислав Иванович", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Северо-Западный банк", fio: "Котлобаев Рамиль  Камильевич", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Сибирский банк", fio: "Чубченко Виктор Константинович", position: "Старший охранник", role: "security_chief", category: "ohrana" },
-        { tb: "Сибирский банк", fio: "Шавкин Дамир Дмитриевич", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Сибирский банк", fio: "Савинов Андрей Викторович", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Среднерусский банк", fio: "Стукалов  Александр Александрович", position: "Старший охранник", role: "security_chief", category: "ohrana" },
-        { tb: "Среднерусский банк", fio: "Мухин Алексей Николаевич", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Среднерусский банк", fio: "Елисеев Антон Сергеевич", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Уральский банк", fio: "Ямгурчин Радик Равилевич", position: "Старший охранник", role: "security_chief", category: "ohrana" },
-        { tb: "Уральский банк", fio: "Гумеров Ильфат Зуфарович", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Уральский банк", fio: "Лагушин Виталий Юрьевич", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Центрально-Черноземный банк", fio: "Валюженич Виктор Владиславович", position: "Старший охранник", role: "security_chief", category: "ohrana" },
-        { tb: "Центрально-Черноземный банк", fio: "Горяйнов Александр Михайлович", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Центрально-Черноземный банк", fio: "Кондратов Игорь Сергеевич", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Юго-Западный банк", fio: "Соколенко Александр Витальевич", position: "Старший охранник", role: "security_chief", category: "ohrana" },
-        { tb: "Юго-Западный банк", fio: "Загрядский Максим Владимирович", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Юго-Западный банк", fio: "Шамсиев Артур Агаевич", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Волго-Вятский банк", fio: "Баженов Владимир Вадимович", position: "Старший охранник", role: "security_chief", category: "ohrana" },
-        { tb: "Волго-Вятский банк", fio: "Мурзыев Арсен Адисович", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Волго-Вятский банк", fio: "Сафиуллов Ильдар Рафаэлевич", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "ЦОО ЦА и МБ", fio: "Новичихин Александр Иванович", position: "Старший охранник", role: "security_chief", category: "ohrana" },
-        { tb: "ЦОО ЦА и МБ", fio: "Дитятьев Дмитрий Алексеевич", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "ЦОО ЦА и МБ", fio: "Сергиенко Павел Геннадьевич", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Дальневосточный банк", fio: "Степанов Андрей Сергеевич", position: "Старший охранник", role: "security_chief", category: "ohrana" },
-        { tb: "Дальневосточный банк", fio: "Нестеров Владимир Владимирович", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "Дальневосточный банк", fio: "Гончаров Дмитрий Александрович", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "СТБ", fio: "Борщ Владимир Александрович", position: "Старший охранник", role: "security_chief", category: "ohrana" },
-        { tb: "СТБ", fio: "Ракинцев Александр Александрович", position: "Охранник", role: "Охранник", category: "ohrana" },
-        { tb: "СТБ", fio: "Туралиев Вячеслав Гайлискарович", position: "Охранник", role: "Охранник", category: "ohrana" },
-    ];
-
+    // ===================== КОНФИГУРАЦИЯ SUPABASE =====================
+    // ⚠️ ЗАМЕНИТЕ НА ВАШИ ДАННЫЕ!
+    const SUPABASE_URL = 'https://ваш_проект.supabase.co';      // Ваш URL из Supabase
+    const SUPABASE_ANON_KEY = 'ваш_anon_public_key';            // Ваш anon public key
+    
+    // Инициализация Supabase клиента
+    let supabase;
+    try {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch (e) {
+        console.error("Ошибка инициализации Supabase. Проверьте URL и ключ.");
+    }
+    
     // Глобальное состояние
     let currentTab = "inkasso";
     let currentInkassoFilter = "all";
     let currentOhranaFilter = "all";
-
+    let participantsData = [];      // Храним загруженные данные
+    let editingId = null;           // ID редактируемого участника
+    
+    // DOM элементы
     const tbody = document.getElementById("tableBody");
     const statsInfo = document.getElementById("statsInfo");
     const tabButtons = document.querySelectorAll(".tab-btn");
     const dynamicFiltersDiv = document.getElementById("dynamicFilters");
     const exportBtn = document.getElementById("exportExcelBtn");
-
-    // Получить отфильтрованных участников
+    const addBtn = document.getElementById("addParticipantBtn");
+    const modal = document.getElementById("participantModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalTb = document.getElementById("modalTb");
+    const modalFio = document.getElementById("ModalFio");
+    const modalPosition = document.getElementById("modalPosition");
+    const modalRole = document.getElementById("modalRole");
+    const modalCategory = document.getElementById("modalCategory");
+    const modalSave = document.getElementById("modalSave");
+    const modalCancel = document.getElementById("modalCancel");
+    
+    // ===================== ФУНКЦИИ РАБОТЫ С SUPABASE =====================
+    async function loadParticipants() {
+        if (!supabase) {
+            showError("Supabase не инициализирован. Проверьте URL и ключ.");
+            return;
+        }
+        try {
+            showLoading();
+            const { data, error } = await supabase
+                .from('participants')
+                .select('*')
+                .order('tb', { ascending: true });
+            
+            if (error) throw error;
+            participantsData = data || [];
+            renderTable();
+        } catch (err) {
+            console.error(err);
+            showError("Ошибка загрузки данных: " + err.message);
+            participantsData = [];
+            renderTable();
+        }
+    }
+    
+    async function addParticipant(participant) {
+        if (!supabase) return false;
+        try {
+            const { data, error } = await supabase
+                .from('participants')
+                .insert([participant])
+                .select();
+            if (error) throw error;
+            await loadParticipants();
+            return true;
+        } catch (err) {
+            console.error(err);
+            alert("Ошибка добавления: " + err.message);
+            return false;
+        }
+    }
+    
+    async function updateParticipant(id, updates) {
+        if (!supabase) return false;
+        try {
+            const { error } = await supabase
+                .from('participants')
+                .update(updates)
+                .eq('id', id);
+            if (error) throw error;
+            await loadParticipants();
+            return true;
+        } catch (err) {
+            console.error(err);
+            alert("Ошибка обновления: " + err.message);
+            return false;
+        }
+    }
+    
+    async function deleteParticipant(id) {
+        if (!supabase) return false;
+        if (!confirm("Удалить участника? Это действие необратимо.")) return false;
+        try {
+            const { error } = await supabase
+                .from('participants')
+                .delete()
+                .eq('id', id);
+            if (error) throw error;
+            await loadParticipants();
+            return true;
+        } catch (err) {
+            console.error(err);
+            alert("Ошибка удаления: " + err.message);
+            return false;
+        }
+    }
+    
+    // ===================== ВСПОМОГАТЕЛЬНЫЕ =====================
+    function showLoading() {
+        tbody.innerHTML = '<tr><td colspan="5" class="loading">Загрузка данных...</td></tr>';
+    }
+    
+    function showError(msg) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:#dc2626;">⚠️ ${msg}</td></tr>`;
+    }
+    
+    // Получить отфильтрованных участников из participantsData
     function getFilteredParticipants() {
-        let filtered = baseParticipants.filter(p => p.category === currentTab);
+        let filtered = participantsData.filter(p => p.category === currentTab);
         
         if (currentTab === "inkasso") {
             if (currentInkassoFilter !== "all") {
@@ -364,8 +508,7 @@
         }
         return filtered;
     }
-
-    // Отображение роли в ячейке таблицы (HTML)
+    
     function getRoleDisplay(participant) {
         if (participant.category === "inkasso") {
             if (participant.role === "водитель") {
@@ -382,7 +525,6 @@
         }
     }
     
-    // Получить текстовое представление роли для Excel (без HTML)
     function getRoleText(participant) {
         if (participant.category === "inkasso") {
             if (participant.role === "водитель") return "Водитель";
@@ -393,8 +535,7 @@
             return "Сотрудник охраны";
         }
     }
-
-    // Рендер таблицы
+    
     function renderTable() {
         const filtered = getFilteredParticipants();
         tbody.innerHTML = "";
@@ -405,7 +546,7 @@
         if (filtered.length === 0) {
             const row = tbody.insertRow();
             const cell = row.insertCell(0);
-            cell.colSpan = 4;
+            cell.colSpan = 5;
             let msg = currentTab === "inkasso" 
                 ? "⚠️ В категории «Инкассация» нет участников с выбранной ролью."
                 : "⚠️ В категории «Охрана» нет участников с выбранным фильтром.";
@@ -422,10 +563,31 @@
             row.insertCell(2).textContent = p.position;
             const roleCell = row.insertCell(3);
             roleCell.innerHTML = getRoleDisplay(p);
+            const actionsCell = row.insertCell(4);
+            actionsCell.className = "action-buttons";
+            actionsCell.innerHTML = `
+                <button class="edit-btn" data-id="${p.id}">✏️</button>
+                <button class="delete-btn" data-id="${p.id}">🗑️</button>
+            `;
+        });
+        
+        // Добавляем обработчики для кнопок редактирования/удаления
+        document.querySelectorAll('.edit-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(btn.getAttribute('data-id'));
+                const participant = participantsData.find(p => p.id === id);
+                if (participant) openEditModal(participant);
+            });
+        });
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = parseInt(btn.getAttribute('data-id'));
+                deleteParticipant(id);
+            });
         });
     }
-
-    // Панель фильтров
+    
+    // ===================== ФИЛЬТРЫ И ВКЛАДКИ =====================
     function renderFiltersPanel() {
         if (!dynamicFiltersDiv) return;
         
@@ -467,83 +629,7 @@
             });
         }
     }
-
-    // ------------------------------------------------------------------
-    // ЭКСПОРТ В ФОРМАТЕ XLSX с использованием библиотеки SheetJS
-    // ------------------------------------------------------------------
-    function exportToXLSX() {
-        const dataToExport = getFilteredParticipants();
-        
-        if (dataToExport.length === 0) {
-            alert("Нет данных для экспорта. Измените фильтры или выберите другую вкладку.");
-            return;
-        }
-        
-        // Подготовка данных для SheetJS: массив массивов (заголовок + строки)
-        const worksheetData = [];
-        
-        // Заголовки
-        worksheetData.push([
-            "Территориальный банк (ТБ)", 
-            "ФИО полностью", 
-            "Должность", 
-            "Роль / Статус"
-        ]);
-        
-        // Добавляем строки с данными
-        dataToExport.forEach(p => {
-            worksheetData.push([
-                p.tb,
-                p.fio,
-                p.position,
-                getRoleText(p)
-            ]);
-        });
-        
-        // Создаём рабочую книгу и лист
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-        
-        // Настройка ширины колонок (для удобства)
-        ws['!cols'] = [
-            { wch: 28 },  // Территориальный банк
-            { wch: 32 },  // ФИО
-            { wch: 30 },  // Должность
-            { wch: 22 }   // Роль/Статус
-        ];
-        
-        // Стилизация заголовков (жирный шрифт) через настройку ячеек
-        const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:D1');
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-            const cellAddress = XLSX.utils.encode_cell({ r: 0, c: C });
-            if (!ws[cellAddress]) continue;
-            ws[cellAddress].s = {
-                font: { bold: true, sz: 12, name: "Segoe UI" },
-                fill: { fgColor: { rgb: "D6E4F0" } },
-                alignment: { horizontal: "center" }
-            };
-        }
-        
-        // Добавляем лист в книгу
-        XLSX.utils.book_append_sheet(wb, ws, "Участники");
-        
-        // Формируем имя файла
-        const now = new Date();
-        const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-        let tabName = currentTab === "inkasso" ? "Инкассация" : "Охрана";
-        let filterSuffix = "";
-        if (currentTab === "inkasso" && currentInkassoFilter !== "all") {
-            filterSuffix = `_${currentInkassoFilter === "водитель" ? "Водители" : "Триатлон"}`;
-        } else if (currentTab === "ohrana" && currentOhranaFilter === "chief") {
-            filterSuffix = "_СтаршиеКоманды";
-        }
-        const filename = `Участники_${tabName}${filterSuffix}_${dateStr}.xlsx`;
-        
-        // Сохраняем файл
-        XLSX.writeFile(wb, filename);
-    }
     
-    // Установка активной вкладки
     function setActiveTab(tabId) {
         if (tabId === currentTab) return;
         currentTab = tabId;
@@ -566,7 +652,6 @@
         renderTable();
     }
     
-    // Обработчики вкладок
     function initTabListeners() {
         tabButtons.forEach(btn => {
             btn.addEventListener("click", (e) => {
@@ -576,16 +661,111 @@
         });
     }
     
-    // Экспорт по клику
-    function initExportListener() {
-        if (exportBtn) {
-            exportBtn.addEventListener("click", exportToXLSX);
-        }
+    // ===================== MODAL (ДОБАВЛЕНИЕ/РЕДАКТИРОВАНИЕ) =====================
+    function openAddModal() {
+        editingId = null;
+        modalTitle.innerText = "Добавить участника";
+        modalTb.value = "";
+        modalFio.value = "";
+        modalPosition.value = "";
+        modalRole.value = "водитель";
+        modalCategory.value = currentTab; // по умолчанию текущая вкладка
+        modal.classList.add("active");
     }
     
-    function start() {
+    function openEditModal(participant) {
+        editingId = participant.id;
+        modalTitle.innerText = "Редактировать участника";
+        modalTb.value = participant.tb;
+        modalFio.value = participant.fio;
+        modalPosition.value = participant.position;
+        modalRole.value = participant.role;
+        modalCategory.value = participant.category;
+        modal.classList.add("active");
+    }
+    
+    function closeModal() {
+        modal.classList.remove("active");
+        editingId = null;
+    }
+    
+    async function onModalSave() {
+        const tb = modalTb.value.trim();
+        const fio = modalFio.value.trim();
+        const position = modalPosition.value.trim();
+        const role = modalRole.value;
+        const category = modalCategory.value;
+        
+        if (!tb || !fio || !position) {
+            alert("Заполните все поля (ТБ, ФИО, Должность).");
+            return;
+        }
+        
+        const participantData = { tb, fio, position, role, category };
+        
+        if (editingId === null) {
+            await addParticipant(participantData);
+        } else {
+            await updateParticipant(editingId, participantData);
+        }
+        closeModal();
+    }
+    
+    // ===================== ЭКСПОРТ В EXCEL =====================
+    function exportToXLSX() {
+        const dataToExport = getFilteredParticipants();
+        
+        if (dataToExport.length === 0) {
+            alert("Нет данных для экспорта. Измените фильтры или выберите другую вкладку.");
+            return;
+        }
+        
+        const worksheetData = [];
+        worksheetData.push(["Территориальный банк (ТБ)", "ФИО полностью", "Должность", "Роль / Статус"]);
+        
+        dataToExport.forEach(p => {
+            worksheetData.push([p.tb, p.fio, p.position, getRoleText(p)]);
+        });
+        
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+        ws['!cols'] = [{ wch: 28 }, { wch: 32 }, { wch: 30 }, { wch: 22 }];
+        
+        XLSX.utils.book_append_sheet(wb, ws, "Участники");
+        
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        let tabName = currentTab === "inkasso" ? "Инкассация" : "Охрана";
+        let filterSuffix = "";
+        if (currentTab === "inkasso" && currentInkassoFilter !== "all") {
+            filterSuffix = `_${currentInkassoFilter === "водитель" ? "Водители" : "Триатлон"}`;
+        } else if (currentTab === "ohrana" && currentOhranaFilter === "chief") {
+            filterSuffix = "_СтаршиеКоманды";
+        }
+        const filename = `Участники_${tabName}${filterSuffix}_${dateStr}.xlsx`;
+        XLSX.writeFile(wb, filename);
+    }
+    
+    // ===================== ИНИЦИАЛИЗАЦИЯ =====================
+    function initEventListeners() {
+        if (addBtn) addBtn.addEventListener("click", openAddModal);
+        if (exportBtn) exportBtn.addEventListener("click", exportToXLSX);
+        if (modalSave) modalSave.addEventListener("click", onModalSave);
+        if (modalCancel) modalCancel.addEventListener("click", closeModal);
+        // Закрытие по клику вне модалки
+        window.addEventListener("click", (e) => {
+            if (e.target === modal) closeModal();
+        });
+    }
+    
+    async function start() {
+        if (!supabase) {
+            showError("⚠️ Supabase не настроен. Укажите SUPABASE_URL и SUPABASE_ANON_KEY в коде страницы.");
+            return;
+        }
         initTabListeners();
-        initExportListener();
+        initEventListeners();
+        
         currentTab = "inkasso";
         currentInkassoFilter = "all";
         currentOhranaFilter = "all";
@@ -599,7 +779,7 @@
         });
         
         renderFiltersPanel();
-        renderTable();
+        await loadParticipants();  // загрузка из БД
     }
     
     start();
