@@ -43,6 +43,96 @@
         .status-ok { background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; display: inline-block; }
         .status-error { background: #fee2e2; color: #991b1b; }
         .status-warning { background: #fed7aa; color: #9b4a0c; }
+        
+        /* ========== АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ ========== */
+        @media (max-width: 600px) {
+            body { padding: 12px; }
+            .judge-panel { padding: 16px; }
+            
+            /* Сетка штрафов — одна колонка, без горизонтальной прокрутки */
+            .penalties-grid {
+                grid-template-columns: 1fr !important;
+                max-height: none !important;
+                overflow-y: visible !important;
+                gap: 8px;
+            }
+            
+            /* Карточка штрафа — вертикальная компоновка */
+            .penalty-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+                padding: 12px;
+            }
+            
+            .penalty-card .desc {
+                width: 100%;
+                font-size: 0.85rem;
+                word-break: break-word;
+            }
+            
+            .penalty-card label {
+                width: 100%;
+                justify-content: space-between;
+                gap: 8px;
+            }
+            
+            /* Счётчики */
+            .counter-control {
+                align-self: flex-start;
+            }
+            
+            /* Элементы управления судьи — вертикально */
+            .judge-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .judge-controls .control-group,
+            .judge-controls button {
+                width: 100%;
+            }
+            
+            /* Блок с кнопками сохранения/сброса */
+            .stage-info {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            
+            /* Итоговая строка */
+            .summary-bar {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            
+            .total-time {
+                text-align: center;
+            }
+            
+            /* Кнопки этапов — перенос строк */
+            .stage-buttons {
+                justify-content: center;
+            }
+            
+            .stage-btn {
+                font-size: 0.75rem;
+                padding: 6px 12px;
+            }
+            
+            /* Таблица результатов: оставляем прокрутку только для неё */
+            .results-table {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Мелкие отступы для заголовков */
+            h2, h3 {
+                font-size: 1.3rem;
+            }
+        }
+        
         @media print {
             body { background: white; padding: 0; margin: 0; }
             .judge-panel, .results-table, .stage-buttons, .stage-info, .judge-controls, .penalties-grid, .summary-bar, .unsaved-badge,
@@ -590,7 +680,7 @@
                 if (rows.length === 0) tbody.innerHTML = '<tr><td colspan="6">Нет данных. Внесите результаты.</td></tr>';
             } catch (err) {
                 console.error(err);
-                document.getElementById('resultsBody').innerHTML = `<tr><td colspan="6">Ошибка загрузки: ${err.message}</td></td>`;
+                document.getElementById('resultsBody').innerHTML = `<tr><td colspan="6">Ошибка загрузки: ${err.message}</td></tr>`;
             }
         }
         
@@ -1117,11 +1207,11 @@
                         <div style="margin-bottom: 20px;">
                             <h4 style="background: #eef2ff; padding: 8px 12px; border-radius: 12px;">🎯 ${stageName}</h4>
                             <table style="width: 100%; border-collapse: collapse; margin-top: 8px;">
-                                <thead><tr style="background: #e2e8f0;"><th style="padding: 8px; text-align: left;">Нарушение</th><th style="padding: 8px; width: 100px;">Штраф (сек)</th></tr></thead>
+                                <thead><tr style="background: #e2e8f0;"><th style="padding: 8px; text-align: left;">Нарушение</th><th style="padding: 8px; width: 100px;">Штраф (сек)</th> </tr></thead>
                                 <tbody>
                                     ${penaltiesArr.map(p => `<tr style="border-bottom: 1px solid #cbd5e1;"><td style="padding: 8px;">${p.desc}</td><td style="padding: 8px;">${p.sec >= 0 ? '+' : ''}${p.sec}</td></tr>`).join('')}
                                 </tbody>
-                            </table>
+                             </table>
                         </div>
                     `).join('')}
                     <div class="print-sign-line" style="margin-top: 48px; border-top: 1px dashed #aaa; padding-top: 24px;">
