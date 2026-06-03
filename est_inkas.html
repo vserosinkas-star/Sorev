@@ -159,20 +159,6 @@
         .judge-info-card > div {
             white-space: nowrap;
         }
-        @media (max-width: 600px) {
-            .judge-info-card {
-                font-size: 0.85rem;
-                padding: 10px 16px;
-            }
-            .direction-badge {
-                font-size: 0.7rem;
-                padding: 2px 8px;
-            }
-            .logout-btn {
-                font-size: 0.7rem;
-                padding: 4px 12px;
-            }
-        }
         
         .stage-selector {
             margin: 15px 0;
@@ -215,6 +201,119 @@
             }
         }
         .print-report-area { display: none; }
+
+        /* ========== АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ ========== */
+        @media (max-width: 600px) {
+            body { padding: 12px; }
+            .judge-panel { padding: 16px; }
+            
+            /* Сетка штрафов — одна колонка, без горизонтальной прокрутки */
+            .penalties-grid {
+                grid-template-columns: 1fr !important;
+                max-height: none !important;
+                overflow-y: visible !important;
+                gap: 8px;
+            }
+            
+            /* Карточка штрафа — вертикальная компоновка */
+            .penalty-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+                padding: 12px;
+            }
+            
+            .penalty-card .desc {
+                width: 100%;
+                font-size: 0.85rem;
+                word-break: break-word;
+            }
+            
+            .penalty-card label {
+                width: 100%;
+                justify-content: space-between;
+                gap: 8px;
+            }
+            
+            /* Счётчики */
+            .counter-control {
+                align-self: flex-start;
+            }
+            
+            /* Элементы управления судьи — вертикально */
+            .judge-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .judge-controls .control-group,
+            .judge-controls button {
+                width: 100%;
+            }
+            
+            /* Блок с кнопками сохранения/сброса */
+            .stage-info {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            
+            /* Итоговая строка */
+            .summary-bar {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            
+            .total-time {
+                text-align: center;
+            }
+            
+            /* Таблица результатов: оставляем прокрутку только для неё */
+            .results-table {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Информация о судье */
+            .judge-info-card {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .judge-info-card > div {
+                white-space: normal;
+                word-break: break-word;
+            }
+            
+            /* Админ-панель: форма добавления судьи */
+            .add-judge-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .add-judge-form .control-group {
+                width: 100%;
+            }
+            
+            /* Таблица списка судей на мобильном — горизонтальная прокрутка */
+            .judge-list-table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+            
+            /* Кнопки в админке */
+            .admin-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            
+            .tab-buttons {
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1394,7 +1493,7 @@
                         <h4>🎯 ${stageName}</h4>
                         <table style="width:100%; border-collapse: collapse;">
                             <thead><tr style="background:#e2e8f0;"><th>Нарушение</th><th>Штраф</th></tr></thead>
-                            <tbody>${arr.map(p => `<tr><td style="padding:8px;">${p.desc}</td><td>${p.sec >= 0 ? '+' : ''}${p.sec}</td></tr>`).join('')}</tbody>
+                            <tbody>${arr.map(p => `<tr><td style="padding:8px;">${p.desc}</td><td>${p.sec >= 0 ? '+' : ''}${p.sec}</td>`).join('')}</tbody>
                         </table>
                     </div>
                 `).join('')}
