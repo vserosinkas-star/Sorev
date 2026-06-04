@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Мастерство вождения спецавтомобиля — судейская панель</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
@@ -18,17 +18,17 @@
         .exercise-card { background: #f9fafb; border-radius: 24px; padding: 16px; margin-top: 20px; border: 1px solid #e2e8f0; }
         .exercise-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; color: #0f2b44; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin: 15px 0; max-height: 400px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px; background: white; }
-        .penalty-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
-        .penalty-card input { width: 22px; height: 22px; margin: 0; }
-        .penalty-card label { flex: 1; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-        .penalty-sec { background: #e2e8f0; padding: 2px 8px; border-radius: 30px; font-size: 0.75rem; font-weight: 600; }
+        .penalty-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .penalty-card input { width: 22px; height: 22px; margin: 0; flex-shrink: 0; }
+        .penalty-card label { flex: 1; font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; gap: 8px; word-break: break-word; }
+        .penalty-sec { background: #e2e8f0; padding: 2px 8px; border-radius: 30px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
         .time-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; margin: 15px 0; }
         .time-row .control-group { flex: 1; margin-bottom: 0; }
         button { background: #1e3a8a; color: white; border: none; padding: 10px 18px; border-radius: 40px; font-weight: 600; cursor: pointer; transition: 0.2s; }
         button:hover { background: #1e40af; }
         .btn-secondary { background: #475569; }
         .btn-warning { background: #f97316; }
-        .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: bold; margin-left: 12px; }
+        .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: bold; margin-left: 12px; white-space: nowrap; }
         .summary-bar { background: #f1f5f9; border-radius: 20px; padding: 16px; margin-top: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px; font-weight: 600; }
         .results-table { background: white; border-radius: 24px; overflow-x: auto; padding: 4px; margin-top: 30px; }
         table { width: 100%; border-collapse: collapse; min-width: 1000px; }
@@ -38,7 +38,36 @@
         .status-ok { background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 30px; display: inline-block; }
         .status-error { background: #fee2e2; color: #991b1b; }
         .status-warning { background: #fed7aa; color: #9b4a0c; }
-        @media (max-width: 700px) { .penalties-grid { grid-template-columns: 1fr; } button { width: 100%; } }
+
+        /* ========== УЛУЧШЕННАЯ МОБИЛЬНАЯ АДАПТАЦИЯ ========== */
+        @media (max-width: 700px) {
+            body { padding: 12px; }
+            .judge-panel { padding: 16px; }
+            .header h1 { font-size: 1.3rem; }
+            .header p { font-size: 0.8rem; }
+            .penalties-grid { grid-template-columns: 1fr; max-height: none; overflow-y: visible; }
+            .penalty-card { flex-direction: column; align-items: flex-start; width: 100%; }
+            .penalty-card label { width: 100%; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+            .penalty-sec { white-space: normal; font-size: 0.7rem; }
+            .time-row { flex-direction: column; align-items: stretch; gap: 12px; }
+            .time-row button { margin-top: 0; width: 100%; }
+            button { width: 100%; }
+            .exercise-title { flex-direction: column; align-items: stretch; }
+            .exercise-title input { width: 100%; margin-left: 0 !important; }
+            .summary-bar { flex-direction: column; align-items: stretch; text-align: center; gap: 8px; }
+            .unsaved-badge { display: inline-block; margin-top: 8px; margin-left: 0; }
+            .results-table { margin-top: 20px; }
+            th, td { font-size: 0.75rem; padding: 8px 4px; }
+        }
+
+        /* Очень маленькие экраны (до 480px) */
+        @media (max-width: 480px) {
+            .exercise-card { padding: 12px; }
+            .control-group label { font-size: 0.85rem; }
+            select, input { padding: 10px; font-size: 0.9rem; }
+            button { padding: 10px 16px; font-size: 0.85rem; }
+            .penalty-card label { font-size: 0.8rem; }
+        }
     </style>
 </head>
 <body>
@@ -82,7 +111,7 @@
                 <button id="saveFigureTimeBtn" class="btn-secondary">Сохранить время</button>
             </div>
             <div id="figurePenaltiesContainer" class="penalties-grid"></div>
-            <div style="display: flex; gap: 10px; margin-top: 12px;">
+            <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;">
                 <button id="saveFigurePenaltiesBtn">💾 Сохранить ошибки фигурного вождения</button>
                 <button id="resetFigurePenaltiesBtn" class="btn-warning">🗑️ Сбросить ошибки этапа</button>
             </div>
@@ -106,7 +135,7 @@
                 <button id="saveSduTimeBtn" class="btn-secondary">Сохранить время</button>
             </div>
             <div id="sduPenaltiesContainer" class="penalties-grid"></div>
-            <div style="display: flex; gap: 10px; margin-top: 12px;">
+            <div style="display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;">
                 <button id="saveSduPenaltiesBtn">💾 Сохранить ошибки вождения в СДУ</button>
                 <button id="resetSduPenaltiesBtn" class="btn-warning">🗑️ Сбросить ошибки этапа</button>
             </div>
@@ -155,7 +184,7 @@
             "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
         };
 
-        // Штрафы для фигурного вождения (сокращённый список для примера, можно расширить)
+        // Штрафы для фигурного вождения
         const figurePenaltiesList = [
             { id: "fig_falsestart", desc: "Фальстарт", sec: 5 },
             { id: "fig_bron", desc: "Водитель-инкассатор выполняет упражнение без бронежилета", sec: 100 },
@@ -168,7 +197,7 @@
             { id: "fig_koleya", desc: "Не исполнение требований в фигуре «Колея»", sec: 15 },
             { id: "fig_zmeyaka", desc: "Не исполнение требований в фигуре «Габаритная змейка» передним ходом, выезд за ось крайнего проезда", sec: 10 },
             { id: "fig_razvorot", desc: "Не исполнение требований в фигуре «Разворот в ограниченном пространстве»", sec: 15 },
-            { id: "fig_tunel", desc: "Не исполнение требований в фигуре «Касание, падение или сдвиг стойки на фигуре «Туннельные ворота».Касание, падение или сдвиг конуса (стойки) фигуры, которую в данный момент не исполняют»", sec: 10 },
+            { id: "fig_tunel", desc: "Не исполнение требований в фигуре «Касание, падение или сдвиг стойки на фигуре «Туннельные ворота». Касание, падение или сдвиг конуса (стойки) фигуры, которую в данный момент не исполняют»", sec: 10 },
             { id: "fig_paralel", desc: "Не исполнение требований в фигуре «Параллельная парковка задним ходом»", sec: 15 },
             { id: "fig_kacheli", desc: "В случае прекращения выполнения упражнения «Качели» до истечения двух минут прибавляется»", sec: 170 },
             { id: "fig_stop_koleso", desc: "Отсутствие контакта со «стоп-линией» одного колеса", sec: 15 },
@@ -176,11 +205,7 @@
             { id: "fig_no_shema", desc: "Проезд не по схеме (несоблюдение последовательности проезда фигур) (за каждую фигуру)", sec: 15 },
             { id: "fig_missed_figure", desc: "За каждую пропущенную (невыполненную фигуру)", sec: 60 },
             { id: "fig_help", desc: "Посторонняя помощь участнику в движении по трассе", sec: 30 },
-            { id: "fig_proh", desc: "Проход лиц за ограждение, на территорию площадки, во время проведения упражнения без разрешения главного судьи, штрафные баллы присуждаются команде данного представителя/участника", sec: 30 },
-
-
-
-            
+            { id: "fig_proh", desc: "Проход лиц за ограждение, на территорию площадки, во время проведения упражнения без разрешения главного судьи, штрафные баллы присуждаются команде данного представителя/участника", sec: 30 }
         ];
         const sduPenaltiesList = [
             { id: "sdu_falsestart", desc: "Фальстарт", sec: 5 },
@@ -225,7 +250,6 @@
             if (sec === null || isNaN(sec)) return "—";
             let minutes = Math.floor(sec / 60);
             let seconds = (sec % 60).toFixed(2);
-            // формат: минуты:секунды.сотые (без лишних нулей)
             return minutes + ":" + seconds.toString().padStart(5, '0');
         }
 
@@ -246,9 +270,7 @@
                 }
             } else if (parts.length === 1) {
                 seconds = parseFloat(parts[0]) || 0;
-            } else {
-                return null;
-            }
+            } else return null;
             return minutes * 60 + seconds;
         }
 
