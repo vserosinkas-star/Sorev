@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Командный триатлон — судейская панель (счётчики)</title>
+    <title>Командный триатлон — судейская панель</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
@@ -20,15 +20,16 @@
         .stage-btn.active { background: #1e3a8a; color: white; }
         .participant-card { background: #f9fafb; border-radius: 24px; padding: 16px; margin-top: 20px; border: 1px solid #e2e8f0; }
         .participant-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 12px; color: #0f2b44; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin: 15px 0; }
+        .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 12px; margin: 15px 0; }
         .penalty-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .penalty-card .desc { flex: 1; font-size: 0.9rem; }
         .penalty-card input[type="checkbox"] { width: 22px; height: 22px; margin: 0; }
         .penalty-card label { flex: 1; display: flex; justify-content: space-between; align-items: center; cursor: pointer; gap: 8px; word-break: break-word; }
         .penalty-sec { background: #e2e8f0; padding: 2px 8px; border-radius: 30px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
         .counter-control { display: flex; align-items: center; gap: 8px; background: white; border-radius: 40px; padding: 4px 12px; border: 1px solid #cbd5e1; }
-        .counter-control button { background: #e2e8f0; color: #1e293b; padding: 2px 10px; font-size: 1.2rem; line-height: 1; margin: 0; width: auto; border-radius: 30px; }
-        .counter-control span { min-width: 32px; text-align: center; font-weight: bold; }
+        .counter-control button { background: #e2e8f0; color: #1e293b; padding: 2px 10px; font-size: 1.2rem; line-height: 1; margin: 0; width: auto; border-radius: 30px; cursor: pointer; }
+        .counter-control button:hover { background: #cbd5e1; }
+        .counter-control span { min-width: 36px; text-align: center; font-weight: bold; }
         .time-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; margin: 15px 0; }
         .time-row .control-group { flex: 1; margin-bottom: 0; }
         button { background: #1e3a8a; color: white; border: none; padding: 10px 18px; border-radius: 40px; font-weight: 600; cursor: pointer; transition: 0.2s; }
@@ -60,7 +61,7 @@
             .print-btn { margin-left: 0; }
         }
         @media print {
-            .judge-panel, .results-table, .stage-buttons, .stage-info, .judge-controls, .penalties-grid, .summary-bar, .unsaved-badge,
+            .judge-panel, .results-table, .stage-buttons, .penalties-grid, .summary-bar, .unsaved-badge,
             #printTriathlonReportBtn, .time-row button, .participant-card button, .header, .flex-between { display: none !important; }
             .print-report-area { display: block !important; margin: 0; padding: 20px; font-size: 12pt; }
             .print-sign-line { margin-top: 40px; border-top: 1px dashed #aaa; padding-top: 20px; }
@@ -73,7 +74,7 @@
 <div class="container">
     <div class="header">
         <h1>🏃‍♂️ Командный триатлон — фиксация нарушений</h1>
-        <p>Бег, силовые упражнения, стрельба (счётчики для повторяющихся нарушений)</p>
+        <p>Бег, силовые упражнения, стрельба (счётчики для всех повторяющихся нарушений)</p>
     </div>
 
     <div class="judge-panel">
@@ -173,37 +174,44 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ---------- БИБЛИОТЕКА ОШИБОК (без изменений) ----------
+        // ========== РАСШИРЕННАЯ БИБЛИОТЕКА ОШИБОК (с поддержкой счётчиков) ==========
         const penaltiesLibrary = [
-            { id: "perenos_1", category: "Транспортирование сумки-баул с БЦ", desc: "Некорректное обращение с сумкой-баул (уронил/бросил)", sec: 20 },
-            { id: "perenos_2", category: "Транспортирование сумки-баул с БЦ", desc: "2 раза уронил/бросил", sec: 40 },
-            { id: "perenos_3", category: "Транспортирование сумки-баул с БЦ", desc: "3 раза уронил/бросил", sec: 60 },
+            // === Транспортирование сумки-баул с БЦ ===
+            { id: "perenos_bag_drop_cnt", category: "Транспортирование сумки-баул с БЦ", desc: "Некорректное обращение с сумкой-баул (уронил/бросил)", sec: 20, isCounter: true, maxCount: 10 },
             { id: "perenos_4", category: "Транспортирование сумки-баул с БЦ", desc: "Перенос сумки двумя руками (помощь второй рукой)", sec: 20 },
-            { id: "zagruz_1", category: "Загрузка БЦ в СТС", desc: "Некорректное обращение с сумкой-баул (уронил/бросил)", sec: 20 },
-            { id: "zagruz_2", category: "Загрузка БЦ в СТС", desc: "Не перенесены сумки-баул в накопитель СТС", sec: 20 },
-            { id: "zagruz_3", category: "Загрузка БЦ в СТС", desc: "Не перенесены мешки с мелочью в накопитель СТС", sec: 20 },
-            { id: "zagruz_4", category: "Загрузка БЦ в СТС", desc: "Некорректное обращение с мешком (уронил/бросил)", sec: 20 },
+            
+            // === Загрузка БЦ в СТС ===
+            { id: "zagruz_bag_drop_cnt", category: "Загрузка БЦ в СТС", desc: "Уронил/бросил сумку-баул", sec: 20, isCounter: true, maxCount: 10 },
+            { id: "zagruz_bag_not_transfer_cnt", category: "Загрузка БЦ в СТС", desc: "Не перенесены сумки-баул в накопитель СТС", sec: 20, isCounter: true, maxCount: 10 },
+            { id: "zagruz_coins_not_transfer_cnt", category: "Загрузка БЦ в СТС", desc: "Не перенесены мешки с мелочью в накопитель СТС", sec: 20, isCounter: true, maxCount: 10 },
+            { id: "zagruz_coins_drop_cnt", category: "Загрузка БЦ в СТС", desc: "Некорректное обращение с мешком (уронил/бросил)", sec: 20, isCounter: true, maxCount: 10 },
             { id: "zagruz_5", category: "Загрузка БЦ в СТС", desc: "Перенос мешков двумя руками", sec: 20 },
             { id: "zagruz_6", category: "Загрузка БЦ в СТС", desc: "Сумка-баул взята одним участником", sec: 20 },
             { id: "zagruz_7", category: "Загрузка БЦ в СТС", desc: "Сумка-баул транспортируется одним участником", sec: 20 },
             { id: "zagruz_8", category: "Загрузка БЦ в СТС", desc: "Не выполнено упражнение «загрузка БЦ в СТС»", sec: 120 },
+            
+            // === Бум ===
+            { id: "boom_bag_drop_cnt", category: "Бум", desc: "Уронили/бросили сумку-баул", sec: 20, isCounter: true, maxCount: 10 },
             { id: "boom_1", category: "Бум", desc: "Сумка-баул транспортируется одним участником", sec: 20 },
             { id: "boom_2", category: "Бум", desc: "Уронили/бросили сумку на буме", sec: 20 },
             { id: "boom_3", category: "Бум", desc: "После падения не начали упражнение сначала", sec: 20 },
             { id: "boom_4", category: "Бум", desc: "Перенос сумки двумя руками", sec: 20 },
             { id: "boom_5", category: "Бум", desc: "Сумка-баул транспортируется одним (от стола)", sec: 20 },
-            { id: "boom_6", category: "Бум", desc: "Некорректное обращение с сумкой (уронил/бросил)", sec: 20 },
             { id: "boom_7", category: "Бум", desc: "Не выполнено упражнение «бум»", sec: 120 },
+            
+            // === Барьер ===
+            { id: "barrier_bag_drop_cnt", category: "Барьер", desc: "Уронил/бросил сумку-баул", sec: 20, isCounter: true, maxCount: 10 },
             { id: "barrier_1", category: "Барьер", desc: "Перенос сумки двумя руками", sec: 20 },
             { id: "barrier_2", category: "Барьер", desc: "Сумка-баул одним участником", sec: 20 },
             { id: "barrier_3", category: "Барьер", desc: "Не установка сумки двумя участниками", sec: 20 },
-            { id: "barrier_4", category: "Барьер", desc: "Уронил/бросил сумку", sec: 20 },
             { id: "barrier_5", category: "Барьер", desc: "Сумка-баул транспортируется одним (от стола)", sec: 20 },
             { id: "barrier_6", category: "Барьер", desc: "Не выполнено упражнение «барьер»", sec: 120 },
+            
+            // === Кантовка колеса и кувалда ===
+            { id: "kant_bag_drop_cnt", category: "Кантовка колеса и кувалда", desc: "Уронил/бросил сумку-баул", sec: 20, isCounter: true, maxCount: 10 },
             { id: "kant_1", category: "Кантовка колеса и кувалда", desc: "Перенос сумки двумя руками", sec: 20 },
             { id: "kant_2", category: "Кантовка колеса и кувалда", desc: "Сумка-баул одним участником", sec: 20 },
             { id: "kant_3", category: "Кантовка колеса и кувалда", desc: "Не установка сумки двумя", sec: 20 },
-            { id: "kant_4", category: "Кантовка колеса и кувалда", desc: "Уронил/бросил сумку", sec: 20 },
             { id: "kant_5", category: "Кантовка колеса и кувалда", desc: "Не наносил удары кувалдой во время кантовки колеса", sec: 20 },
             { id: "kant_6", category: "Кантовка колеса и кувалда", desc: "Не разместил кувалду в обозначенное место", sec: 20 },
             { id: "kant_7", category: "Кантовка колеса и кувалда", desc: "Не выполнено упражнение «кувалда»", sec: 120 },
@@ -212,109 +220,71 @@
             { id: "kant_10", category: "Кантовка колеса и кувалда", desc: "Сдвиг покрышки за линию", sec: 20 },
             { id: "kant_11", category: "Кантовка колеса и кувалда", desc: "Не выполнено упражнение «покрышки»", sec: 120 },
             { id: "kant_12", category: "Кантовка колеса и кувалда", desc: "Сумка-баул транспортируется одним (от стола)", sec: 20 },
-            { id: "kant_13", category: "Кантовка колеса и кувалда", desc: "Повтор переноса двумя руками", sec: 20 },
-            { id: "kant_14", category: "Кантовка колеса и кувалда", desc: "Повтор уронил/бросил", sec: 20 },
+            
+            // === Стрельба ===
+            { id: "shoot_bag_drop_cnt", category: "Стрельба", desc: "Уронил/бросил сумку-баул", sec: 20, isCounter: true, maxCount: 10 },
+            { id: "shoot_gun_drop_cnt", category: "Стрельба", desc: "Уронил пистолет", sec: 20, isCounter: true, maxCount: 10 },
+            { id: "shoot_ammo_drop_cnt", category: "Стрельба", desc: "Уронил патроны", sec: 20, isCounter: true, maxCount: 10 },
+            { id: "shoot_miss_cnt", category: "Стрельба", desc: "Не сбита мишень", sec: 10, isCounter: true, maxCount: 7 },
+            { id: "shoot_procedure_cnt", category: "Стрельба", desc: "Процедурка", sec: 10, isCounter: true, maxCount: 6 },
             { id: "shoot_1", category: "Стрельба", desc: "Сумка-баул одним участником (от стола)", sec: 20 },
             { id: "shoot_2", category: "Стрельба", desc: "Перенос сумки двумя руками", sec: 20 },
-            { id: "shoot_3", category: "Стрельба", desc: "Уронил/бросил сумку", sec: 20 },
             { id: "shoot_4", category: "Стрельба", desc: "Не установка сумки двумя", sec: 20 },
-            { id: "shoot_5", category: "Стрельба", desc: "Уронил пистолет (1 раз)", sec: 20 },
-            { id: "shoot_6", category: "Стрельба", desc: "Уронил пистолет 2 раза", sec: 40 },
-            { id: "shoot_7", category: "Стрельба", desc: "Уронил пистолет 3 раза", sec: 60 },
-            { id: "shoot_8", category: "Стрельба", desc: "Уронил патроны (1 раз)", sec: 20 },
-            { id: "shoot_9", category: "Стрельба", desc: "Уронил патроны 2 раза", sec: 40 },
-            { id: "shoot_10", category: "Стрельба", desc: "Уронил патроны 3 раза", sec: 60 },
-            { id: "shoot_11", category: "Стрельба", desc: "Не сбита 1 мишень", sec: 10 },
-            { id: "shoot_12", category: "Стрельба", desc: "Не сбита 2 мишени", sec: 20 },
-            { id: "shoot_13", category: "Стрельба", desc: "Не сбита 3 мишени", sec: 30 },
-            { id: "shoot_14", category: "Стрельба", desc: "Не сбита 4 мишени", sec: 40 },
-            { id: "shoot_15", category: "Стрельба", desc: "Не сбита 5 мишеней", sec: 50 },
-            { id: "shoot_16", category: "Стрельба", desc: "Не сбита 6 мишеней", sec: 60 },
-            { id: "shoot_17", category: "Стрельба", desc: "Не сбита 7 мишеней", sec: 70 },
             { id: "shoot_18", category: "Стрельба", desc: "Неправильное выполнение", sec: 20 },
-            { id: "shoot_19", category: "Стрельба", desc: "1 процедурка", sec: 10 },
-            { id: "shoot_20", category: "Стрельба", desc: "2 процедурки", sec: 20 },
-            { id: "shoot_21", category: "Стрельба", desc: "3 процедурки", sec: 30 },
-            { id: "shoot_22", category: "Стрельба", desc: "4 процедурки", sec: 40 },
-            { id: "shoot_23", category: "Стрельба", desc: "5 процедурок", sec: 50 },
-            { id: "shoot_24", category: "Стрельба", desc: "6 процедурок", sec: 60 },
             { id: "shoot_25", category: "Стрельба", desc: "Не выполнено упражнение «стрельба»", sec: 120 },
+            
+            // === Препятствие ===
+            { id: "prep_bag_drop_cnt", category: "Препятствие", desc: "Уронил/бросил сумку-баул", sec: 20, isCounter: true, maxCount: 10 },
             { id: "prep_1", category: "Препятствие", desc: "Сумка-баул одним участником (от стола)", sec: 20 },
             { id: "prep_2", category: "Препятствие", desc: "Перенос сумки двумя руками", sec: 20 },
-            { id: "prep_3", category: "Препятствие", desc: "Уронил/бросил сумку", sec: 20 },
             { id: "prep_4", category: "Препятствие", desc: "Не установка сумки двумя", sec: 20 },
             { id: "prep_5", category: "Препятствие", desc: "Неверная последовательность", sec: 20 },
-            { id: "prep_6", category: "Препятствие", desc: "Повтор: сумка одним", sec: 20 },
-            { id: "prep_7", category: "Препятствие", desc: "Повтор: двумя руками", sec: 20 },
-            { id: "prep_8", category: "Препятствие", desc: "Повтор: уронил", sec: 20 },
             { id: "prep_9", category: "Препятствие", desc: "Не выполнено упражнение «препятствие»", sec: 120 },
+            
+            // === Горка ===
+            { id: "gorka_bag_drop_cnt", category: "Горка", desc: "Уронил/бросил сумку-баул", sec: 20, isCounter: true, maxCount: 10 },
             { id: "gorka_1", category: "Горка", desc: "Сумка-баул одним (от стола)", sec: 20 },
             { id: "gorka_2", category: "Горка", desc: "Перенос двумя руками", sec: 20 },
-            { id: "gorka_3", category: "Горка", desc: "Уронил/бросил", sec: 20 },
             { id: "gorka_4", category: "Горка", desc: "Не установка сумки двумя", sec: 20 },
             { id: "gorka_5", category: "Горка", desc: "Неверная последовательность", sec: 20 },
-            { id: "gorka_6", category: "Горка", desc: "Повтор: сумка одним", sec: 20 },
-            { id: "gorka_7", category: "Горка", desc: "Повтор: двумя руками", sec: 20 },
-            { id: "gorka_8", category: "Горка", desc: "Повтор: уронил", sec: 20 },
             { id: "gorka_9", category: "Горка", desc: "Не выполнено упражнение «горка»", sec: 120 },
+            
+            // === Покрышки ===
+            { id: "tire_bag_drop_cnt", category: "Покрышки", desc: "Уронил/бросил сумку-баул", sec: 20, isCounter: true, maxCount: 10 },
+            { id: "tire_more_than_one_cnt", category: "Покрышки", desc: "Перенос более одной покрышки", sec: 20, isCounter: true, maxCount: 10 },
+            { id: "tire_towers_not_built_cnt", category: "Покрышки", desc: "Не выстроены две башни по 4 покрышки (за каждую башню)", sec: 20, isCounter: true, maxCount: 2 },
             { id: "tire_1", category: "Покрышки", desc: "Сумка-баул одним (от стола)", sec: 20 },
             { id: "tire_2", category: "Покрышки", desc: "Перенос двумя руками", sec: 20 },
-            { id: "tire_3", category: "Покрышки", desc: "Уронил/бросил", sec: 20 },
             { id: "tire_4", category: "Покрышки", desc: "Не установка сумки двумя", sec: 20 },
-            { id: "tire_5", category: "Покрышки", desc: "Перенос более одной покрышки", sec: 20 },
-            { id: "tire_6", category: "Покрышки", desc: "Не выстроены две башни по 4 покрышки", sec: 20 },
-            { id: "tire_7", category: "Покрышки", desc: "Повтор: сумка одним", sec: 20 },
-            { id: "tire_8", category: "Покрышки", desc: "Повтор: двумя руками", sec: 20 },
-            { id: "tire_9", category: "Покрышки", desc: "Повтор: уронил", sec: 20 },
             { id: "tire_10", category: "Покрышки", desc: "Не выполнено упражнение «покрышки»", sec: 120 },
+            
+            // === Скалодром ===
+            { id: "skalodrom_bag_drop_cnt", category: "Скалодром", desc: "Уронил/бросил сумку-баул", sec: 20, isCounter: true, maxCount: 10 },
             { id: "skalodrom_1", category: "Скалодром", desc: "сумка-баул с кассетами УС транспортируется с обозначенного места (стола) одним участником", sec: 20 },
             { id: "skalodrom_2", category: "Скалодром", desc: "перенос сумки-баул с кассетами УС двумя руками (помощь второй рукой)", sec: 20 },
-            { id: "skalodrom_3", category: "Скалодром", desc: "некорректное обращение с сумкой-баул с кассетами УС (участник уронил/бросил на землю сумку-баул)", sec: 20 },
             { id: "skalodrom_4", category: "Скалодром", desc: "не установка сумки-баула двумя участниками в обозначенное место", sec: 20 },
             { id: "skalodrom_5", category: "Скалодром", desc: "не в правильной последовательности выполнено упражнение", sec: 20 },
-            { id: "skalodrom_6", category: "Скалодром", desc: "сумка-баул с кассетами УС транспортируется с обозначенного места (стола) одним участником", sec: 20 },
-            { id: "skalodrom_7", category: "Скалодром", desc: "перенос сумки-баул с кассетами УС двумя руками (помощь второй рукой)", sec: 20 },
-            { id: "skalodrom_8", category: "Скалодром", desc: "некорректное обращение с сумкой-баул с кассетами УС (участник уронил/бросил на землю сумку-баул)", sec: 20 },
             { id: "skalodrom_9", category: "Скалодром", desc: "не выполнено данное упражнение «скалодром»", sec: 120 },
+            
+            // === Медицина ===
+            { id: "med_bag_drop_cnt", category: "Медицина", desc: "Уронил/бросил сумку-баул", sec: 20, isCounter: true, maxCount: 10 },
+            { id: "med_tourniquet_slip_cnt", category: "Медицина", desc: "Расслабление/соскальзывание турникета (не повторное наложение)", sec: 20, isCounter: true, maxCount: 10 },
+            { id: "med_dummy_drop_cnt", category: "Медицина", desc: "Уронил/бросил манекен", sec: 20, isCounter: true, maxCount: 10 },
             { id: "med_1", category: "Медицина", desc: "Сумка-баул одним (от стола)", sec: 20 },
             { id: "med_2", category: "Медицина", desc: "Перенос двумя руками", sec: 20 },
-            { id: "med_3", category: "Медицина", desc: "Уронил/бросил сумку", sec: 20 },
             { id: "med_4", category: "Медицина", desc: "Не установка сумки двумя", sec: 20 },
             { id: "med_5", category: "Медицина", desc: "Не транспортировал манекен эвакуационным стропом", sec: 20 },
             { id: "med_6", category: "Медицина", desc: "Турникет наложен ниже/на место ранения", sec: 20 },
             { id: "med_7", category: "Медицина", desc: "Не обозначено время наложения турникета", sec: 20 },
             { id: "med_8", category: "Медицина", desc: "Неправильное перемещение манекена (не за руки/ноги)", sec: 20 },
-            { id: "med_9", category: "Медицина", desc: "Не повторно наложил турникет после соскальзывания", sec: 20 },
             { id: "med_10", category: "Медицина", desc: "Манекен не на носилках", sec: 20 },
             { id: "med_11", category: "Медицина", desc: "Оставлена сумка-баул", sec: 20 },
-            { id: "med_12", category: "Медицина", desc: "Некорректное обращение с сумкой (повтор)", sec: 20 },
-            { id: "med_13", category: "Медицина", desc: "Уронил манекен", sec: 20 },
             { id: "med_14", category: "Медицина", desc: "Не выполнено упражнение «медицина»", sec: 120 }
         ];
 
-        // Группы счётчиков: для каждой группы указаны id от 1 до max, соответствующие количеству нарушений
-        const counterGroups = {
-            // Падения/броски сумки-баул (1-3 раза)
-            "sumka_drops": { ids: ["perenos_1","perenos_2","perenos_3"], max: 3, label: "Уронил/бросил сумку-баул", category: "Транспортирование сумки-баул с БЦ", baseSec: 20 },
-            // Уронил пистолет (1-3 раза)
-            "gun_drops": { ids: ["shoot_5","shoot_6","shoot_7"], max: 3, label: "Уронил пистолет", category: "Стрельба", baseSec: 20 },
-            // Уронил патроны (1-3 раза)
-            "ammo_drops": { ids: ["shoot_8","shoot_9","shoot_10"], max: 3, label: "Уронил патроны", category: "Стрельба", baseSec: 20 },
-            // Не сбита мишень (1-7 раз)
-            "miss_targets": { ids: ["shoot_11","shoot_12","shoot_13","shoot_14","shoot_15","shoot_16","shoot_17"], max: 7, label: "Не сбита мишень", category: "Стрельба", baseSec: 10 },
-            // Процедурки (1-6 раз)
-            "procedures": { ids: ["shoot_19","shoot_20","shoot_21","shoot_22","shoot_23","shoot_24"], max: 6, label: "Процедурки", category: "Стрельба", baseSec: 10 }
-        };
-
-        // Для каждой группы определим, к какому этапу относится (по первому id)
-        const groupStageMap = {};
-        for (let [groupKey, group] of Object.entries(counterGroups)) {
-            const firstId = group.ids[0];
-            const penalty = penaltiesLibrary.find(p => p.id === firstId);
-            groupStageMap[groupKey] = penalty ? penalty.category : null;
-        }
-
+        // Получаем уникальные этапы
         const stages = [...new Set(penaltiesLibrary.map(p => p.category))];
+        
         const teamCodes = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
         const teamNames = {
             "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","МРД":"Московский",
@@ -369,49 +339,45 @@
             let sum = 0;
             for (let id in penObj) if (penObj[id]) {
                 let p = penaltiesLibrary.find(p => p.id === id);
-                if (p) sum += p.sec;
+                if (p) {
+                    if (typeof penObj[id] === 'number') {
+                        sum += penObj[id] * p.sec;
+                    } else {
+                        sum += p.sec;
+                    }
+                }
             }
             return sum;
         }
 
-        // Получить текущее количество для группы из объекта штрафов
-        function getGroupCount(penObj, groupKey) {
-            const group = counterGroups[groupKey];
-            if (!group) return 0;
-            for (let i = 0; i < group.ids.length; i++) {
-                if (penObj[group.ids[i]] === true) return i+1;
-            }
+        function getCounterValue(penObj, counterId) {
+            if (penObj[counterId] && typeof penObj[counterId] === 'number') return penObj[counterId];
+            if (penObj[counterId] === true) return 1;
             return 0;
         }
 
-        // Установить количество для группы в tempPenalties
-        function setGroupCount(tempPen, groupKey, count) {
-            const group = counterGroups[groupKey];
-            if (!group) return;
-            // Удаляем все id группы
-            for (let id of group.ids) delete tempPen[id];
-            if (count > 0 && count <= group.max) {
-                tempPen[group.ids[count-1]] = true;
+        function setCounterValue(tempPen, counterId, value) {
+            const counterInfo = penaltiesLibrary.find(p => p.id === counterId);
+            if (!counterInfo || !counterInfo.isCounter) return;
+            if (value <= 0) {
+                delete tempPen[counterId];
+            } else {
+                tempPen[counterId] = value;
             }
         }
 
-        // Синхронизация tempPenalties с сохранёнными данными (для текущего этапа)
         function initTempFromSaved(participant) {
             const team = teamsTriathlon[currentTeam];
             if (!team) return;
             const savedPen = participant === 1 ? team.participant1.penalties : team.participant2.penalties;
             const tempPen = participant === 1 ? tempPenalties1 : tempPenalties2;
-            // Очищаем временные
             for (let key in tempPen) delete tempPen[key];
-            // Копируем только штрафы текущего этапа
             const stagePenalties = penaltiesLibrary.filter(p => p.category === currentStage);
             for (let p of stagePenalties) {
-                if (savedPen[p.id] === true) {
-                    tempPen[p.id] = true;
+                if (savedPen[p.id] !== undefined) {
+                    tempPen[p.id] = savedPen[p.id];
                 }
             }
-            // Для групп: если в savedPen есть любой из id группы, то при инициализации оставляем как есть
-            // (они уже скопированы). Дополнительно ничего не нужно.
             if (participant === 1) unsaved1 = false;
             else unsaved2 = false;
         }
@@ -505,43 +471,28 @@
             const tempPen = participant === 1 ? tempPenalties1 : tempPenalties2;
             const stagePen = penaltiesLibrary.filter(p => p.category === currentStage);
             
-            // Получаем список групп, которые относятся к текущему этапу
-            const groupsForStage = [];
-            for (let [key, group] of Object.entries(counterGroups)) {
-                if (groupStageMap[key] === currentStage) {
-                    groupsForStage.push({ key, ...group });
-                }
-            }
-            
-            // Фильтруем штрафы, исключая те, которые входят в группы (их мы заменим счётчиками)
-            const nonGroupPenalties = stagePen.filter(p => {
-                for (let g of groupsForStage) {
-                    if (g.ids.includes(p.id)) return false;
-                }
-                return true;
-            });
+            const counters = stagePen.filter(p => p.isCounter === true);
+            const regular = stagePen.filter(p => !p.isCounter);
             
             let html = '<div class="penalties-grid">';
             
-            // Рендерим счётчики для групп
-            for (let group of groupsForStage) {
-                const currentCount = getGroupCount(tempPen, group.key);
-                const penaltyForCount = currentCount * group.baseSec;
+            for (let counter of counters) {
+                const currentVal = getCounterValue(tempPen, counter.id);
+                const totalSec = currentVal * counter.sec;
                 html += `
                     <div class="penalty-card">
-                        <div class="desc"><strong>${group.label}</strong> <span class="penalty-sec">+${group.baseSec} сек за каждое (макс. ${group.max})</span></div>
+                        <div class="desc"><strong>${counter.desc}</strong> <span class="penalty-sec">+${counter.sec} сек за каждое (макс. ${counter.maxCount || 10})</span></div>
                         <div class="counter-control">
-                            <button class="counter-dec" data-group="${group.key}">−</button>
-                            <span class="counter-count" data-group="${group.key}">${currentCount}</span>
-                            <button class="counter-inc" data-group="${group.key}">+</button>
+                            <button class="counter-dec" data-id="${counter.id}">−</button>
+                            <span class="counter-count" data-id="${counter.id}">${currentVal}</span>
+                            <button class="counter-inc" data-id="${counter.id}">+</button>
                         </div>
-                        <div style="font-size:0.75rem;">Штраф: +${penaltyForCount} сек</div>
+                        <div style="font-size:0.75rem;">Штраф: +${totalSec} сек</div>
                     </div>
                 `;
             }
             
-            // Рендерим обычные чекбоксы
-            for (let p of nonGroupPenalties) {
+            for (let p of regular) {
                 const checked = tempPen[p.id] === true;
                 html += `<div class="penalty-card">
                             <input type="checkbox" id="chk_${p.id}_${participant}" data-id="${p.id}" ${checked ? 'checked' : ''}>
@@ -554,8 +505,7 @@
             html += '</div>';
             container.innerHTML = html;
             
-            // Привязываем обработчики для чекбоксов
-            for (let p of nonGroupPenalties) {
+            for (let p of regular) {
                 const cb = document.getElementById(`chk_${p.id}_${participant}`);
                 if (cb) {
                     cb.onchange = () => {
@@ -569,20 +519,20 @@
                 }
             }
             
-            // Привязываем обработчики для счётчиков
-            for (let group of groupsForStage) {
-                const decBtn = container.querySelector(`.counter-dec[data-group="${group.key}"]`);
-                const incBtn = container.querySelector(`.counter-inc[data-group="${group.key}"]`);
-                const countSpan = container.querySelector(`.counter-count[data-group="${group.key}"]`);
+            for (let counter of counters) {
+                const decBtn = container.querySelector(`.counter-dec[data-id="${counter.id}"]`);
+                const incBtn = container.querySelector(`.counter-inc[data-id="${counter.id}"]`);
+                const countSpan = container.querySelector(`.counter-count[data-id="${counter.id}"]`);
                 if (decBtn && incBtn && countSpan) {
+                    const maxCount = counter.maxCount || 10;
                     const updateCount = (delta) => {
-                        let old = getGroupCount(tempPen, group.key);
-                        let newVal = Math.min(group.max, Math.max(0, old + delta));
+                        let old = getCounterValue(tempPen, counter.id);
+                        let newVal = Math.min(maxCount, Math.max(0, old + delta));
                         if (newVal === old) return;
-                        setGroupCount(tempPen, group.key, newVal);
+                        setCounterValue(tempPen, counter.id, newVal);
                         countSpan.innerText = newVal;
                         const penaltyDiv = countSpan.closest('.penalty-card').querySelector('div:last-child');
-                        if (penaltyDiv) penaltyDiv.innerText = `Штраф: +${newVal * group.baseSec} сек`;
+                        if (penaltyDiv) penaltyDiv.innerText = `Штраф: +${newVal * counter.sec} сек`;
                         if (participant === 1) unsaved1 = true;
                         else unsaved2 = true;
                         updateSummary(participant);
@@ -599,11 +549,11 @@
             const team = teamsTriathlon[currentTeam];
             const savedPen = participant === 1 ? team.participant1.penalties : team.participant2.penalties;
             const tempPen = participant === 1 ? tempPenalties1 : tempPenalties2;
-            // Объединяем: все сохранённые штрафы, кроме текущего этапа, плюс временные
-            let merged = { ...savedPen };
+            let merged = {};
+            for (let id in savedPen) merged[id] = savedPen[id];
             const stagePenalties = penaltiesLibrary.filter(p => p.category === currentStage);
             for (let p of stagePenalties) delete merged[p.id];
-            for (let id in tempPen) if (tempPen[id]) merged[id] = true;
+            for (let id in tempPen) merged[id] = tempPen[id];
             const totalPen = getPenaltySum(merged);
             const raw = participant === 1 ? team.participant1.rawSeconds : team.participant2.rawSeconds;
             const total = raw !== null ? raw + totalPen : null;
@@ -633,7 +583,9 @@
             const tempPen = participant === 1 ? tempPenalties1 : tempPenalties2;
             const stageIds = penaltiesLibrary.filter(p => p.category === currentStage).map(p => p.id);
             for (let id of stageIds) delete target.penalties[id];
-            for (let id in tempPen) if (tempPen[id]) target.penalties[id] = true;
+            for (let id in tempPen) {
+                target.penalties[id] = tempPen[id];
+            }
             await syncTeam(currentTeam);
             if (participant === 1) unsaved1 = false;
             else unsaved2 = false;
@@ -648,7 +600,6 @@
             const tempPen = participant === 1 ? tempPenalties1 : tempPenalties2;
             const stageIds = penaltiesLibrary.filter(p => p.category === currentStage).map(p => p.id);
             for (let id of stageIds) delete tempPen[id];
-            // Также сбрасываем группы (они уже удалены через удаление id)
             if (participant === 1) unsaved1 = false;
             else unsaved2 = false;
             updatePenaltiesUI(participant);
@@ -725,7 +676,7 @@
                 if (r.teamTotal !== null && rank === 1) tr.classList.add('rank-1');
                 tr.innerHTML = `
                     <td>${r.teamTotal !== null ? rank++ : '—'}</td>
-                    <td><strong>${r.name}</strong> (${r.code})</td>
+                    <td><strong>${r.name}</strong> (${r.code})</strong></td>
                     <td>${r.name1}</td>
                     <td>${r.raw1 !== null ? formatTime(r.raw1) : '—'}</td>
                     <td>${r.pen1}</td>
@@ -743,7 +694,7 @@
             }
         }
 
-        // ---------- ПЕЧАТЬ ОТЧЕТА (обновлённая, поддерживает группы) ----------
+        // ---------- ПЕЧАТЬ ОТЧЕТА ----------
         async function printFullReport() {
             if (!currentTeam) { alert('Сначала выберите команду!'); return; }
             const team = teamsTriathlon[currentTeam];
@@ -753,20 +704,28 @@
             const p1PenaltiesObj = p1.penalties || {};
             const p2PenaltiesObj = p2.penalties || {};
 
-            // Функция для "разворачивания" групп в читаемый список нарушений
             function expandPenalties(penObj) {
                 const result = [];
-                for (let id in penObj) if (penObj[id]) {
+                for (let id in penObj) {
+                    const val = penObj[id];
                     const penalty = penaltiesLibrary.find(p => p.id === id);
-                    if (penalty) result.push(penalty);
+                    if (!penalty) continue;
+                    if (penalty.isCounter && typeof val === 'number' && val > 0) {
+                        for (let i = 0; i < val; i++) {
+                            result.push({ ...penalty, desc: `${penalty.desc} (${i+1}-й раз)` });
+                        }
+                    } else if (val === true || val === 1) {
+                        result.push(penalty);
+                    } else if (typeof val === 'number' && val > 0 && !penalty.isCounter) {
+                        for (let i = 0; i < val; i++) result.push(penalty);
+                    }
                 }
-                // Для групп, возможно, нужно добавить пояснение, но уже есть отдельные записи с количеством (например, "Уронил пистолет 2 раза")
-                // поэтому дополнительных действий не требуется.
                 return result;
             }
 
             const activePenalties1 = expandPenalties(p1PenaltiesObj);
             const activePenalties2 = expandPenalties(p2PenaltiesObj);
+            
             const groupByCategory = (penaltiesArr) => {
                 const groups = {};
                 for (let p of penaltiesArr) {
@@ -816,7 +775,7 @@
                                 <table style="width: 100%; border-collapse: collapse; margin-top: 4px;">
                                     <thead><tr style="background: #e2e8f0;"><th style="padding: 6px; text-align: left;">Нарушение</th><th style="padding: 6px; width: 80px;">Штраф (сек)</th></tr></thead>
                                     <tbody>
-                                        ${penaltiesArr.map(p => `<tr style="border-bottom: 1px solid #cbd5e1;"><td style="padding: 6px;">${p.desc}</td><td style="padding: 6px;">+${p.sec}</td></tr>`).join('')}
+                                        ${penaltiesArr.map(p => `<tr style="border-bottom: 1px solid #cbd5e1;"><td style="padding: 6px;">${p.desc}</td><td style="padding: 6px;">+${p.sec}</td></td>`).join('')}
                                     </tbody>
                                 </table>
                             </div>`;
