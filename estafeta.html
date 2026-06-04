@@ -167,7 +167,7 @@
                     <option value="УБ">Уральский (УБ)</option>
                     <option value="ДВБ">Дальневосточный (ДВБ)</option>
                     <option value="ББ">Байкальский (ББ)</option>
-                    <option value="МРД">Московский (МРД)</option>
+                    <option value="МРД">ПЦП МРД ЦУНДО (МРД)</option>
                     <option value="ЦЧБ">Центрально-Черноземный (ЦЧБ)</option>
                     <option value="ЮЗБ">Юго-Западный (ЮЗБ)</option>
                     <option value="ПВБ">Поволжский (ПВБ)</option>
@@ -230,7 +230,7 @@
         
         const teamCodes = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
         const teamNames = {
-            "УБ": "Уральский", "ДВБ": "Дальневосточный", "ББ": "Байкальский", "МРД": "Московский",
+            "УБ": "Уральский", "ДВБ": "Дальневосточный", "ББ": "Байкальский", "МРД": "ПЦП МРД ЦУНДО",
             "ЦЧБ": "Центрально-Черноземный", "ЮЗБ": "Юго-Западный", "ПВБ": "Поволжский",
             "СИБ": "Сибирский", "СРБ": "Среднерусский", "СЗБ": "Северо-Западный", "ВВБ": "Волго-Вятский"
         };
@@ -774,7 +774,7 @@
                         <div style="font-size:0.75rem;">Штраф: +${pmPenalty} сек</div>
                     </div>
                     <div class="penalty-card">
-                        <div class="desc"><strong>🎯 САЙГА-12 (4 выстрела) — ПОПАДАНИЯ (1 попадание = –10 сек)</strong></div>
+                        <div class="desc"><strong>🎯 САЙГА-12 (5 выстрелов) — ПОПАДАНИЯ (1 попадание = –10 сек)</strong></div>
                         <div class="counter-control">
                             <button class="saiga-dec">−</button>
                             <span class="saiga-count">${saigaHits}</span>
@@ -815,13 +815,13 @@
                     pmDec.onclick = () => updatePM(-1);
                     pmInc.onclick = () => updatePM(1);
                 }
-                // Обработчики для Сайги
+                // Обработчики для Сайги (максимум 5)
                 const saigaDec = document.querySelector('.saiga-dec');
                 const saigaInc = document.querySelector('.saiga-inc');
                 const saigaSpan = document.querySelector('.saiga-count');
                 if (saigaDec && saigaInc && saigaSpan) {
                     const updateSaiga = (delta) => {
-                        let newVal = Math.max(0, Math.min(4, saigaHits + delta));
+                        let newVal = Math.max(0, Math.min(5, saigaHits + delta));
                         saigaHits = newVal;
                         tempPenalties[SHOOT_SAIGA_HITS_ID] = newVal;
                         saigaSpan.innerText = newVal;
@@ -1207,11 +1207,11 @@
                         <div style="margin-bottom: 20px;">
                             <h4 style="background: #eef2ff; padding: 8px 12px; border-radius: 12px;">🎯 ${stageName}</h4>
                             <table style="width: 100%; border-collapse: collapse; margin-top: 8px;">
-                                <thead><tr style="background: #e2e8f0;"><th style="padding: 8px; text-align: left;">Нарушение</th><th style="padding: 8px; width: 100px;">Штраф (сек)</th> </tr></thead>
+                                <thead><tr style="background: #e2e8f0;"><th style="padding: 8px; text-align: left;">Нарушение</th><th style="padding: 8px; width: 100px;">Штраф (сек)</th> <tr></thead>
                                 <tbody>
                                     ${penaltiesArr.map(p => `<tr style="border-bottom: 1px solid #cbd5e1;"><td style="padding: 8px;">${p.desc}</td><td style="padding: 8px;">${p.sec >= 0 ? '+' : ''}${p.sec}</td></tr>`).join('')}
                                 </tbody>
-                             </table>
+                              </table>
                         </div>
                     `).join('')}
                     <div class="print-sign-line" style="margin-top: 48px; border-top: 1px dashed #aaa; padding-top: 24px;">
