@@ -367,7 +367,7 @@
                         <option value="УБ">Уральский (УБ)</option>
                         <option value="ДВБ">Дальневосточный (ДВБ)</option>
                         <option value="ББ">Байкальский (ББ)</option>
-                        <option value="МРД">Московский (МРД)</option>
+                        <option value="МРД">ПЦП МРД ЦУНДО (МРД)</option>
                         <option value="ЦЧБ">Центрально-Черноземный (ЦЧБ)</option>
                         <option value="ЮЗБ">Юго-Западный (ЮЗБ)</option>
                         <option value="ПВБ">Поволжский (ПВБ)</option>
@@ -464,7 +464,7 @@
                 <h3>📊 Все результаты команд</h3>
                 <div class="results-table" style="margin-top: 0;">
                     <table id="adminResultsTable">
-                        <thead><th>Место</th><th>Команда</th><th>Направление</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></thead>
+                        <thead><tr><th>Место</th><th>Команда</th><th>Направление</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
                         <tbody id="adminResultsBody"></tbody>
                     </table>
                 </div>
@@ -487,7 +487,7 @@
             "Обслуживание ВСП", "Вооруженный преступник", "Общие штрафы"
         ];
         
-        // ========== ШТРАФЫ ПОЛНОСТЬЮ ==========
+        // ШТРАФЫ (полный список)
         const penaltiesLibrary = [
             // Получение имущества
             { id: "prop_door", category: "Получение имущества", desc: "1. Не закрыты двери/дверь СТС в «гараже»", sec: 30 },
@@ -677,8 +677,7 @@
             { id: "obsh_sts", category: "Общие штрафы", desc: "Выход из СТС/посадка в СТС не осуществлена в следующем порядке: инкассатор через заднюю правую дверь, водитель-инкассатор через левую переднюю дверь", sec: 20 }
         ];
         
-        // Добавляем два специальных штрафа для этапа "Стрельба" (не в библиотеке, т.к. обрабатываются отдельно)
-        // Они будут храниться в объекте penalties как shoot_pm_misses (число) и shoot_saiga_hits (число)
+        // Специальные штрафы для этапа "Стрельба" (не в библиотеке, обрабатываются отдельно)
         const SHOOT_PM_MISS_ID = 'shoot_pm_misses';
         const SHOOT_SAIGA_HITS_ID = 'shoot_saiga_hits';
         const PENALTY_PER_MISS_PM = 30;
@@ -701,19 +700,18 @@
         function isGreenHighlight(id) { return greenHighlightIds.includes(id); }
         
         const teamNames = {
-            "УБ": "Уральский", "ДВБ": "Дальневосточный", "ББ": "Байкальский", "МРД": "Московский",
+            "УБ": "Уральский", "ДВБ": "Дальневосточный", "ББ": "Байкальский", "МРД": "ПЦП МРД ЦУНДО",
             "ЦЧБ": "Центрально-Черноземный", "ЮЗБ": "Юго-Западный", "ПВБ": "Поволжский",
             "СИБ": "Сибирский", "СРБ": "Среднерусский", "СЗБ": "Северо-Западный", "ВВБ": "Волго-Вятский"
         };
         
-        // ========== БАЗА СУДЕЙ (новая структура с телефонами) ==========
-        let judgesDatabase = {};   // { "stage_direction": [{ name: "Иван", phone: "+7..." }, ...] }
+        // ========== БАЗА СУДЕЙ ==========
+        let judgesDatabase = {};
         let isLoadingComplete = false;
         const JUDGES_TABLE = 'estafeta_judges';
         
         async function loadJudgesFromSupabase() {
             try {
-                console.log('🔄 Загрузка судей из Supabase...');
                 const { data, error } = await supabaseClient.from(JUDGES_TABLE).select('*');
                 if (error) throw error;
                 if (data && data.length > 0) {
@@ -724,7 +722,6 @@
                         newDb[key].push({ name: row.judge_name, phone: row.phone_number || '' });
                     }
                     judgesDatabase = newDb;
-                    console.log('✅ Судьи загружены из Supabase');
                     return true;
                 } else return false;
             } catch(e) { console.error(e); return false; }
@@ -864,7 +861,7 @@
                 let dotIndex = secPart.indexOf('.');
                 if (dotIndex !== -1) {
                     seconds = parseInt(secPart.substring(0, dotIndex)) || 0;
-                    let fraction = parseFloat('0.' + secPart.substring(dotIndex + 1)) || 0;
+                    let fraction = parseFloat('0.' + secPart.substring(dotIndex+1)) || 0;
                     seconds += fraction;
                 } else seconds = parseInt(secPart) || 0;
             } else if (parts.length === 1) {
@@ -889,7 +886,6 @@
                     else if (val === true) sum += p.sec;
                 }
             }
-            // Добавляем штраф за промахи ПМ и бонус за попадания Сайги
             let pmMisses = penObj[SHOOT_PM_MISS_ID] || 0;
             let saigaHits = penObj[SHOOT_SAIGA_HITS_ID] || 0;
             sum += pmMisses * PENALTY_PER_MISS_PM;
@@ -1003,14 +999,12 @@
                     else tempPenalties[p.id] = false;
                 }
             }
-            // Для этапа стрельба загружаем специальные счётчики
             if (currentUser.stage === "Стрельба") {
                 let pm = penaltiesObj[SHOOT_PM_MISS_ID];
                 let saiga = penaltiesObj[SHOOT_SAIGA_HITS_ID];
                 tempPenalties[SHOOT_PM_MISS_ID] = (typeof pm === 'number') ? pm : 0;
                 tempPenalties[SHOOT_SAIGA_HITS_ID] = (typeof saiga === 'number') ? saiga : 0;
             } else {
-                // удаляем на случай, если они были
                 delete tempPenalties[SHOOT_PM_MISS_ID];
                 delete tempPenalties[SHOOT_SAIGA_HITS_ID];
             }
@@ -1024,7 +1018,7 @@
                 document.getElementById('penaltiesContainer').innerHTML = '<div style="grid-column:1/-1; text-align:center;">⚠️ Выберите команду</div>';
                 return;
             }
-            // Спецобработка для этапа "Стрельба" — добавляем счётчики ПМ и Сайги
+            // Спецобработка для этапа "Стрельба"
             if (currentUser.stage === "Стрельба") {
                 let pmMisses = tempPenalties[SHOOT_PM_MISS_ID] || 0;
                 let saigaHits = tempPenalties[SHOOT_SAIGA_HITS_ID] || 0;
@@ -1041,7 +1035,7 @@
                         <div style="font-size:0.75rem;">Штраф: +${pmPenalty} сек</div>
                     </div>
                     <div class="penalty-card">
-                        <div class="desc"><strong>🎯 САЙГА-12 (4 выстрела) — ПОПАДАНИЯ (1 попадание = –10 сек)</strong></div>
+                        <div class="desc"><strong>🎯 САЙГА-12 (5 выстрелов) — ПОПАДАНИЯ (1 попадание = –10 сек)</strong></div>
                         <div class="counter-control">
                             <button class="saiga-dec">−</button>
                             <span class="saiga-count">${saigaHits}</span>
@@ -1050,7 +1044,6 @@
                         <div style="font-size:0.75rem;">Бонус: –${saigaBonus} сек</div>
                     </div>
                 `;
-                // Добавляем остальные чекбоксы этого этапа (исключая shoot_miss, который уже есть в библиотеке)
                 let stagePen = penaltiesLibrary.filter(p => p.category === "Стрельба");
                 for (let p of stagePen) {
                     let checked = tempPenalties[p.id] === true;
@@ -1061,7 +1054,7 @@
                              </div>`;
                 }
                 document.getElementById('penaltiesContainer').innerHTML = html;
-                // Обработчики для ПМ и Сайги
+                // Обработчики для ПМ
                 const pmDec = document.querySelector('.pm-dec');
                 const pmInc = document.querySelector('.pm-inc');
                 const pmSpan = document.querySelector('.pm-count');
@@ -1082,12 +1075,13 @@
                     pmDec.onclick = () => updatePM(-1);
                     pmInc.onclick = () => updatePM(1);
                 }
+                // Обработчики для Сайги (максимум 5)
                 const saigaDec = document.querySelector('.saiga-dec');
                 const saigaInc = document.querySelector('.saiga-inc');
                 const saigaSpan = document.querySelector('.saiga-count');
                 if (saigaDec && saigaInc && saigaSpan) {
                     const updateSaiga = (delta) => {
-                        let newVal = Math.max(0, Math.min(4, saigaHits + delta));
+                        let newVal = Math.max(0, Math.min(5, saigaHits + delta));
                         saigaHits = newVal;
                         tempPenalties[SHOOT_SAIGA_HITS_ID] = newVal;
                         saigaSpan.innerText = newVal;
@@ -1102,7 +1096,7 @@
                     saigaDec.onclick = () => updateSaiga(-1);
                     saigaInc.onclick = () => updateSaiga(1);
                 }
-                // Обработчики для чекбоксов
+                // Обработчики чекбоксов
                 for (let p of stagePen) {
                     let cb = document.getElementById(`chk_${p.id}`);
                     if (cb) {
@@ -1120,7 +1114,7 @@
                 return;
             }
             
-            // Обычная отрисовка для других этапов (с конусами и счётчиками)
+            // Обычная отрисовка для других этапов
             let stagePen = penaltiesLibrary.filter(p => p.category === currentUser.stage);
             if (stagePen.length === 0) {
                 document.getElementById('penaltiesContainer').innerHTML = `<div>📭 Для этапа "${currentUser.stage}" нет ошибок</div>`;
@@ -1363,7 +1357,6 @@
                     delete penaltiesObj[id];
                 }
             }
-            // Для этапа стрельба также сохраняем PM и Saiga (они уже в tempPenalties)
             let rawSeconds = existing?.raw_seconds ?? null;
             await saveTeamData(currentUser.direction, currentTeam, rawSeconds, penaltiesObj);
             hasUnsavedChanges = false;
@@ -1433,7 +1426,7 @@
                 for (let r of rows) {
                     let tr = document.createElement('tr');
                     if (r.total !== null && rank === 1) tr.classList.add('rank-1');
-                    tr.innerHTML = `<td>${r.total !== null ? rank++ : '—'} <td><strong>${r.name}</strong> (${r.team}) <td>${r.dir} <td>${r.raw !== null ? formatTime(r.raw) : '—'} <td>${r.penalty} <td class="total-cell">${r.total !== null ? formatTime(r.total) : '—'}`;
+                    tr.innerHTML = `<td>${r.total !== null ? rank++ : '—'}</td><td><strong>${r.name}</strong> (${r.team})</td><td>${r.dir}</td><td>${r.raw !== null ? formatTime(r.raw) : '—'}</td><td>${r.penalty}</td><td class="total-cell">${r.total !== null ? formatTime(r.total) : '—'}</td>`;
                     tbody.appendChild(tr);
                 }
             } catch(e) { console.warn(e); }
@@ -1455,7 +1448,6 @@
                     }
                 }
             }
-            // Добавим отдельные записи для промахов ПМ и попаданий Сайги
             let pmMisses = penaltiesObj[SHOOT_PM_MISS_ID] || 0;
             let saigaHits = penaltiesObj[SHOOT_SAIGA_HITS_ID] || 0;
             if (pmMisses > 0) {
@@ -1493,7 +1485,7 @@
                         <h4>🎯 ${stageName}</h4>
                         <table style="width:100%; border-collapse: collapse;">
                             <thead><tr style="background:#e2e8f0;"><th>Нарушение</th><th>Штраф</th></tr></thead>
-                            <tbody>${arr.map(p => `<tr><td style="padding:8px;">${p.desc}</td><td>${p.sec >= 0 ? '+' : ''}${p.sec}</td>`).join('')}</tbody>
+                            <tbody>${arr.map(p => `<tr><td style="padding:8px;">${p.desc}</td><td>${p.sec >= 0 ? '+' : ''}${p.sec}</td></tr>`).join('')}</tbody>
                         </table>
                     </div>
                 `).join('')}
@@ -1527,7 +1519,7 @@
             loadAllResultsForJudge();
         }
         
-        // ========== АДМИНКА (с телефонами) ==========
+        // ========== АДМИНКА ==========
         function escapeHtml(str) {
             if (!str) return '';
             return str.replace(/[&<>]/g, function(m) {
@@ -1617,7 +1609,7 @@
                 let rank=1;
                 for(let r of rows){
                     let tr=document.createElement('tr');
-                    tr.innerHTML=`<td>${r.total!==null?rank++:'—'} <td><strong>${r.name}</strong> (${r.team}) <td>${r.dir} <td>${r.raw!==null?formatTime(r.raw):'—'} <td>${r.penalty} <td>${r.total!==null?formatTime(r.total):'—'}`;
+                    tr.innerHTML=`<td>${r.total!==null?rank++:'—'}</td><td><strong>${r.name}</strong> (${r.team})</td><td>${r.dir}</td><td>${r.raw!==null?formatTime(r.raw):'—'}</td><td>${r.penalty}</td><td>${r.total!==null?formatTime(r.total):'—'}</td>`;
                     tbody.appendChild(tr);
                 }
             } catch(e) {}
