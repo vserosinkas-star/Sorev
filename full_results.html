@@ -203,17 +203,9 @@
         }
 
         @media (max-width: 700px) {
-            th, td {
-                padding: 8px 4px;
-                font-size: 0.8rem;
-            }
-            .section h2 {
-                font-size: 1.3rem;
-            }
-            .tab-btn {
-                padding: 8px 18px;
-                font-size: 0.9rem;
-            }
+            th, td { padding: 8px 4px; font-size: 0.8rem; }
+            .section h2 { font-size: 1.3rem; }
+            .tab-btn { padding: 8px 18px; font-size: 0.9rem; }
         }
 
         footer {
@@ -230,46 +222,14 @@
         }
 
         @media print {
-            body {
-                background: white;
-                padding: 0;
-                margin: 0;
-            }
-            .container {
-                max-width: 100%;
-                margin: 0;
-                padding: 10px;
-            }
-            .header {
-                background: #1e3a5f;
-                color: white;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-                border-radius: 0;
-                margin-bottom: 15px;
-            }
-            .header-actions, .tabs, .tab-btn, .refresh-btn, .back-link, .print-btn {
-                display: none !important;
-            }
-            .tab-pane {
-                display: none !important;
-            }
-            .tab-pane.active-pane {
-                display: block !important;
-            }
-            .section {
-                box-shadow: none;
-                border: 1px solid #ccc;
-                break-inside: avoid;
-                page-break-inside: avoid;
-                margin-bottom: 20px;
-                padding: 15px;
-                border-radius: 8px;
-            }
-            .rank-1, .rank-2, .rank-3 {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
+            body { background: white; padding: 0; margin: 0; }
+            .container { max-width: 100%; margin: 0; padding: 10px; }
+            .header { background: #1e3a5f; color: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; border-radius: 0; margin-bottom: 15px; }
+            .header-actions, .tabs, .tab-btn, .refresh-btn, .back-link, .print-btn { display: none !important; }
+            .tab-pane { display: none !important; }
+            .tab-pane.active-pane { display: block !important; }
+            .section { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; padding: 15px; border-radius: 8px; }
+            .rank-1, .rank-2, .rank-3 { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
     </style>
 </head>
@@ -291,57 +251,21 @@
 
     <div id="inkasso-pane" class="tab-pane active-pane">
         <div style="text-align: right;"><button id="refreshInkassoBtn" class="refresh-btn">🔄 Обновить все данные</button></div>
-        <div class="section">
-            <h2>📋 Командное первенство (инкассация)</h2>
-            <div class="table-wrapper" id="team-standings-inkasso"><div class="loading">Загрузка...</div></div>
-            <div class="subnote">* При равных значениях суммы мест - приоритетом является результат испытаний по дисциплине "Огневая подготовка".</div>
-        </div>
-        <div class="section">
-            <h2>🏅 Эстафета — подробные результаты (все 11 команд)</h2>
-            <div class="table-wrapper" id="detailed-estafeta"><div class="loading">Загрузка...</div></div>
-            <div class="subnote">* Время: м:сс.сс. Штраф = кол-во ошибок × 20 сек.</div>
-        </div>
-        <div class="section">
-            <h2>🏃‍♂️ Командный триатлон — результаты участников</h2>
-            <div class="table-wrapper" id="detailed-triathlon"><div class="loading">Загрузка...</div></div>
-        </div>
-        <div class="section">
-            <h2>🚐 Мастерство вождения — результаты</h2>
-            <div class="table-wrapper" id="detailed-driving"><div class="loading">Загрузка...</div></div>
-        </div>
-        <div class="section">
-            <h2>🔫 Личное первенство (стрельба из пистолета)</h2>
-            <div class="table-wrapper" id="individual-pistol"><div class="loading">Загрузка...</div></div>
-        </div>
-        <div class="section">
-            <h2>🚔 Командная эстафета (охрана + инкассация)</h2>
-            <div class="table-wrapper" id="team-estafeta-common"><div class="loading">Загрузка...</div></div>
-        </div>
+        <div class="section"><h2>📋 Командное первенство (инкассация)</h2><div class="table-wrapper" id="team-standings-inkasso"><div class="loading">Загрузка...</div></div><div class="subnote">* При равных значениях суммы мест - приоритетом является результат испытаний по дисциплине "Огневая подготовка".</div></div>
+        <div class="section"><h2>🏅 Эстафета — подробные результаты (все 11 команд)</h2><div class="table-wrapper" id="detailed-estafeta"><div class="loading">Загрузка...</div></div><div class="subnote">* Время: м:сс.сс. Штраф = кол-во ошибок × 20 сек.</div></div>
+        <div class="section"><h2>🏃‍♂️ Командный триатлон — результаты участников</h2><div class="table-wrapper" id="detailed-triathlon"><div class="loading">Загрузка...</div></div></div>
+        <div class="section"><h2>🚐 Мастерство вождения — результаты</h2><div class="table-wrapper" id="detailed-driving"><div class="loading">Загрузка...</div></div></div>
+        <div class="section"><h2>🔫 Личное первенство (стрельба из пистолета)</h2><div class="table-wrapper" id="individual-pistol"><div class="loading">Загрузка...</div></div></div>
+        <div class="section"><h2>🚔 Командная эстафета (охрана + инкассация)</h2><div class="table-wrapper" id="team-estafeta-common"><div class="loading">Загрузка...</div></div></div>
     </div>
 
     <div id="ohrana-pane" class="tab-pane">
         <div style="text-align: right;"><button id="refreshOhranaBtn" class="refresh-btn">🔄 Обновить данные охраны</button></div>
-        <div class="section">
-            <h2>🛡️ Командное первенство (охрана)</h2>
-            <div class="table-wrapper" id="team-standings-ohrana"><div class="loading">Загрузка...</div></div>
-            <div class="subnote">* При равных значениях суммы мест - приоритетом является результат испытаний по дисциплине "Огневая подготовка".</div>
-        </div>
-        <div class="section">
-            <h2>🏃‍♂️ Эстафета (охрана) — подробные результаты (все 11 команд)</h2>
-            <div class="table-wrapper" id="security-estafeta"><div class="loading">Загрузка...</div></div>
-        </div>
-        <div class="section">
-            <h2>🏃‍♂️🎯 Служебное двоеборье (бег 1000 м + пистолет) — командный зачёт</h2>
-            <div class="table-wrapper" id="service-duathlon"><div class="loading">Загрузка...</div></div>
-        </div>
-        <div class="section">
-            <h2>🚔 Командная эстафета (охрана + инкассация) — все команды</h2>
-            <div class="table-wrapper" id="team-estafeta-common-ohrana"><div class="loading">Загрузка...</div></div>
-        </div>
-        <div class="section">
-            <h2>🔫 Личное первенство (стрельба из пистолета)</h2>
-            <div class="table-wrapper" id="individual-pistol-ohrana"><div class="loading">Загрузка...</div></div>
-        </div>
+        <div class="section"><h2>🛡️ Командное первенство (охрана)</h2><div class="table-wrapper" id="team-standings-ohrana"><div class="loading">Загрузка...</div></div><div class="subnote">* При равных значениях суммы мест - приоритетом является результат испытаний по дисциплине "Огневая подготовка".</div></div>
+        <div class="section"><h2>🏃‍♂️ Эстафета (охрана) — подробные результаты (все 11 команд)</h2><div class="table-wrapper" id="security-estafeta"><div class="loading">Загрузка...</div></div></div>
+        <div class="section"><h2>🏃‍♂️🎯 Служебное двоеборье (бег 1000 м + пистолет) — командный зачёт</h2><div class="table-wrapper" id="service-duathlon"><div class="loading">Загрузка...</div></div></div>
+        <div class="section"><h2>🚔 Командная эстафета (охрана + инкассация) — все команды</h2><div class="table-wrapper" id="team-estafeta-common-ohrana"><div class="loading">Загрузка...</div></div></div>
+        <div class="section"><h2>🔫 Личное первенство (стрельба из пистолета)</h2><div class="table-wrapper" id="individual-pistol-ohrana"><div class="loading">Загрузка...</div></div></div>
     </div>
 
     <footer>© Сбербанк, Департамент безопасности, ЦУНДО — актуальные данные</footer>
@@ -354,11 +278,27 @@
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
         const teamCodes = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
-        const teamNames = {
+        const baseTeamNames = {
             "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","МРД":"Московский",
             "ЦЧБ":"Центрально-Черноземный","ЮЗБ":"Юго-Западный","ПВБ":"Поволжский",
             "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
         };
+        
+        // Функции для отображения названий команд в зависимости от вкладки
+        function getTeamDisplayNameInkasso(code) {
+            if (code === "МРД") return "ПЦП МРД ЦУНДО";
+            return baseTeamNames[code];
+        }
+        function getTeamDisplayNameOhrana(code) {
+            if (code === "МРД") return "ЦОО ЦА и МБ";
+            return baseTeamNames[code];
+        }
+        function getTeamFullInkasso(code) {
+            return `<strong>${getTeamDisplayNameInkasso(code)} (${code})</strong>`;
+        }
+        function getTeamFullOhrana(code) {
+            return `<strong>${getTeamDisplayNameOhrana(code)} (${code})</strong>`;
+        }
 
         // --------------------------------------------------------------
         // СТАТИЧЕСКИЕ ДАННЫЕ (на основе скриншотов, для надёжности)
@@ -377,33 +317,33 @@
             { code:"ВВБ", name:"Волго-Вятский", est:12, tri:12, drv:12, shoot:8, total:44 }
         ];
         const staticEstafetaRows = [
-            { team_code:"ББ", team_name:"Байкальский", direction:"1", raw_seconds:825.84, penalty:20, total_seconds:845.84, place:1 },
-            { team_code:"ЦЧБ", team_name:"Центрально-Черноземный", direction:"1", raw_seconds:863.95, penalty:0, total_seconds:863.95, place:2 },
-            { team_code:"СИБ", team_name:"Сибирский", direction:"1", raw_seconds:865.67, penalty:0, total_seconds:865.67, place:3 },
-            { team_code:"ДВБ", team_name:"Дальневосточный", direction:"1", raw_seconds:884.65, penalty:0, total_seconds:884.65, place:4 },
-            { team_code:"СРБ", team_name:"Среднерусский", direction:"2", raw_seconds:802.94, penalty:100, total_seconds:902.94, place:5 },
-            { team_code:"МРД", team_name:"Московский", direction:"1", raw_seconds:865.98, penalty:40, total_seconds:905.98, place:6 },
-            { team_code:"УБ", team_name:"Уральский", direction:"1", raw_seconds:798.89, penalty:140, total_seconds:938.89, place:7 },
-            { team_code:"ЮЗБ", team_name:"Юго-Западный", direction:"1", raw_seconds:1050.00, penalty:20, total_seconds:1070.00, place:8 }
+            { team_code:"ББ", direction:"1", raw_seconds:825.84, penalty:20, total_seconds:845.84 },
+            { team_code:"ЦЧБ", direction:"1", raw_seconds:863.95, penalty:0, total_seconds:863.95 },
+            { team_code:"СИБ", direction:"1", raw_seconds:865.67, penalty:0, total_seconds:865.67 },
+            { team_code:"ДВБ", direction:"1", raw_seconds:884.65, penalty:0, total_seconds:884.65 },
+            { team_code:"СРБ", direction:"2", raw_seconds:802.94, penalty:100, total_seconds:902.94 },
+            { team_code:"МРД", direction:"1", raw_seconds:865.98, penalty:40, total_seconds:905.98 },
+            { team_code:"УБ", direction:"1", raw_seconds:798.89, penalty:140, total_seconds:938.89 },
+            { team_code:"ЮЗБ", direction:"1", raw_seconds:1050.00, penalty:20, total_seconds:1070.00 }
         ];
         const staticTriathlon = [
-            { code:"УБ", name:"Уральский", name1:"Марамыгин Марк Юрьевич", raw1:238.64, penalty1:20, total1:258.64, name2:"Москвин Станислав Сергеевич", raw2:260.32, penalty2:0, total2:260.32, teamTotal:518.96, place:1 },
-            { code:"СИБ", name:"Сибирский", name1:"Павлов Роман Владимирович", raw1:285.23, penalty1:0, total1:285.23, name2:"Груздов Егор Александрович", raw2:252.07, penalty2:0, total2:252.07, teamTotal:537.30, place:2 },
-            { code:"ПВБ", name:"Поволжский", name1:"Гриднев Виктор Геннадьевич", raw1:345.12, penalty1:0, total1:345.12, name2:"Сернов Александр Сергеевич", raw2:354.94, penalty2:0, total2:354.94, teamTotal:700.06, place:3 },
-            { code:"ДВБ", name:"Дальневосточный", name1:"Фёдоров Юрий Александрович", raw1:372.75, penalty1:0, total1:372.75, name2:"Шепелев Артём Александрович", raw2:383.17, penalty2:20, total2:403.17, teamTotal:775.92, place:4 }
+            { code:"УБ", name1:"Марамыгин Марк Юрьевич", raw1:238.64, penalty1:20, total1:258.64, name2:"Москвин Станислав Сергеевич", raw2:260.32, penalty2:0, total2:260.32, teamTotal:518.96, place:1 },
+            { code:"СИБ", name1:"Павлов Роман Владимирович", raw1:285.23, penalty1:0, total1:285.23, name2:"Груздов Егор Александрович", raw2:252.07, penalty2:0, total2:252.07, teamTotal:537.30, place:2 },
+            { code:"ПВБ", name1:"Гриднев Виктор Геннадьевич", raw1:345.12, penalty1:0, total1:345.12, name2:"Сернов Александр Сергеевич", raw2:354.94, penalty2:0, total2:354.94, teamTotal:700.06, place:3 },
+            { code:"ДВБ", name1:"Фёдоров Юрий Александрович", raw1:372.75, penalty1:0, total1:372.75, name2:"Шепелев Артём Александрович", raw2:383.17, penalty2:20, total2:403.17, teamTotal:775.92, place:4 }
         ];
         const staticDriving = [
-            { code:"СИБ", name:"Сибирский", participant:"Данилов Андрей Алексеевич", figure_raw:442.87, figure_penalty:20, figure_total:462.87, sdu_raw:383.94, sdu_penalty:0, sdu_total:383.94, total_time:846.81, overall_place:1 },
-            { code:"УБ", name:"Уральский", participant:"Кудрявцев Максим Николаевич", figure_raw:342.39, figure_penalty:0, figure_total:342.39, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:2 },
-            { code:"ДВБ", name:"Дальневосточный", participant:"Козырев Кирилл Александрович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:3 },
-            { code:"ББ", name:"Байкальский", participant:"Горбунов Виталий Андреевич", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:4 },
-            { code:"МРД", name:"Московский", participant:"Лобанов Евгений Юрьевич", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:5 },
-            { code:"ЦЧБ", name:"Центрально-Черноземный", participant:"Васильев Александр Леонидович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:6 },
-            { code:"ЮЗБ", name:"Юго-Западный", participant:"Болдырев Владимир Александрович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:7 },
-            { code:"ПВБ", name:"Поволжский", participant:"Полодичук Дмитрий Львович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:8 },
-            { code:"СРБ", name:"Среднерусский", participant:"Воронин Антон Николаевич", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:9 },
-            { code:"СЗБ", name:"Северо-Западный", participant:"Догунов Дмитрий Владимирович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:10 },
-            { code:"ВВБ", name:"Волго-Вятский", participant:"Покров Евгений Александрович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:11 }
+            { code:"СИБ", participant:"Данилов Андрей Алексеевич", figure_raw:442.87, figure_penalty:20, figure_total:462.87, sdu_raw:383.94, sdu_penalty:0, sdu_total:383.94, total_time:846.81, overall_place:1 },
+            { code:"УБ", participant:"Кудрявцев Максим Николаевич", figure_raw:342.39, figure_penalty:0, figure_total:342.39, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:2 },
+            { code:"ДВБ", participant:"Козырев Кирилл Александрович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:3 },
+            { code:"ББ", participant:"Горбунов Виталий Андреевич", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:4 },
+            { code:"МРД", participant:"Лобанов Евгений Юрьевич", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:5 },
+            { code:"ЦЧБ", participant:"Васильев Александр Леонидович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:6 },
+            { code:"ЮЗБ", participant:"Болдырев Владимир Александрович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:7 },
+            { code:"ПВБ", participant:"Полодичук Дмитрий Львович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:8 },
+            { code:"СРБ", participant:"Воронин Антон Николаевич", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:9 },
+            { code:"СЗБ", participant:"Догунов Дмитрий Владимирович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:10 },
+            { code:"ВВБ", participant:"Покров Евгений Александрович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:11 }
         ];
         const shootingIndividual = [
             { place:1, team:"Среднерусский", name:"Артемкин Николай Николаевич", result:"02:48,45" },
@@ -417,17 +357,14 @@
             { place:9, team:"Сибирский", name:"Шейнфельд Никита Александрович", result:"03:23,41" },
             { place:10, team:"Волго-Вятский", name:"Михайлов Иван Владимирович", result:"03:26,39" }
         ];
-        const staticSecurityEstafeta = [{ team_code:"ДВБ", team_name:"Дальневосточный", direction:"1", total_seconds:1074.56, place:1 }];
+        const staticSecurityEstafeta = [{ team_code:"ДВБ", direction:"1", total_seconds:1074.56 }];
         const staticServiceDuathlon = {
             "ББ": { p1: { name:"—", total:60.00 }, p2: { name:"—", total:60.00 }, p3: null, teamTotal:120.00 },
             "УБ": { p1: { name:"Салатов Николай Семенович", total:222.45 }, p2: { name:"Вахитов Петр Николаевич", total:256.14 }, p3: { name:"Ковалев Сергей Михайлович", total:225.87 }, teamTotal:704.46 }
         };
-        const staticCommonEstafeta = {
-            "УБ": 688.00, "ББ": 822.00, "МРД": 824.04, "ДВБ": 845.00
-        };
+        const staticCommonEstafeta = { "УБ": 688.00, "ББ": 822.00, "МРД": 824.04, "ДВБ": 845.00 };
         const shootingPlaces = { "СИБ":5, "СРБ":1, "СЗБ":3, "ДВБ":2, "ЦЧБ":4, "ВВБ":8, "ЮЗБ":7, "ПВБ":6, "УБ":10, "ББ":9, "МРД":11 };
 
-        // общие функции
         function formatTime(sec) {
             if (sec === null || isNaN(sec)) return "—";
             let minutes = Math.floor(sec / 60);
@@ -448,26 +385,24 @@
             return place;
         }
 
-        // ----- ИНКАССАЦИЯ -----
+        // ----- ИНКАССАЦИЯ (с переименованием МРД) -----
         async function renderTeamStandingsInkasso() {
             const container = document.getElementById('team-standings-inkasso');
-            // пытаемся загрузить из Supabase, если нет — статика
             let standings = staticInkassoStandings;
-            container.innerHTML = '<div class="loading">Загрузка...</div>';
             let html = '<table class="results-table"><thead><th>Итоговое место</th><th>Команда</th><th>Эстафета</th><th>Триатлон</th><th>Мастерство вождения</th><th>Практическая стрельба</th><th>Сумма мест</th></thead><tbody>';
             let rank = 1;
             for (let s of standings) {
                 const rowClass = getPlaceRowClass(rank);
                 let placeDisplay = rank <= 3 ? formatPlaceWithMedal(rank) : rank;
                 html += `<tr class="${rowClass}">
-                            <td>${placeDisplay}</td>
-                            <td><strong>${s.name} (${s.code})</strong></td>
-                            <td>${s.est}${s.est === 12 ? '<span class="plus-place">+</span>' : ''}</td>
-                            <td>${s.tri}${s.tri === 12 ? '<span class="plus-place">+</span>' : ''}</td>
-                            <td>${s.drv}${s.drv === 12 ? '<span class="plus-place">+</span>' : ''}</td>
-                            <td>${s.shoot}${s.shoot === 12 ? '<span class="plus-place">+</span>' : ''}</td>
-                            <td><strong>${s.total}</strong></td>
-                          </tr>`;
+                             <td>${placeDisplay}</td>
+                             <td>${getTeamFullInkasso(s.code)}</td>
+                             <td>${s.est}${s.est === 12 ? '<span class="plus-place">+</span>' : ''}</td>
+                             <td>${s.tri}${s.tri === 12 ? '<span class="plus-place">+</span>' : ''}</td>
+                             <td>${s.drv}${s.drv === 12 ? '<span class="plus-place">+</span>' : ''}</td>
+                             <td>${s.shoot}${s.shoot === 12 ? '<span class="plus-place">+</span>' : ''}</td>
+                             <td><strong>${s.total}</strong></td>
+                           </tr>`;
                 rank++;
             }
             html += '</tbody></table>';
@@ -476,13 +411,12 @@
 
         async function renderDetailedEstafeta() {
             const container = document.getElementById('detailed-estafeta');
-            let rows = staticEstafetaRows;
-            // дополняем всеми 11 командами
+            const rows = staticEstafetaRows;
             const fullList = [];
             for (let code of teamCodes) {
                 const existing = rows.find(r => r.team_code === code);
-                if (existing) fullList.push(existing);
-                else fullList.push({ team_code: code, team_name: teamNames[code], direction: "—", raw_seconds: null, penalty: 0, total_seconds: null, place: null });
+                if (existing) fullList.push({ team_code: code, direction: existing.direction, raw_seconds: existing.raw_seconds, penalty: existing.penalty, total_seconds: existing.total_seconds });
+                else fullList.push({ team_code: code, direction: "—", raw_seconds: null, penalty: 0, total_seconds: null });
             }
             fullList.sort((a,b) => {
                 if (a.total_seconds === null && b.total_seconds === null) return 0;
@@ -491,26 +425,16 @@
                 return a.total_seconds - b.total_seconds;
             });
             let currentPlace = 1;
-            for (let i=0; i<fullList.length; i++) {
-                if (fullList[i].total_seconds !== null) fullList[i].place = currentPlace++;
-                else fullList[i].place = null;
-            }
+            for (let i=0; i<fullList.length; i++) if (fullList[i].total_seconds !== null) fullList[i].place = currentPlace++;
             let html = '<table><thead><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></thead><tbody>';
             for (let row of fullList) {
                 let placeDisplay = '', rowClass = '';
-                if (row.place !== null && row.place <= 3) { rowClass = getPlaceRowClass(row.place); placeDisplay = formatPlaceWithMedal(row.place); }
-                else if (row.place !== null) placeDisplay = row.place;
+                if (row.place && row.place <= 3) { rowClass = getPlaceRowClass(row.place); placeDisplay = formatPlaceWithMedal(row.place); }
+                else if (row.place) placeDisplay = row.place;
                 else placeDisplay = '—';
                 const rawStr = row.raw_seconds !== null ? formatTime(row.raw_seconds) : '—';
                 const totalStr = row.total_seconds !== null ? formatTime(row.total_seconds) : '—';
-                html += `<tr class="${rowClass}">
-                            <td>${placeDisplay}</td>
-                            <td><strong>${row.team_name} (${row.team_code})</strong></td>
-                            <td>${row.direction}</td>
-                            <td>${rawStr}</td>
-                            <td>${row.penalty}</td>
-                            <td>${totalStr}</td>
-                         </tr>`;
+                html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td>${getTeamFullInkasso(row.team_code)}</td><td>${row.direction}</td><td>${rawStr}</td><td>${row.penalty}</td><td>${totalStr}</td></tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
@@ -525,15 +449,9 @@
                 let placeDisplay = d.place <= 3 ? formatPlaceWithMedal(d.place) : d.place;
                 html += `<tr class="${rowClass}">
                             <td>${placeDisplay}</td>
-                            <td><strong>${d.name} (${d.code})</strong></td>
-                            <td>${d.name1}</td>
-                            <td>${d.raw1 !== null ? formatTime(d.raw1) : '—'}</td>
-                            <td>${d.penalty1}</td>
-                            <td>${d.total1 !== null ? formatTime(d.total1) : '—'}</td>
-                            <td>${d.name2}</td>
-                            <td>${d.raw2 !== null ? formatTime(d.raw2) : '—'}</td>
-                            <td>${d.penalty2}</td>
-                            <td>${d.total2 !== null ? formatTime(d.total2) : '—'}</td>
+                            <td>${getTeamFullInkasso(d.code)}</td>
+                            <td>${d.name1}</td><td>${d.raw1 !== null ? formatTime(d.raw1) : '—'}</td><td>${d.penalty1}</td><td>${d.total1 !== null ? formatTime(d.total1) : '—'}</td>
+                            <td>${d.name2}</td><td>${d.raw2 !== null ? formatTime(d.raw2) : '—'}</td><td>${d.penalty2}</td><td>${d.total2 !== null ? formatTime(d.total2) : '—'}</td>
                             <td><strong>${d.teamTotal !== null ? formatTime(d.teamTotal) : '—'}</strong></td>
                          </tr>`;
             }
@@ -550,14 +468,10 @@
                 let placeDisplay = d.overall_place <= 3 ? formatPlaceWithMedal(d.overall_place) : d.overall_place;
                 html += `<tr class="${rowClass}">
                             <td>${placeDisplay}</td>
-                            <td><strong>${d.name} (${d.code})</strong></td>
+                            <td>${getTeamFullInkasso(d.code)}</td>
                             <td>${d.participant}</td>
-                            <td>${d.figure_raw !== null ? formatTime(d.figure_raw) : '—'}</td>
-                            <td>${d.figure_penalty}</td>
-                            <td>${d.figure_total !== null ? formatTime(d.figure_total) : '—'}</td>
-                            <td>${d.sdu_raw !== null ? formatTime(d.sdu_raw) : '—'}</td>
-                            <td>${d.sdu_penalty}</td>
-                            <td>${d.sdu_total !== null ? formatTime(d.sdu_total) : '—'}</td>
+                            <td>${d.figure_raw !== null ? formatTime(d.figure_raw) : '—'}</td><td>${d.figure_penalty}</td><td>${d.figure_total !== null ? formatTime(d.figure_total) : '—'}</td>
+                            <td>${d.sdu_raw !== null ? formatTime(d.sdu_raw) : '—'}</td><td>${d.sdu_penalty}</td><td>${d.sdu_total !== null ? formatTime(d.sdu_total) : '—'}</td>
                             <td><strong>${d.total_time !== null ? formatTime(d.total_time) : '—'}</strong></td>
                          </tr>`;
             }
@@ -583,7 +497,7 @@
             const fullList = [];
             for (let code of teamCodes) {
                 const time = data[code] || null;
-                fullList.push({ code, name: teamNames[code], total_seconds: time });
+                fullList.push({ code, total_seconds: time });
             }
             fullList.sort((a,b) => {
                 if (a.total_seconds === null && b.total_seconds === null) return 0;
@@ -596,20 +510,19 @@
             let html = '<table><thead><th>Место</th><th>Команда</th><th>Итоговое время</th></thead><tbody>';
             for (let row of fullList) {
                 let placeDisplay = '', rowClass = '';
-                if (row.place !== null && row.place <= 3) { rowClass = getPlaceRowClass(row.place); placeDisplay = formatPlaceWithMedal(row.place); }
-                else if (row.place !== null) placeDisplay = row.place;
+                if (row.place && row.place <= 3) { rowClass = getPlaceRowClass(row.place); placeDisplay = formatPlaceWithMedal(row.place); }
+                else if (row.place) placeDisplay = row.place;
                 else placeDisplay = '—';
                 const timeStr = row.total_seconds !== null ? formatTime(row.total_seconds) : '—';
-                html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td><strong>${row.name} (${row.code})</strong></td><td>${timeStr}</td></tr>`;
+                html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td>${getTeamFullInkasso(row.code)}</td><td>${timeStr}</td></tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
         }
 
-        // ----- ОХРАНА -----
+        // ----- ОХРАНА (с переименованием МРД) -----
         async function renderSecurityTeamStandings() {
             const container = document.getElementById('team-standings-ohrana');
-            // статические данные по охране (из скриншота)
             const securityStandings = [
                 { code:"ДВБ", name:"Дальневосточный", est:1, duathlon:12, shoot:2, total:15 },
                 { code:"ББ", name:"Байкальский", est:12, duathlon:1, shoot:9, total:22 },
@@ -630,12 +543,12 @@
                 let placeDisplay = rank <= 3 ? formatPlaceWithMedal(rank) : rank;
                 html += `<tr class="${rowClass}">
                             <td>${placeDisplay}</td>
-                            <td><strong>${s.name} (${s.code})</strong></td>
+                            <td>${getTeamFullOhrana(s.code)}</td>
                             <td>${s.est}${s.est === 12 ? '<span class="plus-place">+</span>' : ''}</td>
                             <td>${s.duathlon}${s.duathlon === 12 ? '<span class="plus-place">+</span>' : ''}</td>
                             <td>${s.shoot}${s.shoot === 12 ? '<span class="plus-place">+</span>' : ''}</td>
                             <td><strong>${s.total}</strong></td>
-                          </tr>`;
+                         </tr>`;
                 rank++;
             }
             html += '</tbody></table>';
@@ -644,11 +557,12 @@
 
         async function renderSecurityEstafeta() {
             const container = document.getElementById('security-estafeta');
+            const rows = staticSecurityEstafeta;
             const fullList = [];
             for (let code of teamCodes) {
-                const existing = staticSecurityEstafeta.find(r => r.team_code === code);
-                if (existing) fullList.push(existing);
-                else fullList.push({ team_code: code, team_name: teamNames[code], direction: "—", total_seconds: null, place: null });
+                const existing = rows.find(r => r.team_code === code);
+                if (existing) fullList.push({ team_code: code, direction: existing.direction, total_seconds: existing.total_seconds });
+                else fullList.push({ team_code: code, direction: "—", total_seconds: null });
             }
             fullList.sort((a,b) => {
                 if (a.total_seconds === null && b.total_seconds === null) return 0;
@@ -661,11 +575,11 @@
             let html = '<table><thead><th>Место</th><th>Команда</th><th>Напр.</th><th>Итоговое время</th></thead><tbody>';
             for (let d of fullList) {
                 let placeDisplay = '', rowClass = '';
-                if (d.place !== null && d.place <= 3) { rowClass = getPlaceRowClass(d.place); placeDisplay = formatPlaceWithMedal(d.place); }
-                else if (d.place !== null) placeDisplay = d.place;
+                if (d.place && d.place <= 3) { rowClass = getPlaceRowClass(d.place); placeDisplay = formatPlaceWithMedal(d.place); }
+                else if (d.place) placeDisplay = d.place;
                 else placeDisplay = '—';
                 const timeStr = d.total_seconds !== null ? formatTime(d.total_seconds) : '—';
-                html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td><strong>${d.team_name} (${d.team_code})</strong></td><td>${d.direction}</td><td>${timeStr}</td></tr>`;
+                html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td>${getTeamFullOhrana(d.team_code)}</td><td>${d.direction}</td><td>${timeStr}</td></tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
@@ -677,14 +591,13 @@
             for (let code of teamCodes) {
                 const staticTeam = staticServiceDuathlon[code];
                 if (staticTeam) {
-                    result.push({ code, name: teamNames[code],
+                    result.push({ code,
                         p1_name: staticTeam.p1?.name || "—", p1_total: staticTeam.p1?.total || null,
                         p2_name: staticTeam.p2?.name || "—", p2_total: staticTeam.p2?.total || null,
                         p3_name: staticTeam.p3?.name || "—", p3_total: staticTeam.p3?.total || null,
                         team_total: staticTeam.teamTotal });
                 } else {
-                    result.push({ code, name: teamNames[code],
-                        p1_name: "—", p1_total: null, p2_name: "—", p2_total: null, p3_name: "—", p3_total: null, team_total: null });
+                    result.push({ code, p1_name: "—", p1_total: null, p2_name: "—", p2_total: null, p3_name: "—", p3_total: null, team_total: null });
                 }
             }
             result.sort((a,b) => (a.team_total ?? Infinity) - (b.team_total ?? Infinity));
@@ -696,13 +609,10 @@
                 let placeDisplay = (t.place !== null && t.place <= 3) ? formatPlaceWithMedal(t.place) : (t.place || '—');
                 html += `<tr class="${rowClass}">
                             <td>${placeDisplay}</td>
-                            <td><strong>${t.name} (${t.code})</strong></td>
-                            <td>${t.p1_name}</td>
-                            <td>${t.p1_total !== null ? formatTime(t.p1_total) : '—'}</td>
-                            <td>${t.p2_name}</td>
-                            <td>${t.p2_total !== null ? formatTime(t.p2_total) : '—'}</td>
-                            <td>${t.p3_name}</td>
-                            <td>${t.p3_total !== null ? formatTime(t.p3_total) : '—'}</td>
+                            <td>${getTeamFullOhrana(t.code)}</td>
+                            <td>${t.p1_name}</td><td>${t.p1_total !== null ? formatTime(t.p1_total) : '—'}</td>
+                            <td>${t.p2_name}</td><td>${t.p2_total !== null ? formatTime(t.p2_total) : '—'}</td>
+                            <td>${t.p3_name}</td><td>${t.p3_total !== null ? formatTime(t.p3_total) : '—'}</td>
                             <td><strong>${t.team_total !== null ? formatTime(t.team_total) : '—'}</strong></td>
                          </tr>`;
             }
@@ -716,7 +626,7 @@
             const fullList = [];
             for (let code of teamCodes) {
                 const time = data[code] || null;
-                fullList.push({ code, name: teamNames[code], total_seconds: time });
+                fullList.push({ code, total_seconds: time });
             }
             fullList.sort((a,b) => {
                 if (a.total_seconds === null && b.total_seconds === null) return 0;
@@ -729,11 +639,11 @@
             let html = '<table><thead><th>Место</th><th>Команда</th><th>Итоговое время</th></thead><tbody>';
             for (let row of fullList) {
                 let placeDisplay = '', rowClass = '';
-                if (row.place !== null && row.place <= 3) { rowClass = getPlaceRowClass(row.place); placeDisplay = formatPlaceWithMedal(row.place); }
-                else if (row.place !== null) placeDisplay = row.place;
+                if (row.place && row.place <= 3) { rowClass = getPlaceRowClass(row.place); placeDisplay = formatPlaceWithMedal(row.place); }
+                else if (row.place) placeDisplay = row.place;
                 else placeDisplay = '—';
                 const timeStr = row.total_seconds !== null ? formatTime(row.total_seconds) : '—';
-                html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td><strong>${row.name} (${row.code})</strong></td><td>${timeStr}</td></tr>`;
+                html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td>${getTeamFullOhrana(row.code)}</td><td>${timeStr}</td></tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
@@ -752,14 +662,7 @@
         }
 
         async function refreshInkasso() {
-            await Promise.all([
-                renderTeamStandingsInkasso(),
-                renderDetailedEstafeta(),
-                renderTriathlon(),
-                renderDriving(),
-                renderIndividualInkasso(),
-                renderTeamEstafetaCommonInkasso()
-            ]);
+            await Promise.all([renderTeamStandingsInkasso(), renderDetailedEstafeta(), renderTriathlon(), renderDriving(), renderIndividualInkasso(), renderTeamEstafetaCommonInkasso()]);
         }
         async function refreshOhrana() {
             await renderSecurityTeamStandings();
