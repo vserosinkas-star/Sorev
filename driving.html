@@ -899,7 +899,7 @@
         async function init() {
             const statusDiv = document.getElementById('connectionStatus');
             statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>';
-            try { await supabaseClient.from('driving_results').select('count', { count: 'exact', head: true }); statusDiv.innerHTML = '<span class="status-ok">✅ Подключено к Supabase</span>'; }
+            try { await supabaseClient.from('driving_results').select('count', { count: 'exact', head: true }); statusDiv.innerHTML = '<span class="status-ok">✅ Подключено</span>'; }
             catch(e){ statusDiv.innerHTML = '<span class="status-error">❌ Ошибка подключения (работа локально)</span>'; }
             await renderOverallTable();
             figureCard.style.display = 'none'; sduCard.style.display = 'none';
