@@ -269,15 +269,34 @@
         
         // Зелёная подсветка
         const greenHighlightIds = [
-            "prop_no_radio_start", "prop_sk_cell", "prop_belt",
-            "bank_belt", "bank_nak_open", "bank_nak", "bank_scan",
-            "puncture_no_report", "puncture_repair_report",
-            "incass_no_radio", "incass_no_exit_radio", "incass_tumbler_blue",
-            "us_no_command", "us_early_exit", "us_no_check",
-            "shoot_miss",
-            "fire_ext", "fire_evac",
-            "med_tourniquet",
-            "handcuff_no_warning", "handcuff_no_report"
+
+        
+            "prop_no_radio_start", "prop_bad_sk", "prop_sk_cell",
+            "prop_belt", "bank_belt", "bank_nak_open", "bank_nak",
+            "bank_nak_dv", "pbank_belt1",
+            "puncture_belt", "puncture_no_report", "puncture_handbrake",
+            "puncture_gear", "puncture_repair_report", "us_belt",
+            "us_early_cassette",
+            "us_driver_door_lock", "us_no_command",
+            "us_early_exit",
+            "us_nakop_load", "us_nakop_door",
+            "us_belt1", "vsp_belt", "vsp_nak", "vsp_seif", 
+            "vsp_no_svyaz", "vsp_no_ok", "vsp_sel",
+            "vsp_sk_cell", "vsp_belt1", "shoot_belt", 
+            "shoot_belt1", "fire_belt", "fire_no_report",
+             "fire_bad_sk", "fire_cen", "fire_nak",
+            "fire_sk_cell", "fire_repair_report",
+            "fire_belt1", "med_belt", "med_no_report", "med_no_report1",
+            "med_belt1", "incass_belt", "incass_no_exit_radio", "incass_exit_no_confirm",
+            "incass_blue_key_from_driver", "incass_nakop_after", 
+            "incass_nakop_door_after", "incass_sk_cell_after",
+            "incass_belt1", "handcuff_belt", 
+            "handcuff_no_warning", "handcuff_no_radio_exit", 
+            "handcuff_boarding_no_confirm", "handcuff_driver_no_confirm", 
+            "handcuff_belt1", "obsh_svyaz", "obsh_tsd",
+            "obsh_tsd", "obsh_gun"
+
+            
         ];
         
         function isGreenHighlight(penaltyId) {
