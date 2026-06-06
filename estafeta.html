@@ -2,222 +2,137 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Дисциплина Эстафета — судейская панель</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Дисциплина Эстафета</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-        }
-        body {
-            background: #f0f4f8;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        .judge-panel {
-            background: white;
-            border-radius: 28px;
-            padding: 20px 24px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-        }
-        .control-group {
-            margin-bottom: 20px;
-        }
-        .control-group label {
-            font-weight: 600;
-            display: block;
-            margin-bottom: 6px;
-            color: #1e3a5f;
-        }
-        select, input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 16px;
-            border: 1px solid #cbd5e1;
-            font-size: 1rem;
-            background: white;
-        }
-        .penalties-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin: 15px 0;
-            border-radius: 20px;
-        }
-        .penalty-card {
-            background: #ffffff;
-            border: 1px solid #e2edf7;
-            border-radius: 20px;
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-            transition: 0.1s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
-        }
-        .penalty-desc {
-            flex: 3;
-            font-size: 0.95rem;
-            font-weight: 500;
-            color: #0f2b44;
-            line-height: 1.3;
-        }
-        .penalty-actions {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-            background: #f8fafc;
-            padding: 6px 12px;
-            border-radius: 60px;
-        }
-        .counter-group {
-            display: inline-flex;
-            align-items: center;
-            background: white;
-            border-radius: 48px;
-            border: 1px solid #cbd5e1;
-            overflow: hidden;
-        }
-        .counter-btn {
-            background: #f1f5f9;
-            border: none;
-            width: 36px;
-            height: 36px;
-            font-size: 1.4rem;
-            font-weight: bold;
-            cursor: pointer;
-            color: #1e3a8a;
-            transition: 0.1s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .counter-btn:active {
-            background: #e2e8f0;
-        }
-        .counter-value {
-            min-width: 44px;
-            text-align: center;
-            font-weight: 800;
-            font-size: 1.2rem;
-            background: white;
-            padding: 0 6px;
-        }
-        .penalty-badge {
-            background: #1e3a8a;
-            color: white;
-            padding: 6px 14px;
-            border-radius: 40px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            white-space: nowrap;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-        }
-        .time-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            align-items: flex-end;
-            margin: 15px 0;
-        }
-        button {
-            background: #1e3a8a;
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 40px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        button:hover {
-            background: #1e40af;
-        }
-        .btn-warning {
-            background: #f97316;
-        }
-        .unsaved-badge {
-            background: #fef3c7;
-            color: #b45309;
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 0.7rem;
-            font-weight: bold;
-            margin-left: 12px;
-            white-space: nowrap;
-        }
-        .summary-bar {
-            background: #f1f5f9;
-            border-radius: 20px;
-            padding: 16px;
-            margin-top: 20px;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 15px;
-            font-weight: 600;
-        }
-        .results-table {
-            background: white;
-            border-radius: 24px;
-            overflow-x: auto;
-            padding: 4px;
-            margin-top: 30px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            min-width: 600px;
-        }
-        th, td {
-            padding: 12px 8px;
-            text-align: center;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        th {
-            background: #f8fafc;
-        }
-        .rank-1 {
-            background-color: #fef9c3;
-            font-weight: bold;
-        }
-        .status-ok {
-            background: #dcfce7;
-            color: #166534;
-            padding: 4px 12px;
-            border-radius: 30px;
-            display: inline-block;
-        }
-        .status-error {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        .status-warning {
-            background: #fed7aa;
-            color: #9b4a0c;
-        }
-        .penalty-highlight-green {
-            background: #dcfce7 !important;
-            border-left: 6px solid #15803d !important;
-        }
-        @media (max-width: 700px) {
+        * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f0f4f8; margin: 0; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .judge-panel { background: white; border-radius: 20px; padding: 20px 24px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .judge-controls { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; margin-bottom: 20px; }
+        .control-group { display: flex; flex-direction: column; gap: 6px; min-width: 160px; flex: 1; }
+        .control-group label { font-weight: 600; font-size: 0.85rem; color: #2c3e66; }
+        select, input { padding: 12px 14px; border-radius: 12px; border: 1px solid #cbd5e1; background: white; font-size: 1rem; width: 100%; }
+        button { background: #1e3a8a; color: white; border: none; padding: 12px 20px; border-radius: 30px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        button:hover { background: #1e40af; }
+        .reset-stage-btn { background: #f97316; }
+        .reset-team-btn { background: #475569; }
+        .print-btn { background: #2c5f2d; }
+        .print-btn:hover { background: #1f4a20; }
+        .stage-info { background: #eef2ff; border-radius: 16px; padding: 12px 20px; margin: 15px 0; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; }
+        .stage-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
+        .stage-btn { background: #e2e8f0; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; font-size: 0.85rem; font-weight: 500; color: #1e293b; transition: 0.2s; }
+        .stage-btn.active { background: #1e3a8a; color: white; }
+        .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin: 20px 0; max-height: 550px; overflow-y: auto; padding-right: 8px; }
+        .penalty-card { background: #f9fafb; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .penalty-card .desc { flex: 2; font-size: 0.9rem; font-weight: 500; }
+        .penalty-sec { background: #e2e8f0; padding: 4px 10px; border-radius: 40px; font-size: 0.75rem; font-weight: 600; margin-left: 8px; white-space: nowrap; }
+        .counter-control { display: flex; align-items: center; gap: 8px; background: white; border-radius: 40px; padding: 4px 12px; border: 1px solid #cbd5e1; }
+        .counter-control button { background: #e2e8f0; color: #1e293b; padding: 2px 10px; font-size: 1.2rem; line-height: 1; margin: 0; width: auto; }
+        .counter-control span { min-width: 32px; text-align: center; font-weight: bold; }
+        .penalty-highlight-green { background: #dcfce7 !important; border-left: 6px solid #15803d !important; }
+        .summary-bar { background: #f1f5f9; border-radius: 20px; padding: 16px 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-top: 20px; gap: 15px; }
+        .total-time { font-size: 1.6rem; font-weight: 800; background: #dcfce7; padding: 6px 18px; border-radius: 40px; }
+        .results-table { background: white; border-radius: 24px; overflow-x: auto; padding: 4px; margin-top: 30px; }
+        table { width: 100%; border-collapse: collapse; min-width: 500px; }
+        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; }
+        .rank-1 { background-color: #fef9c3; font-weight: bold; }
+        .status-ok { background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; display: inline-block; }
+        .status-error { background: #fee2e2; color: #991b1b; }
+        .status-warning { background: #fed7aa; color: #9b4a0c; }
+        
+        /* ========== АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ ========== */
+        @media (max-width: 600px) {
             body { padding: 12px; }
             .judge-panel { padding: 16px; }
-            .penalty-card { flex-direction: column; align-items: stretch; }
-            .penalty-actions { justify-content: space-between; }
-            button { width: 100%; }
-            .stage-buttons { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-            .stage-btn { font-size: 0.75rem; padding: 6px 12px; }
+            
+            /* Сетка штрафов — одна колонка, без горизонтальной прокрутки */
+            .penalties-grid {
+                grid-template-columns: 1fr !important;
+                max-height: none !important;
+                overflow-y: visible !important;
+                gap: 8px;
+            }
+            
+            /* Карточка штрафа — вертикальная компоновка */
+            .penalty-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+                padding: 12px;
+            }
+            
+            .penalty-card .desc {
+                width: 100%;
+                font-size: 0.85rem;
+                word-break: break-word;
+            }
+            
+            .penalty-card label {
+                width: 100%;
+                justify-content: space-between;
+                gap: 8px;
+            }
+            
+            /* Счётчики */
+            .counter-control {
+                align-self: flex-start;
+            }
+            
+            /* Элементы управления судьи — вертикально */
+            .judge-controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .judge-controls .control-group,
+            .judge-controls button {
+                width: 100%;
+            }
+            
+            /* Блок с кнопками сохранения/сброса */
+            .stage-info {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            
+            /* Итоговая строка */
+            .summary-bar {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+            
+            .total-time {
+                text-align: center;
+            }
+            
+            /* Кнопки этапов — перенос строк */
+            .stage-buttons {
+                justify-content: center;
+            }
+            
+            .stage-btn {
+                font-size: 0.75rem;
+                padding: 6px 12px;
+            }
+            
+            /* Таблица результатов: оставляем прокрутку только для неё */
+            .results-table {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            /* Мелкие отступы для заголовков */
+            h2, h3 {
+                font-size: 1.3rem;
+            }
         }
+        
         @media print {
             body { background: white; padding: 0; margin: 0; }
             .judge-panel, .results-table, .stage-buttons, .stage-info, .judge-controls, .penalties-grid, .summary-bar, .unsaved-badge,
@@ -228,58 +143,12 @@
             .print-footer { margin-top: 30px; font-size: 9pt; text-align: center; }
         }
         .print-report-area { display: none; }
-        .stage-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 20px 0;
-        }
-        .stage-btn {
-            background: #e2e8f0;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 40px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #1e293b;
-            transition: 0.2s;
-            cursor: pointer;
-        }
-        .stage-btn.active {
-            background: #1e3a8a;
-            color: white;
-        }
-        .judge-controls {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            align-items: flex-end;
-            margin-bottom: 20px;
-        }
-        .stage-info {
-            background: #eef2ff;
-            border-radius: 16px;
-            padding: 12px 20px;
-            margin: 15px 0;
-            display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 10px;
-        }
-        .total-time {
-            font-size: 1.4rem;
-            font-weight: 800;
-            background: #dcfce7;
-            padding: 6px 18px;
-            border-radius: 40px;
-        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="judge-panel">
-        <h2>👨‍⚖️ Эстафета — комплексное упражнение</h2>
+        <h2>👨‍⚖️ Эстафета <span style="font-size: 0.8rem; background: #dcfce7; padding: 4px 12px; border-radius: 30px;"></span></h2>
         <div id="connectionStatus" style="margin-bottom: 15px;"></div>
         
         <div class="judge-controls">
@@ -292,7 +161,7 @@
                 </select>
             </div>
             <div class="control-group">
-                <label>🏦 Территориальный банк (команда)</label>
+                <label>🏦 Территориальный банк</label>
                 <select id="teamSelect">
                     <option value="">-- выбрать --</option>
                     <option value="УБ">Уральский (УБ)</option>
@@ -308,7 +177,7 @@
                     <option value="ВВБ">Волго-Вятский (ВВБ)</option>
                 </select>
             </div>
-            <button id="printReportBtn" style="background:#2c5f2d;">🖨️ Печать отчета с подписями</button>
+            <button id="printReportBtn" class="print-btn" style="background:#2c5f2d; margin-left: auto;">🖨️ Печать отчета с подписями</button>
         </div>
 
         <div id="stageButtonsContainer" class="stage-buttons"></div>
@@ -319,18 +188,20 @@
                 <input type="text" id="rawTimeInput" placeholder="например 5:42.35 или 14:23.05">
             </div>
             <button id="saveRawTimeBtn">💾 Зафиксировать время</button>
-            <button id="resetTeamBtn" class="btn-warning">🔄 Сбросить ВСЕ ошибки команды</button>
+            <button id="resetTeamBtn" class="reset-team-btn">🔄 Сбросить ВСЕ ошибки команды</button>
         </div>
 
         <div id="stageInfo" class="stage-info">
             <span>✅ Выберите направление, банк и этап</span>
             <div style="display: flex; gap: 10px;">
                 <button id="saveStageBtn" style="background: #2b6e3c;">💾 Сохранить ошибки этапа</button>
-                <button id="resetStageBtn" class="btn-warning">🗑️ Сбросить ошибки этапа</button>
+                <button id="resetStageBtn" class="reset-stage-btn">🗑️ Сбросить ошибки этапа</button>
             </div>
         </div>
 
-        <div id="penaltiesContainer" class="penalties-grid"></div>
+        <div id="penaltiesContainer" class="penalties-grid">
+            <div style="grid-column:1/-1; text-align:center;">⚙️ Выберите направление и команду</div>
+        </div>
 
         <div class="summary-bar">
             <span><strong>⚖️ Штраф (сек):</strong> <span id="totalPenaltyDisplay">0</span> сек</span>
@@ -340,11 +211,10 @@
     </div>
     
     <div class="results-table">
-        <h3>🏆 Общий зачёт (эстафета)</h3>
+        <h3>🏆 Общий зачёт</h3>
         <table id="resultsTable">
-            <thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
-            <tbody id="resultsBody"><tr><td colspan="6">Загрузка данных...</td></tr>
-            </tbody>
+            <thead><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></thead>
+            <tbody id="resultsBody"><tr><td colspan="6">Загрузка данных...</td></tr></tbody>
         </table>
     </div>
 </div>
@@ -381,34 +251,68 @@
             "Общие штрафы"
         ];
         
-        // ID нарушений, которые отображаются как счётчики (количество действий)
+        // ID нарушений, которые должны отображаться как счётчики (количество действий)
         const counterPenaltyIds = [
-            'puncture_helper', 'us_cassette_dropped', 'us_jam_search', 'us_jam_bad_fix',
-            'us_not_kas', 'us_left_property', 'fire_bad_sk', 'obsh_svyaz', 'obsh_ivr',
-            'obsh_tsd', 'obsh_gun', 'obsh_sts'
+            'puncture_helper',          // помощь инкассатора
+            'us_cassette_dropped',      // выпала кассета
+            'us_jam_search',            // не осуществлён поиск замятия
+            'us_jam_bad_fix',           // некорректное устранение замятия
+            'us_not_kas',               // кассеты не по маркировке
+            'us_left_property',         // оставление имущества
+            'fire_bad_sk',              // некорректное обращение с СК
+            'obsh_svyaz',               // уронил радиостанцию
+            'obsh_ivr',                 // уронил ИВР
+            'obsh_tsd',                 // уронил ТСД
+            'obsh_gun',                 // выпадение пистолета
+            'obsh_sts'                  // неправильный порядок посадки
         ];
         
+        // Зелёная подсветка
         const greenHighlightIds = [
-            "prop_no_radio_start", "prop_bad_sk", "prop_sk_cell", "prop_belt", "bank_belt", "bank_nak_open", "bank_nak",
-            "bank_nak_dv", "pbank_belt1", "puncture_belt", "puncture_no_report", "puncture_handbrake",
-            "puncture_gear", "puncture_repair_report", "us_belt", "us_early_cassette", "us_driver_door_lock",
-            "us_no_command", "us_early_exit", "us_nakop_load", "us_nakop_door", "us_belt1", "vsp_belt", "vsp_nak",
-            "vsp_seif", "vsp_no_svyaz", "vsp_no_ok", "vsp_sel", "vsp_sk_cell", "vsp_belt1", "shoot_belt", "shoot_belt1",
-            "fire_belt", "fire_no_report", "fire_cen", "fire_nak", "fire_sk_cell", "fire_repair_report",
-            "fire_belt1", "med_belt", "med_no_report", "med_no_report1", "med_belt1", "incass_belt", "incass_no_exit_radio",
-            "incass_exit_no_confirm", "incass_blue_key_from_driver", "incass_nakop_after", "incass_nakop_door_after",
-            "incass_sk_cell_after", "incass_belt1", "handcuff_belt", "handcuff_no_warning", "handcuff_no_radio_exit",
-            "handcuff_boarding_no_confirm", "handcuff_driver_no_confirm", "handcuff_belt1", "obsh_svyaz", "obsh_tsd", "obsh_gun"
+
+        
+            "prop_no_radio_start", "prop_bad_sk", "prop_sk_cell",
+            "prop_belt", "bank_belt", "bank_nak_open", "bank_nak",
+            "bank_nak_dv", "pbank_belt1",
+            "puncture_belt", "puncture_no_report", "puncture_handbrake",
+            "puncture_gear", "puncture_repair_report", "us_belt",
+            "us_early_cassette",
+            "us_driver_door_lock", "us_no_command",
+            "us_early_exit",
+            "us_nakop_load", "us_nakop_door",
+            "us_belt1", "vsp_belt", "vsp_nak", "vsp_seif", 
+            "vsp_no_svyaz", "vsp_no_ok", "vsp_sel",
+            "vsp_sk_cell", "vsp_belt1", "shoot_belt", 
+            "shoot_belt1", "fire_belt", "fire_no_report",
+             "fire_bad_sk", "fire_cen", "fire_nak",
+            "fire_sk_cell", "fire_repair_report",
+            "fire_belt1", "med_belt", "med_no_report", "med_no_report1",
+            "med_belt1", "incass_belt", "incass_no_exit_radio", "incass_exit_no_confirm",
+            "incass_blue_key_from_driver", "incass_nakop_after", 
+            "incass_nakop_door_after", "incass_sk_cell_after",
+            "incass_belt1", "handcuff_belt", 
+            "handcuff_no_warning", "handcuff_no_radio_exit", 
+            "handcuff_boarding_no_confirm", "handcuff_driver_no_confirm", 
+            "handcuff_belt1", "obsh_svyaz", "obsh_tsd",
+            "obsh_tsd", "obsh_gun"
+
+            
         ];
         
+        function isGreenHighlight(penaltyId) {
+            return greenHighlightIds.includes(penaltyId);
+        }
+        
+        // Специальные идентификаторы для стрельбы
         const SHOOT_PM_MISS_ID = 'shoot_pm_misses';
         const SHOOT_SAIGA_HITS_ID = 'shoot_saiga_hits';
         const PENALTY_PER_MISS_PM = 30;
         const SAIGA_BONUS_PER_HIT = 10;
         
-        // ---------- ПОЛНАЯ БИБЛИОТЕКА ШТРАФОВ (из исходного файла, все ошибки) ----------
+        // ---------- БИБЛИОТЕКА ШТРАФОВ (полная) ----------
         const penaltiesLibrary = [
-            { id: "prop_door", category: "Получение имущества", desc: "Не закрыты двери/дверь СТС в «гараже»", sec: 30 },
+            // === Получение имущества ===
+            { id: "prop_door", category: "Получение имущества", desc: "1. Не закрыты двери/дверь СТС в «гараже»", sec: 30 },
             { id: "prop_sk", category: "Получение имущества", desc: "Инкассатор: СК не получен", sec: 20 },
             { id: "prop_yellow_key", category: "Получение имущества", desc: "Инкассатор: Жёлтый ИК-ключ СК не получен", sec: 20 },
             { id: "prop_nakop_key", category: "Получение имущества", desc: "Инкассатор: Ключ от накопителя не получен", sec: 20 },
@@ -426,6 +330,8 @@
             { id: "prop_no_radio_start", category: "Получение имущества", desc: "Не доложили по автомобильной радиостанции дежурному/оператору ЦМ о начале движения СТС по маршруту (при выезде из «гаража»).", sec: 30 },
             { id: "prop_bad_sk", category: "Получение имущества", desc: "Некорректное обращение с СК (уронил/кинул на землю)", sec: 50 },
             { id: "prop_belt", category: "Получение имущества", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+            
+            // === Получение банковских ценностей ===
             { id: "bank_belt", category: "Получение банковских ценностей", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "bank_cone_1", category: "Получение банковских ценностей", desc: "Наезд на 1 конус", sec: 5 },
             { id: "bank_cone_2", category: "Получение банковских ценностей", desc: "Наезд на 2 конуса", sec: 10 },
@@ -441,6 +347,8 @@
             { id: "bank_nak", category: "Получение банковских ценностей", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 30 },
             { id: "bank_nak_dv", category: "Получение банковских ценностей", desc: "Не была закрыта дверь устройства накопителя до начала движения СТС", sec: 30 },
             { id: "bank_belt1", category: "Получение банковских ценностей", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+
+            // === Прокол шины ===
             { id: "puncture_belt", category: "Прокол шины", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "puncture_no_report", category: "Прокол шины", desc: "Водитель-инкассатор не сообщил по автомобильной радиостанции дежурному/оператору ЦМ о поломке СТС.", sec: 30 },
             { id: "puncture_hazard", category: "Прокол шины", desc: "Не включена на СТС аварийная сигнализация", sec: 30 },
@@ -461,10 +369,14 @@
             { id: "puncture_helper", category: "Прокол шины", desc: "Инкассатор оказывает помощь водителю-инкассатору в выполнении данного упражнения (выставление/убирание башмаков/знака аварийной остановки/домкрата и т.д.)", sec: 30 },
             { id: "puncture_repair_report", category: "Прокол шины", desc: "Водитель-инкассатор не сообщил по автомобильной радиостанции дежурному/оператору ЦМ об устранении неисправности СТС", sec: 30 },
             { id: "puncture_belt1", category: "Прокол шины", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+
+            // === Змейка ===
             { id: "snake_cone", category: "Змейка", desc: "Наезд на конус (1)", sec: 5 },
             { id: "snake_cone1", category: "Змейка", desc: "Наезд на конус (2)", sec: 10 },
             { id: "snake_cone2", category: "Змейка", desc: "Наезд на конус (3)", sec: 15 },
             { id: "snake_cone3", category: "Змейка", desc: "Наезд на конус (4 и более)", sec: 20 },
+
+            // === Обслуживание УС ===
             { id: "us_belt", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "us_early_cassette", category: "Обслуживание УС", desc: "Изъятие инкассатором кассет УС из накопителя СТС произведено до остановки СТС", sec: 30 },
             { id: "us_first_exit", category: "Обслуживание УС", desc: "Инкассатор первым вышел из СТС", sec: 30 },
@@ -493,6 +405,8 @@
             { id: "us_nakop_door", category: "Обслуживание УС", desc: "Не была закрыта дверь устройства накопителя", sec: 30 },
             { id: "us_broken_key", category: "Обслуживание УС", desc: "Инкассатор при обслуживании УС сломал/погнул/потерял ключ от УС ", sec: 30 },
             { id: "us_belt1", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+
+             // === Обслуживание ВСП ===
             { id: "vsp_belt", category: "Обслуживание ВСП", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "vsp_nak", category: "Обслуживание ВСП", desc: "Инкассатор не закрыл накопитель после изъятия из него сейф-пакета с денежной наличностью", sec: 30 },
             { id: "vsp_seif", category: "Обслуживание ВСП", desc: "Инкассатор не вложил сейф-пакет с денежной наличностью в СК", sec: 30 },
@@ -508,12 +422,16 @@
             { id: "vsp_sel", category: "Обслуживание ВСП", desc: "Инкассатор осуществил посадку в СТС без подтверждения от водителя-инкассатора", sec: 30 },
             { id: "vsp_sk_cell", category: "Обслуживание ВСП", desc: "СК не установлен в специальную ячейку", sec: 30 },
             { id: "vsp_belt1", category: "Обслуживание ВСП", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+            
+            // === Стрельба ===
             { id: "shoot_belt", category: "Стрельба", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "shoot_position", category: "Стрельба", desc: "СТС не установлен в обозначенном месте, которое обозначено «Г» образной стоп линией (габариты СТС выходят за обозначенную стоп линию)", sec: 30 },
             { id: "shoot_engine", category: "Стрельба", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
             { id: "shoot_door_open", category: "Стрельба", desc: "Не закрыты двери/дверь СТС ", sec: 30 },
             { id: "shoot_miss", category: "Стрельба", desc: "Не сбита мишень", sec: 10 },
             { id: "shoot_belt1", category: "Стрельба", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+            
+            // === Пожар ===
             { id: "fire_belt", category: "Пожар", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "fire_position", category: "Пожар", desc: "СТС не установлен на безопасном расстоянии от огня, которое обозначено «Г» образной стоп линией (габариты СТС выходят за обозначенную стоп линию)", sec: 30 },
             { id: "fire_engine", category: "Пожар", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
@@ -534,6 +452,9 @@
             { id: "fire_sk_cell", category: "Пожар", desc: "Инкассатор: СК не установлен в специальную ячейку", sec: 20 },
             { id: "fire_belt1", category: "Пожар", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "fire_repair_report", category: "Пожар", desc: "Водитель-инкассатор не сообщил по автомобильной радиостанции дежурному/оператору ЦМ о тушение пожара СТС", sec: 30 },
+           
+            
+            // === Медицина ===
             { id: "med_belt", category: "Медицина", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "med_position", category: "Медицина", desc: "СТС не установлен на безопасном расстоянии от огня, которое обозначено «Г» образной стоп линией (габариты СТС выходят за обозначенную стоп линию)", sec: 30 },
             { id: "med_no_report", category: "Медицина", desc: "Водитель-инкассатор по автомобильной радиостанции не сообщил дежурному/оператору ЦМ о «необходимости оказания первой помощи пострадавшему»", sec: 30 },
@@ -549,6 +470,8 @@
             { id: "med_stretcher_ukr", category: "Медицина", desc: "Бригада не переместила манекен в укрытие (обозначенное место)", sec: 30 },
             { id: "med_no_report1", category: "Медицина", desc: "Водитель-инкассатор не доложил по автомобильной радиостанции дежурному инкассатору/оператору ЦМ об оказании первой медицинской помощи пострадавшему", sec: 30 },
             { id: "med_belt1", category: "Медицина", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+  
+            // === Инкассация объекта ===
             { id: "incass_belt", category: "Инкассация объекта", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "incass_no_radio", category: "Инкассация объекта", desc: "Инкассатор инкассирует клиента без носимой радиостанции (не получил у водителя-инкассатора)", sec: 30 },
             { id: "incass_no_docs", category: "Инкассация объекта", desc: "Инкассатор не предъявил документы (паспорт, доверенность)", sec: 30 },
@@ -562,13 +485,15 @@
             { id: "incass_left_packet", category: "Инкассация объекта", desc: "Оставление сейф-пакета с денежной наличностью", sec: 30 },
             { id: "incass_left_sk", category: "Инкассация объекта", desc: "Оставление СК", sec: 30 },
             { id: "incass_no_exit_radio", category: "Инкассация объекта", desc: "Инкассатор не связался по радиостанции с водителем-инкассатором о возможности выхода с объекта инкассации", sec: 30 },
-            { id: "incass_exit_no_confirm", category: "Инкассация объекта", desc: "Не получив подтверждение на выход от водителя-инкассатора начал инкассатор выходить", sec: 30 },
+            { id: "incass_exit_no_confirm", category: "Инкассация объекта", desc: "Не получив подтверждение на выход из объекта от водителя-инкассатора начал инкассатор выходить", sec: 30 },
             { id: "incass_blue_key_from_driver", category: "Инкассация объекта", desc: "Взял не у водителя-инкассатора ИК-ключ синего цвета в СТС", sec: 30 },
             { id: "incass_tumbler_yellow_back", category: "Инкассация объекта", desc: "После извлечения сейф-пакета с денежной наличности тумблер выбора деактивационного ключа не был переведён в желтое положение", sec: 30 },
             { id: "incass_nakop_after", category: "Инкассация объекта", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 50 },
             { id: "incass_nakop_door_after", category: "Инкассация объекта", desc: "Не была закрыта дверь устройства накопителя", sec: 30 },
             { id: "incass_sk_cell_after", category: "Инкассация объекта", desc: "СК не установлен в специальную ячейку", sec: 20 },
             { id: "incass_belt1", category: "Инкассация объекта", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+            
+            // === Вооруженный преступник ===
             { id: "prestupnik_mish", category: "Вооруженный преступник", desc: "Не сдвинута бампером СТС с места выставленная специальная поясная мишень (с оружием)/не коснулся бампером СТС выставленную специальную поясную мишень (с оружием)", sec: 30 },
             { id: "prestupnik_cone", category: "Вооруженный преступник", desc: "Наезд на конус (1)", sec: 5 },
             { id: "prestupnik_cone1", category: "Вооруженный преступник", desc: "Наезд на конус (2)", sec: 10 },
@@ -576,6 +501,8 @@
             { id: "prestupnik_cone3", category: "Вооруженный преступник", desc: "Наезд на конус (4 и более)", sec: 20 },
             { id: "prestupnik_shluz", category: "Вооруженный преступник", desc: "СТС вышел за пределы габарита шлюзового бокса", sec: 5 },
             { id: "prestupnik_ogr_cone", category: "Вооруженный преступник", desc: "СТС совершил наезд на ограждающий конус", sec: 5 },
+
+            // === Наручники ===
             { id: "handcuff_belt", category: "Наручники", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             { id: "handcuff_no_warning", category: "Наручники", desc: "Инкассатор не предупредил о применении специального средства: Стой, применяю специальное средство - наручники", sec: 10 },
             { id: "handcuff_loose", category: "Наручники", desc: "В надетом состоянии наручники не надежно зафиксировали конечность (то есть наручники без усилий снимаются с рук манекена). ", sec: 30 },
@@ -585,6 +512,9 @@
             { id: "handcuff_boarding_no_confirm", category: "Наручники", desc: "Инкассатор осуществил посадку в СТС без подтверждения от водителя-инкассатора", sec: 30 },
             { id: "handcuff_driver_no_confirm", category: "Наручники", desc: "Водитель-инкассатор не подтвердил по радиостанции возможность выхода", sec: 30 },
             { id: "handcuff_belt1", category: "Наручники", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+
+          
+            // === Общие штрафы ===
             { id: "obsh_bez", category: "Общие штрафы", desc: "Нарушение безопасности движения в результате выезда за границы маршрута (наезда на ограничивающие маршрут конструкции).", sec: 50 },
             { id: "obsh_lic", category: "Общие штрафы", desc: "Проход лиц за ограждение, на территорию площадки, во время проведения упражнения «Эстафета» без разрешения главного судьи, штрафные баллы присуждаются команде данного представителя/участника", sec: 30 },
             { id: "obsh_svyaz", category: "Общие штрафы", desc: "Неаккуратное обращение со средствами связи (уронил носимую радиостанцию на пол в СТС/на дорожное покрытие)", sec: 30 },
@@ -594,81 +524,574 @@
             { id: "obsh_sts", category: "Общие штрафы", desc: "Выход из СТС/посадка в СТС не осуществлена в следующем порядке: инкассатор через заднюю правую дверь, водитель-инкассатор через левую переднюю дверь", sec: 20 }
         ];
         
+        // ---------- СОСТОЯНИЕ ----------
+        let currentDirection = null;
+        let currentTeam = null;
+        let currentStage = stages[0];
+        let tempPenalties = {};      // для bool: true/false; для счётчиков: число
+        let hasUnsavedChanges = false;
+        
         // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
-        function formatTime(sec) { if (sec===null || isNaN(sec)) return "—"; let m=Math.floor(sec/60); let s=(sec%60).toFixed(2); return m+":"+s.toString().padStart(5,'0'); }
-        function parseTime(str) { if (!str.trim()) return null; let parts=str.trim().split(':'); let minutes=0,seconds=0; if (parts.length===2){ minutes=parseInt(parts[0])||0; let secPart=parts[1]; let dot=secPart.indexOf('.'); if(dot!==-1){ seconds=parseInt(secPart.substring(0,dot))||0; seconds+=parseFloat('0.'+secPart.substring(dot+1))||0; } else seconds=parseInt(secPart)||0; } else if(parts.length===1){ seconds=parseFloat(parts[0])||0; } else return null; return minutes*60+seconds; }
-        function getPenaltySum(penObj) { let sum=0; for(let id in penObj){ let p=penaltiesLibrary.find(p=>p.id===id); if(p){ let val=penObj[id]; if(typeof val==='number') sum+=val*p.sec; else if(val===true) sum+=p.sec; } } let pmMisses=penObj[SHOOT_PM_MISS_ID]||0; let saigaHits=penObj[SHOOT_SAIGA_HITS_ID]||0; sum+=pmMisses*PENALTY_PER_MISS_PM; sum-=saigaHits*SAIGA_BONUS_PER_HIT; return sum; }
-        function getBankConesCount(penObj) { if(penObj.bank_cone_4) return 4; if(penObj.bank_cone_3) return 3; if(penObj.bank_cone_2) return 2; if(penObj.bank_cone_1) return 1; return 0; }
-        function setBankConesCount(count) { delete tempPenalties.bank_cone_1; delete tempPenalties.bank_cone_2; delete tempPenalties.bank_cone_3; delete tempPenalties.bank_cone_4; if(count===1) tempPenalties.bank_cone_1=true; else if(count===2) tempPenalties.bank_cone_2=true; else if(count===3) tempPenalties.bank_cone_3=true; else if(count>=4) tempPenalties.bank_cone_4=true; }
-        function getSnakeConesCount(penObj) { if(penObj.snake_cone3) return 4; if(penObj.snake_cone2) return 3; if(penObj.snake_cone1) return 2; if(penObj.snake_cone) return 1; return 0; }
-        function setSnakeConesCount(count) { delete tempPenalties.snake_cone; delete tempPenalties.snake_cone1; delete tempPenalties.snake_cone2; delete tempPenalties.snake_cone3; if(count===1) tempPenalties.snake_cone=true; else if(count===2) tempPenalties.snake_cone1=true; else if(count===3) tempPenalties.snake_cone2=true; else if(count>=4) tempPenalties.snake_cone3=true; }
-        function getPrestupnikConesCount(penObj) { if(penObj.prestupnik_cone3) return 4; if(penObj.prestupnik_cone2) return 3; if(penObj.prestupnik_cone1) return 2; if(penObj.prestupnik_cone) return 1; return 0; }
-        function setPrestupnikConesCount(count) { delete tempPenalties.prestupnik_cone; delete tempPenalties.prestupnik_cone1; delete tempPenalties.prestupnik_cone2; delete tempPenalties.prestupnik_cone3; if(count===1) tempPenalties.prestupnik_cone=true; else if(count===2) tempPenalties.prestupnik_cone1=true; else if(count===3) tempPenalties.prestupnik_cone2=true; else if(count>=4) tempPenalties.prestupnik_cone3=true; }
+        function formatTime(sec) {
+            if (sec === null || isNaN(sec)) return "—";
+            let minutes = Math.floor(sec / 60);
+            let seconds = (sec % 60).toFixed(2);
+            return minutes + ":" + seconds.toString().padStart(5, '0');
+        }
         
-        const categoryEmoji = {
-            "Получение имущества": "🏢", "Получение банковских ценностей": "💰", "Прокол шины": "🛞", "Змейка": "🐍",
-            "Обслуживание УС": "🏧", "Обслуживание ВСП": "🏦", "Стрельба": "🔫", "Пожар": "🔥",
-            "Медицина": "🩺", "Инкассация объекта": "💼", "Вооруженный преступник": "🦹", "Наручники": "🔗", "Общие штрафы": "⚠️"
-        };
-        function getDescWithEmoji(penalty) { const emoji = categoryEmoji[penalty.category] || "📌"; return `${emoji} ${penalty.desc}`; }
-        
-        // --- Состояние и работа с БД ---
-        let currentDirection = null, currentTeam = null, currentStage = stages[0], tempPenalties = {}, hasUnsavedChanges = false;
-        async function fetchWithRetry(fn, retries=3, delay=1000){ for(let i=0;i<retries;i++){ try{ return await fn(); }catch(e){ if(i===retries-1)throw e; await new Promise(r=>setTimeout(r,delay)); } } }
-        async function loadTeamData(dir,team){ if(!dir||!team) return null; return await fetchWithRetry(async()=>{ let {data,error}=await supabaseClient.from('estafeta_results').select('raw_seconds,penalties').eq('direction',dir).eq('team_code',team).maybeSingle(); if(error)throw error; return data; }).catch(e=>{console.error(e); return null;}); }
-        async function saveTeamData(dir,team,rawSeconds,penalties){ let upsertData={direction:dir,team_code:team,raw_seconds:rawSeconds,penalties:penalties,updated_at:new Date().toISOString()}; await fetchWithRetry(async()=>{ let {error}=await supabaseClient.from('estafeta_results').upsert(upsertData,{onConflict:'direction, team_code'}); if(error)throw error; }).catch(e=>console.error(e)); }
-        async function loadAllResults(){ try{ let {data,error}=await supabaseClient.from('estafeta_results').select('direction,team_code,raw_seconds,penalties'); if(error)throw error; let rows=[]; for(let r of data){ let raw=r.raw_seconds; let penalty=getPenaltySum(r.penalties); let total=raw!==null?raw+penalty:null; rows.push({team:r.team_code,name:teamNames[r.team_code]||r.team_code,dir:r.direction,raw,penalty,total}); } rows.sort((a,b)=>{ if(a.total===null&&b.total===null)return 0; if(a.total===null)return 1; if(b.total===null)return -1; return a.total-b.total; }); let tbody=document.getElementById('resultsBody'); tbody.innerHTML=''; let rank=1; for(let r of rows){ let tr=document.createElement('tr'); if(r.total!==null&&rank===1)tr.classList.add('rank-1'); tr.innerHTML=`<td>${r.total!==null?rank++:'—'}</td><td><strong>${r.name}</strong> (${r.team})</td><td>${r.dir}</td><td>${r.raw!==null?formatTime(r.raw):'—'}</td><td>${r.penalty}</td><td>${r.total!==null?formatTime(r.total):'—'}</td>`; tbody.appendChild(tr); } if(rows.length===0) tbody.innerHTML='<tr><td colspan="6">Нет данных. Внесите результаты.</td></tr>'; }catch(err){ console.error(err); document.getElementById('resultsBody').innerHTML=`<tr><td colspan="6">Ошибка загрузки: ${err.message}</td></tr>`; } }
-        
-        function renderPenalties() { /* полная отрисовка с учётом всех штрафов */ 
-            if (!currentDirection || !currentTeam) { document.getElementById('penaltiesContainer').innerHTML = '<div style="text-align:center;">⚠️ Выберите направление и банк</div>'; return; }
-            if (currentStage === "Стрельба") { /* отрисовка стрельбы */ 
-                let pmMisses = tempPenalties[SHOOT_PM_MISS_ID] || 0, saigaHits = tempPenalties[SHOOT_SAIGA_HITS_ID] || 0;
-                let pmPenalty = pmMisses * PENALTY_PER_MISS_PM, saigaBonus = saigaHits * SAIGA_BONUS_PER_HIT;
-                let html = `<div class="penalty-card"><div class="penalty-desc">🔫 ПМ (4 выстрела) — ПРОМАХИ (1 промах = +30 сек)</div><div class="penalty-actions"><div class="counter-group"><button class="counter-btn pm-dec">−</button><span class="counter-value pm-count">${pmMisses}</span><button class="counter-btn pm-inc">+</button></div><div class="penalty-badge">+${pmPenalty} сек</div></div></div><div class="penalty-card"><div class="penalty-desc">🎯 САЙГА-12 (5 выстрелов) — ПОПАДАНИЯ (1 попадание = –10 сек)</div><div class="penalty-actions"><div class="counter-group"><button class="counter-btn saiga-dec">−</button><span class="counter-value saiga-count">${saigaHits}</span><button class="counter-btn saiga-inc">+</button></div><div class="penalty-badge">−${saigaBonus} сек</div></div></div>`;
-                let stagePen = penaltiesLibrary.filter(p => p.category === "Стрельба");
-                for (let p of stagePen) { let checked = tempPenalties[p.id] === true; let greenClass = greenHighlightIds.includes(p.id) ? 'penalty-highlight-green' : ''; html += `<div class="penalty-card ${greenClass}"><div class="penalty-desc">${getDescWithEmoji(p)}</div><div class="penalty-actions"><input type="checkbox" data-id="${p.id}" ${checked ? 'checked' : ''} style="width:22px;height:22px;cursor:pointer;"><div class="penalty-badge">+${p.sec} сек</div></div></div>`; }
-                document.getElementById('penaltiesContainer').innerHTML = html;
-                document.querySelector('.pm-dec')?.addEventListener('click',()=>{ let v=tempPenalties[SHOOT_PM_MISS_ID]||0; if(v>0) v--; tempPenalties[SHOOT_PM_MISS_ID]=v; renderPenalties(); hasUnsavedChanges=true; updateSummaryFromTemp(); updateBadge(); });
-                document.querySelector('.pm-inc')?.addEventListener('click',()=>{ let v=tempPenalties[SHOOT_PM_MISS_ID]||0; if(v<4) v++; tempPenalties[SHOOT_PM_MISS_ID]=v; renderPenalties(); hasUnsavedChanges=true; updateSummaryFromTemp(); updateBadge(); });
-                document.querySelector('.saiga-dec')?.addEventListener('click',()=>{ let v=tempPenalties[SHOOT_SAIGA_HITS_ID]||0; if(v>0) v--; tempPenalties[SHOOT_SAIGA_HITS_ID]=v; renderPenalties(); hasUnsavedChanges=true; updateSummaryFromTemp(); updateBadge(); });
-                document.querySelector('.saiga-inc')?.addEventListener('click',()=>{ let v=tempPenalties[SHOOT_SAIGA_HITS_ID]||0; if(v<5) v++; tempPenalties[SHOOT_SAIGA_HITS_ID]=v; renderPenalties(); hasUnsavedChanges=true; updateSummaryFromTemp(); updateBadge(); });
-                document.querySelectorAll('#penaltiesContainer input[type="checkbox"]').forEach(cb=>{ cb.addEventListener('change',(e)=>{ let id=e.target.dataset.id; if(e.target.checked) tempPenalties[id]=true; else delete tempPenalties[id]; hasUnsavedChanges=true; updateSummaryFromTemp(); updateBadge(); }); });
-                return;
-            }
-            let stagePen = penaltiesLibrary.filter(p => p.category === currentStage);
-            if (stagePen.length === 0) { document.getElementById('penaltiesContainer').innerHTML = '<div>📭 Нет нарушений для этого этапа</div>'; return; }
-            const isBank = (currentStage === "Получение банковских ценностей");
-            const isSnake = (currentStage === "Змейка");
-            const isPrestup = (currentStage === "Вооруженный преступник");
-            let bankCones=0, snakeCones=0, prestCones=0;
-            if(isBank) bankCones=getBankConesCount(tempPenalties);
-            if(isSnake) snakeCones=getSnakeConesCount(tempPenalties);
-            if(isPrestup) prestCones=getPrestupnikConesCount(tempPenalties);
-            let html = '';
-            for (let p of stagePen) {
-                if(isBank && (p.id.startsWith('bank_cone'))) continue;
-                if(isSnake && (p.id.startsWith('snake_cone'))) continue;
-                if(isPrestup && (p.id.startsWith('prestupnik_cone'))) continue;
-                const isCounter = counterPenaltyIds.includes(p.id);
-                const greenClass = greenHighlightIds.includes(p.id) ? 'penalty-highlight-green' : '';
-                if(isCounter) {
-                    let currentVal = (typeof tempPenalties[p.id]==='number') ? tempPenalties[p.id] : 0;
-                    let totalSec = currentVal * p.sec;
-                    html += `<div class="penalty-card ${greenClass}"><div class="penalty-desc">${getDescWithEmoji(p)}</div><div class="penalty-actions"><div class="counter-group"><button class="counter-btn" data-action="dec" data-id="${p.id}">−</button><span class="counter-value" data-id="${p.id}">${currentVal}</span><button class="counter-btn" data-action="inc" data-id="${p.id}">+</button></div><div class="penalty-badge">+${totalSec} сек</div></div></div>`;
+        function parseTime(str) {
+            if (!str.trim()) return null;
+            str = str.trim();
+            let parts = str.split(':');
+            let minutes = 0, seconds = 0;
+            if (parts.length === 2) {
+                minutes = parseInt(parts[0]) || 0;
+                let secPart = parts[1];
+                let dotIndex = secPart.indexOf('.');
+                if (dotIndex !== -1) {
+                    seconds = parseInt(secPart.substring(0, dotIndex)) || 0;
+                    let fraction = parseFloat('0.' + secPart.substring(dotIndex + 1)) || 0;
+                    seconds += fraction;
                 } else {
-                    let checked = tempPenalties[p.id] === true;
-                    html += `<div class="penalty-card ${greenClass}"><div class="penalty-desc">${getDescWithEmoji(p)}</div><div class="penalty-actions"><input type="checkbox" data-id="${p.id}" ${checked ? 'checked' : ''} style="width:22px;height:22px;cursor:pointer;"><div class="penalty-badge">+${p.sec} сек</div></div></div>`;
+                    seconds = parseInt(secPart) || 0;
+                }
+            } else if (parts.length === 1) {
+                let secPart = parts[0];
+                let dotIndex = secPart.indexOf('.');
+                if (dotIndex !== -1) seconds = parseFloat(secPart);
+                else seconds = parseInt(secPart) || 0;
+                minutes = 0;
+            } else return null;
+            let total = minutes * 60 + seconds;
+            return isNaN(total) ? null : total;
+        }
+        
+        // Универсальная сумма штрафа: поддерживает bool (true = 1) и числа
+        function getPenaltySum(penObj) {
+            if (!penObj) return 0;
+            let sum = 0;
+            for (let id in penObj) {
+                let p = penaltiesLibrary.find(p => p.id === id);
+                if (p) {
+                    let val = penObj[id];
+                    if (typeof val === 'number') sum += val * p.sec;
+                    else if (val === true) sum += p.sec;
                 }
             }
-            if(isBank) { let conePenalty = (bankCones===1?5:bankCones===2?10:bankCones===3?15:bankCones>=4?20:0); html = `<div class="penalty-card"><div class="penalty-desc">🚧 Наезд на конусы (количество)</div><div class="penalty-actions"><div class="counter-group"><button class="counter-btn" id="bankConesDec">−</button><span class="counter-value" id="bankConesCount">${bankCones}</span><button class="counter-btn" id="bankConesInc">+</button></div><div class="penalty-badge">+${conePenalty} сек</div></div></div>` + html; }
-            if(isSnake) { let conePenalty = snakeCones * 5; html = `<div class="penalty-card"><div class="penalty-desc">🐍 Наезд на конус/бочку</div><div class="penalty-actions"><div class="counter-group"><button class="counter-btn" id="snakeConesDec">−</button><span class="counter-value" id="snakeConesCount">${snakeCones}</span><button class="counter-btn" id="snakeConesInc">+</button></div><div class="penalty-badge">+${conePenalty} сек</div></div></div>` + html; }
-            if(isPrestup) { let conePenalty = prestCones * 5; html = `<div class="penalty-card"><div class="penalty-desc">🦹 Наезд на конус (преступник)</div><div class="penalty-actions"><div class="counter-group"><button class="counter-btn" id="prestConesDec">−</button><span class="counter-value" id="prestConesCount">${prestCones}</span><button class="counter-btn" id="prestConesInc">+</button></div><div class="penalty-badge">+${conePenalty} сек</div></div></div>` + html; }
+            // Добавляем штраф за промахи ПМ и бонус за попадания Сайги
+            let pmMisses = penObj[SHOOT_PM_MISS_ID] || 0;
+            let saigaHits = penObj[SHOOT_SAIGA_HITS_ID] || 0;
+            sum += pmMisses * PENALTY_PER_MISS_PM;
+            sum -= saigaHits * SAIGA_BONUS_PER_HIT;
+            return sum;
+        }
+        
+        // Функции для работы с конусами на этапе "Получение банковских ценностей"
+        function getBankConesCount(penObj) {
+            if (!penObj) return 0;
+            if (penObj.bank_cone_4) return 4;
+            if (penObj.bank_cone_3) return 3;
+            if (penObj.bank_cone_2) return 2;
+            if (penObj.bank_cone_1) return 1;
+            return 0;
+        }
+        function setBankConesCount(count) {
+            delete tempPenalties.bank_cone_1;
+            delete tempPenalties.bank_cone_2;
+            delete tempPenalties.bank_cone_3;
+            delete tempPenalties.bank_cone_4;
+            if (count === 1) tempPenalties.bank_cone_1 = true;
+            else if (count === 2) tempPenalties.bank_cone_2 = true;
+            else if (count === 3) tempPenalties.bank_cone_3 = true;
+            else if (count >= 4) tempPenalties.bank_cone_4 = true;
+        }
+        
+        // Функции для конусов на этапе "Змейка"
+        function getSnakeConesCount(penObj) {
+            if (!penObj) return 0;
+            if (penObj.snake_cone3) return 4;
+            if (penObj.snake_cone2) return 3;
+            if (penObj.snake_cone1) return 2;
+            if (penObj.snake_cone) return 1;
+            return 0;
+        }
+        function setSnakeConesCount(count) {
+            delete tempPenalties.snake_cone;
+            delete tempPenalties.snake_cone1;
+            delete tempPenalties.snake_cone2;
+            delete tempPenalties.snake_cone3;
+            if (count === 1) tempPenalties.snake_cone = true;
+            else if (count === 2) tempPenalties.snake_cone1 = true;
+            else if (count === 3) tempPenalties.snake_cone2 = true;
+            else if (count >= 4) tempPenalties.snake_cone3 = true;
+        }
+        
+        // Функции для конусов на этапе "Вооруженный преступник"
+        function getPrestupnikConesCount(penObj) {
+            if (!penObj) return 0;
+            if (penObj.prestupnik_cone3) return 4;
+            if (penObj.prestupnik_cone2) return 3;
+            if (penObj.prestupnik_cone1) return 2;
+            if (penObj.prestupnik_cone) return 1;
+            return 0;
+        }
+        function setPrestupnikConesCount(count) {
+            delete tempPenalties.prestupnik_cone;
+            delete tempPenalties.prestupnik_cone1;
+            delete tempPenalties.prestupnik_cone2;
+            delete tempPenalties.prestupnik_cone3;
+            if (count === 1) tempPenalties.prestupnik_cone = true;
+            else if (count === 2) tempPenalties.prestupnik_cone1 = true;
+            else if (count === 3) tempPenalties.prestupnik_cone2 = true;
+            else if (count >= 4) tempPenalties.prestupnik_cone3 = true;
+        }
+        
+        // ---------- РАБОТА С SUPABASE ----------
+        async function fetchWithRetry(fn, retries = 3, delay = 1000) {
+            for (let i = 0; i < retries; i++) {
+                try { return await fn(); } catch (err) {
+                    if (i === retries - 1) throw err;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+        
+        async function loadTeamData(dir, team) {
+            if (!dir || !team) return null;
+            return await fetchWithRetry(async () => {
+                let { data, error } = await supabaseClient
+                    .from('estafeta_results')
+                    .select('raw_seconds, penalties')
+                    .eq('direction', dir)
+                    .eq('team_code', team)
+                    .maybeSingle();
+                if (error) throw error;
+                return data;
+            }).catch(err => { console.error(err); return null; });
+        }
+        
+        async function saveTeamData(dir, team, rawSeconds, penalties) {
+            let upsertData = { direction: dir, team_code: team, raw_seconds: rawSeconds, penalties: penalties, updated_at: new Date().toISOString() };
+            await fetchWithRetry(async () => {
+                let { error } = await supabaseClient.from('estafeta_results').upsert(upsertData, { onConflict: 'direction, team_code' });
+                if (error) throw error;
+            }).catch(err => console.error(err));
+        }
+        
+        async function loadAllResults() {
+            try {
+                let { data, error } = await supabaseClient.from('estafeta_results').select('direction, team_code, raw_seconds, penalties');
+                if (error) throw error;
+                let rows = [];
+                for (let r of data) {
+                    let raw = r.raw_seconds;
+                    let penalty = getPenaltySum(r.penalties);
+                    let total = raw !== null ? raw + penalty : null;
+                    rows.push({ team: r.team_code, name: teamNames[r.team_code] || r.team_code, dir: r.direction, raw, penalty, total });
+                }
+                rows.sort((a,b) => {
+                    if (a.total === null && b.total === null) return 0;
+                    if (a.total === null) return 1;
+                    if (b.total === null) return -1;
+                    return a.total - b.total;
+                });
+                let tbody = document.getElementById('resultsBody');
+                tbody.innerHTML = '';
+                let rank = 1;
+                for (let r of rows) {
+                    let tr = document.createElement('tr');
+                    if (r.total !== null && rank === 1) tr.classList.add('rank-1');
+                    tr.innerHTML = `<td>${r.total !== null ? rank++ : '—'}</td>
+                                    <td><strong>${r.name}</strong> (${r.team})</td>
+                                    <td>${r.dir}</td>
+                                    <td>${r.raw !== null ? formatTime(r.raw) : '—'}</td>
+                                    <td>${r.penalty}</td>
+                                    <td>${r.total !== null ? formatTime(r.total) : '—'}</td>`;
+                    tbody.appendChild(tr);
+                }
+                if (rows.length === 0) tbody.innerHTML = '<tr><td colspan="6">Нет данных. Внесите результаты.</td></tr>';
+            } catch (err) {
+                console.error(err);
+                document.getElementById('resultsBody').innerHTML = `<tr><td colspan="6">Ошибка загрузки: ${err.message}</td></tr>`;
+            }
+        }
+        
+        async function refreshCurrentTeamData() {
+            if (!currentDirection || !currentTeam) {
+                document.getElementById('rawTimeDisplay').innerText = '—';
+                document.getElementById('totalPenaltyDisplay').innerText = '0';
+                document.getElementById('totalTimeDisplay').innerText = '—';
+                document.getElementById('rawTimeInput').value = '';
+                return;
+            }
+            let data = await loadTeamData(currentDirection, currentTeam);
+            if (data) {
+                let raw = data.raw_seconds;
+                let penaltiesObj = data.penalties || {};
+                let totalPen = getPenaltySum(penaltiesObj);
+                document.getElementById('rawTimeDisplay').innerText = raw !== null ? formatTime(raw) : '—';
+                document.getElementById('totalPenaltyDisplay').innerText = totalPen;
+                let total = raw !== null ? raw + totalPen : null;
+                document.getElementById('totalTimeDisplay').innerText = total !== null ? formatTime(total) : '—';
+                document.getElementById('rawTimeInput').value = raw !== null ? formatTime(raw) : '';
+                
+                // Инициализируем tempPenalties для текущего этапа
+                let stagePenalties = penaltiesLibrary.filter(p => p.category === currentStage);
+                tempPenalties = {};
+                for (let p of stagePenalties) {
+                    let saved = penaltiesObj[p.id];
+                    if (saved !== undefined) {
+                        if (typeof saved === 'number') tempPenalties[p.id] = saved;
+                        else if (saved === true) tempPenalties[p.id] = true;
+                        else if (saved === false) tempPenalties[p.id] = false;
+                        else tempPenalties[p.id] = saved;
+                    } else {
+                        if (counterPenaltyIds.includes(p.id)) tempPenalties[p.id] = 0;
+                        else tempPenalties[p.id] = false;
+                    }
+                }
+                // Для этапа стрельба добавляем специальные счётчики
+                if (currentStage === "Стрельба") {
+                    let pm = penaltiesObj[SHOOT_PM_MISS_ID];
+                    let saiga = penaltiesObj[SHOOT_SAIGA_HITS_ID];
+                    tempPenalties[SHOOT_PM_MISS_ID] = (typeof pm === 'number') ? pm : 0;
+                    tempPenalties[SHOOT_SAIGA_HITS_ID] = (typeof saiga === 'number') ? saiga : 0;
+                } else {
+                    delete tempPenalties[SHOOT_PM_MISS_ID];
+                    delete tempPenalties[SHOOT_SAIGA_HITS_ID];
+                }
+                hasUnsavedChanges = false;
+            } else {
+                document.getElementById('rawTimeDisplay').innerText = '—';
+                document.getElementById('totalPenaltyDisplay').innerText = '0';
+                document.getElementById('totalTimeDisplay').innerText = '—';
+                document.getElementById('rawTimeInput').value = '';
+                tempPenalties = {};
+                hasUnsavedChanges = false;
+                let stagePenalties = penaltiesLibrary.filter(p => p.category === currentStage);
+                for (let p of stagePenalties) {
+                    if (counterPenaltyIds.includes(p.id)) tempPenalties[p.id] = 0;
+                    else tempPenalties[p.id] = false;
+                }
+                if (currentStage === "Стрельба") {
+                    tempPenalties[SHOOT_PM_MISS_ID] = 0;
+                    tempPenalties[SHOOT_SAIGA_HITS_ID] = 0;
+                }
+            }
+            renderPenalties();
+            updateBadge();
+        }
+        
+        // Отрисовка нарушений с поддержкой счётчиков, конусов и стрельбы
+        function renderPenalties() {
+            if (!currentDirection || !currentTeam) {
+                document.getElementById('penaltiesContainer').innerHTML = '<div style="grid-column:1/-1; text-align:center;">⚠️ Выберите направление и банк</div>';
+                return;
+            }
+            
+            // Специальная отрисовка для этапа "Стрельба"
+            if (currentStage === "Стрельба") {
+                let pmMisses = tempPenalties[SHOOT_PM_MISS_ID] || 0;
+                let saigaHits = tempPenalties[SHOOT_SAIGA_HITS_ID] || 0;
+                let pmPenalty = pmMisses * PENALTY_PER_MISS_PM;
+                let saigaBonus = saigaHits * SAIGA_BONUS_PER_HIT;
+                let html = `
+                    <div class="penalty-card">
+                        <div class="desc"><strong>🔫 ПМ (4 выстрела) — ПРОМАХИ (1 промах = +30 сек)</strong></div>
+                        <div class="counter-control">
+                            <button class="pm-dec">−</button>
+                            <span class="pm-count">${pmMisses}</span>
+                            <button class="pm-inc">+</button>
+                        </div>
+                        <div style="font-size:0.75rem;">Штраф: +${pmPenalty} сек</div>
+                    </div>
+                    <div class="penalty-card">
+                        <div class="desc"><strong>🎯 САЙГА-12 (5 выстрелов) — ПОПАДАНИЯ (1 попадание = –10 сек)</strong></div>
+                        <div class="counter-control">
+                            <button class="saiga-dec">−</button>
+                            <span class="saiga-count">${saigaHits}</span>
+                            <button class="saiga-inc">+</button>
+                        </div>
+                        <div style="font-size:0.75rem;">Бонус: –${saigaBonus} сек</div>
+                    </div>
+                `;
+                let stagePen = penaltiesLibrary.filter(p => p.category === "Стрельба");
+                for (let p of stagePen) {
+                    let checked = tempPenalties[p.id] === true;
+                    const greenClass = isGreenHighlight(p.id) ? 'penalty-highlight-green' : '';
+                    html += `<div class="penalty-card ${greenClass}">
+                                <input type="checkbox" id="chk_${p.id}" data-id="${p.id}" ${checked ? 'checked' : ''}>
+                                <label for="chk_${p.id}">${p.desc}<span class="penalty-sec">+${p.sec} сек</span></label>
+                             </div>`;
+                }
+                document.getElementById('penaltiesContainer').innerHTML = html;
+                
+                // Обработчики для ПМ
+                const pmDec = document.querySelector('.pm-dec');
+                const pmInc = document.querySelector('.pm-inc');
+                const pmSpan = document.querySelector('.pm-count');
+                if (pmDec && pmInc && pmSpan) {
+                    const updatePM = (delta) => {
+                        let newVal = Math.max(0, Math.min(4, pmMisses + delta));
+                        pmMisses = newVal;
+                        tempPenalties[SHOOT_PM_MISS_ID] = newVal;
+                        pmSpan.innerText = newVal;
+                        let penalty = newVal * PENALTY_PER_MISS_PM;
+                        let parent = pmSpan.closest('.penalty-card');
+                        let secDiv = parent.querySelector('div:last-child');
+                        if (secDiv) secDiv.innerText = `Штраф: +${penalty} сек`;
+                        hasUnsavedChanges = true;
+                        updateSummaryFromTemp();
+                        updateBadge();
+                    };
+                    pmDec.onclick = () => updatePM(-1);
+                    pmInc.onclick = () => updatePM(1);
+                }
+                // Обработчики для Сайги (максимум 5)
+                const saigaDec = document.querySelector('.saiga-dec');
+                const saigaInc = document.querySelector('.saiga-inc');
+                const saigaSpan = document.querySelector('.saiga-count');
+                if (saigaDec && saigaInc && saigaSpan) {
+                    const updateSaiga = (delta) => {
+                        let newVal = Math.max(0, Math.min(5, saigaHits + delta));
+                        saigaHits = newVal;
+                        tempPenalties[SHOOT_SAIGA_HITS_ID] = newVal;
+                        saigaSpan.innerText = newVal;
+                        let bonus = newVal * SAIGA_BONUS_PER_HIT;
+                        let parent = saigaSpan.closest('.penalty-card');
+                        let secDiv = parent.querySelector('div:last-child');
+                        if (secDiv) secDiv.innerText = `Бонус: –${bonus} сек`;
+                        hasUnsavedChanges = true;
+                        updateSummaryFromTemp();
+                        updateBadge();
+                    };
+                    saigaDec.onclick = () => updateSaiga(-1);
+                    saigaInc.onclick = () => updateSaiga(1);
+                }
+                // Обработчики для чекбоксов
+                for (let p of stagePen) {
+                    let cb = document.getElementById(`chk_${p.id}`);
+                    if (cb) {
+                        cb.onchange = (e) => {
+                            let id = e.target.getAttribute('data-id');
+                            if (e.target.checked) tempPenalties[id] = true;
+                            else tempPenalties[id] = false;
+                            hasUnsavedChanges = true;
+                            updateSummaryFromTemp();
+                            updateBadge();
+                        };
+                    }
+                }
+                updateSummaryFromTemp();
+                return;
+            }
+            
+            // Обычная отрисовка для остальных этапов (с конусами и счётчиками)
+            let stagePen = penaltiesLibrary.filter(p => p.category === currentStage);
+            if (stagePen.length === 0) {
+                document.getElementById('penaltiesContainer').innerHTML = `<div>📭 Для этапа "${currentStage}" нет ошибок</div>`;
+                return;
+            }
+            
+            const isBankStage = (currentStage === "Получение банковских ценностей");
+            const isSnakeStage = (currentStage === "Змейка");
+            const isPrestupnikStage = (currentStage === "Вооруженный преступник");
+            
+            let bankCones = 0;
+            if (isBankStage) bankCones = getBankConesCount(tempPenalties);
+            let snakeCones = 0;
+            if (isSnakeStage) snakeCones = getSnakeConesCount(tempPenalties);
+            let prestupnikCones = 0;
+            if (isPrestupnikStage) prestupnikCones = getPrestupnikConesCount(tempPenalties);
+            
+            let html = '';
+            for (let p of stagePen) {
+                if (isBankStage && (p.id === 'bank_cone_1' || p.id === 'bank_cone_2' || p.id === 'bank_cone_3' || p.id === 'bank_cone_4')) {
+                    if (p.id === 'bank_cone_1') {
+                        let conePenalty = 0;
+                        if (bankCones === 1) conePenalty = 5;
+                        else if (bankCones === 2) conePenalty = 10;
+                        else if (bankCones === 3) conePenalty = 15;
+                        else if (bankCones >= 4) conePenalty = 20;
+                        html += `<div class="penalty-card">
+                                    <div class="desc"><strong>Наезд на конусы (количество)</strong><span class="penalty-sec">+5 сек/конус (макс. 20)</span></div>
+                                    <div class="counter-control">
+                                        <button class="cones-dec">−</button>
+                                        <span class="cones-count">${bankCones}</span>
+                                        <button class="cones-inc">+</button>
+                                    </div>
+                                    <div style="font-size:0.75rem;">Штраф: +${conePenalty} сек</div>
+                                </div>`;
+                    }
+                    continue;
+                }
+                if (isSnakeStage && (p.id === 'snake_cone' || p.id === 'snake_cone1' || p.id === 'snake_cone2' || p.id === 'snake_cone3')) {
+                    if (p.id === 'snake_cone') {
+                        let conePenalty = snakeCones * 5;
+                        html += `<div class="penalty-card">
+                                    <div class="desc"><strong>Наезд на конус/бочку</strong><span class="penalty-sec">+5 сек за каждый</span></div>
+                                    <div class="counter-control">
+                                        <button class="snake-cones-dec">−</button>
+                                        <span class="snake-cones-count">${snakeCones}</span>
+                                        <button class="snake-cones-inc">+</button>
+                                    </div>
+                                    <div style="font-size:0.75rem;">Штраф: +${conePenalty} сек</div>
+                                </div>`;
+                    }
+                    continue;
+                }
+                if (isPrestupnikStage && (p.id === 'prestupnik_cone' || p.id === 'prestupnik_cone1' || p.id === 'prestupnik_cone2' || p.id === 'prestupnik_cone3')) {
+                    if (p.id === 'prestupnik_cone') {
+                        let conePenalty = prestupnikCones * 5;
+                        html += `<div class="penalty-card">
+                                    <div class="desc"><strong>Наезд на конус (преступник)</strong><span class="penalty-sec">+5 сек за каждый</span></div>
+                                    <div class="counter-control">
+                                        <button class="prest-cones-dec">−</button>
+                                        <span class="prest-cones-count">${prestupnikCones}</span>
+                                        <button class="prest-cones-inc">+</button>
+                                    </div>
+                                    <div style="font-size:0.75rem;">Штраф: +${conePenalty} сек</div>
+                                </div>`;
+                    }
+                    continue;
+                }
+                
+                if (counterPenaltyIds.includes(p.id)) {
+                    let currentVal = (typeof tempPenalties[p.id] === 'number') ? tempPenalties[p.id] : 0;
+                    let totalSec = currentVal * p.sec;
+                    html += `<div class="penalty-card">
+                                <div class="desc">${p.desc}<span class="penalty-sec">+${p.sec} сек/каждое</span></div>
+                                <div class="counter-control">
+                                    <button class="counter-dec" data-id="${p.id}">−</button>
+                                    <span class="counter-val" data-id="${p.id}">${currentVal}</span>
+                                    <button class="counter-inc" data-id="${p.id}">+</button>
+                                </div>
+                                <div style="font-size:0.75rem; min-width:70px;">Штраф: +${totalSec} сек</div>
+                            </div>`;
+                    continue;
+                }
+                
+                let checked = tempPenalties[p.id] === true;
+                const greenClass = isGreenHighlight(p.id) ? 'penalty-highlight-green' : '';
+                html += `<div class="penalty-card ${greenClass}">
+                            <input type="checkbox" id="chk_${p.id}" data-id="${p.id}" ${checked ? 'checked' : ''}>
+                            <label for="chk_${p.id}">${p.desc}<span class="penalty-sec">+${p.sec} сек</span></label>
+                         </div>`;
+            }
             document.getElementById('penaltiesContainer').innerHTML = html;
-            document.querySelectorAll('#penaltiesContainer input[type="checkbox"]').forEach(cb=>{ cb.addEventListener('change',(e)=>{ let id=e.target.dataset.id; if(e.target.checked) tempPenalties[id]=true; else delete tempPenalties[id]; hasUnsavedChanges=true; updateSummaryFromTemp(); updateBadge(); }); });
-            document.querySelectorAll('.counter-btn[data-action]').forEach(btn=>{ btn.addEventListener('click',(e)=>{ let id=btn.dataset.id; let delta=btn.dataset.action==='inc'?1:-1; let old=typeof tempPenalties[id]==='number'?tempPenalties[id]:0; let newVal=Math.max(0, old+delta); tempPenalties[id]=newVal; renderPenalties(); hasUnsavedChanges=true; updateSummaryFromTemp(); updateBadge(); }); });
-            if(isBank){ document.getElementById('bankConesDec')?.addEventListener('click',()=>{ let c=getBankConesCount(tempPenalties); if(c>0) c--; setBankConesCount(c); renderPenalties(); hasUnsavedChanges=true; updateSummaryFromTemp(); updateBadge(); }); document.getElementById('bankConesInc')?.addEventListener('click',()=>{ let c=getBankConesCount(tempPenalties); if(c<10) c++; setBankConesCount(c); renderPenalties(); hasUnsavedChanges=true; updateSummaryFromTemp(); updateBadge(); }); }
-            if(isSnake){ document.getElementById('snakeConesDec')?.addEventListener('click',()=>{ let c=getSnakeConesCount(tempPenalties); if(c>0) c--; setSnakeConesCount(c); renderPenalties(); hasUnsavedChanges=true; updateSummaryFromTemp(); updateBadge(); }); document.getElementById('snakeConesInc')?.addEventListener('click',()=>{ let c=getSnakeConesCount(tempPenalties); if(c<10) c++; setSnakeConesCount(c); renderPenalties(); hasUnsavedChanges=true; updateSummaryFromTemp(); updateBadge(); }); }
-            if(isPrestup){ document.getElementById('prestConesDec')?.addEventListener('click',()=>{ let c=getPrestupnikConesCount(tempPenalties); if(c>0) c--; setPrestupnikConesCount(c); renderPenalties(); hasUnsavedChanges=true; updateSummaryFromTemp(); updateBadge(); }); document.getElementById('prestConesInc')?.addEventListener('click',()=>{ let c=getPrestupnikConesCount(tempPenalties); if(c<10) c++; setPrestupnikConesCount(c); renderPenalties(); hasUnsavedChanges=true; updateSummaryFromTemp(); updateBadge(); }); }
+            
+            // Обработчики для чекбоксов
+            for (let p of stagePen) {
+                if (counterPenaltyIds.includes(p.id)) continue;
+                if (isBankStage && (p.id === 'bank_cone_1' || p.id === 'bank_cone_2' || p.id === 'bank_cone_3' || p.id === 'bank_cone_4')) continue;
+                if (isSnakeStage && (p.id === 'snake_cone' || p.id === 'snake_cone1' || p.id === 'snake_cone2' || p.id === 'snake_cone3')) continue;
+                if (isPrestupnikStage && (p.id === 'prestupnik_cone' || p.id === 'prestupnik_cone1' || p.id === 'prestupnik_cone2' || p.id === 'prestupnik_cone3')) continue;
+                let cb = document.getElementById(`chk_${p.id}`);
+                if (cb) {
+                    cb.onchange = (e) => {
+                        let id = e.target.getAttribute('data-id');
+                        if (e.target.checked) tempPenalties[id] = true;
+                        else delete tempPenalties[id];
+                        hasUnsavedChanges = true;
+                        updateBadge();
+                        updateSummaryFromTemp();
+                    };
+                }
+            }
+            
+            // Обработчики для счётчиков (counterPenaltyIds)
+            for (let p of stagePen.filter(p => counterPenaltyIds.includes(p.id))) {
+                let dec = document.querySelector(`.counter-dec[data-id="${p.id}"]`);
+                let inc = document.querySelector(`.counter-inc[data-id="${p.id}"]`);
+                let span = document.querySelector(`.counter-val[data-id="${p.id}"]`);
+                if (dec && inc && span) {
+                    const updateCounter = (delta) => {
+                        let old = (typeof tempPenalties[p.id] === 'number') ? tempPenalties[p.id] : 0;
+                        let newVal = Math.max(0, old + delta);
+                        tempPenalties[p.id] = newVal;
+                        span.innerText = newVal;
+                        let totalSec = newVal * p.sec;
+                        let parent = span.closest('.penalty-card');
+                        let secDiv = parent.querySelector('div:last-child');
+                        if (secDiv) secDiv.innerText = `Штраф: +${totalSec} сек`;
+                        hasUnsavedChanges = true;
+                        updateSummaryFromTemp();
+                        updateBadge();
+                    };
+                    dec.onclick = () => updateCounter(-1);
+                    inc.onclick = () => updateCounter(1);
+                }
+            }
+            
+            // Обработчики конусов для банка
+            if (isBankStage) {
+                const decBtn = document.querySelector('.cones-dec');
+                const incBtn = document.querySelector('.cones-inc');
+                const countSpan = document.querySelector('.cones-count');
+                if (decBtn && incBtn && countSpan) {
+                    const updateCones = (newCount) => {
+                        if (newCount < 0) newCount = 0;
+                        if (newCount > 10) newCount = 10;
+                        setBankConesCount(newCount);
+                        countSpan.innerText = newCount;
+                        let conePenalty = 0;
+                        if (newCount === 1) conePenalty = 5;
+                        else if (newCount === 2) conePenalty = 10;
+                        else if (newCount === 3) conePenalty = 15;
+                        else if (newCount >= 4) conePenalty = 20;
+                        const penaltySpan = document.querySelector('.penalty-card .counter-control + div');
+                        if (penaltySpan) penaltySpan.innerText = `Штраф: +${conePenalty} сек`;
+                        hasUnsavedChanges = true;
+                        updateSummaryFromTemp();
+                        updateBadge();
+                    };
+                    decBtn.onclick = () => updateCones(parseInt(countSpan.innerText) - 1);
+                    incBtn.onclick = () => updateCones(parseInt(countSpan.innerText) + 1);
+                }
+            }
+            // Обработчики конусов для змейки
+            if (isSnakeStage) {
+                const decBtn = document.querySelector('.snake-cones-dec');
+                const incBtn = document.querySelector('.snake-cones-inc');
+                const countSpan = document.querySelector('.snake-cones-count');
+                if (decBtn && incBtn && countSpan) {
+                    const updateCones = (newCount) => {
+                        if (newCount < 0) newCount = 0;
+                        setSnakeConesCount(newCount);
+                        countSpan.innerText = newCount;
+                        let conePenalty = newCount * 5;
+                        const penaltySpan = document.querySelector('.penalty-card .counter-control + div');
+                        if (penaltySpan) penaltySpan.innerText = `Штраф: +${conePenalty} сек`;
+                        hasUnsavedChanges = true;
+                        updateSummaryFromTemp();
+                        updateBadge();
+                    };
+                    decBtn.onclick = () => updateCones(parseInt(countSpan.innerText) - 1);
+                    incBtn.onclick = () => updateCones(parseInt(countSpan.innerText) + 1);
+                }
+            }
+            // Обработчики конусов для преступника
+            if (isPrestupnikStage) {
+                const decBtn = document.querySelector('.prest-cones-dec');
+                const incBtn = document.querySelector('.prest-cones-inc');
+                const countSpan = document.querySelector('.prest-cones-count');
+                if (decBtn && incBtn && countSpan) {
+                    const updateCones = (newCount) => {
+                        if (newCount < 0) newCount = 0;
+                        setPrestupnikConesCount(newCount);
+                        countSpan.innerText = newCount;
+                        let conePenalty = newCount * 5;
+                        const penaltySpan = document.querySelector('.penalty-card .counter-control + div');
+                        if (penaltySpan) penaltySpan.innerText = `Штраф: +${conePenalty} сек`;
+                        hasUnsavedChanges = true;
+                        updateSummaryFromTemp();
+                        updateBadge();
+                    };
+                    decBtn.onclick = () => updateCones(parseInt(countSpan.innerText) - 1);
+                    incBtn.onclick = () => updateCones(parseInt(countSpan.innerText) + 1);
+                }
+            }
+            
             updateSummaryFromTemp();
         }
         
@@ -677,44 +1100,242 @@
             let data = await loadTeamData(currentDirection, currentTeam);
             let savedPen = data?.penalties || {};
             let merged = { ...savedPen };
+            // Удаляем из merged все штрафы текущего этапа
             let stagePenalties = penaltiesLibrary.filter(p => p.category === currentStage);
             for (let p of stagePenalties) delete merged[p.id];
-            for (let id in tempPenalties) { let val = tempPenalties[id]; if(val===true || (typeof val==='number' && val!==0)) merged[id]=val; else delete merged[id]; }
+            // Добавляем временные
+            for (let id in tempPenalties) {
+                let val = tempPenalties[id];
+                if (val === true || (typeof val === 'number' && val !== 0)) merged[id] = val;
+                else if (val === false || val === 0) delete merged[id];
+            }
             let totalDisplay = getPenaltySum(merged);
             document.getElementById('totalPenaltyDisplay').innerText = totalDisplay;
             let raw = data?.raw_seconds ?? null;
             let total = raw !== null ? raw + totalDisplay : null;
             document.getElementById('totalTimeDisplay').innerText = total !== null ? formatTime(total) : '—';
         }
-        function updateBadge() { let div = document.getElementById('stageInfo'); let old = div.querySelector('.unsaved-badge'); if(old) old.remove(); if(hasUnsavedChanges && currentDirection && currentTeam) { let badge = document.createElement('span'); badge.className = 'unsaved-badge'; badge.innerText = '⚠️ Есть несохранённые изменения'; div.appendChild(badge); } }
-        async function refreshCurrentTeamData() {
-            if (!currentDirection || !currentTeam) { document.getElementById('rawTimeDisplay').innerText = '—'; document.getElementById('totalPenaltyDisplay').innerText = '0'; document.getElementById('totalTimeDisplay').innerText = '—'; document.getElementById('rawTimeInput').value = ''; document.getElementById('penaltiesContainer').innerHTML = '<div style="text-align:center;">⚠️ Выберите направление и банк</div>'; return; }
-            let data = await loadTeamData(currentDirection, currentTeam);
-            let raw = data?.raw_seconds ?? null;
-            document.getElementById('rawTimeDisplay').innerText = raw !== null ? formatTime(raw) : '—';
-            document.getElementById('rawTimeInput').value = raw !== null ? formatTime(raw) : '';
-            let penaltiesObj = data?.penalties || {};
-            let stagePenalties = penaltiesLibrary.filter(p => p.category === currentStage);
-            tempPenalties = {};
-            for (let p of stagePenalties) { let saved = penaltiesObj[p.id]; if(saved !== undefined) { if(typeof saved === 'number') tempPenalties[p.id]=saved; else if(saved===true) tempPenalties[p.id]=true; else tempPenalties[p.id]=saved; } else { if(counterPenaltyIds.includes(p.id)) tempPenalties[p.id]=0; else tempPenalties[p.id]=false; } }
-            if(currentStage === "Стрельба") { tempPenalties[SHOOT_PM_MISS_ID] = (typeof penaltiesObj[SHOOT_PM_MISS_ID]==='number') ? penaltiesObj[SHOOT_PM_MISS_ID] : 0; tempPenalties[SHOOT_SAIGA_HITS_ID] = (typeof penaltiesObj[SHOOT_SAIGA_HITS_ID]==='number') ? penaltiesObj[SHOOT_SAIGA_HITS_ID] : 0; }
-            hasUnsavedChanges = false;
-            renderPenalties();
-            let total = getPenaltySum(penaltiesObj);
-            document.getElementById('totalPenaltyDisplay').innerText = total;
-            let totalTime = raw !== null ? raw + total : null;
-            document.getElementById('totalTimeDisplay').innerText = totalTime !== null ? formatTime(totalTime) : '—';
-            updateBadge();
+        
+        function updateBadge() {
+            let div = document.getElementById('stageInfo');
+            let old = div.querySelector('.unsaved-badge');
+            if (old) old.remove();
+            if (hasUnsavedChanges && currentDirection && currentTeam) {
+                let badge = document.createElement('span');
+                badge.className = 'unsaved-badge';
+                badge.innerText = '⚠️ Есть несохранённые изменения';
+                div.appendChild(badge);
+            }
         }
-        async function saveStage() { if (!currentDirection || !currentTeam) { alert('Выберите команду'); return; } let existing = await loadTeamData(currentDirection, currentTeam); let penaltiesObj = existing?.penalties || {}; let stagePenalties = penaltiesLibrary.filter(p => p.category === currentStage); for (let p of stagePenalties) delete penaltiesObj[p.id]; for (let id in tempPenalties) { let val = tempPenalties[id]; if(val === true || (typeof val === 'number' && val !== 0)) penaltiesObj[id] = val; else delete penaltiesObj[id]; } let rawSeconds = existing?.raw_seconds ?? null; await saveTeamData(currentDirection, currentTeam, rawSeconds, penaltiesObj); hasUnsavedChanges = false; updateBadge(); await refreshCurrentTeamData(); await loadAllResults(); alert('Ошибки этапа сохранены'); }
-        async function saveRawTime() { if (!currentDirection || !currentTeam) { alert('Выберите команду'); return; } let rawStr = document.getElementById('rawTimeInput').value.trim(); let rawSeconds = rawStr === '' ? null : parseTime(rawStr); if(rawStr !== '' && rawSeconds === null) { alert('Неверный формат времени. Используйте мм:сс.сс'); return; } let existing = await loadTeamData(currentDirection, currentTeam); let penaltiesObj = existing?.penalties || {}; await saveTeamData(currentDirection, currentTeam, rawSeconds, penaltiesObj); await refreshCurrentTeamData(); await loadAllResults(); alert('Время сохранено'); }
-        async function resetAllPenalties() { if (!currentDirection || !currentTeam) { alert('Выберите команду'); return; } if(!confirm('Сбросить ВСЕ ошибки для этой команды?')) return; let existing = await loadTeamData(currentDirection, currentTeam); let rawSeconds = existing?.raw_seconds ?? null; await saveTeamData(currentDirection, currentTeam, rawSeconds, {}); await refreshCurrentTeamData(); await loadAllResults(); alert('Сброшено'); }
+        
+        async function saveStage() {
+            if (!currentDirection || !currentTeam) { alert('Выберите команду'); return; }
+            let existing = await loadTeamData(currentDirection, currentTeam);
+            let penaltiesObj = existing?.penalties || {};
+            let stagePenalties = penaltiesLibrary.filter(p => p.category === currentStage);
+            // Удаляем старые штрафы этого этапа
+            for (let p of stagePenalties) delete penaltiesObj[p.id];
+            // Добавляем новые из tempPenalties (числа или true)
+            for (let id in tempPenalties) {
+                let val = tempPenalties[id];
+                if (val === true || (typeof val === 'number' && val !== 0)) {
+                    penaltiesObj[id] = val;
+                } else if (val === false || val === 0) {
+                    delete penaltiesObj[id];
+                }
+            }
+            let rawSeconds = existing?.raw_seconds ?? null;
+            await saveTeamData(currentDirection, currentTeam, rawSeconds, penaltiesObj);
+            hasUnsavedChanges = false;
+            updateBadge();
+            await refreshCurrentTeamData();
+            await loadAllResults();
+            alert('Ошибки этапа сохранены');
+        }
+        
+        async function saveRawTime() {
+            if (!currentDirection || !currentTeam) { alert('Выберите команду'); return; }
+            let rawStr = document.getElementById('rawTimeInput').value.trim();
+            let rawSeconds = rawStr === '' ? null : parseTime(rawStr);
+            if (rawStr !== '' && rawSeconds === null) { alert('Неверный формат времени. Используйте мм:сс.сс'); return; }
+            let existing = await loadTeamData(currentDirection, currentTeam);
+            let penaltiesObj = existing?.penalties || {};
+            await saveTeamData(currentDirection, currentTeam, rawSeconds, penaltiesObj);
+            await refreshCurrentTeamData();
+            await loadAllResults();
+            alert('Время сохранено');
+        }
+        
+        async function resetAllPenalties() {
+            if (!currentDirection || !currentTeam) { alert('Выберите команду'); return; }
+            if (!confirm('Сбросить ВСЕ ошибки для этой команды?')) return;
+            let existing = await loadTeamData(currentDirection, currentTeam);
+            let rawSeconds = existing?.raw_seconds ?? null;
+            await saveTeamData(currentDirection, currentTeam, rawSeconds, {});
+            await refreshCurrentTeamData();
+            await loadAllResults();
+            alert('Сброшено');
+        }
+        
         function resetTemp() { refreshCurrentTeamData(); }
-        async function printFullReport() { if (!currentDirection || !currentTeam) { alert('Сначала выберите направление и команду!'); return; } const data = await loadTeamData(currentDirection, currentTeam); if (!data) { alert('Нет сохранённых данных для этой команды.'); return; } const rawSec = data.raw_seconds; const penaltiesObj = data.penalties || {}; const activePenalties = []; for (let [id, val] of Object.entries(penaltiesObj)) { if (val === true || (typeof val === 'number' && val > 0)) { const penaltyInfo = penaltiesLibrary.find(p => p.id === id); if (penaltyInfo) { let count = (typeof val === 'number') ? val : 1; for (let i=0;i<count;i++) activePenalties.push({ ...penaltyInfo }); } } } let pmMisses = penaltiesObj[SHOOT_PM_MISS_ID] || 0; let saigaHits = penaltiesObj[SHOOT_SAIGA_HITS_ID] || 0; if (pmMisses) activePenalties.push({ category: "Стрельба", desc: `Промахи из ПМ (${pmMisses} шт.)`, sec: pmMisses * PENALTY_PER_MISS_PM }); if (saigaHits) activePenalties.push({ category: "Стрельба", desc: `Попадания из Сайги-12 (${saigaHits} шт.)`, sec: -saigaHits * SAIGA_BONUS_PER_HIT }); const grouped = {}; for (let p of activePenalties) { if (!grouped[p.category]) grouped[p.category]=[]; grouped[p.category].push(p); } const totalPenalty = getPenaltySum(penaltiesObj); const totalTime = (rawSec !== null && rawSec !== undefined) ? rawSec + totalPenalty : null; const teamFullName = teamNames[currentTeam] || currentTeam; const now = new Date().toLocaleString('ru-RU'); const printHtml = `<div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px;"><h1 style="text-align: center;">🏁 ОТЧЕТ О ПРОХОЖДЕНИИ ЭСТАФЕТЫ</h1><div style="text-align: center;">${now}</div><div style="background:#f8fafc;padding:16px;border-radius:16px;margin-bottom:24px;"><div>Команда: ${teamFullName} (${currentTeam})</div><div>Направление: ${currentDirection}</div><div>Чистое время: ${rawSec!==null?formatTime(rawSec):'—'}</div><div>Общий штраф: ${totalPenalty} сек</div><div>Итоговое время: ${totalTime!==null?formatTime(totalTime):'—'}</div></div><h3>📋 Перечень допущенных ошибок:</h3>${Object.keys(grouped).length===0?'<p>✅ Штрафные нарушения отсутствуют.</p>':''}${Object.entries(grouped).map(([stageName, penaltiesArr])=>`<div style="margin-bottom:20px;"><h4 style="background:#eef2ff;padding:8px;border-radius:12px;">🎯 ${stageName}</h4><table style="width:100%;border-collapse:collapse;"><thead><tr style="background:#e2e8f0;"><th style="padding:8px;text-align:left;">Нарушение</th><th style="padding:8px;">Штраф (сек)</th></tr></thead><tbody>${penaltiesArr.map(p=>`<tr><td style="padding:8px;">${p.desc}</td><td style="padding:8px;">${p.sec>=0?'+':''}${p.sec}</td></tr>`).join('')}</tbody></table></div>`).join('')}<div class="print-sign-line" style="margin-top:48px;border-top:1px dashed #aaa;padding-top:24px;"><div style="display:flex;justify-content:space-between;"><div><strong>Представитель команды:</strong> __________________</div><div><strong>Главный Судья (ФИО):</strong> __________________</div></div><div style="margin-top:20px;text-align:right;"><strong>Дата:</strong> __________________</div><div style="margin-top:20px;font-size:10px;text-align:center;">Подпись представителя команды подтверждает согласие с результатами.</div></div></div>`;
-            const container = document.getElementById('printReportContainer'); container.innerHTML = printHtml; container.style.display = 'block'; window.print(); container.style.display = 'none'; container.innerHTML = ''; }
-        function renderStageButtons() { const container = document.getElementById('stageButtonsContainer'); let html = ''; for (let stage of stages) { html += `<button class="stage-btn ${currentStage === stage ? 'active' : ''}" data-stage="${stage}">${stage}</button>`; } container.innerHTML = html; document.querySelectorAll('.stage-btn').forEach(btn => { btn.addEventListener('click', (e) => { const newStage = btn.getAttribute('data-stage'); if(newStage === currentStage) return; currentStage = newStage; renderStageButtons(); if(currentDirection && currentTeam) refreshCurrentTeamData(); else { tempPenalties={}; hasUnsavedChanges=false; renderPenalties(); updateBadge(); } let span = document.querySelector('#stageInfo span:first-child'); if(span && currentDirection && currentTeam) { let teamName = document.getElementById('teamSelect').options[document.getElementById('teamSelect').selectedIndex]?.text || currentTeam; span.innerText = `📍 Направление ${currentDirection}, команда ${teamName} | Этап: ${currentStage}`; } }); }); }
-        async function onSelectionChange() { currentDirection = document.getElementById('directionSelect').value ? parseInt(document.getElementById('directionSelect').value) : null; currentTeam = document.getElementById('teamSelect').value || null; if(currentDirection && currentTeam) await refreshCurrentTeamData(); else { document.getElementById('penaltiesContainer').innerHTML = '<div style="text-align:center;">⚠️ Выберите направление и банк</div>'; document.getElementById('rawTimeDisplay').innerText = '—'; document.getElementById('totalPenaltyDisplay').innerText = '0'; document.getElementById('totalTimeDisplay').innerText = '—'; } let span = document.querySelector('#stageInfo span:first-child'); if(span && currentDirection && currentTeam) { let teamName = document.getElementById('teamSelect').options[document.getElementById('teamSelect').selectedIndex]?.text || currentTeam; span.innerText = `📍 Направление ${currentDirection}, команда ${teamName} | Этап: ${currentStage}`; } else if(span) span.innerText = '✅ Выберите направление, банк и этап'; }
-        async function init() { let statusDiv = document.getElementById('connectionStatus'); statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>'; try { let { error } = await supabaseClient.from('estafeta_results').select('count', { count: 'exact', head: true }); if(error) throw error; statusDiv.innerHTML = '<span class="status-ok">✅ Подключено</span>'; } catch(err) { console.error(err); statusDiv.innerHTML = `<span class="status-error">❌ Ошибка: ${err.message}</span>`; } await loadAllResults(); renderStageButtons(); document.getElementById('directionSelect').addEventListener('change', onSelectionChange); document.getElementById('teamSelect').addEventListener('change', onSelectionChange); document.getElementById('saveStageBtn').addEventListener('click', saveStage); document.getElementById('resetStageBtn').addEventListener('click', resetTemp); document.getElementById('saveRawTimeBtn').addEventListener('click', saveRawTime); document.getElementById('resetTeamBtn').addEventListener('click', resetAllPenalties); document.getElementById('printReportBtn').addEventListener('click', printFullReport); onSelectionChange(); }
+        
+        // Печать отчёта
+        async function printFullReport() {
+            if (!currentDirection || !currentTeam) {
+                alert('Сначала выберите направление и команду!');
+                return;
+            }
+            const data = await loadTeamData(currentDirection, currentTeam);
+            if (!data) {
+                alert('Нет сохранённых данных для этой команды. Сначала зафиксируйте время или ошибки.');
+                return;
+            }
+            const rawSec = data.raw_seconds;
+            const penaltiesObj = data.penalties || {};
+            const activePenalties = [];
+            for (let [id, val] of Object.entries(penaltiesObj)) {
+                if (val === true || (typeof val === 'number' && val > 0)) {
+                    const penaltyInfo = penaltiesLibrary.find(p => p.id === id);
+                    if (penaltyInfo) {
+                        let count = (typeof val === 'number') ? val : 1;
+                        for (let i = 0; i < count; i++) {
+                            activePenalties.push({ ...penaltyInfo });
+                        }
+                    }
+                }
+            }
+            // Добавим отдельные записи для промахов ПМ и попаданий Сайги
+            let pmMisses = penaltiesObj[SHOOT_PM_MISS_ID] || 0;
+            let saigaHits = penaltiesObj[SHOOT_SAIGA_HITS_ID] || 0;
+            if (pmMisses > 0) {
+                activePenalties.push({ category: "Стрельба", desc: `Промахи из ПМ (${pmMisses} шт.)`, sec: pmMisses * PENALTY_PER_MISS_PM });
+            }
+            if (saigaHits > 0) {
+                activePenalties.push({ category: "Стрельба", desc: `Попадания из Сайги-12 (${saigaHits} шт.)`, sec: -saigaHits * SAIGA_BONUS_PER_HIT });
+            }
+            const grouped = {};
+            for (let p of activePenalties) {
+                if (!grouped[p.category]) grouped[p.category] = [];
+                grouped[p.category].push(p);
+            }
+            const totalPenalty = getPenaltySum(penaltiesObj);
+            const totalTime = (rawSec !== null && rawSec !== undefined) ? rawSec + totalPenalty : null;
+            const teamFullName = teamNames[currentTeam] || currentTeam;
+            const now = new Date().toLocaleString('ru-RU');
+            const printHtml = `
+                <div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px;">
+                    <h1 style="text-align: center; margin-bottom: 8px;">🏁 ОТЧЕТ О ПРОХОЖДЕНИИ ЭСТАФЕТЫ</h1>
+                    <div style="text-align: center; margin-bottom: 24px; color: #2c3e66;">Дата формирования: ${now}</div>
+                    <div style="background: #f8fafc; padding: 16px; border-radius: 16px; margin-bottom: 24px;">
+                        <div><strong>Команда (территориальный банк):</strong> ${teamFullName} (${currentTeam})</div>
+                        <div><strong>Направление:</strong> ${currentDirection}</div>
+                        <div><strong>Чистое время заезда:</strong> ${rawSec !== null ? formatTime(rawSec) : '—'}</div>
+                        <div><strong>Общий штраф:</strong> ${totalPenalty} секунд</div>
+                        <div><strong>Итоговое время:</strong> ${totalTime !== null ? formatTime(totalTime) : '—'}</div>
+                    </div>
+                    <h3>📋 Перечень допущенных ошибок (штрафных нарушений):</h3>
+                    ${Object.keys(grouped).length === 0 ? '<p style="color: green;">✅ Штрафные нарушения отсутствуют.</p>' : ''}
+                    ${Object.entries(grouped).map(([stageName, penaltiesArr]) => `
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="background: #eef2ff; padding: 8px 12px; border-radius: 12px;">🎯 ${stageName}</h4>
+                            <table style="width: 100%; border-collapse: collapse; margin-top: 8px;">
+                                <thead><tr style="background: #e2e8f0;"><th style="padding: 8px; text-align: left;">Нарушение</th><th style="padding: 8px; width: 100px;">Штраф (сек)</th> <tr></thead>
+                                <tbody>
+                                    ${penaltiesArr.map(p => `<tr style="border-bottom: 1px solid #cbd5e1;"><td style="padding: 8px;">${p.desc}</td><td style="padding: 8px;">${p.sec >= 0 ? '+' : ''}${p.sec}</td></tr>`).join('')}
+                                </tbody>
+                              </table>
+                        </div>
+                    `).join('')}
+                    <div class="print-sign-line" style="margin-top: 48px; border-top: 1px dashed #aaa; padding-top: 24px;">
+                        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px;">
+                            <div style="min-width: 250px;"><strong>Представитель команды:</strong> __________________</div>
+                            <div style="min-width: 200px;"><strong>Главный Судья (ФИО):</strong> __________________</div>
+                        </div>
+                        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                            <div><strong>Дата:</strong> __________________</div>
+                        </div>
+                        <div style="margin-top: 20px; font-size: 10px; color: #4b5563; text-align: center;">
+                            Подпись представителя команды подтверждает согласие с зафиксированными результатами и отсутствие претензий.
+                        </div>
+                    </div>
+                    <div class="print-footer" style="margin-top: 40px; font-size: 9pt; text-align: center; color: #6c757d;">
+                        Официальный протокол дисциплины "Эстафета"
+                    </div>
+                </div>
+            `;
+            const container = document.getElementById('printReportContainer');
+            container.innerHTML = printHtml;
+            container.style.display = 'block';
+            window.print();
+            container.style.display = 'none';
+            container.innerHTML = '';
+        }
+        
+        // Кнопки этапов
+        function renderStageButtons() {
+            const container = document.getElementById('stageButtonsContainer');
+            let html = '';
+            for (let stage of stages) {
+                html += `<button class="stage-btn ${currentStage === stage ? 'active' : ''}" data-stage="${stage}">${stage}</button>`;
+            }
+            container.innerHTML = html;
+            document.querySelectorAll('.stage-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const newStage = btn.getAttribute('data-stage');
+                    if (newStage === currentStage) return;
+                    currentStage = newStage;
+                    renderStageButtons();
+                    if (currentDirection && currentTeam) refreshCurrentTeamData();
+                    else { tempPenalties = {}; hasUnsavedChanges = false; renderPenalties(); updateBadge(); }
+                    let span = document.querySelector('#stageInfo span:first-child');
+                    if (span && currentDirection && currentTeam) {
+                        let teamName = document.getElementById('teamSelect').options[document.getElementById('teamSelect').selectedIndex]?.text || currentTeam;
+                        span.innerText = `📍 Направление ${currentDirection}, команда ${teamName} | Этап: ${currentStage}`;
+                    }
+                });
+            });
+        }
+        
+        async function onSelectionChange() {
+            currentDirection = document.getElementById('directionSelect').value ? parseInt(document.getElementById('directionSelect').value) : null;
+            currentTeam = document.getElementById('teamSelect').value || null;
+            if (currentDirection && currentTeam) await refreshCurrentTeamData();
+            else {
+                document.getElementById('penaltiesContainer').innerHTML = '<div style="grid-column:1/-1; text-align:center;">⚠️ Выберите направление и банк</div>';
+                document.getElementById('rawTimeDisplay').innerText = '—';
+                document.getElementById('totalPenaltyDisplay').innerText = '0';
+                document.getElementById('totalTimeDisplay').innerText = '—';
+            }
+            let span = document.querySelector('#stageInfo span:first-child');
+            if (span && currentDirection && currentTeam) {
+                let teamName = document.getElementById('teamSelect').options[document.getElementById('teamSelect').selectedIndex]?.text || currentTeam;
+                span.innerText = `📍 Направление ${currentDirection}, команда ${teamName} | Этап: ${currentStage}`;
+            } else if (span) span.innerText = '✅ Выберите направление, банк и этап';
+        }
+        
+        async function init() {
+            let statusDiv = document.getElementById('connectionStatus');
+            statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>';
+            try {
+                let { error } = await supabaseClient.from('estafeta_results').select('count', { count: 'exact', head: true });
+                if (error) throw error;
+                statusDiv.innerHTML = '<span class="status-ok">✅ Подключено</span>';
+            } catch (err) {
+                console.error(err);
+                statusDiv.innerHTML = `<span class="status-error">❌ Ошибка: ${err.message}. Данные будут только локально.</span>`;
+            }
+            await loadAllResults();
+            renderStageButtons();
+            document.getElementById('directionSelect').addEventListener('change', onSelectionChange);
+            document.getElementById('teamSelect').addEventListener('change', onSelectionChange);
+            document.getElementById('saveStageBtn').addEventListener('click', saveStage);
+            document.getElementById('resetStageBtn').addEventListener('click', resetTemp);
+            document.getElementById('saveRawTimeBtn').addEventListener('click', saveRawTime);
+            document.getElementById('resetTeamBtn').addEventListener('click', resetAllPenalties);
+            document.getElementById('printReportBtn').addEventListener('click', printFullReport);
+            onSelectionChange();
+        }
+        
         init();
     })();
 </script>
