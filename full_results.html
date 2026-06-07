@@ -6,231 +6,39 @@
     <title>Итоги соревнований | Сбербанк</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-        }
-
-        body {
-            background: #f0f4f8;
-            padding: 24px 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #1e3a5f 0%, #0f2b44 100%);
-            color: white;
-            padding: 28px 20px;
-            border-radius: 32px;
-            margin-bottom: 32px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 1.8rem;
-            margin-bottom: 8px;
-        }
-
-        .header-actions {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            margin-top: 16px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-
-        .back-link, .print-btn {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px 20px;
-            border-radius: 40px;
-            color: white;
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: 0.2s;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        .back-link:hover, .print-btn:hover {
-            background: rgba(255, 255, 255, 0.35);
-        }
-
-        .print-btn {
-            background: rgba(255, 255, 255, 0.25);
-            margin: 0;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-        }
-
-        .tab-btn {
-            background: #e2e8f0;
-            border: none;
-            padding: 12px 28px;
-            border-radius: 40px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            color: #1e293b;
-            transition: 0.2s;
-        }
-
-        .tab-btn.active {
-            background: #1e3a5f;
-            color: white;
-        }
-
-        .tab-pane {
-            display: none;
-        }
-
-        .tab-pane.active-pane {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .section {
-            background: white;
-            border-radius: 28px;
-            padding: 24px 20px;
-            margin-bottom: 32px;
-            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.05);
-        }
-
-        .section h2 {
-            font-size: 1.6rem;
-            margin-bottom: 20px;
-            color: #0f2b44;
-            border-left: 6px solid #dc2626;
-            padding-left: 18px;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-
-        th, td {
-            padding: 12px 8px;
-            text-align: center;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        th {
-            background: #f8fafc;
-            font-weight: 700;
-            color: #1e293b;
-        }
-
-        .rank-1 {
-            background-color: #ffd966 !important;
-            font-weight: bold;
-        }
-        .rank-2 {
-            background-color: #e0e0e0 !important;
-            font-weight: bold;
-        }
-        .rank-3 {
-            background-color: #f7d9b5 !important;
-            font-weight: bold;
-        }
-        .medal-icon {
-            font-size: 1.2rem;
-            margin-right: 4px;
-            display: inline-block;
-            vertical-align: middle;
-        }
-        .place-number {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            font-weight: 700;
-        }
-
-        .subnote {
-            margin-top: 16px;
-            font-size: 0.75rem;
-            color: #64748b;
-            text-align: right;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 12px;
-        }
-
-        .refresh-btn {
-            background: #1e3a5f;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 30px;
-            cursor: pointer;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 30px;
-            color: #64748b;
-        }
-
-        @media (max-width: 700px) {
-            th, td { padding: 8px 4px; font-size: 0.8rem; }
-            .section h2 { font-size: 1.3rem; }
-            .tab-btn { padding: 8px 18px; font-size: 0.9rem; }
-        }
-
-        footer {
-            text-align: center;
-            margin-top: 30px;
-            color: #5c6f87;
-            font-size: 0.75rem;
-        }
-
-        .plus-place {
-            color: #b45309;
-            font-size: 0.8rem;
-            margin-left: 2px;
-        }
-
-        @media print {
-            body { background: white; padding: 0; margin: 0; }
-            .container { max-width: 100%; margin: 0; padding: 10px; }
-            .header { background: #1e3a5f; color: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; border-radius: 0; margin-bottom: 15px; }
-            .header-actions, .tabs, .tab-btn, .refresh-btn, .back-link, .print-btn { display: none !important; }
-            .tab-pane { display: none !important; }
-            .tab-pane.active-pane { display: block !important; }
-            .section { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; padding: 15px; border-radius: 8px; }
-            .rank-1, .rank-2, .rank-3 { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f0f4f8; padding: 24px 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { background: linear-gradient(135deg, #1e3a5f 0%, #0f2b44 100%); color: white; padding: 28px 20px; border-radius: 32px; margin-bottom: 32px; text-align: center; }
+        .header h1 { font-size: 1.8rem; margin-bottom: 8px; }
+        .header-actions { display: flex; justify-content: center; gap: 16px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
+        .back-link, .print-btn { display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 40px; color: white; text-decoration: none; font-size: 0.9rem; transition: 0.2s; border: none; cursor: pointer; font-weight: 600; }
+        .back-link:hover, .print-btn:hover { background: rgba(255,255,255,0.35); }
+        .print-btn { background: rgba(255,255,255,0.25); margin: 0; }
+        .tabs { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+        .tab-btn { background: #e2e8f0; border: none; padding: 12px 28px; border-radius: 40px; font-size: 1.1rem; font-weight: 600; cursor: pointer; color: #1e293b; transition: 0.2s; }
+        .tab-btn.active { background: #1e3a5f; color: white; }
+        .tab-pane { display: none; }
+        .tab-pane.active-pane { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .section { background: white; border-radius: 28px; padding: 24px 20px; margin-bottom: 32px; box-shadow: 0 6px 14px rgba(0,0,0,0.05); }
+        .section h2 { font-size: 1.6rem; margin-bottom: 20px; color: #0f2b44; border-left: 6px solid #dc2626; padding-left: 18px; }
+        .table-wrapper { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f8fafc; font-weight: 700; color: #1e293b; }
+        .rank-1 { background-color: #ffd966 !important; font-weight: bold; }
+        .rank-2 { background-color: #e0e0e0 !important; font-weight: bold; }
+        .rank-3 { background-color: #f7d9b5 !important; font-weight: bold; }
+        .medal-icon { font-size: 1.2rem; margin-right: 4px; display: inline-block; vertical-align: middle; }
+        .place-number { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
+        .subnote { margin-top: 16px; font-size: 0.75rem; color: #64748b; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 12px; }
+        .refresh-btn { background: #1e3a5f; color: white; border: none; padding: 8px 20px; border-radius: 30px; cursor: pointer; margin-bottom: 15px; font-weight: 600; }
+        .loading { text-align: center; padding: 30px; color: #64748b; }
+        @media (max-width: 700px) { th, td { padding: 8px 4px; font-size: 0.8rem; } .section h2 { font-size: 1.3rem; } .tab-btn { padding: 8px 18px; font-size: 0.9rem; } }
+        footer { text-align: center; margin-top: 30px; color: #5c6f87; font-size: 0.75rem; }
+        .plus-place { color: #b45309; font-size: 0.8rem; margin-left: 2px; }
+        @media print { body { background: white; padding: 0; margin: 0; } .container { max-width: 100%; margin: 0; padding: 10px; } .header { background: #1e3a5f; color: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; border-radius: 0; margin-bottom: 15px; } .header-actions, .tabs, .tab-btn, .refresh-btn, .back-link, .print-btn { display: none !important; } .tab-pane { display: none !important; } .tab-pane.active-pane { display: block !important; } .section { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; padding: 15px; border-radius: 8px; } .rank-1, .rank-2, .rank-3 { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
     </style>
 </head>
 <body>
@@ -243,12 +51,12 @@
             <button class="print-btn" onclick="window.print();">🖨️ Печать результатов</button>
         </div>
     </div>
-
     <div class="tabs">
         <button class="tab-btn active" data-tab="inkasso">🚛 ИНКАССАЦИЯ</button>
         <button class="tab-btn" data-tab="ohrana">🛡️ ОХРАНА</button>
     </div>
 
+    <!-- Вкладка ИНКАССАЦИЯ -->
     <div id="inkasso-pane" class="tab-pane active-pane">
         <div style="text-align: right;"><button id="refreshInkassoBtn" class="refresh-btn">🔄 Обновить все данные</button></div>
         <div class="section"><h2>📋 Командное первенство (инкассация)</h2><div class="table-wrapper" id="team-standings-inkasso"><div class="loading">Загрузка...</div></div><div class="subnote">* При равных значениях суммы мест - приоритетом является результат испытаний по дисциплине "Огневая подготовка".</div></div>
@@ -259,6 +67,7 @@
         <div class="section"><h2>🚔 Командная эстафета (охрана + инкассация)</h2><div class="table-wrapper" id="team-estafeta-common"><div class="loading">Загрузка...</div></div></div>
     </div>
 
+    <!-- Вкладка ОХРАНА -->
     <div id="ohrana-pane" class="tab-pane">
         <div style="text-align: right;"><button id="refreshOhranaBtn" class="refresh-btn">🔄 Обновить данные охраны</button></div>
         <div class="section"><h2>🛡️ Командное первенство (охрана)</h2><div class="table-wrapper" id="team-standings-ohrana"><div class="loading">Загрузка...</div></div><div class="subnote">* При равных значениях суммы мест - приоритетом является результат испытаний по дисциплине "Огневая подготовка".</div></div>
@@ -272,151 +81,155 @@
 </div>
 
 <script>
-    (function() {
-        const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        const teamCodes = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
-        const baseTeamNames = {
-            "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","МРД":"Московский",
-            "ЦЧБ":"Центрально-Черноземный","ЮЗБ":"Юго-Западный","ПВБ":"Поволжский",
-            "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
-        };
-        
-        // Функции для отображения названий команд в зависимости от вкладки
-        function getTeamDisplayNameInkasso(code) {
-            if (code === "МРД") return "ПЦП МРД ЦУНДО";
-            return baseTeamNames[code];
-        }
-        function getTeamDisplayNameOhrana(code) {
-            if (code === "МРД") return "ЦОО ЦА и МБ";
-            return baseTeamNames[code];
-        }
-        function getTeamFullInkasso(code) {
-            return `<strong>${getTeamDisplayNameInkasso(code)} (${code})</strong>`;
-        }
-        function getTeamFullOhrana(code) {
-            return `<strong>${getTeamDisplayNameOhrana(code)} (${code})</strong>`;
-        }
+(function() {
+    const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // --------------------------------------------------------------
-        // СТАТИЧЕСКИЕ ДАННЫЕ (на основе скриншотов, для надёжности)
-        // --------------------------------------------------------------
-        const staticInkassoStandings = [
-            { code:"СИБ", name:"Сибирский", est:3, tri:2, drv:1, shoot:5, total:11 },
-            { code:"ДВБ", name:"Дальневосточный", est:4, tri:4, drv:12, shoot:2, total:22 },
-            { code:"УБ", name:"Уральский", est:7, tri:1, drv:12, shoot:10, total:30 },
-            { code:"ЦЧБ", name:"Центрально-Черноземный", est:2, tri:12, drv:12, shoot:4, total:30 },
-            { code:"СРБ", name:"Среднерусский", est:5, tri:12, drv:12, shoot:1, total:30 },
-            { code:"ПВБ", name:"Поволжский", est:12, tri:3, drv:12, shoot:6, total:33 },
-            { code:"ББ", name:"Байкальский", est:1, tri:12, drv:12, shoot:9, total:34 },
-            { code:"ЮЗБ", name:"Юго-Западный", est:8, tri:12, drv:12, shoot:7, total:39 },
-            { code:"СЗБ", name:"Северо-Западный", est:12, tri:12, drv:12, shoot:3, total:39 },
-            { code:"МРД", name:"Московский", est:6, tri:12, drv:12, shoot:11, total:41 },
-            { code:"ВВБ", name:"Волго-Вятский", est:12, tri:12, drv:12, shoot:8, total:44 }
-        ];
-        const staticEstafetaRows = [
-            { team_code:"ББ", direction:"1", raw_seconds:825.84, penalty:20, total_seconds:845.84 },
-            { team_code:"ЦЧБ", direction:"1", raw_seconds:863.95, penalty:0, total_seconds:863.95 },
-            { team_code:"СИБ", direction:"1", raw_seconds:865.67, penalty:0, total_seconds:865.67 },
-            { team_code:"ДВБ", direction:"1", raw_seconds:884.65, penalty:0, total_seconds:884.65 },
-            { team_code:"СРБ", direction:"2", raw_seconds:802.94, penalty:100, total_seconds:902.94 },
-            { team_code:"МРД", direction:"1", raw_seconds:865.98, penalty:40, total_seconds:905.98 },
-            { team_code:"УБ", direction:"1", raw_seconds:798.89, penalty:140, total_seconds:938.89 },
-            { team_code:"ЮЗБ", direction:"1", raw_seconds:1050.00, penalty:20, total_seconds:1070.00 }
-        ];
-        const staticTriathlon = [
-            { code:"УБ", name1:"Марамыгин Марк Юрьевич", raw1:238.64, penalty1:20, total1:258.64, name2:"Москвин Станислав Сергеевич", raw2:260.32, penalty2:0, total2:260.32, teamTotal:518.96, place:1 },
-            { code:"СИБ", name1:"Павлов Роман Владимирович", raw1:285.23, penalty1:0, total1:285.23, name2:"Груздов Егор Александрович", raw2:252.07, penalty2:0, total2:252.07, teamTotal:537.30, place:2 },
-            { code:"ПВБ", name1:"Гриднев Виктор Геннадьевич", raw1:345.12, penalty1:0, total1:345.12, name2:"Сернов Александр Сергеевич", raw2:354.94, penalty2:0, total2:354.94, teamTotal:700.06, place:3 },
-            { code:"ДВБ", name1:"Фёдоров Юрий Александрович", raw1:372.75, penalty1:0, total1:372.75, name2:"Шепелев Артём Александрович", raw2:383.17, penalty2:20, total2:403.17, teamTotal:775.92, place:4 }
-        ];
-        const staticDriving = [
-            { code:"СИБ", participant:"Данилов Андрей Алексеевич", figure_raw:442.87, figure_penalty:20, figure_total:462.87, sdu_raw:383.94, sdu_penalty:0, sdu_total:383.94, total_time:846.81, overall_place:1 },
-            { code:"УБ", participant:"Кудрявцев Максим Николаевич", figure_raw:342.39, figure_penalty:0, figure_total:342.39, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:2 },
-            { code:"ДВБ", participant:"Козырев Кирилл Александрович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:3 },
-            { code:"ББ", participant:"Горбунов Виталий Андреевич", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:4 },
-            { code:"МРД", participant:"Лобанов Евгений Юрьевич", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:5 },
-            { code:"ЦЧБ", participant:"Васильев Александр Леонидович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:6 },
-            { code:"ЮЗБ", participant:"Болдырев Владимир Александрович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:7 },
-            { code:"ПВБ", participant:"Полодичук Дмитрий Львович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:8 },
-            { code:"СРБ", participant:"Воронин Антон Николаевич", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:9 },
-            { code:"СЗБ", participant:"Догунов Дмитрий Владимирович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:10 },
-            { code:"ВВБ", participant:"Покров Евгений Александрович", figure_raw:null, figure_penalty:0, figure_total:null, sdu_raw:null, sdu_penalty:0, sdu_total:null, total_time:null, overall_place:11 }
-        ];
-        const shootingIndividual = [
-            { place:1, team:"Среднерусский", name:"Артемкин Николай Николаевич", result:"02:48,45" },
-            { place:2, team:"Сибирский", name:"(участник)", result:"02:51,44" },
-            { place:3, team:"МРД ЦУНДО", name:"(участник)", result:"02:54,76" },
-            { place:4, team:"Среднерусский", name:"Веретинов Андрей Владимирович", result:"02:56,13" },
-            { place:5, team:"Юго-Западный", name:"Кочиев Матвей Аслангиреевич", result:"02:58,31" },
-            { place:6, team:"Волго-Вятский", name:"Беккер Василий Андреевич", result:"03:13,91" },
-            { place:7, team:"Сибирский", name:"Матюшкин Дмитрий Александрович", result:"03:22,22" },
-            { place:8, team:"Уральский", name:"Савинов Денис Вячеславович", result:"03:22,48" },
-            { place:9, team:"Сибирский", name:"Шейнфельд Никита Александрович", result:"03:23,41" },
-            { place:10, team:"Волго-Вятский", name:"Михайлов Иван Владимирович", result:"03:26,39" }
-        ];
-        const staticSecurityEstafeta = [{ team_code:"ДВБ", direction:"1", total_seconds:1074.56 }];
-        const staticServiceDuathlon = {
-            "ББ": { p1: { name:"—", total:60.00 }, p2: { name:"—", total:60.00 }, p3: null, teamTotal:120.00 },
-            "УБ": { p1: { name:"Салатов Николай Семенович", total:222.45 }, p2: { name:"Вахитов Петр Николаевич", total:256.14 }, p3: { name:"Ковалев Сергей Михайлович", total:225.87 }, teamTotal:704.46 }
-        };
-        const staticCommonEstafeta = { "УБ": 688.00, "ББ": 822.00, "МРД": 824.04, "ДВБ": 845.00 };
-        const shootingPlaces = { "СИБ":5, "СРБ":1, "СЗБ":3, "ДВБ":2, "ЦЧБ":4, "ВВБ":8, "ЮЗБ":7, "ПВБ":6, "УБ":10, "ББ":9, "МРД":11 };
+    const teamCodes = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
+    const baseTeamNames = {
+        "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","МРД":"Московский",
+        "ЦЧБ":"Центрально-Черноземный","ЮЗБ":"Юго-Западный","ПВБ":"Поволжский",
+        "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
+    };
 
-        function formatTime(sec) {
-            if (sec === null || isNaN(sec)) return "—";
-            let minutes = Math.floor(sec / 60);
-            let seconds = (sec % 60).toFixed(2);
-            return minutes + ":" + seconds.toString().padStart(5, '0');
-        }
+    function getTeamDisplayNameInkasso(code) {
+        if (code === "МРД") return "ПЦП МРД ЦУНДО";
+        return baseTeamNames[code];
+    }
+    function getTeamDisplayNameOhrana(code) {
+        if (code === "МРД") return "ЦОО ЦА и МБ";
+        return baseTeamNames[code];
+    }
+    function getTeamFullInkasso(code) {
+        return `<strong>${getTeamDisplayNameInkasso(code)} (${code})</strong>`;
+    }
+    function getTeamFullOhrana(code) {
+        return `<strong>${getTeamDisplayNameOhrana(code)} (${code})</strong>`;
+    }
 
-        function getPlaceRowClass(place) {
-            if (place === 1) return "rank-1";
-            if (place === 2) return "rank-2";
-            if (place === 3) return "rank-3";
-            return "";
-        }
-        function formatPlaceWithMedal(place) {
-            if (place === 1) return '<span class="place-number"><span class="medal-icon">🥇</span> 1</span>';
-            if (place === 2) return '<span class="place-number"><span class="medal-icon">🥈</span> 2</span>';
-            if (place === 3) return '<span class="place-number"><span class="medal-icon">🥉</span> 3</span>';
-            return place;
-        }
+    // Статические данные для командного первенства инкассации, стрельбы, общей эстафеты
+    const staticInkassoStandings = [
+        { code:"СИБ", est:3, tri:2, drv:1, shoot:5, total:11 },
+        { code:"ДВБ", est:4, tri:4, drv:12, shoot:2, total:22 },
+        { code:"УБ", est:7, tri:1, drv:12, shoot:10, total:30 },
+        { code:"ЦЧБ", est:2, tri:12, drv:12, shoot:4, total:30 },
+        { code:"СРБ", est:5, tri:12, drv:12, shoot:1, total:30 },
+        { code:"ПВБ", est:12, tri:3, drv:12, shoot:6, total:33 },
+        { code:"ББ", est:1, tri:12, drv:12, shoot:9, total:34 },
+        { code:"ЮЗБ", est:8, tri:12, drv:12, shoot:7, total:39 },
+        { code:"СЗБ", est:12, tri:12, drv:12, shoot:3, total:39 },
+        { code:"МРД", est:6, tri:12, drv:12, shoot:11, total:41 },
+        { code:"ВВБ", est:12, tri:12, drv:12, shoot:8, total:44 }
+    ];
 
-        // ----- ИНКАССАЦИЯ (с переименованием МРД) -----
-        async function renderTeamStandingsInkasso() {
-            const container = document.getElementById('team-standings-inkasso');
-            let standings = staticInkassoStandings;
-            let html = '<table class="results-table"><thead><th>Итоговое место</th><th>Команда</th><th>Эстафета</th><th>Триатлон</th><th>Мастерство вождения</th><th>Практическая стрельба</th><th>Сумма мест</th></thead><tbody>';
-            let rank = 1;
-            for (let s of standings) {
-                const rowClass = getPlaceRowClass(rank);
-                let placeDisplay = rank <= 3 ? formatPlaceWithMedal(rank) : rank;
-                html += `<tr class="${rowClass}">
-                             <td>${placeDisplay}</td>
-                             <td>${getTeamFullInkasso(s.code)}</td>
-                             <td>${s.est}${s.est === 12 ? '<span class="plus-place">+</span>' : ''}</td>
-                             <td>${s.tri}${s.tri === 12 ? '<span class="plus-place">+</span>' : ''}</td>
-                             <td>${s.drv}${s.drv === 12 ? '<span class="plus-place">+</span>' : ''}</td>
-                             <td>${s.shoot}${s.shoot === 12 ? '<span class="plus-place">+</span>' : ''}</td>
-                             <td><strong>${s.total}</strong></td>
-                           </tr>`;
-                rank++;
+    const shootingIndividual = [
+        { place:1, team:"Среднерусский", name:"Артемкин Николай Николаевич", result:"02:48,45" },
+        { place:2, team:"Сибирский", name:"(участник)", result:"02:51,44" },
+        { place:3, team:"МРД ЦУНДО", name:"(участник)", result:"02:54,76" },
+        { place:4, team:"Среднерусский", name:"Веретинов Андрей Владимирович", result:"02:56,13" },
+        { place:5, team:"Юго-Западный", name:"Кочиев Матвей Аслангиреевич", result:"02:58,31" },
+        { place:6, team:"Волго-Вятский", name:"Беккер Василий Андреевич", result:"03:13,91" },
+        { place:7, team:"Сибирский", name:"Матюшкин Дмитрий Александрович", result:"03:22,22" },
+        { place:8, team:"Уральский", name:"Савинов Денис Вячеславович", result:"03:22,48" },
+        { place:9, team:"Сибирский", name:"Шейнфельд Никита Александрович", result:"03:23,41" },
+        { place:10, team:"Волго-Вятский", name:"Михайлов Иван Владимирович", result:"03:26,39" }
+    ];
+
+    const staticSecurityEstafeta = [{ team_code:"ДВБ", direction:"1", total_seconds:1074.56 }];
+    const staticCommonEstafeta = { "УБ": 688.00, "ББ": 822.00, "МРД": 824.04, "ДВБ": 845.00 };
+
+    function formatTime(sec) {
+        if (sec === null || isNaN(sec)) return "—";
+        let minutes = Math.floor(sec / 60);
+        let seconds = (sec % 60).toFixed(2);
+        return minutes + ":" + seconds.toString().padStart(5, '0');
+    }
+
+    function getPlaceRowClass(place) {
+        if (place === 1) return "rank-1";
+        if (place === 2) return "rank-2";
+        if (place === 3) return "rank-3";
+        return "";
+    }
+
+    function formatPlaceWithMedal(place) {
+        if (place === 1) return '<span class="place-number"><span class="medal-icon">🥇</span> 1</span>';
+        if (place === 2) return '<span class="place-number"><span class="medal-icon">🥈</span> 2</span>';
+        if (place === 3) return '<span class="place-number"><span class="medal-icon">🥉</span> 3</span>';
+        return String(place);
+    }
+
+    function calculatePenaltySeconds(penaltiesJson) {
+        if (!penaltiesJson || penaltiesJson === "{}") return 0;
+        try {
+            const obj = typeof penaltiesJson === 'string' ? JSON.parse(penaltiesJson) : penaltiesJson;
+            let count = 0;
+            for (let key in obj) {
+                if (obj[key] === true || obj[key] === "true") count++;
+                else if (obj[key] !== false && obj[key] !== null && obj[key] !== 0) count++;
             }
-            html += '</tbody></table>';
-            container.innerHTML = html;
+            return count * 20;
+        } catch(e) {
+            return 0;
         }
+    }
 
-        async function renderDetailedEstafeta() {
-            const container = document.getElementById('detailed-estafeta');
-            const rows = staticEstafetaRows;
+    // ************** ИНКАССАЦИЯ **************
+    async function renderTeamStandingsInkasso() {
+        let html = '<table class="results-table"><thead><tr><th>Итоговое место</th><th>Команда</th><th>Эстафета</th><th>Триатлон</th><th>Мастерство вождения</th><th>Практическая стрельба</th><th>Сумма мест</th></tr></thead><tbody>';
+        let rank = 1;
+        for (let s of staticInkassoStandings) {
+            const rowClass = getPlaceRowClass(rank);
+            let placeDisplay = rank <= 3 ? formatPlaceWithMedal(rank) : rank;
+            html += `<tr class="${rowClass}">`;
+            html += `<td>${placeDisplay}</td>`;
+            html += `<td>${getTeamFullInkasso(s.code)}</td>`;
+            html += `<td>${s.est}${s.est === 12 ? '<span class="plus-place">+</span>' : ''}</td>`;
+            html += `<td>${s.tri}${s.tri === 12 ? '<span class="plus-place">+</span>' : ''}</td>`;
+            html += `<td>${s.drv}${s.drv === 12 ? '<span class="plus-place">+</span>' : ''}</td>`;
+            html += `<td>${s.shoot}${s.shoot === 12 ? '<span class="plus-place">+</span>' : ''}</td>`;
+            html += `<td><strong>${s.total}</strong></td>`;
+            html += `</tr>`;
+            rank++;
+        }
+        html += '</tbody></table>';
+        document.getElementById('team-standings-inkasso').innerHTML = html;
+    }
+
+    async function renderDetailedEstafeta() {
+        const container = document.getElementById('detailed-estafeta');
+        container.innerHTML = '<div class="loading">Загрузка данных эстафеты...</div>';
+        try {
+            const { data, error } = await supabase.from('estafeta_results').select('*');
+            if (error) throw error;
+            const bestAttemptMap = new Map();
+            for (const row of data) {
+                const code = row.team_code;
+                const dir = row.direction;
+                const raw = row.raw_seconds;
+                if (raw === null || raw === undefined) continue;
+                const penaltiesSec = calculatePenaltySeconds(row.penalties);
+                const total = raw + penaltiesSec;
+                if (!bestAttemptMap.has(code)) {
+                    bestAttemptMap.set(code, { raw, penalty: penaltiesSec, total, direction: dir });
+                } else {
+                    const existing = bestAttemptMap.get(code);
+                    if (dir === 1 && existing.direction !== 1) {
+                        bestAttemptMap.set(code, { raw, penalty: penaltiesSec, total, direction: dir });
+                    } else if (dir === existing.direction && total < existing.total) {
+                        bestAttemptMap.set(code, { raw, penalty: penaltiesSec, total, direction: dir });
+                    }
+                }
+            }
             const fullList = [];
-            for (let code of teamCodes) {
-                const existing = rows.find(r => r.team_code === code);
-                if (existing) fullList.push({ team_code: code, direction: existing.direction, raw_seconds: existing.raw_seconds, penalty: existing.penalty, total_seconds: existing.total_seconds });
-                else fullList.push({ team_code: code, direction: "—", raw_seconds: null, penalty: 0, total_seconds: null });
+            for (const code of teamCodes) {
+                const attempt = bestAttemptMap.get(code);
+                if (attempt) {
+                    fullList.push({ team_code: code, direction: attempt.direction, raw_seconds: attempt.raw, penalty: attempt.penalty, total_seconds: attempt.total });
+                } else {
+                    fullList.push({ team_code: code, direction: "—", raw_seconds: null, penalty: 0, total_seconds: null });
+                }
             }
             fullList.sort((a,b) => {
                 if (a.total_seconds === null && b.total_seconds === null) return 0;
@@ -425,281 +238,440 @@
                 return a.total_seconds - b.total_seconds;
             });
             let currentPlace = 1;
-            for (let i=0; i<fullList.length; i++) if (fullList[i].total_seconds !== null) fullList[i].place = currentPlace++;
-            let html = '<table><thead><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></thead><tbody>';
-            for (let row of fullList) {
+            for (let i = 0; i < fullList.length; i++) {
+                if (fullList[i].total_seconds !== null) fullList[i].place = currentPlace++;
+                else fullList[i].place = null;
+            }
+            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead><tbody>';
+            for (const row of fullList) {
                 let placeDisplay = '', rowClass = '';
                 if (row.place && row.place <= 3) { rowClass = getPlaceRowClass(row.place); placeDisplay = formatPlaceWithMedal(row.place); }
                 else if (row.place) placeDisplay = row.place;
                 else placeDisplay = '—';
                 const rawStr = row.raw_seconds !== null ? formatTime(row.raw_seconds) : '—';
                 const totalStr = row.total_seconds !== null ? formatTime(row.total_seconds) : '—';
-                html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td>${getTeamFullInkasso(row.team_code)}</td><td>${row.direction}</td><td>${rawStr}</td><td>${row.penalty}</td><td>${totalStr}</td></tr>`;
+                html += `<tr class="${rowClass}">`;
+                html += `<td>${placeDisplay}</td>`;
+                html += `<td>${getTeamFullInkasso(row.team_code)}</td>`;
+                html += `<td>${row.direction}</td>`;
+                html += `<td>${rawStr}</td>`;
+                html += `<td>${row.penalty}</td>`;
+                html += `<td>${totalStr}</td>`;
+                html += `</tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
+        } catch(err) {
+            console.error(err);
+            container.innerHTML = '<div class="loading">❌ Ошибка загрузки данных эстафеты</div>';
         }
+    }
 
-        async function renderTriathlon() {
-            const container = document.getElementById('detailed-triathlon');
-            let details = staticTriathlon;
-            let html = '<table><thead><th>Место</th><th>Команда</th><th>Участник 1</th><th>Время 1</th><th>Штраф 1</th><th>Итог 1</th><th>Участник 2</th><th>Время 2</th><th>Штраф 2</th><th>Итог 2</th><th>Сумма команды</th></thead><tbody>';
-            for (let d of details) {
-                const rowClass = getPlaceRowClass(d.place);
-                let placeDisplay = d.place <= 3 ? formatPlaceWithMedal(d.place) : d.place;
-                html += `<tr class="${rowClass}">
-                            <td>${placeDisplay}</td>
-                            <td>${getTeamFullInkasso(d.code)}</td>
-                            <td>${d.name1}</td><td>${d.raw1 !== null ? formatTime(d.raw1) : '—'}</td><td>${d.penalty1}</td><td>${d.total1 !== null ? formatTime(d.total1) : '—'}</td>
-                            <td>${d.name2}</td><td>${d.raw2 !== null ? formatTime(d.raw2) : '—'}</td><td>${d.penalty2}</td><td>${d.total2 !== null ? formatTime(d.total2) : '—'}</td>
-                            <td><strong>${d.teamTotal !== null ? formatTime(d.teamTotal) : '—'}</strong></td>
-                         </tr>`;
+    async function renderTriathlon() {
+        const container = document.getElementById('detailed-triathlon');
+        container.innerHTML = '<div class="loading">Загрузка данных триатлона...</div>';
+        try {
+            const { data, error } = await supabase.from('triathlon_results').select('*');
+            if (error) throw error;
+            const teamsMap = new Map();
+            for (const row of data) {
+                const code = row.team_code;
+                if (!teamsMap.has(code)) teamsMap.set(code, []);
+                teamsMap.get(code).push(row);
             }
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        async function renderDriving() {
-            const container = document.getElementById('detailed-driving');
-            let details = staticDriving;
-            let html = '<table><thead><th>Место</th><th>Команда</th><th>Участник</th><th>Фигурное (чистое)</th><th>Штраф</th><th>Фигурное (итог)</th><th>СДУ (чистое)</th><th>Штраф</th><th>СДУ (итог)</th><th>Общее время</th></thead><tbody>';
-            for (let d of details) {
-                const rowClass = getPlaceRowClass(d.overall_place);
-                let placeDisplay = d.overall_place <= 3 ? formatPlaceWithMedal(d.overall_place) : d.overall_place;
-                html += `<tr class="${rowClass}">
-                            <td>${placeDisplay}</td>
-                            <td>${getTeamFullInkasso(d.code)}</td>
-                            <td>${d.participant}</td>
-                            <td>${d.figure_raw !== null ? formatTime(d.figure_raw) : '—'}</td><td>${d.figure_penalty}</td><td>${d.figure_total !== null ? formatTime(d.figure_total) : '—'}</td>
-                            <td>${d.sdu_raw !== null ? formatTime(d.sdu_raw) : '—'}</td><td>${d.sdu_penalty}</td><td>${d.sdu_total !== null ? formatTime(d.sdu_total) : '—'}</td>
-                            <td><strong>${d.total_time !== null ? formatTime(d.total_time) : '—'}</strong></td>
-                         </tr>`;
+            const rowsData = [];
+            for (const code of teamCodes) {
+                const members = teamsMap.get(code) || [];
+                members.sort((a,b) => (a.participant_number || 0) - (b.participant_number || 0));
+                const p1 = members.find(m => m.participant_number === 1);
+                const p2 = members.find(m => m.participant_number === 2);
+                const p1_name = p1?.name || "—";
+                const p1_raw = p1?.raw_seconds !== null ? p1.raw_seconds : null;
+                const p1_penalty = p1 ? calculatePenaltySeconds(p1.penalties) : 0;
+                const p1_total = (p1_raw !== null) ? p1_raw + p1_penalty : null;
+                const p2_name = p2?.name || "—";
+                const p2_raw = p2?.raw_seconds !== null ? p2.raw_seconds : null;
+                const p2_penalty = p2 ? calculatePenaltySeconds(p2.penalties) : 0;
+                const p2_total = (p2_raw !== null) ? p2_raw + p2_penalty : null;
+                let team_total = null;
+                if (p1_total !== null && p2_total !== null) team_total = p1_total + p2_total;
+                else if (p1_total !== null) team_total = p1_total;
+                else if (p2_total !== null) team_total = p2_total;
+                rowsData.push({ code, name1: p1_name, raw1: p1_raw, penalty1: p1_penalty, total1: p1_total, name2: p2_name, raw2: p2_raw, penalty2: p2_penalty, total2: p2_total, teamTotal: team_total });
             }
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        function renderIndividualInkasso() {
-            const container = document.getElementById('individual-pistol');
-            let html = '<table><thead><th>Место</th><th>Команда</th><th>ФИО</th><th>Результат</th></thead><tbody>';
-            for (let p of shootingIndividual) {
-                const rowClass = getPlaceRowClass(p.place);
-                let placeDisplay = p.place <= 3 ? formatPlaceWithMedal(p.place) : p.place;
-                html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td>${p.team}</td><td>${p.name}</td><td>${p.result}</td></tr>`;
-            }
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        async function renderTeamEstafetaCommonInkasso() {
-            const container = document.getElementById('team-estafeta-common');
-            let data = staticCommonEstafeta;
-            const fullList = [];
-            for (let code of teamCodes) {
-                const time = data[code] || null;
-                fullList.push({ code, total_seconds: time });
-            }
-            fullList.sort((a,b) => {
-                if (a.total_seconds === null && b.total_seconds === null) return 0;
-                if (a.total_seconds === null) return 1;
-                if (b.total_seconds === null) return -1;
-                return a.total_seconds - b.total_seconds;
+            rowsData.sort((a,b) => {
+                if (a.teamTotal === null && b.teamTotal === null) return 0;
+                if (a.teamTotal === null) return 1;
+                if (b.teamTotal === null) return -1;
+                return a.teamTotal - b.teamTotal;
             });
             let rank = 1;
-            for (let i=0; i<fullList.length; i++) if (fullList[i].total_seconds !== null) fullList[i].place = rank++;
-            let html = '<table><thead><th>Место</th><th>Команда</th><th>Итоговое время</th></thead><tbody>';
-            for (let row of fullList) {
-                let placeDisplay = '', rowClass = '';
-                if (row.place && row.place <= 3) { rowClass = getPlaceRowClass(row.place); placeDisplay = formatPlaceWithMedal(row.place); }
-                else if (row.place) placeDisplay = row.place;
-                else placeDisplay = '—';
-                const timeStr = row.total_seconds !== null ? formatTime(row.total_seconds) : '—';
-                html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td>${getTeamFullInkasso(row.code)}</td><td>${timeStr}</td></tr>`;
-            }
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        // ----- ОХРАНА (с переименованием МРД) -----
-        async function renderSecurityTeamStandings() {
-            const container = document.getElementById('team-standings-ohrana');
-            const securityStandings = [
-                { code:"ДВБ", name:"Дальневосточный", est:1, duathlon:12, shoot:2, total:15 },
-                { code:"ББ", name:"Байкальский", est:12, duathlon:1, shoot:9, total:22 },
-                { code:"УБ", name:"Уральский", est:12, duathlon:2, shoot:10, total:24 },
-                { code:"СРБ", name:"Среднерусский", est:12, duathlon:1, shoot:2, total:25 },
-                { code:"СЗБ", name:"Северо-Западный", est:12, duathlon:1, shoot:3, total:27 },
-                { code:"ЦЧБ", name:"Центрально-Черноземный", est:12, duathlon:1, shoot:4, total:28 },
-                { code:"СИБ", name:"Сибирский", est:12, duathlon:1, shoot:5, total:29 },
-                { code:"ПВБ", name:"Поволжский", est:12, duathlon:1, shoot:6, total:30 },
-                { code:"ЮЗБ", name:"Юго-Западный", est:12, duathlon:1, shoot:7, total:31 },
-                { code:"ВВБ", name:"Волго-Вятский", est:12, duathlon:1, shoot:8, total:32 },
-                { code:"МРД", name:"Московский", est:12, duathlon:1, shoot:11, total:36 }
-            ];
-            let html = '<table><thead><th>Итоговое место</th><th>Команда</th><th>Эстафета (охрана)</th><th>Служебное двоеборье</th><th>Практическая стрельба</th><th>Сумма мест</th></thead><tbody>';
-            let rank = 1;
-            for (let s of securityStandings) {
-                const rowClass = getPlaceRowClass(rank);
-                let placeDisplay = rank <= 3 ? formatPlaceWithMedal(rank) : rank;
-                html += `<tr class="${rowClass}">
-                            <td>${placeDisplay}</td>
-                            <td>${getTeamFullOhrana(s.code)}</td>
-                            <td>${s.est}${s.est === 12 ? '<span class="plus-place">+</span>' : ''}</td>
-                            <td>${s.duathlon}${s.duathlon === 12 ? '<span class="plus-place">+</span>' : ''}</td>
-                            <td>${s.shoot}${s.shoot === 12 ? '<span class="plus-place">+</span>' : ''}</td>
-                            <td><strong>${s.total}</strong></td>
-                         </tr>`;
-                rank++;
-            }
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        async function renderSecurityEstafeta() {
-            const container = document.getElementById('security-estafeta');
-            const rows = staticSecurityEstafeta;
-            const fullList = [];
-            for (let code of teamCodes) {
-                const existing = rows.find(r => r.team_code === code);
-                if (existing) fullList.push({ team_code: code, direction: existing.direction, total_seconds: existing.total_seconds });
-                else fullList.push({ team_code: code, direction: "—", total_seconds: null });
-            }
-            fullList.sort((a,b) => {
-                if (a.total_seconds === null && b.total_seconds === null) return 0;
-                if (a.total_seconds === null) return 1;
-                if (b.total_seconds === null) return -1;
-                return a.total_seconds - b.total_seconds;
-            });
-            let currentPlace = 1;
-            for (let i=0; i<fullList.length; i++) if (fullList[i].total_seconds !== null) fullList[i].place = currentPlace++;
-            let html = '<table><thead><th>Место</th><th>Команда</th><th>Напр.</th><th>Итоговое время</th></thead><tbody>';
-            for (let d of fullList) {
-                let placeDisplay = '', rowClass = '';
-                if (d.place && d.place <= 3) { rowClass = getPlaceRowClass(d.place); placeDisplay = formatPlaceWithMedal(d.place); }
-                else if (d.place) placeDisplay = d.place;
-                else placeDisplay = '—';
-                const timeStr = d.total_seconds !== null ? formatTime(d.total_seconds) : '—';
-                html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td>${getTeamFullOhrana(d.team_code)}</td><td>${d.direction}</td><td>${timeStr}</td></tr>`;
-            }
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        async function renderServiceDuathlon() {
-            const container = document.getElementById('service-duathlon');
-            const result = [];
-            for (let code of teamCodes) {
-                const staticTeam = staticServiceDuathlon[code];
-                if (staticTeam) {
-                    result.push({ code,
-                        p1_name: staticTeam.p1?.name || "—", p1_total: staticTeam.p1?.total || null,
-                        p2_name: staticTeam.p2?.name || "—", p2_total: staticTeam.p2?.total || null,
-                        p3_name: staticTeam.p3?.name || "—", p3_total: staticTeam.p3?.total || null,
-                        team_total: staticTeam.teamTotal });
-                } else {
-                    result.push({ code, p1_name: "—", p1_total: null, p2_name: "—", p2_total: null, p3_name: "—", p3_total: null, team_total: null });
-                }
-            }
-            result.sort((a,b) => (a.team_total ?? Infinity) - (b.team_total ?? Infinity));
-            let rank = 1;
-            for (let r of result) r.place = r.team_total !== null ? rank++ : null;
-            let html = '<table><thead><th>Место</th><th>Команда</th><th>Участник 1</th><th>Время 1</th><th>Участник 2</th><th>Время 2</th><th>Участник 3</th><th>Время 3</th><th>Сумма команды</th></thead><tbody>';
-            for (let t of result) {
+            for (let i = 0; i < rowsData.length; i++) rowsData[i].place = rowsData[i].teamTotal !== null ? rank++ : null;
+            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Время 1</th><th>Штраф 1</th><th>Итог 1</th><th>Участник 2</th><th>Время 2</th><th>Штраф 2</th><th>Итог 2</th><th>Сумма команды</th></tr></thead><tbody>';
+            for (const t of rowsData) {
                 const rowClass = getPlaceRowClass(t.place);
                 let placeDisplay = (t.place !== null && t.place <= 3) ? formatPlaceWithMedal(t.place) : (t.place || '—');
-                html += `<tr class="${rowClass}">
-                            <td>${placeDisplay}</td>
-                            <td>${getTeamFullOhrana(t.code)}</td>
-                            <td>${t.p1_name}</td><td>${t.p1_total !== null ? formatTime(t.p1_total) : '—'}</td>
-                            <td>${t.p2_name}</td><td>${t.p2_total !== null ? formatTime(t.p2_total) : '—'}</td>
-                            <td>${t.p3_name}</td><td>${t.p3_total !== null ? formatTime(t.p3_total) : '—'}</td>
-                            <td><strong>${t.team_total !== null ? formatTime(t.team_total) : '—'}</strong></td>
-                         </tr>`;
+                html += `<tr class="${rowClass}">`;
+                html += `<td>${placeDisplay}</td>`;
+                html += `<td>${getTeamFullInkasso(t.code)}</td>`;
+                html += `<td>${t.name1}</td>`;
+                html += `<td>${t.raw1 !== null ? formatTime(t.raw1) : '—'}</td>`;
+                html += `<td>${t.penalty1}</td>`;
+                html += `<td>${t.total1 !== null ? formatTime(t.total1) : '—'}</td>`;
+                html += `<td>${t.name2}</td>`;
+                html += `<td>${t.raw2 !== null ? formatTime(t.raw2) : '—'}</td>`;
+                html += `<td>${t.penalty2}</td>`;
+                html += `<td>${t.total2 !== null ? formatTime(t.total2) : '—'}</td>`;
+                html += `<td><strong>${t.teamTotal !== null ? formatTime(t.teamTotal) : '—'}</strong></td>`;
+                html += `</tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
+        } catch(err) {
+            console.error(err);
+            container.innerHTML = '<div class="loading">❌ Ошибка загрузки данных триатлона</div>';
         }
+    }
 
-        async function renderTeamEstafetaCommonOhrana() {
-            const container = document.getElementById('team-estafeta-common-ohrana');
-            let data = staticCommonEstafeta;
-            const fullList = [];
-            for (let code of teamCodes) {
-                const time = data[code] || null;
-                fullList.push({ code, total_seconds: time });
+    async function renderDriving() {
+        const container = document.getElementById('detailed-driving');
+        container.innerHTML = '<div class="loading">Загрузка данных мастерства вождения...</div>';
+        try {
+            const { data, error } = await supabase.from('driving_results').select('*');
+            if (error) throw error;
+            const drivingMap = new Map();
+            for (const row of data) {
+                const code = row.team_code;
+                if (!drivingMap.has(code)) {
+                    drivingMap.set(code, row);
+                } else {
+                    const existing = drivingMap.get(code);
+                    const existingTotal = existing.total_time ?? (existing.figure_total ?? 0) + (existing.sdu_total ?? 0);
+                    const newTotal = row.total_time ?? (row.figure_total ?? 0) + (row.sdu_total ?? 0);
+                    if (newTotal < existingTotal) drivingMap.set(code, row);
+                }
             }
-            fullList.sort((a,b) => {
-                if (a.total_seconds === null && b.total_seconds === null) return 0;
-                if (a.total_seconds === null) return 1;
-                if (b.total_seconds === null) return -1;
-                return a.total_seconds - b.total_seconds;
+            const rowsData = [];
+            for (const code of teamCodes) {
+                const row = drivingMap.get(code);
+                if (row) {
+                    const figurePenalty = calculatePenaltySeconds(row.figure_penalties);
+                    const figureRaw = row.figure_time;
+                    const figureTotal = (figureRaw !== null) ? figureRaw + figurePenalty : null;
+                    const sduPenalty = calculatePenaltySeconds(row.sdu_penalties);
+                    const sduRaw = row.sdu_time;
+                    const sduTotal = (sduRaw !== null) ? sduRaw + sduPenalty : null;
+                    let totalTime = row.total_time;
+                    if (totalTime === null && figureTotal !== null && sduTotal !== null) totalTime = figureTotal + sduTotal;
+                    else if (totalTime === null && figureTotal !== null) totalTime = figureTotal;
+                    else if (totalTime === null && sduTotal !== null) totalTime = sduTotal;
+                    rowsData.push({
+                        code: code,
+                        participant: row.participant_name || "—",
+                        figure_raw: figureRaw,
+                        figure_penalty: figurePenalty,
+                        figure_total: figureTotal,
+                        sdu_raw: sduRaw,
+                        sdu_penalty: sduPenalty,
+                        sdu_total: sduTotal,
+                        total_time: totalTime
+                    });
+                } else {
+                    rowsData.push({
+                        code: code,
+                        participant: "—",
+                        figure_raw: null,
+                        figure_penalty: 0,
+                        figure_total: null,
+                        sdu_raw: null,
+                        sdu_penalty: 0,
+                        sdu_total: null,
+                        total_time: null
+                    });
+                }
+            }
+            rowsData.sort((a,b) => {
+                if (a.total_time === null && b.total_time === null) return 0;
+                if (a.total_time === null) return 1;
+                if (b.total_time === null) return -1;
+                return a.total_time - b.total_time;
             });
             let rank = 1;
-            for (let i=0; i<fullList.length; i++) if (fullList[i].total_seconds !== null) fullList[i].place = rank++;
-            let html = '<table><thead><th>Место</th><th>Команда</th><th>Итоговое время</th></thead><tbody>';
-            for (let row of fullList) {
-                let placeDisplay = '', rowClass = '';
-                if (row.place && row.place <= 3) { rowClass = getPlaceRowClass(row.place); placeDisplay = formatPlaceWithMedal(row.place); }
-                else if (row.place) placeDisplay = row.place;
-                else placeDisplay = '—';
-                const timeStr = row.total_seconds !== null ? formatTime(row.total_seconds) : '—';
-                html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td>${getTeamFullOhrana(row.code)}</td><td>${timeStr}</td></tr>`;
+            for (let i = 0; i < rowsData.length; i++) {
+                if (rowsData[i].total_time !== null) rowsData[i].place = rank++;
+                else rowsData[i].place = null;
+            }
+            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Участник</th><th>Фигурное (чистое)</th><th>Штраф</th><th>Фигурное (итог)</th><th>СДУ (чистое)</th><th>Штраф</th><th>СДУ (итог)</th><th>Общее время</th></tr></thead><tbody>';
+            for (const d of rowsData) {
+                const rowClass = getPlaceRowClass(d.place);
+                let placeDisplay = (d.place !== null && d.place <= 3) ? formatPlaceWithMedal(d.place) : (d.place || '—');
+                html += `<tr class="${rowClass}">`;
+                html += `<td>${placeDisplay}</td>`;
+                html += `<td>${getTeamFullInkasso(d.code)}</td>`;
+                html += `<td>${d.participant}</td>`;
+                html += `<td>${d.figure_raw !== null ? formatTime(d.figure_raw) : '—'}</td>`;
+                html += `<td>${d.figure_penalty}</td>`;
+                html += `<td>${d.figure_total !== null ? formatTime(d.figure_total) : '—'}</td>`;
+                html += `<td>${d.sdu_raw !== null ? formatTime(d.sdu_raw) : '—'}</td>`;
+                html += `<td>${d.sdu_penalty}</td>`;
+                html += `<td>${d.sdu_total !== null ? formatTime(d.sdu_total) : '—'}</td>`;
+                html += `<td><strong>${d.total_time !== null ? formatTime(d.total_time) : '—'}</strong></td>`;
+                html += `</tr>`;
             }
             html += '</tbody></table>';
             container.innerHTML = html;
+        } catch(err) {
+            console.error(err);
+            container.innerHTML = '<div class="loading">❌ Ошибка загрузки данных мастерства вождения</div>';
         }
+    }
 
-        function renderIndividualOhrana() {
-            const container = document.getElementById('individual-pistol-ohrana');
-            let html = '<table><thead><th>Место</th><th>Команда</th><th>ФИО</th><th>Результат</th></thead><tbody>';
-            for (let p of shootingIndividual) {
-                const rowClass = getPlaceRowClass(p.place);
-                let placeDisplay = p.place <= 3 ? formatPlaceWithMedal(p.place) : p.place;
-                html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td>${p.team}</td><td>${p.name}</td><td>${p.result}</td></tr>`;
+    function renderIndividualInkasso() {
+        let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>ФИО</th><th>Результат</th></tr></thead><tbody>';
+        for (let p of shootingIndividual) {
+            const rowClass = getPlaceRowClass(p.place);
+            let placeDisplay = p.place <= 3 ? formatPlaceWithMedal(p.place) : p.place;
+            html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td>${p.team}</td><td>${p.name}</td><td>${p.result}</td></tr>`;
+        }
+        html += '</tbody></table>';
+        document.getElementById('individual-pistol').innerHTML = html;
+    }
+
+    async function renderTeamEstafetaCommonInkasso() {
+        const fullList = [];
+        for (let code of teamCodes) {
+            const time = staticCommonEstafeta[code] || null;
+            fullList.push({ code, total_seconds: time });
+        }
+        fullList.sort((a,b) => {
+            if (a.total_seconds === null && b.total_seconds === null) return 0;
+            if (a.total_seconds === null) return 1;
+            if (b.total_seconds === null) return -1;
+            return a.total_seconds - b.total_seconds;
+        });
+        let rank = 1;
+        for (let i=0; i<fullList.length; i++) if (fullList[i].total_seconds !== null) fullList[i].place = rank++;
+        let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th></tr></thead><tbody>';
+        for (let row of fullList) {
+            let placeDisplay = '', rowClass = '';
+            if (row.place && row.place <= 3) { rowClass = getPlaceRowClass(row.place); placeDisplay = formatPlaceWithMedal(row.place); }
+            else if (row.place) placeDisplay = row.place;
+            else placeDisplay = '—';
+            const timeStr = row.total_seconds !== null ? formatTime(row.total_seconds) : '—';
+            html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td>${getTeamFullInkasso(row.code)}</td><td>${timeStr}</td></tr>`;
+        }
+        html += '</tbody></table>';
+        document.getElementById('team-estafeta-common').innerHTML = html;
+    }
+
+    // ************** ОХРАНА **************
+    async function renderSecurityTeamStandings() {
+        const securityStandings = [
+            { code:"ДВБ", est:1, duathlon:12, shoot:2, total:15 },
+            { code:"ББ", est:12, duathlon:1, shoot:9, total:22 },
+            { code:"УБ", est:12, duathlon:2, shoot:10, total:24 },
+            { code:"СРБ", est:12, duathlon:1, shoot:2, total:25 },
+            { code:"СЗБ", est:12, duathlon:1, shoot:3, total:27 },
+            { code:"ЦЧБ", est:12, duathlon:1, shoot:4, total:28 },
+            { code:"СИБ", est:12, duathlon:1, shoot:5, total:29 },
+            { code:"ПВБ", est:12, duathlon:1, shoot:6, total:30 },
+            { code:"ЮЗБ", est:12, duathlon:1, shoot:7, total:31 },
+            { code:"ВВБ", est:12, duathlon:1, shoot:8, total:32 },
+            { code:"МРД", est:12, duathlon:1, shoot:11, total:36 }
+        ];
+        let html = '<table><thead><tr><th>Итоговое место</th><th>Команда</th><th>Эстафета (охрана)</th><th>Служебное двоеборье</th><th>Практическая стрельба</th><th>Сумма мест</th></tr></thead><tbody>';
+        let rank = 1;
+        for (let s of securityStandings) {
+            const rowClass = getPlaceRowClass(rank);
+            let placeDisplay = rank <= 3 ? formatPlaceWithMedal(rank) : rank;
+            html += `<tr class="${rowClass}">`;
+            html += `<td>${placeDisplay}</td>`;
+            html += `<td>${getTeamFullOhrana(s.code)}</td>`;
+            html += `<td>${s.est}${s.est === 12 ? '<span class="plus-place">+</span>' : ''}</td>`;
+            html += `<td>${s.duathlon}${s.duathlon === 12 ? '<span class="plus-place">+</span>' : ''}</td>`;
+            html += `<td>${s.shoot}${s.shoot === 12 ? '<span class="plus-place">+</span>' : ''}</td>`;
+            html += `<td><strong>${s.total}</strong></td>`;
+            html += `</tr>`;
+            rank++;
+        }
+        html += '</tbody></table>';
+        document.getElementById('team-standings-ohrana').innerHTML = html;
+    }
+
+    async function renderSecurityEstafeta() {
+        const fullList = [];
+        for (let code of teamCodes) {
+            const existing = staticSecurityEstafeta.find(r => r.team_code === code);
+            if (existing) fullList.push({ team_code: code, direction: existing.direction, total_seconds: existing.total_seconds });
+            else fullList.push({ team_code: code, direction: "—", total_seconds: null });
+        }
+        fullList.sort((a,b) => {
+            if (a.total_seconds === null && b.total_seconds === null) return 0;
+            if (a.total_seconds === null) return 1;
+            if (b.total_seconds === null) return -1;
+            return a.total_seconds - b.total_seconds;
+        });
+        let currentPlace = 1;
+        for (let i=0; i<fullList.length; i++) if (fullList[i].total_seconds !== null) fullList[i].place = currentPlace++;
+        let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Итоговое время</th></tr></thead><tbody>';
+        for (let d of fullList) {
+            let placeDisplay = '', rowClass = '';
+            if (d.place && d.place <= 3) { rowClass = getPlaceRowClass(d.place); placeDisplay = formatPlaceWithMedal(d.place); }
+            else if (d.place) placeDisplay = d.place;
+            else placeDisplay = '—';
+            const timeStr = d.total_seconds !== null ? formatTime(d.total_seconds) : '—';
+            html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td>${getTeamFullOhrana(d.team_code)}</td><td>${d.direction}</td><td>${timeStr}</td></tr>`;
+        }
+        html += '</tbody></table>';
+        document.getElementById('security-estafeta').innerHTML = html;
+    }
+
+    async function renderServiceDuathlon() {
+        const container = document.getElementById('service-duathlon');
+        container.innerHTML = '<div class="loading">Загрузка данных...</div>';
+        try {
+            const { data, error } = await supabase.from('service_duathlon_results').select('*');
+            if (error) throw error;
+            const teamsMap = new Map();
+            for (const row of data) {
+                let teamCode = row.team_code;
+                if (teamCode === "ЦА") teamCode = "МРД";
+                if (!teamsMap.has(teamCode)) teamsMap.set(teamCode, []);
+                teamsMap.get(teamCode).push(row);
             }
-            html += '</tbody></table>';
-            container.innerHTML = html;
-        }
-
-        async function refreshInkasso() {
-            await Promise.all([renderTeamStandingsInkasso(), renderDetailedEstafeta(), renderTriathlon(), renderDriving(), renderIndividualInkasso(), renderTeamEstafetaCommonInkasso()]);
-        }
-        async function refreshOhrana() {
-            await renderSecurityTeamStandings();
-            await renderSecurityEstafeta();
-            await renderServiceDuathlon();
-            await renderTeamEstafetaCommonOhrana();
-            renderIndividualOhrana();
-        }
-
-        function initTabs() {
-            const btns = document.querySelectorAll('.tab-btn');
-            const inkassoPane = document.getElementById('inkasso-pane');
-            const ohranaPane = document.getElementById('ohrana-pane');
-            btns.forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const tabId = btn.getAttribute('data-tab');
-                    btns.forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    if (tabId === 'inkasso') {
-                        inkassoPane.classList.add('active-pane');
-                        ohranaPane.classList.remove('active-pane');
-                        await refreshInkasso();
-                    } else {
-                        ohranaPane.classList.add('active-pane');
-                        inkassoPane.classList.remove('active-pane');
-                        await refreshOhrana();
-                    }
-                });
+            const rowsData = [];
+            for (const code of teamCodes) {
+                const members = teamsMap.get(code) || [];
+                members.sort((a,b) => (a.participant_number || 0) - (b.participant_number || 0));
+                const p1 = members[0], p2 = members[1], p3 = members[2];
+                const p1_name = p1?.participant_name || "—";
+                const p1_time = (p1?.total_seconds !== null && p1?.total_seconds !== undefined) ? p1.total_seconds : null;
+                const p2_name = p2?.participant_name || "—";
+                const p2_time = (p2?.total_seconds !== null && p2?.total_seconds !== undefined) ? p2.total_seconds : null;
+                const p3_name = p3?.participant_name || "—";
+                const p3_time = (p3?.total_seconds !== null && p3?.total_seconds !== undefined) ? p3.total_seconds : null;
+                let team_total = null;
+                const times = [p1_time, p2_time, p3_time].filter(t => t !== null);
+                if (times.length > 0) team_total = times.reduce((a,b) => a+b, 0);
+                rowsData.push({ code, p1_name, p1_time, p2_name, p2_time, p3_name, p3_time, team_total });
+            }
+            rowsData.sort((a,b) => {
+                if (a.team_total === null && b.team_total === null) return 0;
+                if (a.team_total === null) return 1;
+                if (b.team_total === null) return -1;
+                return a.team_total - b.team_total;
             });
+            let rank = 1;
+            for (let i=0; i<rowsData.length; i++) rowsData[i].place = rowsData[i].team_total !== null ? rank++ : null;
+            let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Время 1</th><th>Участник 2</th><th>Время 2</th><th>Участник 3</th><th>Время 3</th><th>Сумма команды</th></tr></thead><tbody>';
+            for (const t of rowsData) {
+                const rowClass = getPlaceRowClass(t.place);
+                let placeDisplay = (t.place !== null && t.place <= 3) ? formatPlaceWithMedal(t.place) : (t.place || '—');
+                html += `<tr class="${rowClass}">`;
+                html += `<td>${placeDisplay}</td>`;
+                html += `<td>${getTeamFullOhrana(t.code)}</td>`;
+                html += `<td>${t.p1_name}</td>`;
+                html += `<td>${t.p1_time !== null ? formatTime(t.p1_time) : '—'}</td>`;
+                html += `<td>${t.p2_name}</td>`;
+                html += `<td>${t.p2_time !== null ? formatTime(t.p2_time) : '—'}</td>`;
+                html += `<td>${t.p3_name}</td>`;
+                html += `<td>${t.p3_time !== null ? formatTime(t.p3_time) : '—'}</td>`;
+                html += `<td><strong>${t.team_total !== null ? formatTime(t.team_total) : '—'}</strong></td>`;
+                html += `</tr>`;
+            }
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        } catch(err) {
+            console.error(err);
+            container.innerHTML = '<div class="loading">❌ Ошибка загрузки данных</div>';
         }
+    }
 
-        document.getElementById('refreshInkassoBtn').addEventListener('click', refreshInkasso);
-        document.getElementById('refreshOhranaBtn').addEventListener('click', refreshOhrana);
-        refreshInkasso();
-        refreshOhrana();
-        initTabs();
-    })();
+    async function renderTeamEstafetaCommonOhrana() {
+        const fullList = [];
+        for (let code of teamCodes) {
+            const time = staticCommonEstafeta[code] || null;
+            fullList.push({ code, total_seconds: time });
+        }
+        fullList.sort((a,b) => {
+            if (a.total_seconds === null && b.total_seconds === null) return 0;
+            if (a.total_seconds === null) return 1;
+            if (b.total_seconds === null) return -1;
+            return a.total_seconds - b.total_seconds;
+        });
+        let rank = 1;
+        for (let i=0; i<fullList.length; i++) if (fullList[i].total_seconds !== null) fullList[i].place = rank++;
+        let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th></tr></thead><tbody>';
+        for (let row of fullList) {
+            let placeDisplay = '', rowClass = '';
+            if (row.place && row.place <= 3) { rowClass = getPlaceRowClass(row.place); placeDisplay = formatPlaceWithMedal(row.place); }
+            else if (row.place) placeDisplay = row.place;
+            else placeDisplay = '—';
+            const timeStr = row.total_seconds !== null ? formatTime(row.total_seconds) : '—';
+            html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td>${getTeamFullOhrana(row.code)}</td><td>${timeStr}</td></tr>`;
+        }
+        html += '</tbody></table>';
+        document.getElementById('team-estafeta-common-ohrana').innerHTML = html;
+    }
+
+    function renderIndividualOhrana() {
+        let html = '<table><thead><tr><th>Место</th><th>Команда</th><th>ФИО</th><th>Результат</th></tr></thead><tbody>';
+        for (let p of shootingIndividual) {
+            const rowClass = getPlaceRowClass(p.place);
+            let placeDisplay = p.place <= 3 ? formatPlaceWithMedal(p.place) : p.place;
+            html += `<tr class="${rowClass}"><td>${placeDisplay}</td><td>${p.team}</td><td>${p.name}</td><td>${p.result}</td></tr>`;
+        }
+        html += '</tbody></table>';
+        document.getElementById('individual-pistol-ohrana').innerHTML = html;
+    }
+
+    async function refreshInkasso() {
+        await Promise.all([
+            renderTeamStandingsInkasso(),
+            renderDetailedEstafeta(),
+            renderTriathlon(),
+            renderDriving(),
+            renderIndividualInkasso(),
+            renderTeamEstafetaCommonInkasso()
+        ]);
+    }
+
+    async function refreshOhrana() {
+        await renderSecurityTeamStandings();
+        await renderSecurityEstafeta();
+        await renderServiceDuathlon();
+        await renderTeamEstafetaCommonOhrana();
+        renderIndividualOhrana();
+    }
+
+    function initTabs() {
+        const btns = document.querySelectorAll('.tab-btn');
+        const inkassoPane = document.getElementById('inkasso-pane');
+        const ohranaPane = document.getElementById('ohrana-pane');
+        btns.forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const tabId = btn.getAttribute('data-tab');
+                btns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                if (tabId === 'inkasso') {
+                    inkassoPane.classList.add('active-pane');
+                    ohranaPane.classList.remove('active-pane');
+                    await refreshInkasso();
+                } else {
+                    ohranaPane.classList.add('active-pane');
+                    inkassoPane.classList.remove('active-pane');
+                    await refreshOhrana();
+                }
+            });
+        });
+    }
+
+    document.getElementById('refreshInkassoBtn').addEventListener('click', refreshInkasso);
+    document.getElementById('refreshOhranaBtn').addEventListener('click', refreshOhrana);
+    refreshInkasso();
+    refreshOhrana();
+    initTabs();
+})();
 </script>
 </body>
 </html>
