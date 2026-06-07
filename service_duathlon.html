@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Служебное двоеборье — судейская панель | Supabase</title>
+    <title>Служебное двоеборье — судейская панель</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif; }
@@ -80,7 +80,7 @@
         <h1>🏃‍♂️🎯 СЛУЖЕБНОЕ ДВОЕБОРЬЕ</h1>
         <p>Дистанция 1280 м • ПМ (+30 сек/промах) • Сайга-12 (–10 сек/попадание)</p>
     </div>
-    <div id="statusMessage" class="info-message">Подключение к Supabase...</div>
+    <div id="statusMessage" class="info-message">Подключение</div>
     <div id="globalError" class="error-message" style="display: none;"></div>
 
     <div class="judge-panel">
@@ -242,7 +242,7 @@
 
     async function loadAllFromSupabase(){
         try{
-            showStatus("Подключение к Supabase...");
+            showStatus("Подключение");
             const { data, error } = await supabase.from(TABLE_NAME).select('*');
             if(error) throw new Error(`SELECT: ${error.message}`);
             const newCache = {};
