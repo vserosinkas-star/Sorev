@@ -2,43 +2,83 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <title>Служебное двоеборье — судейская панель | Supabase</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'Segoe UI', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif; }
         body { background: #f0f4f8; padding: 16px; }
         .container { max-width: 1400px; margin: 0 auto; }
         .header { background: linear-gradient(135deg, #1e3a5f, #0f2b44); color: white; padding: 20px; border-radius: 28px; margin-bottom: 24px; text-align: center; }
-        .judge-panel { background: white; border-radius: 28px; padding: 20px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 1.5rem; }
+        .header p { margin-top: 8px; font-size: 0.85rem; opacity: 0.9; }
+        .judge-panel { background: white; border-radius: 28px; padding: 20px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
         .control-group { margin-bottom: 20px; }
         .control-group label { font-weight: 600; display: block; margin-bottom: 6px; color: #1e3a5f; }
-        select, input { width: 100%; padding: 12px; border-radius: 16px; border: 1px solid #cbd5e1; font-size: 1rem; }
+        select, input { width: 100%; padding: 12px; border-radius: 16px; border: 1px solid #cbd5e1; font-size: 1rem; background: white; }
         .participant-selector { display: flex; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
-        .participant-btn { background: #e2e8f0; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; flex: 1; text-align: center; }
+        .participant-btn { background: #e2e8f0; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; font-size: 0.9rem; font-weight: 500; color: #1e293b; transition: 0.2s; flex: 1; text-align: center; }
         .participant-btn.active { background: #1e3a8a; color: white; }
         .participant-card { background: #f9fafb; border-radius: 24px; padding: 16px; margin-top: 20px; border: 1px solid #e2e8f0; }
-        .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px,1fr)); gap: 12px; margin: 16px 0; max-height: 360px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 20px; padding: 12px; background: white; }
-        .penalty-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px; display: flex; align-items: center; gap: 12px; }
-        button { background: #1e3a8a; color: white; border: none; padding: 12px 18px; border-radius: 40px; font-weight: 600; cursor: pointer; }
+        .participant-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 16px; color: #0f2b44; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; }
+        .participant-title input { flex: 1; min-width: 180px; }
+        .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin: 16px 0; max-height: 550px; overflow-y: auto; border: 1px solid #e2e8f0; border-radius: 20px; padding: 12px; background: white; }
+        .penalty-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .penalty-card .desc { flex: 2; font-size: 0.9rem; font-weight: 500; }
+        .penalty-sec { background: #e2e8f0; padding: 4px 10px; border-radius: 40px; font-size: 0.75rem; font-weight: 600; margin-left: 8px; white-space: nowrap; }
+        .counter-control { display: flex; align-items: center; gap: 8px; background: white; border-radius: 40px; padding: 4px 12px; border: 1px solid #cbd5e1; }
+        .counter-control button { background: #e2e8f0; color: #1e293b; padding: 2px 10px; font-size: 1.2rem; line-height: 1; margin: 0; width: auto; }
+        .counter-control span { min-width: 32px; text-align: center; font-weight: bold; }
+        .time-row, .double-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; margin: 16px 0; }
+        .time-row .control-group, .double-row .control-group { flex: 1; margin-bottom: 0; }
+        button { background: #1e3a8a; color: white; border: none; padding: 12px 18px; border-radius: 40px; font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
+        button:hover { background: #1e40af; }
+        .btn-secondary { background: #475569; }
         .btn-warning { background: #f97316; }
-        .summary-bar { background: #f1f5f9; border-radius: 20px; padding: 16px; margin-top: 20px; display: flex; flex-wrap: wrap; gap: 12px; }
-        .summary-bar span { background: white; padding: 6px 12px; border-radius: 40px; }
+        .summary-bar { background: #f1f5f9; border-radius: 20px; padding: 16px; margin-top: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-weight: 600; font-size: 0.9rem; }
+        .summary-bar span { background: white; padding: 6px 12px; border-radius: 40px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .results-table { background: white; border-radius: 24px; overflow-x: auto; padding: 4px; margin-top: 30px; }
         table { width: 100%; border-collapse: collapse; min-width: 800px; }
-        th, td { padding: 10px 6px; text-align: center; border-bottom: 1px solid #e2e8f0; }
-        .rank-1 { background-color: #fef9c3; }
-        .radio-group { display: flex; gap: 24px; background: white; padding: 10px 16px; border-radius: 40px; border: 1px solid #cbd5e1; }
+        th, td { padding: 10px 6px; text-align: center; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; }
+        th { background: #f8fafc; font-weight: 700; }
+        .rank-1 { background-color: #fef9c3; font-weight: bold; }
         .error-message { background: #fee2e2; color: #b91c1c; padding: 12px; border-radius: 20px; margin-bottom: 16px; text-align: center; }
         .info-message { background: #e0f2fe; color: #0369a1; padding: 12px; border-radius: 20px; margin-bottom: 16px; text-align: center; }
-        @media (max-width: 700px) { .penalties-grid { grid-template-columns: 1fr; } .participant-selector { flex-direction: column; } button { width: 100%; } }
+
+        /* Мобильная адаптация */
+        @media (max-width: 700px) {
+            body { padding: 12px; }
+            .penalties-grid { grid-template-columns: 1fr !important; max-height: none !important; overflow-y: visible !important; gap: 12px; }
+            .penalty-card { flex-direction: column; align-items: flex-start; gap: 8px; width: 100%; }
+            .penalty-card .desc { width: 100%; }
+            .counter-control { align-self: flex-start; }
+            .counter-control button { padding: 6px 14px; font-size: 1.3rem; }
+            button { width: 100%; }
+            .participant-selector { flex-direction: column; gap: 8px; }
+            .participant-btn { width: 100%; }
+            .time-row, .double-row { flex-direction: column; align-items: stretch; gap: 12px; }
+            .participant-title { flex-direction: column; align-items: stretch; }
+            .participant-title input { margin-left: 0 !important; width: 100%; }
+            .summary-bar { flex-direction: column; gap: 8px; }
+            .summary-bar span { display: block; text-align: center; }
+            .results-table { margin-top: 20px; }
+            th, td { font-size: 0.75rem; padding: 8px 4px; }
+        }
+        @media (max-width: 480px) {
+            .header { padding: 16px; }
+            .participant-card { padding: 12px; }
+            .control-group label { font-size: 0.85rem; }
+            select, input { padding: 10px; font-size: 0.9rem; }
+            button { padding: 10px 16px; font-size: 0.85rem; }
+            .penalty-card .desc { font-size: 0.85rem; }
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
         <h1>🏃‍♂️🎯 СЛУЖЕБНОЕ ДВОЕБОРЬЕ</h1>
-        <p>Дистанция 1280 м • ПМ (+30 сек/промах) • Сайга-12 (–10 сек/попадание) • Граната (+10 сек)</p>
+        <p>Дистанция 1280 м • ПМ (+30 сек/промах) • Сайга-12 (–10 сек/попадание)</p>
     </div>
     <div id="statusMessage" class="info-message">Подключение к Supabase...</div>
     <div id="globalError" class="error-message" style="display: none;"></div>
@@ -67,10 +107,9 @@
             <div class="participant-card">
                 <div class="control-group"><label>ФИО участника</label><input type="text" id="participantName" placeholder="ФИО"></div>
                 <div class="control-group"><label>⏱️ Чистое время бега (мм:сс.сс)</label><input type="text" id="rawTimeInput" placeholder="4:25.30"></div>
-                <div class="control-group"><label>🔫 ПМ (промахи, 0-4)</label><input type="number" id="missesPM" min="0" max="4" value="0"></div>
-                <div class="control-group"><label>🎯 САЙГА-12 (попадания, 0-4)</label><input type="number" id="hitsSaiga" min="0" max="4" value="0"></div>
-                <div class="control-group"><label>💣 Метание гранаты</label>
-                    <div class="radio-group"><label><input type="radio" name="grenadeResult" value="hit" checked> Попал (0 сек)</label><label><input type="radio" name="grenadeResult" value="miss"> Не попал (+10 сек)</label></div>
+                <div class="double-row">
+                    <div class="control-group"><label>🔫 ПМ (промахи, 0-4)</label><input type="number" id="missesPM" min="0" max="4" value="0"></div>
+                    <div class="control-group"><label>🎯 САЙГА-12 (попадания, 0-4)</label><input type="number" id="hitsSaiga" min="0" max="4" value="0"></div>
                 </div>
                 <div id="penaltiesContainer" class="penalties-grid"></div>
                 <div style="display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap;">
@@ -78,12 +117,11 @@
                     <button id="resetParticipantBtn" class="btn-warning">🗑️ Сбросить участника</button>
                 </div>
                 <div class="summary-bar">
-                    <span>Штрафы: <strong id="penaltySum">0</strong> сек</span>
-                    <span>Промахи ПМ: <strong id="missesPenalty">0</strong> сек</span>
-                    <span>Бонус Сайга: <strong id="saigaBonus">0</strong> сек</span>
-                    <span>Граната: <strong id="grenadePenalty">0</strong> сек</span>
-                    <span>Чистое время: <strong id="rawTimeDisplay">—</strong></span>
-                    <span>ИТОГОВОЕ: <strong id="totalTimeDisplay">—</strong></span>
+                    <span>⚖️ Штрафы (ошибки): <strong id="penaltySum">0</strong> сек</span>
+                    <span>🏃 Промахи ПМ: <strong id="missesPenalty">0</strong> сек</span>
+                    <span>⭐ Бонус Сайга: <strong id="saigaBonus">0</strong> сек</span>
+                    <span>⏱️ ЧИСТОЕ время: <strong id="rawTimeDisplay">—</strong></span>
+                    <span>🏆 ИТОГОВОЕ: <strong id="totalTimeDisplay">—</strong></span>
                 </div>
             </div>
         </div>
@@ -105,34 +143,28 @@
 
 <script>
 (function(){
-    // ---------- Конфигурация Supabase ----------
+    // ---------- Supabase ----------
     const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
     const TABLE_NAME = 'service_duathlon_results';
-
-    // Создаём клиент Supabase, если его ещё нет
     let supabase;
     if (window.supabase && typeof window.supabase.createClient === 'function') {
         supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    } else if (typeof supabase !== 'undefined' && supabase && supabase.from) {
-        supabase = window.supabase;
-    } else {
-        console.error('Supabase SDK не загружен');
-        document.getElementById('statusMessage').innerHTML = '❌ Ошибка: Supabase SDK не загружен. Проверьте интернет.';
-        return;
-    }
+    } else { console.error('Supabase SDK не загружен'); document.getElementById('statusMessage').innerHTML = '❌ Ошибка: Supabase SDK не загружен.'; return; }
 
     // ---------- Константы ----------
     const PENALTY_PER_MISS_PM = 30;
     const SAIGA_BONUS_PER_HIT = 10;
-    const GRENADE_MISS_PENALTY = 10;
+    // Новый список штрафов: для каждого указан тип: 'counter' (счётчик) или 'checkbox'
     const penaltiesCatalog = [
-        { id: "falsestart", label: "Фальстарт", seconds: 5 },
-        { id: "gun_drop", label: "Падение пистолета", seconds: 20 },
-        { id: "ammo_drop", label: "Падение патронов", seconds: 20 },
-        { id: "strap", label: "Не пристёгнут ремешок", seconds: 20 },
-        { id: "exercise_fail", label: "Невыполнение упражнения", seconds: 120 }
+        { id: "falsestart", label: "Фальстарт", seconds: 5, type: "counter", max: 10 },
+        { id: "gun_drop", label: "Падение оружия (оружие коснулось земли)", seconds: 20, type: "counter", max: 10 },
+        { id: "ammo_drop", label: "Падение патронов (патроны коснулись земли)", seconds: 20, type: "counter", max: 10 },
+        { id: "strap", label: "Не пристёгнут страховочный ремешок к пистолету", seconds: 20, type: "checkbox" },
+        { id: "exercise_fail", label: "Невыполнение любого упражнения (оббег препятствий и т.д.)", seconds: 120, type: "counter", max: 10 },
+        { id: "grenade_miss", label: "Непопадание гранатой в окно (за каждое непопадание из 3 попыток)", seconds: 10, type: "counter", max: 3 }
     ];
+
     const teamCodes = ["УБ","ДВБ","ББ","ЦА","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ","СТБ"];
     const teamNames = { "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","ЦА":"ЦОО ЦА и МБ","ЦЧБ":"Центрально-Черноземный","ЮЗБ":"Юго-Западный","ПВБ":"Поволжский","СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский","СТБ":"СТБ" };
     const defaultNames = {
@@ -151,7 +183,7 @@
     };
 
     let currentTeam = null, currentParticipant = 1, unsavedChanges = false;
-    let currentAthlete = { name:"", rawSeconds:null, missesPM:0, hitsSaiga:0, grenadeMiss:false, penalties:{} };
+    let currentAthlete = { name:"", rawSeconds:null, missesPM:0, hitsSaiga:0, penalties:{} };
     let allData = {};
 
     // DOM
@@ -170,12 +202,33 @@
 
     function formatTime(sec) { if(sec===null||isNaN(sec)) return "—"; let m=Math.floor(sec/60), s=(sec%60).toFixed(2); return `${m}:${s.padStart(5,'0')}`; }
     function parseTime(str) { if(!str?.trim()) return null; let s=str.trim(); let m=0, sec=0; if(s.includes(":")){ let p=s.split(":"); m=parseInt(p[0])||0; let sp=p[1]; sec=sp.includes(".")?parseFloat(sp):parseInt(sp); } else sec=parseFloat(s); return isNaN(m)||isNaN(sec)?null:m*60+sec; }
-    function getPenaltySum(pen) { let sum=0; for(let id in pen) if(pen[id]) sum+=penaltiesCatalog.find(p=>p.id===id)?.seconds||0; return sum; }
-    function computeTotal(a){ if(a.rawSeconds===null) return null; let t=a.rawSeconds + (a.missesPM||0)*PENALTY_PER_MISS_PM + (a.grenadeMiss?GRENADE_MISS_PENALTY:0) + getPenaltySum(a.penalties||{}) - (a.hitsSaiga||0)*SAIGA_BONUS_PER_HIT; return Math.max(0,t); }
+    
+    function getPenaltySum(pen) {
+        if (!pen) return 0;
+        let sum = 0;
+        for (let id in pen) {
+            const p = penaltiesCatalog.find(p => p.id === id);
+            if (p) {
+                let val = pen[id];
+                if (typeof val === 'number') sum += val * p.seconds;
+                else if (val === true) sum += p.seconds;
+            }
+        }
+        return sum;
+    }
+    
+    function computeTotal(a){
+        if (a.rawSeconds === null) return null;
+        let total = a.rawSeconds;
+        total += (a.missesPM || 0) * PENALTY_PER_MISS_PM;
+        total -= (a.hitsSaiga || 0) * SAIGA_BONUS_PER_HIT;
+        total += getPenaltySum(a.penalties || {});
+        return Math.max(0, total);
+    }
 
     async function saveAthleteToSupabase(team, part, ath){
         const total = computeTotal(ath);
-        const penaltiesJson = { hitsSaiga: ath.hitsSaiga||0, grenadeMiss: ath.grenadeMiss||false, extraPenalties: {...ath.penalties} };
+        const penaltiesJson = { ...ath.penalties }; // уже числа/булевы
         const { error } = await supabase.from(TABLE_NAME).upsert({
             team_code: team, participant_number: part, participant_name: ath.name||"",
             raw_seconds: ath.rawSeconds, misses: ath.missesPM||0, penalties: penaltiesJson,
@@ -189,41 +242,44 @@
 
     async function loadAllFromSupabase(){
         try{
-            showStatus("Подключение...");
-            console.log("Загрузка...");
+            showStatus("Подключение к Supabase...");
             const { data, error } = await supabase.from(TABLE_NAME).select('*');
             if(error) throw new Error(`SELECT: ${error.message}`);
-            console.log("Получено строк:", data?.length);
             const newCache = {};
             for(let row of data){
                 const team = row.team_code, part = row.participant_number;
                 if(!newCache[team]) newCache[team]={};
-                let extra = (row.penalties?.extraPenalties) || {};
                 newCache[team][part] = {
                     name: row.participant_name || "",
                     rawSeconds: row.raw_seconds,
                     missesPM: row.misses || 0,
-                    hitsSaiga: row.penalties?.hitsSaiga || 0,
-                    grenadeMiss: row.penalties?.grenadeMiss || false,
-                    penalties: extra
+                    hitsSaiga: (row.penalties && row.penalties.hitsSaiga) ? row.penalties.hitsSaiga : 0, // старая поддержка, но мы не используем hitsSaiga в penalties
+                    penalties: row.penalties || {}
                 };
+                // Удаляем лишние поля из penalties, если они попали (например, hitsSaiga, grenadeMiss) – они больше не нужны
+                if (newCache[team][part].penalties && typeof newCache[team][part].penalties === 'object') {
+                    delete newCache[team][part].penalties.hitsSaiga;
+                    delete newCache[team][part].penalties.grenadeMiss;
+                    delete newCache[team][part].penalties.extraPenalties;
+                }
             }
             for(let team of teamCodes){
                 if(!newCache[team]) newCache[team]={};
                 for(let i=1;i<=3;i++){
-                    if(!newCache[team][i]) newCache[team][i] = { name:"", rawSeconds:null, missesPM:0, hitsSaiga:0, grenadeMiss:false, penalties:{} };
+                    if(!newCache[team][i]) newCache[team][i] = { name:"", rawSeconds:null, missesPM:0, hitsSaiga:0, penalties:{} };
                     if(defaultNames[team] && defaultNames[team][i-1] && !newCache[team][i].name) newCache[team][i].name = defaultNames[team][i-1];
+                    // Инициализируем недостающие штрафы нулями
+                    for (let p of penaltiesCatalog) {
+                        if (newCache[team][i].penalties[p.id] === undefined) {
+                            newCache[team][i].penalties[p.id] = (p.type === 'counter') ? 0 : false;
+                        }
+                    }
                 }
             }
             allData = newCache;
-            // Изменённая строка: теперь просто "Подключено. Выберите команду."
             showStatus("Подключено. Выберите команду.");
             return true;
-        }catch(e){ 
-            showError("Ошибка загрузки: "+e.message); 
-            showStatus(`❌ Ошибка загрузки: ${e.message}`, true);
-            return false; 
-        }
+        }catch(e){ showError("Ошибка загрузки: "+e.message); showStatus(`❌ Ошибка: ${e.message}`, true); return false; }
     }
 
     function renderOverallTable(){
@@ -252,7 +308,8 @@
             for(let r of rows){
                 const tr = document.createElement('tr');
                 if(r.team_total!==null && rank===1) tr.classList.add('rank-1');
-                tr.innerHTML = `<td>${r.team_total!==null?rank++:'—'}</td><td><strong>${r.name}</strong> (${r.code})</td>
+                tr.innerHTML = `<td>${r.team_total!==null?rank++:'—'}</td>
+                    <td><strong>${r.name}</strong> (${r.code})</td>
                     <td>${r.p1_name}</td><td>${r.p1_total!==null?formatTime(r.p1_total):'—'}</td>
                     <td>${r.p2_name}</td><td>${r.p2_total!==null?formatTime(r.p2_total):'—'}</td>
                     <td>${r.p3_name}</td><td>${r.p3_total!==null?formatTime(r.p3_total):'—'}</td>
@@ -263,138 +320,235 @@
     }
 
     function renderPenalties(){
-        let html='';
-        for(let p of penaltiesCatalog){
-            const checked = currentAthlete.penalties[p.id] === true;
-            html += `<div class="penalty-card"><input type="checkbox" id="chk_${p.id}" ${checked?'checked':''}><label for="chk_${p.id}"><span>${p.label}</span><span class="penalty-sec">+${p.seconds} сек</span></label></div>`;
+        let html = '';
+        for (let p of penaltiesCatalog) {
+            const currentVal = currentAthlete.penalties[p.id];
+            if (p.type === 'counter') {
+                let val = (typeof currentVal === 'number') ? currentVal : 0;
+                let totalSec = val * p.seconds;
+                html += `<div class="penalty-card">
+                            <div class="desc">${p.label}<span class="penalty-sec">+${p.seconds} сек/каждое</span></div>
+                            <div class="counter-control">
+                                <button class="counter-dec" data-id="${p.id}">−</button>
+                                <span class="counter-val" data-id="${p.id}">${val}</span>
+                                <button class="counter-inc" data-id="${p.id}">+</button>
+                            </div>
+                            <div style="font-size:0.75rem;">Штраф: +${totalSec} сек</div>
+                        </div>`;
+            } else {
+                let checked = currentVal === true;
+                html += `<div class="penalty-card">
+                            <input type="checkbox" id="chk_${p.id}" data-id="${p.id}" ${checked ? 'checked' : ''}>
+                            <label for="chk_${p.id}">${p.label}<span class="penalty-sec">+${p.seconds} сек</span></label>
+                         </div>`;
+            }
         }
         penaltiesContainer.innerHTML = html;
-        for(let p of penaltiesCatalog){
+        // Обработчики для счётчиков
+        for (let p of penaltiesCatalog.filter(p => p.type === 'counter')) {
+            const dec = document.querySelector(`.counter-dec[data-id="${p.id}"]`);
+            const inc = document.querySelector(`.counter-inc[data-id="${p.id}"]`);
+            const span = document.querySelector(`.counter-val[data-id="${p.id}"]`);
+            if (dec && inc && span) {
+                const updateCounter = (delta) => {
+                    let old = (typeof currentAthlete.penalties[p.id] === 'number') ? currentAthlete.penalties[p.id] : 0;
+                    let newVal = Math.max(0, Math.min(p.max || 99, old + delta));
+                    currentAthlete.penalties[p.id] = newVal;
+                    span.innerText = newVal;
+                    let totalSec = newVal * p.seconds;
+                    let parent = span.closest('.penalty-card');
+                    let secDiv = parent.querySelector('div:last-child');
+                    if (secDiv) secDiv.innerText = `Штраф: +${totalSec} сек`;
+                    unsavedChanges = true;
+                    updateSummaryAndBadge();
+                };
+                dec.onclick = () => updateCounter(-1);
+                inc.onclick = () => updateCounter(1);
+            }
+        }
+        // Обработчики для чекбоксов
+        for (let p of penaltiesCatalog.filter(p => p.type !== 'counter')) {
             const cb = document.getElementById(`chk_${p.id}`);
-            if(cb) cb.addEventListener('change',()=>{ if(cb.checked) currentAthlete.penalties[p.id]=true; else delete currentAthlete.penalties[p.id]; unsavedChanges=true; updateSummary(); });
+            if (cb) {
+                cb.addEventListener('change', (e) => {
+                    const id = e.target.getAttribute('data-id');
+                    currentAthlete.penalties[id] = e.target.checked;
+                    unsavedChanges = true;
+                    updateSummaryAndBadge();
+                });
+            }
         }
     }
 
-    function updateSummary(){
-        const penaltyErrors = getPenaltySum(currentAthlete.penalties);
-        const missesPen = (currentAthlete.missesPM||0)*PENALTY_PER_MISS_PM;
-        const saigaBonus = (currentAthlete.hitsSaiga||0)*SAIGA_BONUS_PER_HIT;
-        const grenadePen = currentAthlete.grenadeMiss?GRENADE_MISS_PENALTY:0;
+    function updateSummaryAndBadge(){
+        const penaltiesSum = getPenaltySum(currentAthlete.penalties);
+        const missesVal = currentAthlete.missesPM || 0;
+        const missesPenalty = missesVal * PENALTY_PER_MISS_PM;
+        const saigaBonus = (currentAthlete.hitsSaiga || 0) * SAIGA_BONUS_PER_HIT;
         const raw = currentAthlete.rawSeconds;
-        let total = raw!==null ? raw + missesPen + grenadePen + penaltyErrors - saigaBonus : null;
-        document.getElementById('penaltySum').innerText=penaltyErrors;
-        document.getElementById('missesPenalty').innerText=missesPen;
-        document.getElementById('saigaBonus').innerText=`-${saigaBonus}`;
-        document.getElementById('grenadePenalty').innerText=grenadePen;
-        document.getElementById('rawTimeDisplay').innerText=raw!==null?formatTime(raw):'—';
-        document.getElementById('totalTimeDisplay').innerHTML=total!==null?`${total.toFixed(2)} сек (${formatTime(total)})`:'—';
+        let total = null;
+        if (raw !== null) total = raw + missesPenalty + penaltiesSum - saigaBonus;
+        document.getElementById('penaltySum').innerText = penaltiesSum;
+        document.getElementById('missesPenalty').innerText = missesPenalty;
+        document.getElementById('saigaBonus').innerText = `-${saigaBonus}`;
+        document.getElementById('rawTimeDisplay').innerText = raw !== null ? formatTime(raw) : '—';
+        document.getElementById('totalTimeDisplay').innerHTML = total !== null ? `${total.toFixed(2)} сек (${formatTime(total)})` : '—';
+        
+        const btnContainer = document.getElementById('saveAllBtn').parentNode;
+        let badge = btnContainer.querySelector('.unsaved-badge');
+        if (unsavedChanges && currentTeam) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'unsaved-badge';
+                badge.innerText = '⚠️ есть изменения';
+                btnContainer.appendChild(badge);
+            }
+        } else if (badge) badge.remove();
     }
 
-    function loadCurrentToForm(){
-        if(!currentTeam || !allData[currentTeam]) return;
+    function loadCurrentAthleteToForm(){
+        if (!currentTeam || !allData[currentTeam]) return;
         const data = allData[currentTeam][currentParticipant];
-        if(!data) return;
+        if (!data) return;
         currentAthlete = JSON.parse(JSON.stringify(data));
-        nameInput.value = currentAthlete.name||"";
-        rawTimeInput.value = currentAthlete.rawSeconds!==null?formatTime(currentAthlete.rawSeconds):"";
-        missesPM.value = currentAthlete.missesPM||0;
-        hitsSaiga.value = currentAthlete.hitsSaiga||0;
-        const hitRadio = document.querySelector("input[name='grenadeResult'][value='hit']");
-        const missRadio = document.querySelector("input[name='grenadeResult'][value='miss']");
-        if(currentAthlete.grenadeMiss) missRadio.checked=true; else if(hitRadio) hitRadio.checked=true;
+        // Убедимся, что все поля penalties инициализированы
+        for (let p of penaltiesCatalog) {
+            if (currentAthlete.penalties[p.id] === undefined) {
+                currentAthlete.penalties[p.id] = (p.type === 'counter') ? 0 : false;
+            }
+        }
+        nameInput.value = currentAthlete.name || "";
+        rawTimeInput.value = currentAthlete.rawSeconds !== null ? formatTime(currentAthlete.rawSeconds) : "";
+        missesPM.value = currentAthlete.missesPM || 0;
+        hitsSaiga.value = currentAthlete.hitsSaiga || 0;
         renderPenalties();
-        unsavedChanges=false;
-        updateSummary();
+        unsavedChanges = false;
+        updateSummaryAndBadge();
     }
 
-    async function saveCurrent(){
-        if(!currentTeam){ alert("Выберите команду"); return false; }
+    async function saveCurrentToSupabase(){
+        if (!currentTeam) { alert("Выберите команду"); return false; }
         const name = nameInput.value.trim();
-        const rawSec = parseTime(rawTimeInput.value);
-        if(rawTimeInput.value.trim()!=="" && rawSec===null){ alert("Неверный формат времени"); return false; }
-        let misses = parseInt(missesPM.value)||0; if(misses<0||misses>4){ alert("Промахи 0-4"); return false; }
-        let hits = parseInt(hitsSaiga.value)||0; if(hits<0||hits>4){ alert("Попадания 0-4"); return false; }
-        const grenadeMiss = document.querySelector("input[name='grenadeResult']:checked")?.value === "miss";
-        const athlete = { name, rawSeconds:rawSec, missesPM:misses, hitsSaiga:hits, grenadeMiss, penalties:{...currentAthlete.penalties} };
-        const ok = await saveAthleteToSupabase(currentTeam, currentParticipant, athlete);
-        if(ok){ currentAthlete = athlete; allData[currentTeam][currentParticipant]=athlete; unsavedChanges=false; updateSummary(); renderOverallTable(); alert("Сохранено"); return true; }
+        const rawStr = rawTimeInput.value.trim();
+        let rawSec = rawStr === "" ? null : parseTime(rawStr);
+        if (rawStr !== "" && rawSec === null) { alert("Неверный формат времени"); return false; }
+        let misses = parseInt(missesPM.value) || 0;
+        if (misses < 0 || misses > 4) { alert("Промахи ПМ от 0 до 4"); return false; }
+        let hits = parseInt(hitsSaiga.value) || 0;
+        if (hits < 0 || hits > 4) { alert("Попадания Сайги от 0 до 4"); return false; }
+        const athleteToSave = {
+            name: name,
+            rawSeconds: rawSec,
+            missesPM: misses,
+            hitsSaiga: hits,
+            penalties: { ...currentAthlete.penalties }
+        };
+        const success = await saveAthleteToSupabase(currentTeam, currentParticipant, athleteToSave);
+        if (success) {
+            allData[currentTeam][currentParticipant] = JSON.parse(JSON.stringify(athleteToSave));
+            currentAthlete = JSON.parse(JSON.stringify(athleteToSave));
+            unsavedChanges = false;
+            updateSummaryAndBadge();
+            renderOverallTable();
+            return true;
+        }
         return false;
     }
 
-    async function resetCurrent(){
-        if(!currentTeam) return;
-        if(!confirm(`Сбросить участника ${currentParticipant}?`)) return;
-        let empty = { name:"", rawSeconds:null, missesPM:0, hitsSaiga:0, grenadeMiss:false, penalties:{} };
-        if(defaultNames[currentTeam] && defaultNames[currentTeam][currentParticipant-1]) empty.name = defaultNames[currentTeam][currentParticipant-1];
+    async function resetCurrentAthlete(){
+        if (!currentTeam) return;
+        if (!confirm(`Сбросить данные участника №${currentParticipant}?`)) return;
+        let empty = { name: "", rawSeconds: null, missesPM: 0, hitsSaiga: 0, penalties: {} };
+        for (let p of penaltiesCatalog) {
+            empty.penalties[p.id] = (p.type === 'counter') ? 0 : false;
+        }
+        if (defaultNames[currentTeam] && defaultNames[currentTeam][currentParticipant-1]) empty.name = defaultNames[currentTeam][currentParticipant-1];
         await saveAthleteToSupabase(currentTeam, currentParticipant, empty);
         allData[currentTeam][currentParticipant] = empty;
-        loadCurrentToForm();
+        loadCurrentAthleteToForm();
         renderOverallTable();
-        alert("Сброшено");
+        alert(`Участник ${currentParticipant} сброшен`);
     }
 
-    async function syncTeam(){
-        if(!currentTeam){ alert("Выберите команду"); return; }
-        if(unsavedChanges) await saveCurrent();
-        for(let i=1;i<=3;i++){
+    async function syncFullTeam(){
+        if (!currentTeam) { alert("Выберите команду"); return; }
+        if (unsavedChanges) await saveCurrentToSupabase();
+        for (let i = 1; i <= 3; i++) {
             const ath = allData[currentTeam]?.[i];
-            if(ath) await saveAthleteToSupabase(currentTeam, i, ath);
+            if (ath) await saveAthleteToSupabase(currentTeam, i, ath);
         }
         renderOverallTable();
-        alert(`Команда ${currentTeam} синхронизирована`);
+        alert(`Команда ${currentTeam} синхронизирована.`);
     }
 
     async function resetTeam(){
-        if(!currentTeam) return;
-        if(!confirm(`Сбросить ВСЮ команду ${currentTeam}?`)) return;
-        for(let i=1;i<=3;i++){
-            let empty = { name:"", rawSeconds:null, missesPM:0, hitsSaiga:0, grenadeMiss:false, penalties:{} };
-            if(defaultNames[currentTeam] && defaultNames[currentTeam][i-1]) empty.name = defaultNames[currentTeam][i-1];
+        if (!currentTeam) { alert("Выберите команду"); return; }
+        if (!confirm(`Сбросить ВСЕХ участников команды ${currentTeam}?`)) return;
+        for (let i = 1; i <= 3; i++) {
+            let empty = { name: "", rawSeconds: null, missesPM: 0, hitsSaiga: 0, penalties: {} };
+            for (let p of penaltiesCatalog) {
+                empty.penalties[p.id] = (p.type === 'counter') ? 0 : false;
+            }
+            if (defaultNames[currentTeam] && defaultNames[currentTeam][i-1]) empty.name = defaultNames[currentTeam][i-1];
             await saveAthleteToSupabase(currentTeam, i, empty);
             allData[currentTeam][i] = empty;
         }
-        loadCurrentToForm();
+        loadCurrentAthleteToForm();
         renderOverallTable();
-        alert("Команда сброшена");
+        alert(`Команда ${currentTeam} сброшена`);
     }
 
-    function setActive(p){
-        currentParticipant=p;
-        document.querySelectorAll('.participant-btn').forEach(btn=>{ if(parseInt(btn.dataset.participant)===p) btn.classList.add('active'); else btn.classList.remove('active'); });
-        if(currentTeam) loadCurrentToForm();
+    function setActiveParticipant(partNum){
+        currentParticipant = partNum;
+        document.querySelectorAll('.participant-btn').forEach(btn => {
+            if (parseInt(btn.getAttribute('data-participant')) === partNum) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        if (currentTeam) loadCurrentAthleteToForm();
     }
 
     async function onTeamChange(){
         currentTeam = teamSelect.value || null;
-        if(!currentTeam){ participantCard.style.display='none'; return; }
-        participantCard.style.display='block';
-        if(!allData[currentTeam]){
-            allData[currentTeam]={};
-            for(let i=1;i<=3;i++){
+        if (!currentTeam) { participantCard.style.display = 'none'; return; }
+        participantCard.style.display = 'block';
+        if (!allData[currentTeam]) {
+            allData[currentTeam] = {};
+            for (let i = 1; i <= 3; i++) {
                 let defName = (defaultNames[currentTeam] && defaultNames[currentTeam][i-1]) ? defaultNames[currentTeam][i-1] : "";
-                allData[currentTeam][i] = { name:defName, rawSeconds:null, missesPM:0, hitsSaiga:0, grenadeMiss:false, penalties:{} };
+                let empty = { name: defName, rawSeconds: null, missesPM: 0, hitsSaiga: 0, penalties: {} };
+                for (let p of penaltiesCatalog) empty.penalties[p.id] = (p.type === 'counter') ? 0 : false;
+                allData[currentTeam][i] = empty;
             }
         }
-        loadCurrentToForm();
+        loadCurrentAthleteToForm();
         renderOverallTable();
     }
 
     // Event listeners
     teamSelect.addEventListener('change', onTeamChange);
-    document.querySelectorAll('.participant-btn').forEach(btn=>btn.addEventListener('click',()=>setActive(parseInt(btn.dataset.participant))));
-    document.getElementById('saveAllBtn').addEventListener('click',saveCurrent);
-    document.getElementById('resetParticipantBtn').addEventListener('click',resetCurrent);
-    document.getElementById('syncTeamBtn').addEventListener('click',syncTeam);
-    document.getElementById('resetTeamBtn').addEventListener('click',resetTeam);
-    const live = [nameInput, rawTimeInput, missesPM, hitsSaiga];
-    live.forEach(f=>f.addEventListener('input',()=>{ if(currentTeam){ currentAthlete.name=nameInput.value.trim(); currentAthlete.rawSeconds=parseTime(rawTimeInput.value); currentAthlete.missesPM=parseInt(missesPM.value)||0; currentAthlete.hitsSaiga=parseInt(hitsSaiga.value)||0; const gr=document.querySelector("input[name='grenadeResult']:checked"); currentAthlete.grenadeMiss=gr?.value==="miss"; unsavedChanges=true; updateSummary(); } }));
-    document.querySelectorAll("input[name='grenadeResult']").forEach(r=>r.addEventListener('change',()=>{ if(currentTeam){ currentAthlete.grenadeMiss=r.value==="miss"; unsavedChanges=true; updateSummary(); } }));
+    document.querySelectorAll('.participant-btn').forEach(btn => btn.addEventListener('click', () => setActiveParticipant(parseInt(btn.dataset.participant))));
+    document.getElementById('saveAllBtn').addEventListener('click', async () => { if (await saveCurrentToSupabase()) alert(`Участник ${currentParticipant} сохранён`); });
+    document.getElementById('resetParticipantBtn').addEventListener('click', resetCurrentAthlete);
+    document.getElementById('syncTeamBtn').addEventListener('click', syncFullTeam);
+    document.getElementById('resetTeamBtn').addEventListener('click', resetTeam);
+    
+    const liveFields = [nameInput, rawTimeInput, missesPM, hitsSaiga];
+    liveFields.forEach(field => {
+        field.addEventListener('input', () => {
+            if (!currentTeam) return;
+            currentAthlete.name = nameInput.value.trim();
+            currentAthlete.rawSeconds = parseTime(rawTimeInput.value);
+            currentAthlete.missesPM = parseInt(missesPM.value) || 0;
+            currentAthlete.hitsSaiga = parseInt(hitsSaiga.value) || 0;
+            unsavedChanges = true;
+            updateSummaryAndBadge();
+        });
+    });
 
-    // Запуск
-    (async function(){
+    (async function init(){
         await loadAllFromSupabase();
         renderOverallTable();
-        participantCard.style.display='none';
+        participantCard.style.display = 'none';
         console.log("Инициализация завершена.");
     })();
 })();
