@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Тагил 2026 – анализ упражнений (суммы 3 участников)</title>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #eef2f5;
+            margin: 0;
+            padding: 24px 20px;
+            color: #1a2c3e;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+            padding: 20px 24px 28px;
+        }
+
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            margin: 0 0 0.2rem 0;
+            background: linear-gradient(135deg, #1f6392, #2a9d6e);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .sub {
+            font-size: 0.95rem;
+            color: #4a627a;
+            border-left: 4px solid #2a9d6e;
+            padding-left: 16px;
+            margin: 8px 0 24px 0;
+        }
+
+        .upload-panel {
+            background: #f8fafd;
+            border: 1px solid #dce5ec;
+            border-radius: 28px;
+            padding: 16px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 32px;
+        }
+
+        .file-label {
+            background: #1f6392;
+            color: white;
+            padding: 10px 28px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .file-label:hover {
+            background: #0e4b6e;
+            transform: translateY(-1px);
+        }
+
+        #fileInfo {
+            background: #eef2f7;
+            padding: 8px 20px;
+            border-radius: 32px;
+            font-size: 0.85rem;
+            color: #1c4e70;
+        }
+
+        button {
+            background: #e9edf2;
+            border: none;
+            padding: 8px 22px;
+            border-radius: 32px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #2c3e50;
+        }
+
+        button:hover {
+            background: #dce3ec;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 20px;
+            border: 1px solid #e2eaf0;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 800px;
+        }
+
+        th {
+            background: #eef2f8;
+            padding: 14px 8px;
+            font-weight: 700;
+            color: #1c4e70;
+            border-bottom: 2px solid #cfdfea;
+            text-align: center;
+            font-size: 0.85rem;
+            vertical-align: bottom;
+        }
+
+        td {
+            padding: 10px 6px;
+            border-bottom: 1px solid #e9eff4;
+            text-align: center;
+        }
+
+        .region-header {
+            background: #e4ebf3;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .exercise-row td:first-child {
+            font-weight: 600;
+            background-color: #f7fafc;
+            text-align: left;
+            padding-left: 16px;
+        }
+
+        .sum-row, .final-row {
+            background: #fef7e0;
+            font-weight: 700;
+        }
+
+        .final-row {
+            background: #e0f2e9;
+            font-size: 0.95rem;
+        }
+
+        .place-badge {
+            display: inline-block;
+            background: #eef2fa;
+            border-radius: 24px;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-left: 6px;
+            color: #2c6280;
+        }
+
+        .cell-value {
+            font-weight: 500;
+        }
+
+        .warning-msg {
+            background: #fff2e0;
+            border-left: 5px solid #e68a2e;
+            padding: 14px 20px;
+            border-radius: 20px;
+            margin: 20px 0;
+        }
+
+        footer {
+            margin-top: 28px;
+            font-size: 0.75rem;
+            text-align: center;
+            color: #6b7f96;
+            background: #f1f6fc;
+            padding: 12px;
+            border-radius: 40px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🏅 Соревнования Тагил 2026</h1>
+    <div class="sub">Автоматический расчёт мест по сумме результатов трёх участников (каждое упражнение)</div>
+
+    <div class="upload-panel">
+        <div>
+            <label class="file-label">
+                📂 Загрузить Excel (xlsx / xls)
+                <input type="file" id="excelUpload" accept=".xlsx, .xls" style="display: none;">
+            </label>
+            <button id="resetBtn" style="margin-left: 12px;">⟳ Сбросить</button>
+        </div>
+        <div id="fileInfo">⚡ Файл не загружен. Выберите "Итоговая_Тагил_Проект.xlsx"</div>
+    </div>
+
+    <div id="dynamicTable">
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr><th colspan="20">📎 Ожидание загрузки данных...</th></tr>
+                </thead>
+                <tbody><tr><td>Загрузите Excel‑файл, содержащий суммы результатов трёх участников по упражнениям 1–8.</td></tr></tbody>
+            </table>
+        </div>
+    </div>
+    <footer>
+        🔍 Алгоритм: для каждого упражнения регионы ранжируются по сумме (меньше = лучше).<br>
+        ➕ Суммируются места по 8 упражнениям → итоговое место (минимальная сумма → 1 место).
+    </footer>
+</div>
+
+<script>
+    (function() {
+        // ---------- Основной парсер: ищет регионы и столбцы с СУММАМИ результатов ----------
+        function parseSumsAndComputePlaces(worksheet) {
+            // получаем все строки листа
+            const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: "" });
+            if (!rows || rows.length < 8) throw new Error("Слишком мало строк в файле");
+
+            // 1) Найти строку, где встречаются "1 упражнение", "2 упражнение" ... "8 упражнение"
+            let exercisesStartRow = -1;
+            let exerciseNumbersMap = new Map(); // номер упражнения -> индекс строки
+            for (let i = 0; i < rows.length; i++) {
+                const firstCell = rows[i]?.[0]?.toString().trim() || "";
+                const match = firstCell.match(/^(\d+)\s*упражнение/i);
+                if (match) {
+                    const num = parseInt(match[1], 10);
+                    if (num >= 1 && num <= 8) {
+                        exerciseNumbersMap.set(num, i);
+                        if (exercisesStartRow === -1) exercisesStartRow = i;
+                    }
+                } else if (/^\d+$/.test(firstCell) && parseInt(firstCell,10) >= 1 && parseInt(firstCell,10) <= 8) {
+                    const num = parseInt(firstCell,10);
+                    exerciseNumbersMap.set(num, i);
+                    if (exercisesStartRow === -1) exercisesStartRow = i;
+                }
+            }
+            if (exerciseNumbersMap.size === 0) throw new Error("Не найдены строки '1 упражнение' ... '8 упражнение'");
+            // Убедимся что есть все 8 упражнений (если нет - ошибка)
+            for (let i = 1; i <= 8; i++) {
+                if (!exerciseNumbersMap.has(i)) throw new Error(`Отсутствует строка для ${i} упражнения`);
+            }
+            
+            // 2) Находим заголовки с названиями регионов и столбцы с суммами результатов
+            // Ищем строку, где встречаются "Сумма результатов в секундах трех участников" (или похожая фраза)
+            let sumsHeaderRowIdx = -1;
+            let regionNamesRowIdx = -1;
+            for (let i = 0; i < rows.length && i < exercisesStartRow; i++) {
+                const row = rows[i];
+                if (!row) continue;
+                for (let c = 0; c < row.length; c++) {
+                    const cell = (row[c] || "").toString().trim();
+                    if (cell.includes("Сумма результатов") || cell.includes("сумма результатов") || cell === "Сумма результатов в секундах трех участников") {
+                        sumsHeaderRowIdx = i;
+                        break;
+                    }
+                }
+                if (sumsHeaderRowIdx !== -1) break;
+            }
+            if (sumsHeaderRowIdx === -1) {
+                // fallback: ищем ячейки, содержащие "секунд" или "результат"
+                for (let i = 0; i < rows.length && i < exercisesStartRow; i++) {
+                    const row = rows[i];
+                    if (!row) continue;
+                    for (let c = 0; c < row.length; c++) {
+                        const cell = (row[c] || "").toString().toLowerCase();
+                        if (cell.includes("секунд") && cell.includes("трех")) {
+                            sumsHeaderRowIdx = i;
+                            break;
+                        }
+                    }
+                    if (sumsHeaderRowIdx !== -1) break;
+                }
+            }
+            if (sumsHeaderRowIdx === -1) throw new Error("Не удалось найти строку с заголовком 'Сумма результатов в секундах трех участников'");
+            
+            // строка с названиями регионов — обычно на одну строку выше sumsHeaderRowIdx
+            regionNamesRowIdx = sumsHeaderRowIdx - 1;
+            if (regionNamesRowIdx < 0) regionNamesRowIdx = sumsHeaderRowIdx;
+            const regionRow = rows[regionNamesRowIdx] || [];
+            const sumsHeaderRow = rows[sumsHeaderRowIdx];
+            
+            // Собираем пары: регион -> индекс столбца, где лежит СУММА (числовое значение)
+            const regionColumns = []; // { name, colIndex }
+            for (let col = 0; col < sumsHeaderRow.length; col++) {
+                const headerCell = (sumsHeaderRow[col] || "").toString().trim();
+                if (headerCell.includes("Сумма результатов") || headerCell.toLowerCase().includes("сумма") && headerCell.toLowerCase().includes("секунд")) {
+                    // ищем название региона выше (regionRow[col] или regionRow[col-1] или regionRow[col+1])
+                    let regionName = "";
+                    if (regionRow && regionRow[col] && regionRow[col].toString().trim() !== "") {
+                        regionName = regionRow[col].toString().trim();
+                    } else if (col > 0 && regionRow && regionRow[col-1] && regionRow[col-1].toString().trim() !== "") {
+                        regionName = regionRow[col-1].toString().trim();
+                    } else if (col+1 < regionRow.length && regionRow[col+1] && regionRow[col+1].toString().trim() !== "") {
+                        regionName = regionRow[col+1].toString().trim();
+                    }
+                    if (!regionName) regionName = `Регион_${col}`;
+                    // исключаем служебные надписи (ИТОГО, сумма мест и т.д.)
+                    if (!regionName.match(/ИТОГО|сумма/i) && !regionName.match(/место/i) && regionName.length <= 10) {
+                        regionColumns.push({ name: regionName, colIndex: col });
+                    }
+                }
+            }
+            if (regionColumns.length === 0) throw new Error("Не найдено ни одного столбца с суммами результатов (проверьте заголовок 'Сумма результатов')");
+            
+            // Удаляем возможные дубликаты регионов (если одинаковое имя)
+            const uniqueRegions = [];
+            const namesSet = new Set();
+            for (const rc of regionColumns) {
+                if (!namesSet.has(rc.name)) {
+                    namesSet.add(rc.name);
+                    uniqueRegions.push(rc);
+                }
+            }
+            const regions = uniqueRegions;
+            
+            // 3) Собираем для каждого упражнения массив сумм по регионам
+            // Структура: для каждого упражнения (1..8) -> массив значений (по порядку регионов)
+            const exercisesData = []; // index = номер упражнения - 1
+            for (let exNum = 1; exNum <= 8; exNum++) {
+                const rowIdx = exerciseNumbersMap.get(exNum);
+                const exRow = rows[rowIdx];
+                if (!exRow) {
+                    exercisesData.push(Array(regions.length).fill(null));
+                    continue;
+                }
+                const values = [];
+                for (let i = 0; i < regions.length; i++) {
+                    const colIdx = regions[i].colIndex;
+                    let rawVal = (colIdx < exRow.length) ? exRow[colIdx] : "";
+                    let numeric = null;
+                    if (rawVal !== undefined && rawVal !== "") {
+                        // удаляем возможные лишние символы (оставляем только число и точку)
+                        if (typeof rawVal === 'number') numeric = rawVal;
+                        else {
+                            const strVal = rawVal.toString().trim().replace(',', '.');
+                            const parsed = parseFloat(strVal);
+                            if (!isNaN(parsed)) numeric = parsed;
+                        }
+                    }
+                    values.push(numeric);
+                }
+                exercisesData.push(values);
+            }
+            
+            // 4) Для каждого упражнения вычислим места (ранжирование по возрастанию суммы)
+            // Возвращаем матрицу мест: [упражнение][регион] = место (число)
+            const placesMatrix = Array(8).fill().map(() => Array(regions.length).fill(0));
+            for (let ex = 0; ex < 8; ex++) {
+                const sums = exercisesData[ex];
+                // создаём массив индексов регионов с валидными значениями
+                let entries = [];
+                for (let r = 0; r < regions.length; r++) {
+                    const val = sums[r];
+                    if (val !== null && !isNaN(val) && isFinite(val)) {
+                        entries.push({ idx: r, sum: val });
+                    } else {
+                        // отсутствие данных — присваиваем самое большое место (худшее)
+                        entries.push({ idx: r, sum: Infinity });
+                    }
+                }
+                // сортируем по сумме (меньше -> лучше)
+                entries.sort((a,b) => a.sum - b.sum);
+                // присваиваем места (при равенстве — одинаковое место, следующее место пропускается по классике)
+                let currentRank = 1;
+                let prevSum = null;
+                let rankForIdx = new Array(regions.length);
+                for (let i = 0; i < entries.length; i++) {
+                    const currSum = entries[i].sum;
+                    if (prevSum !== null && currSum === prevSum) {
+                        rankForIdx[entries[i].idx] = currentRank;
+                    } else {
+                        currentRank = i + 1;
+                        rankForIdx[entries[i].idx] = currentRank;
+                    }
+                    prevSum = currSum;
+                }
+                for (let r = 0; r < regions.length; r++) {
+                    placesMatrix[ex][r] = rankForIdx[r] || (regions.length);
+                }
+            }
+            
+            // 5) Суммируем места по регионам
+            const sumPlacesByRegion = Array(regions.length).fill(0);
+            for (let ex = 0; ex < 8; ex++) {
+                for (let r = 0; r < regions.length; r++) {
+                    sumPlacesByRegion[r] += placesMatrix[ex][r];
+                }
+            }
+            
+            // 6) Итоговое место по сумме мест (меньше сумма = выше место)
+            const regionFinalData = regions.map((reg, idx) => ({
+                name: reg.name,
+                sumPlaces: sumPlacesByRegion[idx],
+                placesPerExercise: placesMatrix.map(ex => ex[idx]),
+                sumsPerExercise: exercisesData.map(ex => ex[idx]),
+                idx: idx
+            }));
+            // сортируем для назначения финального ранга
+            const sortedForRank = [...regionFinalData].sort((a,b) => a.sumPlaces - b.sumPlaces);
+            let finalRankMap = new Map();
+            let rank = 1;
+            let prevSumPlaces = null;
+            for (let i = 0; i < sortedForRank.length; i++) {
+                const cur = sortedForRank[i];
+                if (prevSumPlaces !== null && cur.sumPlaces === prevSumPlaces) {
+                    finalRankMap.set(cur.name, rank);
+                } else {
+                    rank = i + 1;
+                    finalRankMap.set(cur.name, rank);
+                }
+                prevSumPlaces = cur.sumPlaces;
+            }
+            // добавляем финальное место
+            const finalData = regionFinalData.map(rd => ({
+                ...rd,
+                finalRank: finalRankMap.get(rd.name)
+            }));
+            // сортируем для отображения по итоговому месту
+            finalData.sort((a,b) => a.finalRank - b.finalRank);
+            
+            return {
+                regions: finalData,
+                rawExercisesSums: exercisesData,
+                regionNames: regions.map(r => r.name)
+            };
+        }
+        
+        // ---------- отрисовка HTML-таблицы ----------
+        function renderTable(parsed) {
+            const regionsData = parsed.regions; // уже отсортированы по итоговому месту
+            const regionNames = regionsData.map(r => r.name);
+            const container = document.getElementById("dynamicTable");
+            if (!regionsData.length) {
+                container.innerHTML = `<div class="warning-msg">Нет данных для отображения. Проверьте формат файла.</div>`;
+                return;
+            }
+            
+            // Формируем шапку
+            let html = `<div class="table-wrapper"><table>`;
+            html += `<thead><tr><th>Упражнение</th>`;
+            for (let reg of regionsData) {
+                html += `<th class="region-header">${escapeHtml(reg.name)}</th>`;
+            }
+            html += `</tr></thead><tbody>`;
+            
+            // Строки упражнений 1..8
+            for (let exNum = 1; exNum <= 8; exNum++) {
+                html += `<tr class="exercise-row"><td><strong>${exNum} упражнение</strong></td>`;
+                for (let r = 0; r < regionsData.length; r++) {
+                    const reg = regionsData[r];
+                    const sumVal = reg.sumsPerExercise[exNum-1];
+                    const placeVal = reg.placesPerExercise[exNum-1];
+                    let sumDisplay = (sumVal !== null && sumVal !== undefined && isFinite(sumVal)) ? sumVal.toFixed(2) : "—";
+                    html += `<td>
+                                <span class="cell-value">${sumDisplay}</span>
+                                <span class="place-badge">место ${placeVal}</span>
+                            </td>`;
+                }
+                html += `</tr>`;
+            }
+            
+            // Строка "Сумма мест по упражнениям"
+            html += `<tr class="sum-row"><td><strong>🏆 Сумма мест</strong></td>`;
+            for (let r = 0; r < regionsData.length; r++) {
+                html += `<td style="font-weight:800;">${regionsData[r].sumPlaces}</td>`;
+            }
+            html += `</tr>`;
+            
+            // Строка "Итоговое место"
+            html += `<tr class="final-row"><td><strong>⭐ Итоговое место</strong></td>`;
+            for (let r = 0; r < regionsData.length; r++) {
+                let rank = regionsData[r].finalRank;
+                let medal = rank === 1 ? "🥇" : (rank === 2 ? "🥈" : (rank === 3 ? "🥉" : ""));
+                html += `<td style="font-size:1rem; font-weight:800;">${medal} ${rank}</td>`;
+            }
+            html += `</tr>`;
+            
+            html += `</tbody></table></div>`;
+            container.innerHTML = html;
+        }
+        
+        function escapeHtml(str) { 
+            if (!str) return "";
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+        
+        // ------ обработка загруженного файла ------
+        function handleExcelFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                try {
+                    const result = parseSumsAndComputePlaces(firstSheet);
+                    renderTable(result);
+                    document.getElementById("fileInfo").innerHTML = `✅ Файл: ${file.name} | Лист: ${workbook.SheetNames[0]} | регионов: ${result.regions.length}`;
+                } catch(err) {
+                    console.error(err);
+                    document.getElementById("dynamicTable").innerHTML = `<div class="warning-msg">⚠️ Ошибка обработки: ${err.message}<br><br>Убедитесь, что Excel содержит строки "1 упражнение"…"8 упражнение" и заголовки "Сумма результатов в секундах трех участников".</div>`;
+                    document.getElementById("fileInfo").innerHTML = `❌ Ошибка: ${err.message}`;
+                }
+            };
+            reader.onerror = () => {
+                document.getElementById("dynamicTable").innerHTML = `<div class="warning-msg">Не удалось прочитать файл.</div>`;
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // инициализация кнопок
+        const fileInput = document.getElementById("excelUpload");
+        const resetBtn = document.getElementById("resetBtn");
+        
+        fileInput.addEventListener("change", (e) => {
+            if (e.target.files && e.target.files[0]) {
+                handleExcelFile(e.target.files[0]);
+            }
+        });
+        resetBtn.addEventListener("click", () => {
+            fileInput.value = "";
+            document.getElementById("dynamicTable").innerHTML = `<div class="table-wrapper"><table><thead><tr><th>📂 Ожидание загрузки</th></tr></thead><tbody><tr><td>Загрузите Excel-файл с суммами результатов трёх участников по упражнениям.</td></tr></tbody></table></div>`;
+            document.getElementById("fileInfo").innerHTML = "⚡ Файл не выбран. Загрузите Итоговая_Тагил_Проект.xlsx";
+        });
+        
+        // также можно вывести примерный ожидаемый формат
+    })();
+</script>
+</body>
+</html>
