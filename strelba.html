@@ -11,7 +11,7 @@
             font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
         }
         body {
-            background: #f0f2f5;
+            background: #f0f4f8;
             margin: 0;
             padding: 20px;
         }
@@ -19,22 +19,28 @@
             max-width: 1400px;
             margin: 0 auto;
             background: white;
-            border-radius: 20px;
+            border-radius: 28px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.05);
             overflow-x: auto;
-            padding: 16px 20px 20px 20px;
+            padding: 20px 24px 24px 24px;
         }
-        h1 {
-            font-size: 1.6rem;
+        .header {
+            background: linear-gradient(135deg, #1e3a5f, #0f2b44);
+            color: white;
+            padding: 20px;
+            border-radius: 28px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 1.8rem;
             margin: 0 0 8px 0;
-            color: #1e3a5f;
+            font-weight: 600;
         }
-        .sub {
-            color: #2c3e50;
-            margin-bottom: 20px;
-            border-left: 4px solid #1e6f5c;
-            padding-left: 12px;
-            font-size: 0.9rem;
+        .header p {
+            font-size: 0.95rem;
+            margin: 0;
+            opacity: 0.9;
         }
         .toolbar {
             display: flex;
@@ -70,7 +76,7 @@
         }
         .print-panel {
             background: #f8fafc;
-            border-radius: 16px;
+            border-radius: 20px;
             padding: 12px 20px;
             margin-bottom: 20px;
             display: flex;
@@ -99,7 +105,7 @@
         }
         .table-wrapper {
             overflow-x: auto;
-            border-radius: 16px;
+            border-radius: 20px;
             border: 1px solid #e2e8f0;
             background: #fff;
             margin-bottom: 30px;
@@ -162,13 +168,62 @@
         .rank-table th { background: none; font-weight: 600; }
         footer { margin-top: 28px; font-size: 0.7rem; text-align: center; color: #5b6e8c; }
         .status { font-size: 0.75rem; color: #2b6e3c; background: #e6f7ec; border-radius: 50px; padding: 4px 12px; display: inline-block; }
-        @media print { body * { visibility: hidden; } .print-protocol, .print-protocol * { visibility: visible; } .print-protocol { position: absolute; top: 0; left: 0; width: 100%; padding: 20px; font-family: 'Times New Roman', serif; } }
+        /* Улучшенные стили для печати — одна страница, минимум полей, без колонтитулов */
+        @media print {
+            /* Отключаем колонтитулы и задаём компактные поля */
+            @page {
+                size: A4;
+                margin: 0.5cm;
+            }
+            body * {
+                visibility: hidden;
+            }
+            .print-protocol, .print-protocol * {
+                visibility: visible;
+            }
+            .print-protocol {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                padding: 0.3cm;
+                font-family: 'Times New Roman', Times, serif;
+                font-size: 10pt;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .print-protocol table {
+                font-size: 9pt;
+                margin: 0 0 6px 0;
+            }
+            .print-protocol th, .print-protocol td {
+                padding: 3px 4px;
+            }
+            .print-protocol h2 {
+                font-size: 14pt;
+                margin: 6px 0;
+            }
+            .print-protocol h3 {
+                font-size: 12pt;
+                margin: 6px 0 3px;
+            }
+            .print-protocol .info p {
+                margin: 2px 0;
+            }
+            .sign-block {
+                margin-top: 12px;
+            }
+            .sign-line {
+                width: 200px;
+            }
+        }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>🏆 Соревнования по практической стрельбе</h1>
-    <div class="sub">Ввод результатов участников | Личное первенство — по сумме времени | Рейтинг ТБ — по сумме мест команды (одиночные + групповые только для инкассации).<br>
+    <div class="header">
+        <h1>🎯 Практическая стрельба — результаты</h1>
+        <p>Ввод результатов участников | Личное первенство по сумме времени | Рейтинг ТБ по сумме мест команды</p>
     </div>
 
     <div class="toolbar">
@@ -222,7 +277,6 @@
     const TB_LIST_INK = ["Байкальский","Волго-Вятский","Дальневосточный","Поволжский","Северо-Западный","Сибирский","Среднерусский","Уральский","Центрально-Черноземный","ПЦП МРД ЦУНДО","Юго-Западный"];
     const TB_LIST_SEC = ["Байкальский","Волго-Вятский","Дальневосточный","Поволжский","Северо-Западный","Сибирский","Среднерусский","Уральский","Центрально-Черноземный","ЦОО ЦА и МБ","Юго-Западный","СТБ"];
     
-    // РЕАЛЬНЫЕ ДАННЫЕ ИЗ ФАЙЛОВ (только ФИО и ТБ)
     const realInkParticipants = [
         { tb: "Поволжский", name: "Гриднев Виктор Геннадьевич" },
         { tb: "Поволжский", name: "Сернов Александр Сергеевич" },
@@ -327,39 +381,21 @@
         }
     }
     
-    // Генерация случайного времени в диапазоне 30-70 секунд
     function randomTime() {
         return (Math.random() * 40 + 30).toFixed(1);
     }
     
-    // Загрузка реальных ФИО + ТБ + случайные времена (для охраны групповые пустые)
     function loadRealDataWithRandomTimes() {
         participants = [];
         realInkParticipants.forEach((item, idx) => {
             const times = Array(EXERCISES_COUNT).fill("");
-            for (let t = 0; t < EXERCISES_COUNT; t++) {
-                times[t] = randomTime();
-            }
-            participants.push({
-                id: Date.now() + idx + Math.random(),
-                name: item.name,
-                tb: item.tb,
-                category: "Инкассация",
-                times: times
-            });
+            for (let t = 0; t < EXERCISES_COUNT; t++) times[t] = randomTime();
+            participants.push({ id: Date.now() + idx + Math.random(), name: item.name, tb: item.tb, category: "Инкассация", times: times });
         });
         realSecParticipants.forEach((item, idx) => {
             const times = Array(EXERCISES_COUNT).fill("");
-            for (let t = 0; t < INDIVIDUAL_COUNT; t++) {
-                times[t] = randomTime();
-            }
-            participants.push({
-                id: Date.now() + idx + 1000 + Math.random(),
-                name: item.name,
-                tb: item.tb,
-                category: "Охрана",
-                times: times
-            });
+            for (let t = 0; t < INDIVIDUAL_COUNT; t++) times[t] = randomTime();
+            participants.push({ id: Date.now() + idx + 1000 + Math.random(), name: item.name, tb: item.tb, category: "Охрана", times: times });
         });
         saveToLocal();
         renderTable();
@@ -368,21 +404,14 @@
         updateTeamTbSelect();
     }
     
-    // Сброс только времён (очистка всех результатов упражнений)
     function resetTimesOnly() {
         for (let p of participants) {
-            // Очищаем все ячейки времени
             p.times = Array(EXERCISES_COUNT).fill("");
-            // Для охраны дополнительно гарантируем, что групповые пусты (хотя они и так пустые)
             if (p.category === "Охрана") {
-                // Уже пустые, но на всякий случай
-                for (let i = INDIVIDUAL_COUNT; i < EXERCISES_COUNT; i++) {
-                    p.times[i] = "";
-                }
+                for (let i = INDIVIDUAL_COUNT; i < EXERCISES_COUNT; i++) p.times[i] = "";
             }
         }
         saveAndRecalc();
-        alert("Все времена упражнений очищены. Список участников сохранён.");
     }
     
     function updateParticipantSelect() {
@@ -489,9 +518,7 @@
                 }
                 p.category = newCategory;
                 const newTbList = getTbListByCategory(newCategory);
-                if (p.tb && !newTbList.includes(p.tb)) {
-                    p.tb = "";
-                }
+                if (p.tb && !newTbList.includes(p.tb)) p.tb = "";
                 saveAndRecalc();
                 updateTbSelectForRow(idx, newCategory, p.tb);
                 updateGroupCellsReadonly(idx, newCategory);
@@ -630,19 +657,19 @@
         lastOverallRanking = allByTime.map((p,i)=>({id:p.id,place:i+1,totalTime:p.totalTime,name:p.name,tb:p.tb,category:p.category}));
         let totalHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Категория</th><th>Сумма времени (сек)</th></tr></thead><tbody>';
         allByTime.forEach((p,i)=>{ totalHtml += `<tr><td>${i+1}</td><td>${escapeHtml(p.name)||'—'}</td><td>${escapeHtml(p.tb)||'—'}</td><td>${p.category}</td><td>${p.totalTime.toFixed(2)}</td></tr>`; });
-        totalHtml += '</tbody></tr>';
+        totalHtml += '</tbody><tr>';
         document.getElementById('rankTotalBody').innerHTML = totalHtml;
         
         let ink = enriched.filter(p=>p.category==="Инкассация" && p.hasAnyTime).sort((a,b)=>a.totalTime - b.totalTime);
         lastInkRanking = ink.map((p,i)=>({id:p.id,place:i+1,totalTime:p.totalTime,name:p.name,tb:p.tb}));
-        let inkHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма времени (сек)</th></tr></thead><tbody>';
+        let inkHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма времени (сек)</th><tr></thead><tbody>';
         ink.forEach((p,i)=>{ inkHtml += `<tr><td>${i+1}</td><td>${escapeHtml(p.name)||'—'}</td><td>${escapeHtml(p.tb)||'—'}</td><td>${p.totalTime.toFixed(2)}</td></tr>`; });
-        inkHtml += '</tbody><tr>';
+        inkHtml += '</tbody></tr>';
         document.getElementById('rankInkBody').innerHTML = inkHtml;
         
         let sec = enriched.filter(p=>p.category==="Охрана" && p.hasAnyTime).sort((a,b)=>a.totalTime - b.totalTime);
         lastSecRanking = sec.map((p,i)=>({id:p.id,place:i+1,totalTime:p.totalTime,name:p.name,tb:p.tb}));
-        let secHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма времени (сек)</th></tr></thead><tbody>';
+        let secHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма времени (сек)</th><tr></thead><tbody>';
         sec.forEach((p,i)=>{ secHtml += `<tr><td>${i+1}</td><td>${escapeHtml(p.name)||'—'}</td><td>${escapeHtml(p.tb)||'—'}</td><td>${p.totalTime.toFixed(2)}</td></tr>`; });
         secHtml += '</tbody></table>';
         document.getElementById('rankSecBody').innerHTML = secHtml;
@@ -650,38 +677,43 @@
         let inkTeams = computeTeamRankings("Инкассация");
         lastTbInkRanking = inkTeams;
         let inkTeamHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ТБ</th><th>Сумма мест (всего)</th><th>Места по упражнениям (1-8)</th></tr></thead><tbody>';
-        inkTeams.forEach(t=>{ let placesStr = t.placesByEx.map(v=>v!==null?v:'—').join(', '); inkTeamHtml += `<tr><td>${t.finalPlace}</td><td>${escapeHtml(t.tb)}</td><td>${t.sumPlaces}</td><td>${placesStr}</td><tr>`; });
-        inkTeamHtml += '</tbody></table>';
+        inkTeams.forEach(t=>{ let placesStr = t.placesByEx.map(v=>v!==null?v:'—').join(', '); inkTeamHtml += `<tr><td>${t.finalPlace}</td><td>${escapeHtml(t.tb)}</td><td>${t.sumPlaces}</td><td>${placesStr}</td></tr>`; });
+        inkTeamHtml += '</tbody></tr>';
         document.getElementById('tbInkBody').innerHTML = inkTeamHtml;
         
         let secTeams = computeTeamRankings("Охрана");
         lastTbSecRanking = secTeams;
-        let secTeamHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ТБ</th><th>Сумма мест (всего)</th><th>Места по упражнениям (1-6)</th></tr></thead><tbody>';
-        secTeams.forEach(t=>{ let placesStr = t.placesByEx.map(v=>v!==null?v:'—').join(', '); secTeamHtml += `<td>${t.finalPlace}</td><td>${escapeHtml(t.tb)}</td><td>${t.sumPlaces}</td><td>${placesStr}</td></tr>`; });
-        secTeamHtml += '</tbody></tr>';
+        let secTeamHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ТБ</th><th>Сумма мест (всего)</th><th>Места по упражнениям (1-6)</th></table></thead><tbody>';
+        secTeams.forEach(t=>{ let placesStr = t.placesByEx.map(v=>v!==null?v:'—').join(', '); secTeamHtml += `<tr><td>${t.finalPlace}</td><td>${escapeHtml(t.tb)}</td><td>${t.sumPlaces}</td><td>${placesStr}</td></tr>`; });
+        secTeamHtml += '</tbody></td>';
         document.getElementById('tbSecBody').innerHTML = secTeamHtml;
     }
     
-    // Функции печати (полные, для краткости оставлены как в предыдущей версии)
     function printParticipantByIdx(idx) {
-        let p = participants[idx]; if(!p) return; computeAll(); let totalTime = getTotalTime(p);
+        let p = participants[idx]; if(!p) return; computeAll();
+        let totalTime = getTotalTime(p);
         let overall = lastOverallRanking.find(o=>o.id===p.id);
         let personal = (p.category==='Инкассация'?lastInkRanking:lastSecRanking).find(o=>o.id===p.id);
         let teamRank = (p.category==='Инкассация'?lastTbInkRanking:lastTbSecRanking).find(t=>t.tb===p.tb);
         let maxEx = (p.category === "Охрана") ? INDIVIDUAL_COUNT : EXERCISES_COUNT;
-        let timesTable = '<table border="1" style="border-collapse:collapse;width:100%"><thead><tr><th>Упр</th><th>Время (сек)</th></tr></thead><tbody>';
-        for(let ex=0; ex<maxEx; ex++) { let label = (ex<6)?`Вр${ex+1}`:(ex===6?'Вгр1':'Вгр2'); let timeVal = (p.times[ex] && p.times[ex]!=="") ? parseFloat(p.times[ex]).toFixed(2) : '—'; timesTable += `<tr><td style="text-align:center">${label}</td><td style="text-align:center">${timeVal}</td></tr>`; }
+        let timesTable = '<table style="width:100%; border-collapse:collapse;"><thead><tr><th style="border:1px solid #000; padding:4px;">Упр</th><th style="border:1px solid #000; padding:4px;">Время (сек)</th></tr></thead><tbody>';
+        for(let ex=0; ex<maxEx; ex++) {
+            let label = (ex<6)?`Вр${ex+1}`:(ex===6?'Вгр1':'Вгр2');
+            let timeVal = (p.times[ex] && p.times[ex]!=="") ? parseFloat(p.times[ex]).toFixed(2) : '—';
+            timesTable += `<tr><td style="border:1px solid #000; padding:4px; text-align:center;">${label}</td><td style="border:1px solid #000; padding:4px; text-align:center;">${timeVal}</td></tr>`;
+        }
         timesTable += '</tbody></table>';
-        let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Протокол ${escapeHtml(p.name)||'участника'}</title><style>body{font-family:'Times New Roman',serif;margin:20px} h2{text-align:center} .info{margin-bottom:20px} .sign-block{margin-top:40px;display:flex;justify-content:space-between} .sign-line{width:250px;border-top:1px solid #000;text-align:center;padding-top:5px} table{border-collapse:collapse;width:100%} th,td{border:1px solid #000;padding:6px}</style></head><body><div class="print-protocol"><h2>ПРОТОКОЛ УЧАСТНИКА</h2><div class="info"><p><strong>ФИО:</strong> ${escapeHtml(p.name)||'—'}</p><p><strong>ТБ:</strong> ${escapeHtml(p.tb)||'—'}</p><p><strong>Категория:</strong> ${p.category}</p><p><strong>Суммарное время:</strong> ${totalTime.toFixed(2)} сек</p><p><strong>Место в общем зачёте:</strong> ${overall?.place||'—'}</p><p><strong>Место в личном первенстве (${p.category}):</strong> ${personal?.place||'—'}</p><p><strong>Место ТБ в рейтинге:</strong> ${teamRank?.finalPlace||'—'} (сумма мест команды=${teamRank?.sumPlaces||0})</p></div><h3>Результаты по упражнениям:</h3>${timesTable}<div class="sign-block"><div class="sign-line">Подпись участника</div><div class="sign-line">Подпись судьи</div></div><p style="margin-top:30px;text-align:center">Дата: _______________</p></div><script>window.onload=function(){window.print();};<\/script></body></html>`;
-        let w = window.open('','_blank','width=800,height=600'); w.document.write(html); w.document.close();
+        let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Протокол ${escapeHtml(p.name)||'участника'}</title><style>@page { size: A4; margin: 0.5cm; } body { font-family: 'Times New Roman', Times, serif; margin: 0; padding: 0; font-size: 11pt; } .print-protocol { max-width: 100%; margin: 0 auto; } h2, h3 { text-align: center; margin: 6px 0; } .info { margin-bottom: 12px; } table { width: 100%; border-collapse: collapse; margin: 6px 0; } th, td { border: 1px solid #000; padding: 4px; text-align: center; } .sign-block { margin-top: 20px; display: flex; justify-content: space-between; } .sign-line { width: 200px; border-top: 1px solid #000; text-align: center; padding-top: 5px; }</style></head><body><div class="print-protocol"><h2>ПРОТОКОЛ УЧАСТНИКА</h2><div class="info"><p><strong>ФИО:</strong> ${escapeHtml(p.name)||'—'}</p><p><strong>ТБ:</strong> ${escapeHtml(p.tb)||'—'}</p><p><strong>Категория:</strong> ${p.category}</p><p><strong>Суммарное время:</strong> ${totalTime.toFixed(2)} сек</p><p><strong>Место в общем зачёте:</strong> ${overall?.place||'—'}</p><p><strong>Место в личном первенстве (${p.category}):</strong> ${personal?.place||'—'}</p><p><strong>Место ТБ в рейтинге:</strong> ${teamRank?.finalPlace||'—'} (сумма мест команды=${teamRank?.sumPlaces||0})</p></div><h3>Результаты по упражнениям:</h3>${timesTable}<div class="sign-block"><div class="sign-line">Подпись участника</div><div class="sign-line">Подпись судьи</div></div><p style="margin-top:20px; text-align:center">Дата: _______________</p></div><script>window.onload=function(){window.print();};<\/script></body></html>`;
+        let w = window.open('', '_blank', 'width=900,height=700');
+        w.document.write(html);
+        w.document.close();
     }
+    
     function printTeam(category, tbName) {
         if(!tbName) { alert("Выберите ТБ"); return; }
         computeAll();
         let members = participants.filter(p=>p.category===category && p.tb===tbName);
-        if (members.length !== 3) {
-            alert(`Внимание: в команде ${tbName} (${category}) сейчас ${members.length} участник(ов), а должно быть 3. Печать выполняется с текущим составом.`);
-        }
+        if (members.length !== 3) alert(`Внимание: в команде ${tbName} (${category}) сейчас ${members.length} участник(ов), а должно быть 3. Печать выполняется с текущим составом.`);
         let teamRanking = computeTeamRankings(category);
         let teamInfo = teamRanking.find(t=>t.tb===tbName);
         if(!teamInfo){ alert("Нет данных для рейтинга"); return; }
@@ -689,26 +721,26 @@
         members.forEach((m,idx)=>{
             let personal = (category==="Инкассация"?lastInkRanking:lastSecRanking).find(o=>o.id===m.id);
             let totalTime = getTotalTime(m);
-            memberRows += `<tr><td style="text-align:center">${idx+1}</td><td>${escapeHtml(m.name)||'—'}</td><td style="text-align:center">${personal?.place||'—'}</td><td style="text-align:center">${totalTime.toFixed(2)}</td></tr>`;
+            memberRows += `<tr><td style="border:1px solid #000; padding:4px;">${idx+1}</td><td style="border:1px solid #000; padding:4px;">${escapeHtml(m.name)||'—'}</td><td style="border:1px solid #000; padding:4px;">${personal?.place||'—'}</td><td style="border:1px solid #000; padding:4px;">${totalTime.toFixed(2)}</td></tr>`;
         });
         let totalEx = (category === "Инкассация") ? EXERCISES_COUNT : INDIVIDUAL_COUNT;
         let placesRows = '';
         for(let ex=0; ex<totalEx; ex++) {
-            let label = (ex<6)?`Вр${ex+1}`:(ex===6?'Вгр1':'Вгр2');
+            let label = (ex < INDIVIDUAL_COUNT) ? `Вр${ex+1}` : (ex === INDIVIDUAL_COUNT ? 'Вгр1' : 'Вгр2');
             let place = teamInfo.placesByEx[ex]!==null ? teamInfo.placesByEx[ex] : '—';
-            placesRows += `<tr><td style="text-align:center">${label}</td><td style="text-align:center">${place}</td></tr>`;
+            placesRows += `<tr><td style="border:1px solid #000; padding:4px;">${label}</td><td style="border:1px solid #000; padding:4px;">${place}</td></tr>`;
         }
-        let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Протокол команды ${escapeHtml(tbName)}</title><style>body{font-family:'Times New Roman',serif;margin:20px} h2{text-align:center} .info{margin-bottom:20px} .sign-block{margin-top:40px;display:flex;justify-content:space-between} .sign-line{width:250px;border-top:1px solid #000;text-align:center;padding-top:5px} table{border-collapse:collapse;width:100%} th,td{border:1px solid #000;padding:6px}</style></head><body><div class="print-protocol"><h2>ПРОТОКОЛ КОМАНДЫ</h2><div class="info"><p><strong>Территориальный банк:</strong> ${escapeHtml(tbName)}</p><p><strong>Категория:</strong> ${category}</p><p><strong>Итоговое место в рейтинге ТБ:</strong> ${teamInfo.finalPlace}</p><p><strong>Сумма мест (всего):</strong> ${teamInfo.sumPlaces}</p></div><h3>Состав команды</h3><table border="1"><thead><tr><th>№</th><th>ФИО</th><th>Место в личном зачёте</th><th>Суммарное время (сек)</th></tr></thead><tbody>${memberRows}</tbody></table><h3>Места команды по упражнениям</h3><table border="1"><thead><tr><th>Упражнение</th><th>Место команды</th></tr></thead><tbody>${placesRows}</tbody></table><div class="sign-block"><div class="sign-line">Подпись представителя команды</div><div class="sign-line">Подпись судьи</div></div><p style="margin-top:30px;text-align:center">Дата: _______________</p></div><script>window.onload=function(){window.print();};<\/script></body></html>`;
-        let w = window.open('','_blank','width=800,height=600'); w.document.write(html); w.document.close();
+        let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Протокол команды ${escapeHtml(tbName)}</title><style>@page { size: A4; margin: 0.5cm; } body { font-family: 'Times New Roman', Times, serif; margin: 0; padding: 0; font-size: 11pt; } .print-protocol { max-width: 100%; margin: 0 auto; page-break-inside: avoid; } h2, h3 { text-align: center; margin: 6px 0; } .info { margin-bottom: 12px; } table { width: 100%; border-collapse: collapse; margin: 6px 0; } th, td { border: 1px solid #000; padding: 4px; text-align: center; } .sign-block { margin-top: 20px; display: flex; justify-content: space-between; } .sign-line { width: 200px; border-top: 1px solid #000; text-align: center; padding-top: 5px; }</style></head><body><div class="print-protocol"><h2>ПРОТОКОЛ КОМАНДЫ</h2><div class="info"><p><strong>Территориальный банк:</strong> ${escapeHtml(tbName)}</p><p><strong>Категория:</strong> ${category}</p><p><strong>Итоговое место в рейтинге ТБ:</strong> ${teamInfo.finalPlace}</p><p><strong>Сумма мест (всего):</strong> ${teamInfo.sumPlaces}</p></div><h3>Состав команды</h3><table><thead><tr><th>№</th><th>ФИО</th><th>Место в личном зачёте</th><th>Суммарное время (сек)</th></tr></thead><tbody>${memberRows}</tbody></table><h3>Места команды по упражнениям</h3><table><thead><tr><th>Упражнение</th><th>Место команды</th></tr></thead><tbody>${placesRows}</tbody></table><div class="sign-block"><div class="sign-line">Подпись представителя команды</div><div class="sign-line">Подпись судьи</div></div><p style="margin-top:20px; text-align:center">Дата: _______________</p></div><script>window.onload=function(){window.print();};<\/script></body></html>`;
+        let w = window.open('', '_blank', 'width=900,height=700');
+        w.document.write(html);
+        w.document.close();
     }
     
     function exportToExcel() {
         if (!participants.length) { alert("Нет данных для экспорта"); return; }
         const headers = ["ФИО", "ТБ", "Категория", "Вр1", "Вр2", "Вр3", "Вр4", "Вр5", "Вр6", "Вгр1", "Вгр2"];
         const rows = [headers];
-        for (let p of participants) {
-            rows.push([p.name||"", p.tb||"", p.category, p.times[0]||"", p.times[1]||"", p.times[2]||"", p.times[3]||"", p.times[4]||"", p.times[5]||"", p.times[6]||"", p.times[7]||""]);
-        }
+        for (let p of participants) rows.push([p.name||"", p.tb||"", p.category, p.times[0]||"", p.times[1]||"", p.times[2]||"", p.times[3]||"", p.times[4]||"", p.times[5]||"", p.times[6]||"", p.times[7]||""]);
         const ws = XLSX.utils.aoa_to_sheet(rows);
         ws['!cols'] = [{wch:30},{wch:25},{wch:12},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10}];
         const wb = XLSX.utils.book_new();
@@ -748,15 +780,12 @@
             for (let p of imported) {
                 const key = `${p.category}|${p.tb}`;
                 const c = cntMap.get(key)||0;
-                if (c < 3) {
-                    cntMap.set(key, c+1);
-                    valid.push(p);
-                }
+                if (c < 3) { cntMap.set(key, c+1); valid.push(p); }
             }
             if (valid.length === 0) { alert("Нет корректных участников после проверки лимитов (макс 3 на ТБ)"); return; }
             participants = valid;
             saveAndRecalc();
-            alert(`Импортировано ${participants.length} участников. Проверьте, что в каждой команде ровно 3 человека.`);
+            alert(`Импортировано ${participants.length} участников.`);
         };
         reader.readAsArrayBuffer(file);
     }
@@ -765,29 +794,11 @@
     function exportJSON() { let data = JSON.stringify(participants.map(p=>({name:p.name,tb:p.tb,category:p.category,times:p.times})),null,2); let blob=new Blob([data],{type:"application/json"}); let a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download="shooting_results.json"; a.click(); URL.revokeObjectURL(blob); }
     function importJSON(file) { let reader=new FileReader(); reader.onload=e=>{ try{ let imported=JSON.parse(e.target.result); if(Array.isArray(imported)){ let newParts = imported.map(item=>({ id:Date.now()+Math.random(), name:item.name||"", tb:item.tb||"", category:(item.category==="Инкассация"||item.category==="Охрана")?item.category:"Инкассация", times:Array.isArray(item.times)?item.times.slice(0,EXERCISES_COUNT):Array(EXERCISES_COUNT).fill("") })); const cntMap = new Map(); const valid = []; for(let p of newParts) { const key = `${p.category}|${p.tb}`; const c = cntMap.get(key)||0; if(c<3) { cntMap.set(key,c+1); valid.push(p); } } if(valid.length) { participants = valid; saveAndRecalc(); alert(`Импортировано ${valid.length} участников.`); } else alert("Нет валидных участников"); } else alert("Неверный формат JSON"); } catch(err){ alert("Ошибка импорта: "+err.message); } }; reader.readAsText(file); }
     
-    // Новая функция сброса: только очистка времён
-    function resetOnlyTimes() {
-        if (participants.length === 0) {
-            alert("Нет участников для сброса.");
-            return;
-        }
-        if (confirm("Сбросить все времена упражнений? Список участников и их ТБ останутся без изменений.")) {
-            resetTimesOnly();
-        }
-    }
-    
-    // Загрузка примера (реальные ФИО + случайные времена)
-    function loadExample() {
-        if (confirm("Загрузить реальные списки участников (инкассация + охрана) со случайными временами? Текущие данные будут потеряны.")) {
-            loadRealDataWithRandomTimes();
-        }
-    }
-    
     document.getElementById('addRowBtn').onclick=()=>addParticipant();
     document.getElementById('removeLastBtn').onclick=()=>removeLast();
     document.getElementById('exportBtn').onclick=()=>exportJSON();
-    document.getElementById('resetBtn').onclick=()=>resetOnlyTimes();
-    document.getElementById('loadExampleBtn').onclick=()=>loadExample();
+    document.getElementById('resetBtn').onclick=()=>resetTimesOnly();
+    document.getElementById('loadExampleBtn').onclick=()=>loadRealDataWithRandomTimes();
     document.getElementById('importBtn').onclick=()=>document.getElementById('importFileInput').click();
     document.getElementById('importFileInput').onchange=e=>{ if(e.target.files.length) importJSON(e.target.files[0]); e.target.value=''; };
     document.getElementById('importExcelBtn').onclick=()=>document.getElementById('excelFileInput').click();
