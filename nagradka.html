@@ -365,6 +365,13 @@
             return minutes + ":" + seconds.toString().padStart(5, '0');
         }
 
+        function formatResultWithPenalty(rawSec, penaltySec) {
+            if (rawSec === null) return "—";
+            const timeStr = formatTime(rawSec);
+            if (penaltySec && penaltySec > 0) return `${timeStr} / +${penaltySec}`;
+            return `${timeStr} / 0`;
+        }
+
         function calculatePenaltySeconds(penaltiesJson) {
             if (!penaltiesJson || penaltiesJson === "{}") return 0;
             try {
@@ -395,7 +402,6 @@
             return span.outerHTML;
         }
 
-        // отрисовка таблицы (только первые N строк)
         function renderTopTable(containerId, headers, rowsData, limit = 3) {
             const container = document.getElementById(containerId);
             if (!container) return;
@@ -521,44 +527,78 @@
             } catch(e) { console.error(e); document.getElementById('team-standings-inkasso').innerHTML='<div class="loading-placeholder">Ошибка загрузки</div>'; }
         }
 
-        // 2. Эстафета инкассации (топ-3)
+        // 2. Эстафета инкассации (с именами участников)
         async function renderEstafetaInkasso() {
             const { data } = await supabase.from('estafeta_results').select('*');
             let items = [];
             for(let row of (data||[])) {
                 if(!row.raw_seconds) continue;
                 let total = row.raw_seconds + calculatePenaltySeconds(row.penalties);
-                items.push({ teamCode: row.team_code, teamName: getTeamFullInkasso(row.team_code), raw: row.raw_seconds, penalty: calculatePenaltySeconds(row.penalties), total });
+                items.push({
+                    teamName: getTeamFullInkasso(row.team_code),
+                    participant1: row.participant1_name || '—',
+                    participant2: row.participant2_name || '—',
+                    raw: row.raw_seconds,
+                    penalty: calculatePenaltySeconds(row.penalties),
+                    total: total
+                });
             }
             items.sort((a,b)=> a.total - b.total);
             let rows = items.slice(0,3).map((item, idx) => ({ cells: [
-                { html: formatPlaceWithMedal(idx+1) }, { text: item.teamName }, { text: formatTime(item.raw) }, { text: String(item.penalty) }, { text: formatTime(item.total) }
+                { html: formatPlaceWithMedal(idx+1) },
+                { text: item.teamName },
+                { text: item.participant1 },
+                { text: item.participant2 },
+                { text: formatTime(item.raw) },
+                { text: String(item.penalty) },
+                { text: formatTime(item.total) }
             ] }));
-            renderTopTable('estafeta-inkasso', ['Место','Команда','Чистое время','Штраф','Итог'], rows, 3);
+            renderTopTable('estafeta-inkasso', ['Место','Команда','Участник 1','Участник 2','Чистое время','Штраф','Итог'], rows, 3);
         }
 
-        // 3. Триатлон (топ-3 команды)
+        // 3. Командный триатлон (с именами и результатами участников)
         async function renderTriathlonInkasso() {
             const { data } = await supabase.from('triathlon_results').select('*');
-            let teams = new Map();
+            let teamsMap = new Map();
             for(let row of (data||[])) {
-                if(!teams.has(row.team_code)) teams.set(row.team_code, []);
-                teams.get(row.team_code).push(row);
+                if(!teamsMap.has(row.team_code)) teamsMap.set(row.team_code, []);
+                teamsMap.get(row.team_code).push(row);
             }
-            let teamTotals = [];
-            for(let [code, members] of teams.entries()) {
-                let sum = 0; let valid = true;
-                for(let m of members) {
-                    if(m.raw_seconds===null) { valid=false; break; }
-                    sum += m.raw_seconds + calculatePenaltySeconds(m.penalties);
-                }
-                if(valid) teamTotals.push({ code, total: sum, teamName: getTeamFullInkasso(code) });
+            let teamResults = [];
+            for(let [code, members] of teamsMap.entries()) {
+                members.sort((a,b)=> (a.participant_number||0) - (b.participant_number||0));
+                let p1 = members.find(m=>m.participant_number===1);
+                let p2 = members.find(m=>m.participant_number===2);
+                let p1_name = p1?.name || '—';
+                let p1_raw = p1?.raw_seconds ?? null;
+                let p1_penalty = calculatePenaltySeconds(p1?.penalties);
+                let p1_total = p1_raw !== null ? p1_raw + p1_penalty : null;
+                let p2_name = p2?.name || '—';
+                let p2_raw = p2?.raw_seconds ?? null;
+                let p2_penalty = calculatePenaltySeconds(p2?.penalties);
+                let p2_total = p2_raw !== null ? p2_raw + p2_penalty : null;
+                let teamTotal = null;
+                if(p1_total !== null && p2_total !== null) teamTotal = p1_total + p2_total;
+                else if(p1_total !== null) teamTotal = p1_total;
+                else if(p2_total !== null) teamTotal = p2_total;
+                teamResults.push({
+                    teamName: getTeamFullInkasso(code),
+                    p1_name, p1_raw, p1_penalty, p1_total,
+                    p2_name, p2_raw, p2_penalty, p2_total,
+                    teamTotal
+                });
             }
-            teamTotals.sort((a,b)=> a.total - b.total);
-            let rows = teamTotals.slice(0,3).map((t, idx) => ({ cells: [
-                { html: formatPlaceWithMedal(idx+1) }, { text: t.teamName }, { text: formatTime(t.total) }
+            teamResults.sort((a,b)=> (a.teamTotal===null)-(b.teamTotal===null) || (a.teamTotal??Infinity)-(b.teamTotal??Infinity));
+            let rows = teamResults.slice(0,3).map((t, idx) => ({ cells: [
+                { html: formatPlaceWithMedal(idx+1) },
+                { text: t.teamName },
+                { text: t.p1_name },
+                { text: formatResultWithPenalty(t.p1_raw, t.p1_penalty) },
+                { text: t.p2_name },
+                { text: formatResultWithPenalty(t.p2_raw, t.p2_penalty) },
+                { html: `<strong>${t.teamTotal !== null ? formatTime(t.teamTotal) : '—'}</strong>` }
             ] }));
-            renderTopTable('triathlon-inkasso', ['Место','Команда','Суммарное время команды'], rows, 3);
+            renderTopTable('triathlon-inkasso', ['Место','Команда','Участник 1','Результат 1','Участник 2','Результат 2','Сумма'], rows, 3);
         }
 
         // 4. Водители (топ-3)
@@ -570,7 +610,7 @@
                 if(!total && row.figure_time!==null && row.sdu_time!==null) total = (row.figure_time+calculatePenaltySeconds(row.figure_penalties))+(row.sdu_time+calculatePenaltySeconds(row.sdu_penalties));
                 else if(!total && row.figure_time!==null) total = row.figure_time+calculatePenaltySeconds(row.figure_penalties);
                 else if(!total && row.sdu_time!==null) total = row.sdu_time+calculatePenaltySeconds(row.sdu_penalties);
-                if(total) drivers.push({ name: row.participant_name, teamCode: row.team_code, total, teamName: getTeamFullInkasso(row.team_code) });
+                if(total) drivers.push({ name: row.participant_name, teamName: getTeamFullInkasso(row.team_code), total });
             }
             drivers.sort((a,b)=> a.total - b.total);
             let rows = drivers.slice(0,3).map((d, idx) => ({ cells: [
@@ -602,6 +642,7 @@
         }
 
         // === ОХРАНА ===
+        // Командное первенство охраны (статика)
         const securityStandings = [
             { code:"ДВБ", est:1, duathlon:12, shoot:2, total:15 }, { code:"ББ", est:12, duathlon:1, shoot:9, total:22 },
             { code:"УБ", est:12, duathlon:2, shoot:10, total:24 }, { code:"СРБ", est:12, duathlon:1, shoot:2, total:25 },
@@ -616,19 +657,34 @@
             ] }));
             renderTopTable('team-standings-ohrana', ['Место','Команда','Эстафета','Двоеборье','Стрельба','Сумма'], rows, 3);
         }
-        function renderEstafetaOhrana() {
-            const data = [{ team_code:"ДВБ", direction:"1", total_seconds:1074.56 }];
-            let items = [];
-            for(let code of teamCodes) {
-                let found = data.find(d=>d.team_code===code);
-                if(found) items.push({ teamName: getTeamFullOhrana(code), total: found.total_seconds });
+
+        // Эстафета охраны (с именами трёх участников)
+        async function renderEstafetaOhrana() {
+            const { data } = await supabase.from('security_estafeta_results').select('*');
+            if(!data || data.length===0) {
+                renderTopTable('estafeta-ohrana', ['Место','Команда','Участник 1','Участник 2','Участник 3','Итоговое время'], [], 3);
+                return;
             }
-            items.sort((a,b)=> a.total - b.total);
+            let items = [];
+            for(let row of data) {
+                let total = row.total_seconds;
+                if(total === null && row.raw_seconds !== null) total = row.raw_seconds + calculatePenaltySeconds(row.penalties);
+                items.push({
+                    teamName: getTeamFullOhrana(row.team_code),
+                    member1: row.member1_name || '—',
+                    member2: row.member2_name || '—',
+                    member3: row.member3_name || '—',
+                    total: total
+                });
+            }
+            items.sort((a,b)=> (a.total===null)-(b.total===null) || (a.total??Infinity)-(b.total??Infinity));
             let rows = items.slice(0,3).map((item, idx) => ({ cells: [
-                { html: formatPlaceWithMedal(idx+1) }, { text: item.teamName }, { text: formatTime(item.total) }
+                { html: formatPlaceWithMedal(idx+1) }, { text: item.teamName }, { text: item.member1 }, { text: item.member2 }, { text: item.member3 }, { text: item.total !== null ? formatTime(item.total) : '—' }
             ] }));
-            renderTopTable('estafeta-ohrana', ['Место','Команда','Итоговое время'], rows, 3);
+            renderTopTable('estafeta-ohrana', ['Место','Команда','Участник 1','Участник 2','Участник 3','Итоговое время'], rows, 3);
         }
+
+        // Служебное двоеборье (с именами и результатами)
         async function renderDuathlonOhrana() {
             const { data } = await supabase.from('service_duathlon_results').select('*');
             let teams = new Map();
@@ -637,21 +693,38 @@
                 if(!teams.has(code)) teams.set(code, []);
                 teams.get(code).push(row);
             }
-            let teamTotals = [];
+            let teamResults = [];
             for(let [code, members] of teams.entries()) {
-                let sum = 0; let valid = true;
-                for(let m of members) {
-                    if(m.total_seconds===null) { valid=false; break; }
-                    sum += m.total_seconds;
-                }
-                if(valid) teamTotals.push({ code, total: sum, teamName: getTeamFullOhrana(code) });
+                members.sort((a,b)=> (a.participant_number||0) - (b.participant_number||0));
+                let p1 = members[0], p2 = members[1], p3 = members[2];
+                let p1_name = p1?.participant_name || '—';
+                let p1_time = p1?.total_seconds ?? null;
+                let p2_name = p2?.participant_name || '—';
+                let p2_time = p2?.total_seconds ?? null;
+                let p3_name = p3?.participant_name || '—';
+                let p3_time = p3?.total_seconds ?? null;
+                let teamTotal = null;
+                const times = [p1_time, p2_time, p3_time].filter(t=>t!==null);
+                if(times.length) teamTotal = times.reduce((a,b)=>a+b,0);
+                teamResults.push({
+                    teamName: getTeamFullOhrana(code),
+                    p1_name, p1_time,
+                    p2_name, p2_time,
+                    p3_name, p3_time,
+                    teamTotal
+                });
             }
-            teamTotals.sort((a,b)=> a.total - b.total);
-            let rows = teamTotals.slice(0,3).map((t, idx) => ({ cells: [
-                { html: formatPlaceWithMedal(idx+1) }, { text: t.teamName }, { text: formatTime(t.total) }
+            teamResults.sort((a,b)=> (a.teamTotal===null)-(b.teamTotal===null) || (a.teamTotal??Infinity)-(b.teamTotal??Infinity));
+            let rows = teamResults.slice(0,3).map((t, idx) => ({ cells: [
+                { html: formatPlaceWithMedal(idx+1) }, { text: t.teamName },
+                { text: t.p1_name }, { text: t.p1_time !== null ? formatTime(t.p1_time) : '—' },
+                { text: t.p2_name }, { text: t.p2_time !== null ? formatTime(t.p2_time) : '—' },
+                { text: t.p3_name }, { text: t.p3_time !== null ? formatTime(t.p3_time) : '—' },
+                { html: `<strong>${t.teamTotal !== null ? formatTime(t.teamTotal) : '—'}</strong>` }
             ] }));
-            renderTopTable('duathlon-ohrana', ['Место','Команда','Суммарное время'], rows, 3);
+            renderTopTable('duathlon-ohrana', ['Место','Команда','Участник 1','Время 1','Участник 2','Время 2','Участник 3','Время 3','Сумма команды'], rows, 3);
         }
+
         function renderIndividualShootingOhrana() { renderIndividualShootingInkasso(); }
         function renderCommonEstafetaOhrana() {
             let items = [];
@@ -677,7 +750,7 @@
         }
         async function loadOhrana() {
             renderTeamStandingsOhrana();
-            renderEstafetaOhrana();
+            await renderEstafetaOhrana();
             await renderDuathlonOhrana();
             renderIndividualShootingOhrana();
             renderCommonEstafetaOhrana();
