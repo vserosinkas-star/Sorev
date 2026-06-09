@@ -32,6 +32,7 @@
             margin-bottom: 32px;
             text-align: center;
             box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.2);
+            position: relative;
         }
 
         .header h1 {
@@ -58,6 +59,32 @@
             margin-top: 14px;
             font-size: 0.85rem;
             backdrop-filter: blur(2px);
+        }
+
+        /* Кнопка на главную */
+        .home-button {
+            position: absolute;
+            top: 24px;
+            left: 28px;
+            background: rgba(255,255,240,0.2);
+            backdrop-filter: blur(4px);
+            padding: 8px 18px;
+            border-radius: 40px;
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,200,0.3);
+        }
+
+        .home-button:hover {
+            background: rgba(255,255,240,0.35);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
 
         /* навигация между секциями */
@@ -255,6 +282,13 @@
                 font-size: 1.3rem;
             }
 
+            .home-button {
+                position: static;
+                display: inline-flex;
+                margin-bottom: 16px;
+                width: fit-content;
+            }
+
             .card-header h2 {
                 font-size: 1.3rem;
             }
@@ -298,6 +332,9 @@
 <body>
 <div class="container">
     <div class="header">
+        <a href="index.html" class="home-button">
+            🏠 На главную
+        </a>
         <h1>XVI Всероссийские соревнования по многоборью</h1>
         <p>среди работников подразделений инкассации и охраны ПАО «Сбербанк»</p>
         <div class="header-badge">
@@ -308,8 +345,9 @@
     </div>
 
     <div class="nav-links">
-        <a href="#inkasso">🚛 Подразделения инкассации</a>
-        <a href="#ohrana">🛡️ Подразделения охраны</a>
+        <a href="#inkasso">🚛 Инкассация</a>
+        <a href="#ohrana">🛡️ Охрана</a>
+        <a href="#relay">🏅 Командная эстафета</a>
     </div>
 
     <!-- Карточка: ИНКАССАЦИЯ -->
@@ -332,7 +370,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Данные из протокола инкассации (точное соответствие) -->
+                    <!-- Данные из протокола инкассации -->
                     <tr><td class="team-name">Байкальский</td><td class="number-cell">5</td><td class="number-cell">10</td><td class="number-cell">11</td></tr>
                     <tr><td class="team-name">Волго-Вятский</td><td class="number-cell">1</td><td class="number-cell">3</td><td class="number-cell">3</td></tr>
                     <tr><td class="team-name">Дальневосточный</td><td class="number-cell">3</td><td class="number-cell">11</td><td class="number-cell">10</td></tr>
@@ -371,7 +409,6 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- Данные из протокола охраны -->
                     <tr><td class="team-name">Байкальский</td><td class="number-cell">7</td><td class="number-cell">1</td></tr>
                     <tr><td class="team-name">Волго-Вятский</td><td class="number-cell">1</td><td class="number-cell">7</td></tr>
                     <tr><td class="team-name">Дальневосточный</td><td class="number-cell">9</td><td class="number-cell">10</td></tr>
@@ -392,13 +429,51 @@
         </div>
     </div>
 
-    <!-- Общие подписи (председатель, секретарь) в стиле файла -->
+    <!-- КОМАНДНАЯ ЭСТАФЕТА (внизу, с полными названиями и порядком: Команда → Номер) -->
+    <div class="card" id="relay">
+        <div class="card-header">
+            <div>
+                <h2>Командная эстафета</h2>
+                <div class="gold-accent"></div>
+            </div>
+            <div class="badge">сводный протокол</div>
+        </div>
+        <div class="table-wrapper">
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Команда</th>
+                        <th class="center-th">№ Командная эстафета </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Расшифровка согласно заданию: сначала полное название, потом номер -->
+                    <tr><td class="team-name">Среднерусский</td><td class="number-cell">1</td></tr>
+                    <tr><td class="team-name">Поволжский</td><td class="number-cell">2</td></tr>
+                    <tr><td class="team-name">Центрально-Черноземный</td><td class="number-cell">3</td></tr>
+                    <tr><td class="team-name">ЦОО ЦА и МБ и ПЦП МРД</td><td class="number-cell">4</td></tr>
+                    <tr><td class="team-name">Уральский</td><td class="number-cell">5</td></tr>
+                    <tr><td class="team-name">Байкальский</td><td class="number-cell">6</td></tr>
+                    <tr><td class="team-name">Северо-Западный</td><td class="number-cell">7</td></tr>
+                    <tr><td class="team-name">Сибирский</td><td class="number-cell">8</td></tr>
+                    <tr><td class="team-name">Юго-Западный</td><td class="number-cell">9</td></tr>
+                    <tr><td class="team-name">Дальневосточный</td><td class="number-cell">10</td></tr>
+                    <tr><td class="team-name">Волго-Вятский</td><td class="number-cell">11</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="footer-signature" style="border-top: 1px solid #ecf3f9; padding-top: 12px; padding-bottom: 16px;">
+            <div class="signature-line" style="font-size:0.8rem;">⚡ Стартовые номера командной эстафеты определены отдельной жеребьёвкой.</div>
+        </div>
+    </div>
+
+    <!-- Общие подписи (председатель, секретарь) -->
     <div class="card" style="margin-bottom: 20px; padding: 0;">
         <div class="footer-signature" style="background: #ffffff; border-radius: 28px; justify-content: space-between;">
             <div class="signature-block">
                 <div class="signature-line"><strong>Председатель судейской коллегии</strong><br>А.В. Евдокимов</div>
                 <div class="signature-line"><strong>Главный секретарь соревнований</strong><br>(протокол утверждён)</div>
-                <div class="stamp">СУДЕЙСКАЯ КОЛЛЕГИЯ • ВСК • 2026</div>
+                <div class="stamp">СУДЕЙСКАЯ КОЛЛЕГИЯ • 2026</div>
             </div>
             <div class="signature-block" style="align-items: flex-end;">
                 <div style="font-size: 0.75rem; background: #f0f6fe; padding: 6px 16px; border-radius: 40px; color:#1e3a5f;">
