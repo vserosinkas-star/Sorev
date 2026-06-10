@@ -31,9 +31,43 @@
             text-align: center;
         }
 
+        /* Стили для контейнера заголовка с логотипом и текстом */
+        .title-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        .title-logo {
+            height: 60px;
+            width: auto;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            padding: 4px 8px;
+            transition: transform 0.2s;
+        }
+        .title-logo:hover {
+            transform: scale(1.02);
+        }
         .header h1 {
             font-size: 1.8rem;
-            margin-bottom: 8px;
+            margin-bottom: 0;
+            line-height: 1.2;
+        }
+
+        @media (max-width: 700px) {
+            .title-wrapper {
+                gap: 8px;
+            }
+            .title-logo {
+                height: 40px;
+            }
+            .header h1 {
+                font-size: 1.4rem;
+            }
         }
 
         .header-actions {
@@ -255,7 +289,15 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1>🏆 ИТОГИ СОРЕВНОВАНИЙ 2026</h1>
+        <!-- Контейнер с логотипом и заголовком вместо кубка -->
+        <div class="title-wrapper">
+            <img src="https://raw.githubusercontent.com/vserosinkas-star/Sorev/main/sheet.png" 
+                 alt="Эмблема соревнований" 
+                 class="title-logo"
+                 loading="lazy"
+                 onerror="this.style.display='none'">
+            <h1>ИТОГИ СОРЕВНОВАНИЙ 2026</h1>
+        </div>
         <p>Командное и личное первенство · Инкассация и Охрана</p>
         <div class="header-actions">
             <a href="#" class="back-link" onclick="history.back(); return false;">← Вернуться на главную</a>
