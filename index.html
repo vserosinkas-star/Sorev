@@ -29,14 +29,54 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             position: relative;
         }
+
+        /* Стили для контейнера заголовка с логотипом и текстом */
+        .title-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        .title-logo {
+            height: 60px;        /* Высота под размер шрифта */
+            width: auto;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            padding: 4px 8px;
+            transition: transform 0.2s;
+        }
+        .title-logo:hover {
+            transform: scale(1.02);
+        }
         .header h1 {
             font-size: 1.8rem;
-            margin-bottom: 8px;
+            margin-bottom: 0;    /* Убираем отступ, так как он теперь в обертке */
+            line-height: 1.2;
         }
         .header p {
             opacity: 0.9;
             font-size: 1rem;
         }
+        
+        /* Адаптация для мобильных */
+        @media (max-width: 700px) {
+            .title-wrapper {
+                gap: 8px;
+            }
+            .title-logo {
+                height: 40px;
+            }
+            .header h1 { 
+                font-size: 1.4rem; 
+            }
+            .button-group { 
+                gap: 12px; 
+            }
+        }
+
         .btn-participants {
             display: inline-block;
             background: #f5a623;
@@ -121,7 +161,15 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1>🏆 XVI Всероссийские соревнования по многоборью</h1>
+        <!-- Вместо кубка теперь картинка рядом с текстом -->
+        <div class="title-wrapper">
+            <img src="https://raw.githubusercontent.com/vserosinkas-star/Sorev/main/sheet.png" 
+                 alt="Эмблема соревнований" 
+                 class="title-logo"
+                 loading="lazy"
+                 onerror="this.style.display='none'">
+            <h1>XVI Всероссийские соревнования по многоборью</h1>
+        </div>
         <p>Среди работников подразделений инкассации и охраны ПАО Сбербанк</p>
         <p style="font-size: 0.85rem; margin-top: 8px;">Нижний Тагил, 24–25 июня 2026</p>
         
