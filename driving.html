@@ -44,6 +44,27 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
+        .top-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .connection-wrapper {
+            flex: 1;
+        }
+        .print-top-btn {
+            background: #2c5f2d;
+            white-space: nowrap;
+        }
+        .print-top-btn:hover {
+            background: #1f4a20;
+        }
+
         .control-group {
             margin-bottom: 20px;
         }
@@ -211,6 +232,13 @@
         .btn-warning {
             background: #f97316;
         }
+        
+        .print-btn {
+            background: #2c5f2d;
+        }
+        .print-btn:hover {
+            background: #1f4a20;
+        }
 
         .unsaved-badge {
             background: #fef3c7;
@@ -304,6 +332,20 @@
             to { transform: rotate(360deg); }
         }
 
+        /* Стили для печатной области (скрыты по умолчанию) */
+        .print-report-area {
+            display: none;
+        }
+        
+        @media print {
+            body { background: white; padding: 0; margin: 0; }
+            .judge-panel, .results-table, .header, .exercise-card, .unsaved-badge,
+            #syncAllBtn, .print-btn, select, button, input, #connectionStatus, .top-actions { display: none !important; }
+            .print-report-area { display: block !important; margin: 0; padding: 0; }
+            .print-sign-line { margin-top: 20px; border-top: 1px dashed #aaa; padding-top: 15px; }
+            .print-footer { margin-top: 15px; font-size: 8pt; text-align: center; }
+        }
+
         @media (max-width: 700px) {
             body {
                 padding: 12px;
@@ -329,6 +371,14 @@
             button {
                 width: 100%;
             }
+            
+            .top-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .print-top-btn {
+                text-align: center;
+            }
         }
     </style>
 </head>
@@ -340,7 +390,12 @@
     </div>
 
     <div class="judge-panel">
-        <div id="connectionStatus" style="margin-bottom: 15px;"></div>
+        <!-- Верхняя строка: статус подключения + кнопка печати -->
+        <div class="top-actions">
+            <div class="connection-wrapper" id="connectionStatus"></div>
+            <button id="printReportBtn" class="print-btn print-top-btn">🖨️ Печать отчёта с подписями</button>
+        </div>
+        
         <div class="control-group">
             <label>🏦 Территориальный банк (команда)</label>
             <select id="teamSelect">
@@ -426,9 +481,12 @@
             <tbody id="resultsBody">
                 <tr class="loading-row"><td colspan="13"><div class="spinner"></div> Загрузка результатов...</td></tr>
             </tbody>
-        </table>
+         </table>
     </div>
 </div>
+
+<!-- Область для печати отчёта -->
+<div id="printReportContainer" class="print-report-area"></div>
 
 <script>
     (function() {
@@ -864,6 +922,156 @@
             finally { isLoadingTable=false; }
         }
         
+        // ---------- ПЕЧАТЬ ОТЧЁТА (компактная, на одной странице, без колонтитулов) ----------
+        async function printFullReport() {
+            if (!currentTeam) {
+                alert('Пожалуйста, выберите команду (территориальный банк) для печати отчёта.');
+                return;
+            }
+            const dbData = await loadTeamData(currentTeam);
+            if (!dbData) {
+                alert('Нет сохранённых данных для этой команды. Сначала внесите результаты.');
+                return;
+            }
+            // Получаем штрафы и другую информацию
+            const figurePenObj = dbData.figure_penalties || {};
+            const sduPenObj = dbData.sdu_penalties || {};
+            const figureRaw = dbData.figure_time;
+            const sduRaw = dbData.sdu_time;
+            const figurePenSum = getPenaltySumFromObj(figurePenObj, figurePenaltiesList);
+            const sduPenSum = getPenaltySumFromObj(sduPenObj, sduPenaltiesList);
+            const figureTotal = figureRaw !== null ? figureRaw + figurePenSum : null;
+            const sduTotal = sduRaw !== null ? sduRaw + sduPenSum : null;
+            const totalTime = (figureTotal !== null && sduTotal !== null) ? figureTotal + sduTotal : null;
+            
+            // Формируем список нарушений для фигурного вождения
+            const figureViolations = [];
+            for (let [id, val] of Object.entries(figurePenObj)) {
+                const def = figurePenaltiesList.find(p => p.id === id);
+                if (!def) continue;
+                let count = 1;
+                if (def.type === 'counter') count = (typeof val === 'number') ? val : (parseInt(val) || 0);
+                else if (val === true) count = 1;
+                else count = 0;
+                if (count > 0) {
+                    figureViolations.push({
+                        desc: def.desc,
+                        sec: def.sec,
+                        count: count,
+                        totalSec: count * def.sec
+                    });
+                }
+            }
+            // СДУ нарушения
+            const sduViolations = [];
+            for (let [id, val] of Object.entries(sduPenObj)) {
+                const def = sduPenaltiesList.find(p => p.id === id);
+                if (!def) continue;
+                let count = 1;
+                if (def.type === 'counter') count = (typeof val === 'number') ? val : (parseInt(val) || 0);
+                else if (val === true) count = 1;
+                else count = 0;
+                if (count > 0) {
+                    sduViolations.push({
+                        desc: def.desc,
+                        sec: def.sec,
+                        count: count,
+                        totalSec: count * def.sec
+                    });
+                }
+            }
+            
+            const teamFullName = teamNames[currentTeam] || currentTeam;
+            const participant = dbData.participant_name || '—';
+            const now = new Date().toLocaleString('ru-RU');
+            
+            const printHtml = `
+                <div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1000px; margin: 0 auto; padding: 0; font-size: 11pt; line-height: 1.2;">
+                    <style>
+                        @page { size: A4; margin: 0.7cm; }
+                        body { margin: 0; padding: 0; }
+                        table { page-break-inside: avoid; }
+                        .print-report-area { display: block; }
+                        .avoid-break { page-break-inside: avoid; }
+                    </style>
+                    <h1 style="text-align: center; margin: 0 0 4px 0; font-size: 16pt;">МАСТЕРСТВО ВОЖДЕНИЯ СПЕЦАВТОМОБИЛЯ</h1>
+                    <h2 style="text-align: center; margin: 0 0 8px 0; font-size: 13pt; color: #2c3e66;">ПРОТОКОЛ РЕЗУЛЬТАТОВ</h2>
+                    <div style="text-align: center; margin-bottom: 12px; font-size: 9pt;">${now}</div>
+                    
+                    <div style="background: #f8fafc; padding: 8px 12px; border-radius: 12px; margin-bottom: 16px;">
+                        <div><strong>Команда:</strong> ${teamFullName} (${currentTeam}) &nbsp;|&nbsp; <strong>Участник:</strong> ${participant}</div>
+                    </div>
+                    
+                    <div style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between;">
+                        <div style="flex: 1; min-width: 240px;">
+                            <h3 style="margin: 6px 0 4px; font-size: 12pt;">🏁 Фигурное вождение</h3>
+                            <div style="background: #f8fafc; padding: 8px; border-radius: 10px;">
+                                <div><strong>Чистое время:</strong> ${figureRaw !== null ? formatTime(figureRaw) : '—'}</div>
+                                <div><strong>Штраф:</strong> ${figurePenSum} сек</div>
+                                <div><strong>Итог:</strong> ${figureTotal !== null ? formatTime(figureTotal) : '—'}</div>
+                            </div>
+                            ${figureViolations.length > 0 ? `
+                            <div style="margin-top: 8px;">
+                                <div style="font-weight: bold; font-size: 10pt;">Нарушения:</div>
+                                <table style="width:100%; font-size: 9pt; border-collapse: collapse;">
+                                    <thead><tr><th style="text-align:left;">Нарушение</th><th>Кол-во</th><th>Штраф</th></tr></thead>
+                                    <tbody>
+                                        ${figureViolations.map(v => `<tr><td style="text-align:left;">${v.desc}</td><td style="text-align:center;">${v.count}</td><td style="text-align:right;">+${v.totalSec}</td></tr>`).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            ` : '<p style="color: green; margin-top: 6px;">✅ Нарушений нет.</p>'}
+                        </div>
+                        
+                        <div style="flex: 1; min-width: 240px;">
+                            <h3 style="margin: 6px 0 4px; font-size: 12pt;">🛣️ Сложные дорожные условия</h3>
+                            <div style="background: #f8fafc; padding: 8px; border-radius: 10px;">
+                                <div><strong>Чистое время:</strong> ${sduRaw !== null ? formatTime(sduRaw) : '—'}</div>
+                                <div><strong>Штраф:</strong> ${sduPenSum} сек</div>
+                                <div><strong>Итог:</strong> ${sduTotal !== null ? formatTime(sduTotal) : '—'}</div>
+                            </div>
+                            ${sduViolations.length > 0 ? `
+                            <div style="margin-top: 8px;">
+                                <div style="font-weight: bold; font-size: 10pt;">Нарушения:</div>
+                                <table style="width:100%; font-size: 9pt; border-collapse: collapse;">
+                                    <thead><tr><th style="text-align:left;">Нарушение</th><th>Кол-во</th><th>Штраф</th></tr></thead>
+                                    <tbody>
+                                        ${sduViolations.map(v => `<tr><td style="text-align:left;">${v.desc}</td><td style="text-align:center;">${v.count}</td><td style="text-align:right;">+${v.totalSec}</td></tr>`).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            ` : '<p style="color: green; margin-top: 6px;">✅ Нарушений нет.</p>'}
+                        </div>
+                    </div>
+                    
+                    <div style="background: #eef2ff; padding: 6px 10px; border-radius: 12px; margin: 12px 0 16px; text-align: center;">
+                        <strong>ОБЩИЙ ИТОГ:</strong> ${totalTime !== null ? formatTime(totalTime) : '—'} (сумма итоговых времён)
+                    </div>
+                    
+                    <div class="print-sign-line" style="margin-top: 20px; border-top: 1px dashed #aaa; padding-top: 12px;">
+                        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
+                            <div style="min-width: 220px;"><strong>Представитель команды:</strong> __________________</div>
+                            <div style="min-width: 200px;"><strong>Главный Судья:</strong> __________________</div>
+                        </div>
+                        <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
+                            <div><strong>Дата:</strong> __________________</div>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 8pt; text-align: center; color: #4b5563;">
+                            Подпись представителя подтверждает согласие с результатами.
+                        </div>
+                    </div>
+                </div>
+            `;
+            const container = document.getElementById('printReportContainer');
+            container.innerHTML = printHtml;
+            container.style.display = 'block';
+            // Небольшая подсказка для пользователя (можно убрать, но оставим для удобства)
+        
+            window.print();
+            container.style.display = 'none';
+            container.innerHTML = '';
+        }
+        
         // ---------- ИНИЦИАЛИЗАЦИЯ ЭЛЕМЕНТОВ ----------
         const teamSelect = document.getElementById('teamSelect');
         const figureCard = document.getElementById('figureCard');
@@ -881,6 +1089,7 @@
         window.resetFigurePenaltiesBtn = document.getElementById('resetFigurePenaltiesBtn');
         window.resetSduPenaltiesBtn = document.getElementById('resetSduPenaltiesBtn');
         window.syncAllBtn = document.getElementById('syncAllBtn');
+        window.printReportBtn = document.getElementById('printReportBtn');
         
         teamSelect.addEventListener('change', async () => {
             currentTeam = teamSelect.value || null;
@@ -895,6 +1104,7 @@
         resetFigurePenaltiesBtn.addEventListener('click', () => resetPenalties('figure'));
         resetSduPenaltiesBtn.addEventListener('click', () => resetPenalties('sdu'));
         syncAllBtn.addEventListener('click', syncAll);
+        printReportBtn.addEventListener('click', printFullReport);
         
         async function init() {
             const statusDiv = document.getElementById('connectionStatus');
