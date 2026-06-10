@@ -159,18 +159,21 @@
         .delete-btn:hover { color: #dc2626; background: #fee2e2; }
         .print-btn { color: #2c6e9e; }
         .print-btn:hover { color: #1e3a5f; background: #e0f2fe; }
-        .results-vertical { display: flex; flex-direction: column; gap: 24px; margin-top: 28px; }
+        .results-vertical { display: flex; flex-direction: column; gap: 24px; margin-top: 0; margin-bottom: 28px; }
         .result-card { width: 100%; background: #fff; border-radius: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #eef2f6; overflow: hidden; }
-        .card-header { background: #f1f5f9; padding: 12px 16px; font-weight: 700; font-size: 1rem; border-bottom: 1px solid #e2e8f0; color: #0f3b2c; }
+        .card-header { background: #f1f5f9; padding: 12px 16px; font-weight: 700; font-size: 1rem; border-bottom: 1px solid #e2e8f0; color: #0f3b2c; display: flex; justify-content: space-between; align-items: center; }
         .card-body { padding: 12px 16px; max-height: 400px; overflow-y: auto; }
         .rank-table { width: 100%; font-size: 0.8rem; border-collapse: collapse; }
         .rank-table th, .rank-table td { border: none; padding: 8px 4px; text-align: left; border-bottom: 1px solid #edf2f7; }
         .rank-table th { background: none; font-weight: 600; }
+        .best-shooter-card { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .best-shooter-avatar { font-size: 4rem; background: #f1f5f9; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .best-shooter-info { flex: 1; }
+        .best-shooter-info p { margin: 6px 0; font-size: 0.9rem; }
+        .best-shooter-info strong { color: #1e3a5f; }
         footer { margin-top: 28px; font-size: 0.7rem; text-align: center; color: #5b6e8c; }
         .status { font-size: 0.75rem; color: #2b6e3c; background: #e6f7ec; border-radius: 50px; padding: 4px 12px; display: inline-block; }
-        /* Улучшенные стили для печати — одна страница, минимум полей, без колонтитулов */
         @media print {
-            /* Отключаем колонтитулы и задаём компактные поля */
             @page {
                 size: A4;
                 margin: 0.5cm;
@@ -251,6 +254,27 @@
         <button id="printTeamBtn" class="success">🖨️ Печать команды</button>
     </div>
 
+    <!-- БЛОК ЛУЧШЕГО СТРЕЛКА -->
+    <div class="result-card" id="bestShooterCard">
+        <div class="card-header">
+            🏆 Лучший стрелок турнира (общий зачёт по Вр1-Вр6)
+            <button id="printBestShooterBtn" class="success" style="font-size:0.7rem; padding:4px 12px;">🖨️ Печать карточки</button>
+        </div>
+        <div class="card-body" id="bestShooterBody">
+            — загрузка —
+        </div>
+    </div>
+
+    <!-- БЛОКИ РЕЙТИНГОВ -->
+    <div class="results-vertical">
+        <div class="result-card"><div class="card-header">🌟 Общий личный зачёт (все) - сумма времени (сек) только по Вр1-Вр6</div><div class="card-body" id="rankTotalBody">—</div></div>
+        <div class="result-card"><div class="card-header">🥇 Личное первенство (Инкассация) - сумма времени (сек) включая групповые</div><div class="card-body" id="rankInkBody">—</div></div>
+        <div class="result-card"><div class="card-header">🔒 Личное первенство (Охрана) - сумма времени (сек) (только Вр1-Вр6)</div><div class="card-body" id="rankSecBody">—</div></div>
+        <div class="result-card"><div class="card-header">🏢 Рейтинг ТБ (Инкассация) - сумма мест (одиночные + групповые)</div><div class="card-body" id="tbInkBody">—</div></div>
+        <div class="result-card"><div class="card-header">🏢 Рейтинг ТБ (Охрана) - сумма мест (только одиночные Вр1-Вр6)</div><div class="card-body" id="tbSecBody">—</div></div>
+    </div>
+
+    <!-- ТАБЛИЦА УЧАСТНИКОВ -->
     <div class="table-wrapper">
         <table id="dataTable">
             <thead><tr><th style="width:70px">Действия</th><th>№</th><th>ФИО</th><th>ТБ</th><th>Категория</th><th>Вр1</th><th>Вр2</th><th>Вр3</th><th>Вр4</th><th>Вр5</th><th>Вр6</th><th>Вгр1</th><th>Вгр2</th></tr></thead>
@@ -258,13 +282,6 @@
         </table>
     </div>
 
-    <div class="results-vertical">
-        <div class="result-card"><div class="card-header">🌟 Общий личный зачёт (все) - сумма времени (сек)</div><div class="card-body" id="rankTotalBody">—</div></div>
-        <div class="result-card"><div class="card-header">🥇 Личное первенство (Инкассация) - сумма времени (сек)</div><div class="card-body" id="rankInkBody">—</div></div>
-        <div class="result-card"><div class="card-header">🔒 Личное первенство (Охрана) - сумма времени (сек) (только Вр1-Вр6)</div><div class="card-body" id="rankSecBody">—</div></div>
-        <div class="result-card"><div class="card-header">🏢 Рейтинг ТБ (Инкассация) - сумма мест (одиночные + групповые)</div><div class="card-body" id="tbInkBody">—</div></div>
-        <div class="result-card"><div class="card-header">🏢 Рейтинг ТБ (Охрана) - сумма мест (только одиночные Вр1-Вр6)</div><div class="card-body" id="tbSecBody">—</div></div>
-    </div>
     <footer>Вр1-Вр6 — одиночные упражнения. Вгр1, Вгр2 — групповые упражнения (учитываются только для инкассации). Для охраны групповые ячейки заблокированы и не влияют на расчёт.<br>
     <strong>Списки ТБ:</strong> Инкассация (11): Байкальский, Волго-Вятский, Дальневосточный, Поволжский, Северо-Западный, Сибирский, Среднерусский, Уральский, Центрально-Черноземный, ПЦП МРД ЦУНДО, Юго-Западный.<br>
     Охрана (12): Байкальский, Волго-Вятский, Дальневосточный, Поволжский, Северо-Западный, Сибирский, Среднерусский, Уральский, Центрально-Черноземный, ЦОО ЦА и МБ, Юго-Западный, СТБ.
@@ -592,10 +609,21 @@
     
     function saveAndRecalc() { saveToLocal(); renderTable(); computeAll(); }
     
-    function getTotalTime(p) {
+    // Время для личного первенства (по правилам категории)
+    function getTotalTimeForCategory(p) {
         let sum = 0;
         let maxEx = (p.category === "Охрана") ? INDIVIDUAL_COUNT : EXERCISES_COUNT;
         for(let ex=0; ex<maxEx; ex++) {
+            let val = p.times[ex];
+            if(val !== "" && val !== null && !isNaN(parseFloat(val))) sum += parseFloat(val);
+        }
+        return sum;
+    }
+    
+    // Время для общего зачёта (только первые 6 упражнений для всех)
+    function getTotalTimeGeneral(p) {
+        let sum = 0;
+        for(let ex=0; ex<INDIVIDUAL_COUNT; ex++) {
             let val = p.times[ex];
             if(val !== "" && val !== null && !isNaN(parseFloat(val))) sum += parseFloat(val);
         }
@@ -646,52 +674,124 @@
         return arr;
     }
     
+    function updateBestShooter() {
+        const container = document.getElementById('bestShooterBody');
+        if (!participants.length || !lastOverallRanking.length) {
+            container.innerHTML = '<div style="text-align:center; color:#64748b;">Нет данных для определения лучшего стрелка</div>';
+            return;
+        }
+        const best = lastOverallRanking[0];
+        const participant = participants.find(p => p.id === best.id);
+        if (!participant) return;
+        const totalTimeGeneral = getTotalTimeGeneral(participant);
+        const html = `
+            <div class="best-shooter-card">
+                <div class="best-shooter-avatar">🎯</div>
+                <div class="best-shooter-info">
+                    <p><strong>🏅 Абсолютный победитель</strong></p>
+                    <p><strong>ФИО:</strong> ${escapeHtml(participant.name) || '—'}</p>
+                    <p><strong>ТБ:</strong> ${escapeHtml(participant.tb) || '—'}</p>
+                    <p><strong>Категория:</strong> ${participant.category}</p>
+                    <p><strong>Сумма времени (Вр1-Вр6):</strong> ${totalTimeGeneral.toFixed(2)} сек</p>
+                    <p><strong>Место в общем зачёте:</strong> 1 из ${lastOverallRanking.length}</p>
+                </div>
+            </div>
+        `;
+        container.innerHTML = html;
+    }
+    
+    function printBestShooter() {
+        if (!participants.length || !lastOverallRanking.length) {
+            alert("Нет данных для печати лучшего стрелка");
+            return;
+        }
+        const best = lastOverallRanking[0];
+        const p = participants.find(part => part.id === best.id);
+        if (!p) return;
+        const totalTimeGeneral = getTotalTimeGeneral(p);
+        const totalTimeCategory = getTotalTimeForCategory(p);
+        let timesTable = '<table style="width:100%; border-collapse:collapse;"><thead><tr><th style="border:1px solid #000; padding:4px;">Упр</th><th style="border:1px solid #000; padding:4px;">Время (сек)</th></tr></thead><tbody>';
+        for(let ex=0; ex<INDIVIDUAL_COUNT; ex++) {
+            let label = `Вр${ex+1}`;
+            let timeVal = (p.times[ex] && p.times[ex]!=="") ? parseFloat(p.times[ex]).toFixed(2) : '—';
+            timesTable += `<tr><td style="border:1px solid #000; padding:4px; text-align:center;">${label}</td><td style="border:1px solid #000; padding:4px; text-align:center;">${timeVal}</td></tr>`;
+        }
+        timesTable += '</tbody></table>';
+        
+        let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Лучший стрелок турнира</title><style>@page { size: A4; margin: 0.5cm; } body { font-family: 'Times New Roman', Times, serif; margin: 0; padding: 0; font-size: 11pt; } .print-protocol { max-width: 100%; margin: 0 auto; } h2, h3 { text-align: center; margin: 6px 0; } .info { margin-bottom: 12px; } table { width: 100%; border-collapse: collapse; margin: 6px 0; } th, td { border: 1px solid #000; padding: 4px; text-align: center; } .sign-block { margin-top: 20px; display: flex; justify-content: space-between; } .sign-line { width: 200px; border-top: 1px solid #000; text-align: center; padding-top: 5px; } .badge { font-size: 14pt; font-weight: bold; text-align: center; margin-bottom: 10px; }</style></head><body><div class="print-protocol"><h2>🏆 ЛУЧШИЙ СТРЕЛОК ТУРНИРА 🏆</h2><div class="badge">Абсолютный победитель в общем зачёте (Вр1-Вр6)</div><div class="info"><p><strong>ФИО:</strong> ${escapeHtml(p.name) || '—'}</p><p><strong>Территориальный банк:</strong> ${escapeHtml(p.tb) || '—'}</p><p><strong>Категория:</strong> ${p.category}</p><p><strong>Суммарное время (6 упражнений):</strong> ${totalTimeGeneral.toFixed(2)} сек</p><p><strong>Место в общем зачёте:</strong> 1 из ${lastOverallRanking.length}</p>${p.category === 'Инкассация' ? `<p><strong>Суммарное время с групповыми:</strong> ${totalTimeCategory.toFixed(2)} сек</p>` : ''}</div><h3>Результаты по одиночным упражнениям (Вр1-Вр6)</h3>${timesTable}<div class="sign-block"><div class="sign-line">Подпись участника</div><div class="sign-line">Подпись главного судьи</div></div><p style="margin-top:20px; text-align:center">Дата: _______________</p></div><script>window.onload=function(){window.print();};<\/script></body></html>`;
+        let w = window.open('', '_blank', 'width=900,height=700');
+        w.document.write(html);
+        w.document.close();
+    }
+    
     function computeAll() {
         if(!participants.length) {
             ["rankTotalBody","rankInkBody","rankSecBody","tbInkBody","tbSecBody"].forEach(id=>document.getElementById(id).innerHTML='<div>Нет участников</div>');
+            updateBestShooter();
             return;
         }
-        let enriched = participants.map(p => ({ ...p, totalTime: getTotalTime(p), hasAnyTime: p.times.some((t,idx) => t !== "" && !isNaN(parseFloat(t)) && (p.category !== "Охрана" || idx < INDIVIDUAL_COUNT)) }));
+        // Для каждого участника вычисляем:
+        // - общее время (только 6 упр)
+        // - время по категории (для личного первенства)
+        // - флаг hasAnyTimeForGeneral: есть ли хоть одно заполненное из первых 6
+        let enriched = participants.map(p => ({
+            ...p,
+            totalTimeGeneral: getTotalTimeGeneral(p),
+            totalTimeCategory: getTotalTimeForCategory(p),
+            hasAnyTimeGeneral: p.times.slice(0, INDIVIDUAL_COUNT).some(t => t !== "" && !isNaN(parseFloat(t))),
+            hasAnyTimeCategory: (p.category === "Охрана") 
+                ? p.times.slice(0, INDIVIDUAL_COUNT).some(t => t !== "" && !isNaN(parseFloat(t)))
+                : p.times.some(t => t !== "" && !isNaN(parseFloat(t)))
+        }));
         
-        let allByTime = enriched.filter(p=>p.hasAnyTime).sort((a,b)=>a.totalTime - b.totalTime);
-        lastOverallRanking = allByTime.map((p,i)=>({id:p.id,place:i+1,totalTime:p.totalTime,name:p.name,tb:p.tb,category:p.category}));
-        let totalHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Категория</th><th>Сумма времени (сек)</th></tr></thead><tbody>';
-        allByTime.forEach((p,i)=>{ totalHtml += `<tr><td>${i+1}</td><td>${escapeHtml(p.name)||'—'}</td><td>${escapeHtml(p.tb)||'—'}</td><td>${p.category}</td><td>${p.totalTime.toFixed(2)}</td></tr>`; });
-        totalHtml += '</tbody><tr>';
+        // 1. Общий личный зачёт (по 6 упражнениям)
+        let allByTime = enriched.filter(p=>p.hasAnyTimeGeneral).sort((a,b)=>a.totalTimeGeneral - b.totalTimeGeneral);
+        lastOverallRanking = allByTime.map((p,i)=>({id:p.id,place:i+1,totalTime:p.totalTimeGeneral,name:p.name,tb:p.tb,category:p.category}));
+        let totalHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Категория</th><th>Сумма времени (сек) (Вр1-Вр6)</th></tr></thead><tbody>';
+        allByTime.forEach((p,i)=>{ totalHtml += `<tr><td>${i+1}</td><td>${escapeHtml(p.name)||'—'}</td><td>${escapeHtml(p.tb)||'—'}</td><td>${p.category}</td><td>${p.totalTimeGeneral.toFixed(2)}</td></tr>`; });
+        totalHtml += '</tbody></table>';
         document.getElementById('rankTotalBody').innerHTML = totalHtml;
         
-        let ink = enriched.filter(p=>p.category==="Инкассация" && p.hasAnyTime).sort((a,b)=>a.totalTime - b.totalTime);
-        lastInkRanking = ink.map((p,i)=>({id:p.id,place:i+1,totalTime:p.totalTime,name:p.name,tb:p.tb}));
-        let inkHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма времени (сек)</th><tr></thead><tbody>';
-        ink.forEach((p,i)=>{ inkHtml += `<tr><td>${i+1}</td><td>${escapeHtml(p.name)||'—'}</td><td>${escapeHtml(p.tb)||'—'}</td><td>${p.totalTime.toFixed(2)}</td></tr>`; });
-        inkHtml += '</tbody></tr>';
+        // 2. Личное первенство Инкассация (по 8 упражнениям)
+        let ink = enriched.filter(p=>p.category==="Инкассация" && p.hasAnyTimeCategory).sort((a,b)=>a.totalTimeCategory - b.totalTimeCategory);
+        lastInkRanking = ink.map((p,i)=>({id:p.id,place:i+1,totalTime:p.totalTimeCategory,name:p.name,tb:p.tb}));
+        let inkHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма времени (сек) (вкл. групповые)</th></tr></thead><tbody>';
+        ink.forEach((p,i)=>{ inkHtml += `<tr><td>${i+1}</td><td>${escapeHtml(p.name)||'—'}</td><td>${escapeHtml(p.tb)||'—'}</td><td>${p.totalTimeCategory.toFixed(2)}</td></tr>`; });
+        inkHtml += '</tbody></table>';
         document.getElementById('rankInkBody').innerHTML = inkHtml;
         
-        let sec = enriched.filter(p=>p.category==="Охрана" && p.hasAnyTime).sort((a,b)=>a.totalTime - b.totalTime);
-        lastSecRanking = sec.map((p,i)=>({id:p.id,place:i+1,totalTime:p.totalTime,name:p.name,tb:p.tb}));
-        let secHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма времени (сек)</th><tr></thead><tbody>';
-        sec.forEach((p,i)=>{ secHtml += `<tr><td>${i+1}</td><td>${escapeHtml(p.name)||'—'}</td><td>${escapeHtml(p.tb)||'—'}</td><td>${p.totalTime.toFixed(2)}</td></tr>`; });
+        // 3. Личное первенство Охрана (по 6 упражнениям)
+        let sec = enriched.filter(p=>p.category==="Охрана" && p.hasAnyTimeCategory).sort((a,b)=>a.totalTimeCategory - b.totalTimeCategory);
+        lastSecRanking = sec.map((p,i)=>({id:p.id,place:i+1,totalTime:p.totalTimeCategory,name:p.name,tb:p.tb}));
+        let secHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ФИО</th><th>ТБ</th><th>Сумма времени (сек)</th></tr></thead><tbody>';
+        sec.forEach((p,i)=>{ secHtml += `<tr><td>${i+1}</td><td>${escapeHtml(p.name)||'—'}</td><td>${escapeHtml(p.tb)||'—'}</td><td>${p.totalTimeCategory.toFixed(2)}</td></tr>`; });
         secHtml += '</tbody></table>';
         document.getElementById('rankSecBody').innerHTML = secHtml;
         
+        // 4. Рейтинг ТБ Инкассация (8 упражнений)
         let inkTeams = computeTeamRankings("Инкассация");
         lastTbInkRanking = inkTeams;
         let inkTeamHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ТБ</th><th>Сумма мест (всего)</th><th>Места по упражнениям (1-8)</th></tr></thead><tbody>';
         inkTeams.forEach(t=>{ let placesStr = t.placesByEx.map(v=>v!==null?v:'—').join(', '); inkTeamHtml += `<tr><td>${t.finalPlace}</td><td>${escapeHtml(t.tb)}</td><td>${t.sumPlaces}</td><td>${placesStr}</td></tr>`; });
-        inkTeamHtml += '</tbody></tr>';
+        inkTeamHtml += '</tbody></table>';
         document.getElementById('tbInkBody').innerHTML = inkTeamHtml;
         
+        // 5. Рейтинг ТБ Охрана (6 упражнений)
         let secTeams = computeTeamRankings("Охрана");
         lastTbSecRanking = secTeams;
-        let secTeamHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ТБ</th><th>Сумма мест (всего)</th><th>Места по упражнениям (1-6)</th></table></thead><tbody>';
+        let secTeamHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ТБ</th><th>Сумма мест (всего)</th><th>Места по упражнениям (1-6)</th></tr></thead><tbody>';
         secTeams.forEach(t=>{ let placesStr = t.placesByEx.map(v=>v!==null?v:'—').join(', '); secTeamHtml += `<tr><td>${t.finalPlace}</td><td>${escapeHtml(t.tb)}</td><td>${t.sumPlaces}</td><td>${placesStr}</td></tr>`; });
-        secTeamHtml += '</tbody></td>';
+        secTeamHtml += '</tbody></table>';
         document.getElementById('tbSecBody').innerHTML = secTeamHtml;
+        
+        // Обновляем блок лучшего стрелка
+        updateBestShooter();
     }
     
     function printParticipantByIdx(idx) {
         let p = participants[idx]; if(!p) return; computeAll();
-        let totalTime = getTotalTime(p);
+        let totalTimeGeneral = getTotalTimeGeneral(p);
+        let totalTimeCategory = getTotalTimeForCategory(p);
         let overall = lastOverallRanking.find(o=>o.id===p.id);
         let personal = (p.category==='Инкассация'?lastInkRanking:lastSecRanking).find(o=>o.id===p.id);
         let teamRank = (p.category==='Инкассация'?lastTbInkRanking:lastTbSecRanking).find(t=>t.tb===p.tb);
@@ -703,7 +803,7 @@
             timesTable += `<tr><td style="border:1px solid #000; padding:4px; text-align:center;">${label}</td><td style="border:1px solid #000; padding:4px; text-align:center;">${timeVal}</td></tr>`;
         }
         timesTable += '</tbody></table>';
-        let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Протокол ${escapeHtml(p.name)||'участника'}</title><style>@page { size: A4; margin: 0.5cm; } body { font-family: 'Times New Roman', Times, serif; margin: 0; padding: 0; font-size: 11pt; } .print-protocol { max-width: 100%; margin: 0 auto; } h2, h3 { text-align: center; margin: 6px 0; } .info { margin-bottom: 12px; } table { width: 100%; border-collapse: collapse; margin: 6px 0; } th, td { border: 1px solid #000; padding: 4px; text-align: center; } .sign-block { margin-top: 20px; display: flex; justify-content: space-between; } .sign-line { width: 200px; border-top: 1px solid #000; text-align: center; padding-top: 5px; }</style></head><body><div class="print-protocol"><h2>ПРОТОКОЛ УЧАСТНИКА</h2><div class="info"><p><strong>ФИО:</strong> ${escapeHtml(p.name)||'—'}</p><p><strong>ТБ:</strong> ${escapeHtml(p.tb)||'—'}</p><p><strong>Категория:</strong> ${p.category}</p><p><strong>Суммарное время:</strong> ${totalTime.toFixed(2)} сек</p><p><strong>Место в общем зачёте:</strong> ${overall?.place||'—'}</p><p><strong>Место в личном первенстве (${p.category}):</strong> ${personal?.place||'—'}</p><p><strong>Место ТБ в рейтинге:</strong> ${teamRank?.finalPlace||'—'} (сумма мест команды=${teamRank?.sumPlaces||0})</p></div><h3>Результаты по упражнениям:</h3>${timesTable}<div class="sign-block"><div class="sign-line">Подпись участника</div><div class="sign-line">Подпись судьи</div></div><p style="margin-top:20px; text-align:center">Дата: _______________</p></div><script>window.onload=function(){window.print();};<\/script></body></html>`;
+        let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Протокол ${escapeHtml(p.name)||'участника'}</title><style>@page { size: A4; margin: 0.5cm; } body { font-family: 'Times New Roman', Times, serif; margin: 0; padding: 0; font-size: 11pt; } .print-protocol { max-width: 100%; margin: 0 auto; } h2, h3 { text-align: center; margin: 6px 0; } .info { margin-bottom: 12px; } table { width: 100%; border-collapse: collapse; margin: 6px 0; } th, td { border: 1px solid #000; padding: 4px; text-align: center; } .sign-block { margin-top: 20px; display: flex; justify-content: space-between; } .sign-line { width: 200px; border-top: 1px solid #000; text-align: center; padding-top: 5px; }</style></head><body><div class="print-protocol"><h2>ПРОТОКОЛ УЧАСТНИКА</h2><div class="info"><p><strong>ФИО:</strong> ${escapeHtml(p.name)||'—'}</p><p><strong>ТБ:</strong> ${escapeHtml(p.tb)||'—'}</p><p><strong>Категория:</strong> ${p.category}</p><p><strong>Суммарное время (Вр1-Вр6):</strong> ${totalTimeGeneral.toFixed(2)} сек</p><p><strong>Суммарное время (с учётом групповых):</strong> ${p.category==='Инкассация' ? totalTimeCategory.toFixed(2)+' сек' : '—'}</p><p><strong>Место в общем зачёте (Вр1-Вр6):</strong> ${overall?.place||'—'}</p><p><strong>Место в личном первенстве (${p.category}):</strong> ${personal?.place||'—'}</p><p><strong>Место ТБ в рейтинге:</strong> ${teamRank?.finalPlace||'—'} (сумма мест команды=${teamRank?.sumPlaces||0})</p></div><h3>Результаты по упражнениям:</h3>${timesTable}<div class="sign-block"><div class="sign-line">Подпись участника</div><div class="sign-line">Подпись судьи</div></div><p style="margin-top:20px; text-align:center">Дата: _______________</p></div><script>window.onload=function(){window.print();};<\/script></body></html>`;
         let w = window.open('', '_blank', 'width=900,height=700');
         w.document.write(html);
         w.document.close();
@@ -720,7 +820,7 @@
         let memberRows = '';
         members.forEach((m,idx)=>{
             let personal = (category==="Инкассация"?lastInkRanking:lastSecRanking).find(o=>o.id===m.id);
-            let totalTime = getTotalTime(m);
+            let totalTime = getTotalTimeForCategory(m);
             memberRows += `<tr><td style="border:1px solid #000; padding:4px;">${idx+1}</td><td style="border:1px solid #000; padding:4px;">${escapeHtml(m.name)||'—'}</td><td style="border:1px solid #000; padding:4px;">${personal?.place||'—'}</td><td style="border:1px solid #000; padding:4px;">${totalTime.toFixed(2)}</td></tr>`;
         });
         let totalEx = (category === "Инкассация") ? EXERCISES_COUNT : INDIVIDUAL_COUNT;
@@ -807,6 +907,7 @@
     document.getElementById('printSelectedBtn').onclick=()=>{ let idx=document.getElementById('printParticipantSelect').value; if(idx==="") alert("Выберите участника"); else printParticipantByIdx(parseInt(idx)); };
     document.getElementById('teamCategorySelect').onchange=()=>updateTeamTbSelect();
     document.getElementById('printTeamBtn').onclick=()=>{ let cat = document.getElementById('teamCategorySelect').value; let tb = document.getElementById('teamTbSelect').value; if(!tb) alert("Выберите ТБ"); else printTeam(cat, tb); };
+    document.getElementById('printBestShooterBtn').onclick=()=>printBestShooter();
     loadFromLocal();
 </script>
 </body>
