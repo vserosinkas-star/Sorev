@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Эстафета "Охрана" — Командный зачёт</title>
+    <title>Эстафета "Охрана" — Командный зачёт (по последнему участнику)</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
@@ -80,7 +80,7 @@
 <body>
 <div class="container">
     <div class="judge-panel">
-        <h2>🛡️ Эстафета "Охрана"</h2>
+        <h2>🛡️ Эстафета "Охрана" (командное время = время участника №3)</h2>
         <div id="connectionStatus" style="margin-bottom: 15px;"></div>
 
         <div class="control-group">
@@ -146,10 +146,10 @@
     </div>
 
     <div class="results-table">
-        <h3>🏆 КОМАНДНЫЙ ЗАЧЁТ (сумма трёх участников)</h3>
+        <h3>🏆 КОМАНДНЫЙ ЗАЧЁТ (время команды = время участника №3)</h3>
         <table id="resultsTable">
             <thead>
-                <tr><th>Место</th><th>Команда</th><th>Уч.1 (ФИО)</th><th>Время 1</th><th>Уч.2 (ФИО)</th><th>Время 2</th><th>Уч.3 (ФИО)</th><th>Время 3</th><th>Сумма (сек)</th></tr>
+                <tr><th>Место</th><th>Команда</th><th>Уч.1 (ФИО)</th><th>Время 1</th><th>Уч.2 (ФИО)</th><th>Время 2</th><th>Уч.3 (ФИО)</th><th>Время 3</th><th>Время команды (сек)</th></tr>
             </thead>
             <tbody id="resultsBody"><tr><td colspan="9">Загрузка...</td></tr>
             </tbody>
@@ -269,7 +269,6 @@
             }
         }
         
-        // ИСПРАВЛЕННАЯ ФУНКЦИЯ СОХРАНЕНИЯ - без ON CONFLICT
         async function saveCurrentTeamToDB() {
             if(!currentTeam) return false;
             if(!teamData[currentTeam]) return false;
@@ -277,7 +276,6 @@
             let penaltiesToStore = { members: members, version: 2 };
             
             try {
-                // Проверяем, существует ли уже запись для этой команды
                 const { data: existing, error: selectError } = await supabase
                     .from('security_estafeta_results')
                     .select('team_code')
@@ -295,13 +293,11 @@
                 
                 let result;
                 if (existing) {
-                    // Обновление существующей записи
                     result = await supabase
                         .from('security_estafeta_results')
                         .update(upsertData)
                         .eq('team_code', currentTeam);
                 } else {
-                    // Вставка новой записи
                     result = await supabase
                         .from('security_estafeta_results')
                         .insert([upsertData]);
@@ -317,7 +313,6 @@
             }
         }
         
-        // Автосохранение имени (debounced)
         function autoSaveName() {
             if (!currentTeam) return;
             const name = document.getElementById('participantName').value.trim();
@@ -538,7 +533,8 @@
                 let t1 = computeTotalForAthlete(p1);
                 let t2 = computeTotalForAthlete(p2);
                 let t3 = computeTotalForAthlete(p3);
-                let teamSum = (t1!==null && t2!==null && t3!==null) ? t1+t2+t3 : null;
+                // Командное время = время ПОСЛЕДНЕГО (третьего) участника
+                let teamTime = (t3 !== null) ? t3 : null;
                 rows.push({
                     teamCode: team,
                     teamName: teamNames[team] || team,
@@ -548,7 +544,7 @@
                     p2_total: t2,
                     p3_name: p3.name || "Уч.3",
                     p3_total: t3,
-                    team_sum: teamSum
+                    team_sum: teamTime
                 });
             }
             rows.sort((a,b)=> (a.team_sum ?? Infinity) - (b.team_sum ?? Infinity));
@@ -601,7 +597,7 @@
         }
         
         window.onload = async () => {
-            document.getElementById('connectionStatus').innerHTML = '<span>✅ Подключено (автосохранение ФИО)</span>';
+            document.getElementById('connectionStatus').innerHTML = '<span>✅ Подключено (командное время = время участника №3)</span>';
             renderStageButtons();
             document.getElementById('teamSelect').addEventListener('change', onTeamChange);
             document.getElementById('saveStageBtn').addEventListener('click', saveStage);
@@ -611,7 +607,6 @@
             document.getElementById('syncTeamBtn').addEventListener('click', syncTeam);
             document.getElementById('resetTeamBtn').addEventListener('click', resetTeam);
             
-            // Автосохранение имени с debounce
             document.getElementById('participantName').addEventListener('input', (e) => {
                 if (saveNameTimeout) clearTimeout(saveNameTimeout);
                 saveNameTimeout = setTimeout(() => autoSaveName(), 800);
