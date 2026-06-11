@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Эстафета "Охрана" — Командный зачёт (общее время)</title>
+    <title>Эстафета "Охрана" — общие штрафы + этапы (бонус за огнетушитель –10 сек)</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
@@ -26,6 +26,7 @@
         .stage-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
         .stage-btn { background: #e2e8f0; border: none; padding: 8px 16px; border-radius: 40px; font-size: 0.8rem; font-weight: 500; cursor: pointer; }
         .stage-btn.active { background: #1e3a8a; color: white; }
+        .section-title { font-weight: 700; margin: 15px 0 8px; font-size: 1rem; color: #1e3a5f; border-left: 4px solid #1e3a8a; padding-left: 12px; }
         .penalties-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; margin: 15px 0; max-height: 400px; overflow-y: auto; padding: 4px; }
         .penalty-card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 10px 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
         .penalty-card .desc { flex: 2; font-size: 0.9rem; font-weight: 500; word-break: break-word; }
@@ -35,16 +36,14 @@
         .counter-control span { min-width: 28px; text-align: center; font-weight: bold; }
         input[type="checkbox"] { width: 22px; height: 22px; margin: 0; cursor: pointer; flex-shrink: 0; }
         .summary-bar { background: #f1f5f9; border-radius: 20px; padding: 16px; margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; font-weight: 600; }
-        .summary-bar span { font-size: 0.9rem; }
         .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
         .results-table { background: white; border-radius: 24px; overflow-x: auto; margin-top: 30px; padding: 4px; }
         table { width: 100%; border-collapse: collapse; min-width: 700px; }
         th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; }
         th { background: #f8fafc; }
         .rank-1 { background-color: #fef9c3; font-weight: bold; }
-        .team-bonus-row { background: #e0f2fe; border-radius: 30px; padding: 15px; margin: 15px 0; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; }
-        .team-bonus-row .control-group { margin-bottom: 0; flex: 1; min-width: 200px; }
-
+        .team-penalty-row { background: #fff0e0; border-radius: 30px; padding: 15px; margin: 15px 0; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; }
+        .team-penalty-row .control-group { margin-bottom: 0; flex: 1; min-width: 200px; }
         @media (max-width: 700px) {
             body { padding: 12px; }
             .judge-panel { padding: 16px; }
@@ -63,8 +62,8 @@
             .unsaved-badge { display: inline-block; margin-top: 8px; margin-left: 0; }
             .results-table { margin-top: 20px; }
             th, td { font-size: 0.75rem; padding: 8px 4px; }
-            .team-bonus-row { flex-direction: column; gap: 12px; }
-            .team-bonus-row .control-group { width: 100%; }
+            .team-penalty-row { flex-direction: column; gap: 12px; }
+            .team-penalty-row .control-group { width: 100%; }
         }
         @media (max-width: 480px) {
             .participant-card { padding: 12px; }
@@ -79,7 +78,7 @@
 <body>
 <div class="container">
     <div class="judge-panel">
-        <h2>🛡️ Эстафета "Охрана" (общее командное время)</h2>
+        <h2>🛡️ Эстафета "Охрана" (бонус –10 сек за запасной огнетушитель)</h2>
         <div id="connectionStatus" style="margin-bottom: 15px;"></div>
 
         <div class="control-group">
@@ -100,21 +99,21 @@
             </select>
         </div>
 
-        <!-- Общие параметры команды -->
+        <!-- Общие параметры команды (время + бонус за огнетушитель) -->
         <div id="teamCommonFields" style="display: none;">
-            <div class="team-bonus-row">
+            <div class="team-penalty-row">
                 <div class="control-group">
                     <label>⏱️ Общее время команды (мм:сс.сс)</label>
                     <input type="text" id="teamRawTime" placeholder="например 12:34.56">
                 </div>
                 <div class="control-group" style="flex: 0 0 auto;">
-                    <label>🔥 Бонус (-10 сек)</label>
+                    <label>🧯 Запасной огнетушитель (бонус –10 сек)</label>
                     <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0;">
                         <input type="checkbox" id="teamBonusCheckbox" style="width: 24px; height: 24px;"> 
-                        <span>запасной огнетушитель</span>
+                        <span>отметить, если использован запасной огнетушитель</span>
                     </div>
                 </div>
-                <button id="saveTeamTimeBtn" class="btn-secondary">💾 Сохранить общее время и бонус</button>
+                <button id="saveTeamTimeBtn" class="btn-secondary">💾 Сохранить время и бонус</button>
             </div>
         </div>
 
@@ -130,11 +129,19 @@
                     <span>📋 Данные участника</span>
                     <input type="text" id="participantName" placeholder="ФИО участника" autocomplete="off">
                 </div>
+                
+                <!-- Отдельный блок общих штрафов (независимо от этапа) -->
+                <div class="section-title">⚠️ Общие штрафы (за любые этапы)</div>
+                <div id="commonPenaltiesContainer" class="penalties-grid"></div>
+
+                <!-- Блок с выбором этапа и специфическими штрафами -->
+                <div class="section-title">📌 Штрафы по этапам</div>
                 <div id="stageButtonsContainer" class="stage-buttons"></div>
                 <div id="penaltiesContainer" class="penalties-grid"></div>
+
                 <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
-                    <button id="saveStageBtn" style="background: #2b6e3c;">💾 Сохранить ошибки этапа</button>
-                    <button id="resetStageBtn" class="btn-warning">🗑️ Сбросить ошибки этапа (локально)</button>
+                    <button id="saveStageBtn" style="background: #2b6e3c;">💾 Сохранить все штрафы участника</button>
+                    <button id="resetStageBtn" class="btn-warning">🗑️ Сбросить ошибки текущего этапа (локально)</button>
                     <button id="resetParticipantBtn" class="btn-warning">🔄 Сбросить ВСЕ данные участника</button>
                 </div>
                 <div class="summary-bar">
@@ -150,7 +157,7 @@
     </div>
 
     <div class="results-table">
-        <h3>🏆 КОМАНДНЫЙ ЗАЧЁТ (общее время + штрафы всех − бонус)</h3>
+        <h3>🏆 КОМАНДНЫЙ ЗАЧЁТ (общее время + штрафы участников − бонус за огнетушитель)</h3>
         <table id="resultsTable">
             <thead>
                 <tr><th>Место</th><th>Команда</th><th>Уч.1 (ФИО)</th><th>Штраф 1</th><th>Уч.2 (ФИО)</th><th>Штраф 2</th><th>Уч.3 (ФИО)</th><th>Штраф 3</th><th>Итоговое время (сек)</th></tr>
@@ -169,17 +176,22 @@
 
         const teamNames = { "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","МРД":"Московский","ЦЧБ":"Центрально-Черноземный","ЮЗБ":"Юго-Западный","ПВБ":"Поволжский","СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский" };
         const stages = ["Этап 1. Полоса препятствий","Этап 2. Силовые упражнения","Этап 3. Противопожарная подготовка"];
+        
         const penaltiesLibrary = [
-            { id: "common_not_done", category: "Общие", desc: "Невыполнение любого упражнения на этапах 1-3", sec: 120, type: "bool" },
-            { id: "stage1_falsestart", category: "Этап 1. Полоса препятствий", desc: "Фальстарт", sec: 5, type: "bool" },
+            // ОБЩИЙ штраф (теперь всегда отображается отдельно)
+            { id: "common_not_done", category: "Общие", desc: "Невыполнение любого упражнения на этапах 1-3 (за каждое действие)", sec: 120, type: "count" },
+            // Штрафы этапа 1
+            { id: "stage1_falsestart", category: "Этап 1. Полоса препятствий", desc: "Фальстарт (каждый раз)", sec: 5, type: "count" },
             { id: "stage1_fall_boom", category: "Этап 1. Полоса препятствий", desc: "Падение (спрыгивание) с бума", sec: 10, type: "count" },
-            { id: "stage2_falsestart", category: "Этап 2. Силовые упражнения", desc: "Преждевременный старт (до финиша этапа 1)", sec: 20, type: "bool" },
+            // Штрафы этапа 2
+            { id: "stage2_falsestart", category: "Этап 2. Силовые упражнения", desc: "Преждевременный старт (до финиша этапа 1) — за каждое действие", sec: 5, type: "count" },
             { id: "stage2_hammer_points", category: "Этап 2. Силовые упражнения", desc: "Удары кувалдой (силомер): не набрал очки", sec: 10, type: "bool" },
             { id: "stage2_fall_box", category: "Этап 2. Силовые упражнения", desc: "Падение с тумбы (прыжки на тумбы)", sec: 10, type: "count" },
             { id: "stage2_situp_ball", category: "Этап 2. Силовые упражнения", desc: "Sit up: медбол не коснулся земли", sec: 10, type: "count" },
             { id: "stage2_shuttle_line", category: "Этап 2. Силовые упражнения", desc: "Челночный бег: не касание ногой линии", sec: 10, type: "count" },
             { id: "stage2_pullup_miss", category: "Этап 2. Силовые упражнения", desc: "Подтягивания: недобор нормы (8 раз) — штраф за каждый недостающий", sec: 10, type: "pullup_counter" },
-            { id: "stage3_falsestart", category: "Этап 3. Противопожарная подготовка", desc: "Преждевременный старт (до финиша этапа 2)", sec: 20, type: "bool" },
+            // Штрафы этапа 3
+            { id: "stage3_falsestart", category: "Этап 3. Противопожарная подготовка", desc: "Преждевременный старт (до финиша этапа 2) — за каждое действие", sec: 5, type: "count" },
             { id: "stage3_bop_button", category: "Этап 3. Противопожарная подготовка", desc: "БОП-1: не застёгнута пуговица/крючок", sec: 5, type: "bool" },
             { id: "stage3_bop_straps", category: "Этап 3. Противопожарная подготовка", desc: "БОП-1: лямки брюк не надеты на плечи", sec: 5, type: "bool" },
             { id: "stage3_bop_belt", category: "Этап 3. Противопожарная подготовка", desc: "БОП-1: пояс не застёгнут или перекручен", sec: 5, type: "bool" },
@@ -192,7 +204,7 @@
         let currentTeam = null;
         let currentParticipant = 1;
         let currentStage = stages[0];
-        let teamData = {}; // структура: { teamCode: { members: {1:{name, penalties},2:{},3:{}}, teamRawSeconds, teamBonusFlag } }
+        let teamData = {};
         let hasUnsavedChanges = false;
         let saveNameTimeout = null;
 
@@ -215,6 +227,7 @@
             return sum;
         }
         
+        // Общее время команды = общее_время + штрафы_всех - бонус (если есть)
         function computeTotalTeamTime(team) {
             if(!team) return null;
             const raw = team.teamRawSeconds;
@@ -224,7 +237,7 @@
                 let ath = team.members[i] || { penalties: {} };
                 totalPenalty += getPenaltySum(ath.penalties || {});
             }
-            let bonus = team.teamBonusFlag ? 10 : 0;
+            let bonus = team.teamBonusFlag ? 10 : 0; // вычитаем, если бонус есть
             return raw + totalPenalty - bonus;
         }
         
@@ -244,6 +257,7 @@
             teamData[currentTeam].members[currentParticipant] = ath;
             refreshFormFromAthlete(ath);
             renderPenaltiesUI();
+            renderCommonPenaltiesUI();
             refreshSummary();
         }
         
@@ -269,7 +283,7 @@
             if(hasUnsavedChanges && currentTeam){
                 let badge = document.createElement('span');
                 badge.className = 'unsaved-badge';
-                badge.innerText = '⚠️ Есть несохранённые изменения этапа';
+                badge.innerText = '⚠️ Есть несохранённые изменения';
                 badgeParent.appendChild(badge);
             }
         }
@@ -291,10 +305,9 @@
             let members = teamData[currentTeam].members;
             let teamRaw = teamData[currentTeam].teamRawSeconds;
             let teamBonus = teamData[currentTeam].teamBonusFlag;
-            // Сохраняем всё в поле penalties: members + общие параметры
             let penaltiesToStore = { 
                 members: members, 
-                version: 3,
+                version: 6,
                 team_raw_seconds: teamRaw,
                 team_bonus_flag: teamBonus
             };
@@ -305,7 +318,6 @@
                     .select('team_code')
                     .eq('team_code', currentTeam)
                     .maybeSingle();
-                
                 if (selectError) throw selectError;
                 
                 const upsertData = {
@@ -326,7 +338,6 @@
                         .from('security_estafeta_results')
                         .insert([upsertData]);
                 }
-                
                 if (result.error) throw result.error;
                 hasUnsavedChanges = false;
                 return true;
@@ -351,7 +362,7 @@
             let ok = await saveCurrentTeamToDB();
             if(ok) {
                 await loadAllResults();
-                alert("Общее время и бонус сохранены");
+                alert("Общее время и бонус за огнетушитель сохранены");
             }
         }
         
@@ -361,9 +372,70 @@
             const ath = getCurrentAthlete();
             if (ath && ath.name === name) return;
             updateCurrentAthlete({ name: name });
-            saveCurrentTeamToDB().then(() => {
-                loadAllResults();
-            });
+            saveCurrentTeamToDB().then(() => { loadAllResults(); });
+        }
+        
+        // Отрисовка общих штрафов (только common_not_done)
+        function renderCommonPenaltiesUI() {
+            let ath = getCurrentAthlete();
+            let container = document.getElementById('commonPenaltiesContainer');
+            if(!ath || !currentTeam) {
+                container.innerHTML = '<div>Выберите команду</div>';
+                return;
+            }
+            let commonPen = penaltiesLibrary.filter(p => p.category === "Общие");
+            if(commonPen.length === 0) {
+                container.innerHTML = '<div>Нет общих штрафов</div>';
+                return;
+            }
+            let html = '';
+            for(let p of commonPen) {
+                let val = ath.penalties[p.id];
+                let cnt = (typeof val === 'number') ? val : 0;
+                html += `<div class="penalty-card">
+                    <div class="desc">${p.desc}<span class="penalty-sec">+${p.sec} сек/каждое</span></div>
+                    <div class="counter-control">
+                        <button class="common-counter-dec" data-id="${p.id}">−</button>
+                        <span class="counter-val" id="common_count_${p.id}">${cnt}</span>
+                        <button class="common-counter-inc" data-id="${p.id}">+</button>
+                    </div>
+                </div>`;
+            }
+            container.innerHTML = html;
+            
+            for(let p of commonPen) {
+                let dec = document.querySelector(`.common-counter-dec[data-id="${p.id}"]`);
+                let inc = document.querySelector(`.common-counter-inc[data-id="${p.id}"]`);
+                if(dec) {
+                    dec.addEventListener('click', () => {
+                        let athCur = getCurrentAthlete();
+                        let oldVal = athCur.penalties[p.id] ?? 0;
+                        let newVal = Math.max(0, oldVal - 1);
+                        let newPen = { ...(athCur.penalties || {}) };
+                        if(newVal === 0) delete newPen[p.id];
+                        else newPen[p.id] = newVal;
+                        updateCurrentAthlete({ penalties: newPen });
+                        hasUnsavedChanges = true;
+                        let span = document.getElementById(`common_count_${p.id}`);
+                        if(span) span.innerText = newVal;
+                        refreshSummary();
+                    });
+                }
+                if(inc) {
+                    inc.addEventListener('click', () => {
+                        let athCur = getCurrentAthlete();
+                        let oldVal = athCur.penalties[p.id] ?? 0;
+                        let newVal = oldVal + 1;
+                        let newPen = { ...(athCur.penalties || {}) };
+                        newPen[p.id] = newVal;
+                        updateCurrentAthlete({ penalties: newPen });
+                        hasUnsavedChanges = true;
+                        let span = document.getElementById(`common_count_${p.id}`);
+                        if(span) span.innerText = newVal;
+                        refreshSummary();
+                    });
+                }
+            }
         }
         
         function renderPenaltiesUI() {
@@ -427,7 +499,7 @@
                             refreshSummary();
                         });
                     }
-                } else {
+                } else if(p.type === 'count' || p.type === 'pullup_counter') {
                     let dec = document.querySelector(`.counter-dec[data-id="${p.id}"]`);
                     let inc = document.querySelector(`.counter-inc[data-id="${p.id}"]`);
                     if(dec){
@@ -486,14 +558,17 @@
             } else {
                 members = { 1:{}, 2:{}, 3:{} };
             }
-            // Обеспечиваем структуру для каждого участника
             for(let i=1;i<=3;i++) {
                 if(!members[i]) members[i] = { name: "", penalties: {} };
                 if(!members[i].penalties) members[i].penalties = {};
                 if(members[i].name === undefined) members[i].name = "";
             }
             let teamRaw = (saved.team_raw_seconds !== undefined) ? saved.team_raw_seconds : null;
-            let teamBonus = saved.team_bonus_flag === true;
+            let teamBonus = (saved.team_bonus_flag === true);
+            // Поддержка старого поля team_extinguisher_fail: если оно true, то бонуса нет (по старым правилам был штраф). Оставляем как false.
+            if (saved.team_extinguisher_fail === true && teamBonus === false) {
+                // не переносим, бонус = false
+            }
             teamData[currentTeam] = {
                 members: members,
                 teamRawSeconds: teamRaw,
@@ -503,6 +578,7 @@
             let ath = teamData[currentTeam].members[currentParticipant];
             if(ath){
                 refreshFormFromAthlete(ath);
+                renderCommonPenaltiesUI();
                 renderPenaltiesUI();
                 refreshSummary();
             }
@@ -521,7 +597,7 @@
             let ok = await saveCurrentTeamToDB();
             if (ok) {
                 await loadAllResults();
-                alert(`Ошибки этапа "${currentStage}" для участника ${currentParticipant} сохранены`);
+                alert(`Данные участника ${currentParticipant} сохранены`);
             }
         }
         
@@ -542,7 +618,7 @@
         
         async function resetTeam() {
             if(!currentTeam) return;
-            if(!confirm(`Сбросить ВСЮ команду ${currentTeam} (общее время, бонус, данные всех участников)?`)) return;
+            if(!confirm(`Сбросить ВСЮ команду ${currentTeam}?`)) return;
             teamData[currentTeam] = {
                 members: { 1:{name:"", penalties:{}}, 2:{name:"", penalties:{}}, 3:{name:"", penalties:{}} },
                 teamRawSeconds: null,
@@ -575,7 +651,7 @@
                 let penalty2 = getPenaltySum(p2.penalties || {});
                 let penalty3 = getPenaltySum(p3.penalties || {});
                 let teamRaw = (saved.team_raw_seconds !== undefined) ? saved.team_raw_seconds : null;
-                let teamBonus = saved.team_bonus_flag === true;
+                let teamBonus = (saved.team_bonus_flag === true);
                 let totalTime = null;
                 if(teamRaw !== null) {
                     totalTime = teamRaw + penalty1 + penalty2 + penalty3 - (teamBonus ? 10 : 0);
@@ -602,12 +678,9 @@
                 tr.innerHTML = `
                     <td>${r.total_time !== null ? rank++ : '—'}</td>
                     <td><strong>${r.teamName}</strong> (${r.teamCode})</td>
-                    <td>${r.p1_name}</td>
-                    <td>${r.p1_penalty} сек</td>
-                    <td>${r.p2_name}</td>
-                    <td>${r.p2_penalty} сек</td>
-                    <td>${r.p3_name}</td>
-                    <td>${r.p3_penalty} сек</td>
+                    <td>${r.p1_name}</td><td>${r.p1_penalty} сек</td>
+                    <td>${r.p2_name}</td><td>${r.p2_penalty} сек</td>
+                    <td>${r.p3_name}</td><td>${r.p3_penalty} сек</td>
                     <td><strong>${r.total_time !== null ? formatTime(r.total_time) : '—'}</strong></td>
                 `;
                 tbody.appendChild(tr);
@@ -644,7 +717,7 @@
         }
         
         window.onload = async () => {
-            document.getElementById('connectionStatus').innerHTML = '<span>✅ Подключено (общее командное время + штрафы участников)</span>';
+            document.getElementById('connectionStatus').innerHTML = '<span>✅ Подключено (бонус –10 сек за запасной огнетушитель)</span>';
             renderStageButtons();
             document.getElementById('teamSelect').addEventListener('change', onTeamChange);
             document.getElementById('saveStageBtn').addEventListener('click', saveStage);
