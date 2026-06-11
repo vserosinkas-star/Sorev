@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Эстафета "Охрана" — Командный зачёт (по последнему участнику)</title>
+    <title>Эстафета "Охрана" — Командный зачёт (общее время)</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
@@ -34,16 +34,16 @@
         .counter-control button { background: #e2e8f0; color: #1e293b; padding: 4px 12px; font-size: 1.2rem; line-height: 1; width: auto; margin: 0; }
         .counter-control span { min-width: 28px; text-align: center; font-weight: bold; }
         input[type="checkbox"] { width: 22px; height: 22px; margin: 0; cursor: pointer; flex-shrink: 0; }
-        .time-row { display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end; margin: 15px 0; }
-        .time-row .control-group { flex: 1; margin-bottom: 0; }
         .summary-bar { background: #f1f5f9; border-radius: 20px; padding: 16px; margin-top: 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; font-weight: 600; }
-        .bonus-note { background: #e0f2fe; border-radius: 30px; padding: 5px 14px; display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+        .summary-bar span { font-size: 0.9rem; }
         .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: bold; white-space: nowrap; }
         .results-table { background: white; border-radius: 24px; overflow-x: auto; margin-top: 30px; padding: 4px; }
         table { width: 100%; border-collapse: collapse; min-width: 700px; }
         th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; }
         th { background: #f8fafc; }
         .rank-1 { background-color: #fef9c3; font-weight: bold; }
+        .team-bonus-row { background: #e0f2fe; border-radius: 30px; padding: 15px; margin: 15px 0; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; }
+        .team-bonus-row .control-group { margin-bottom: 0; flex: 1; min-width: 200px; }
 
         @media (max-width: 700px) {
             body { padding: 12px; }
@@ -56,16 +56,15 @@
             .participant-btn { width: 100%; }
             .participant-title { flex-direction: column; align-items: stretch; }
             .participant-title input { width: 100%; margin-left: 0 !important; }
-            .time-row { flex-direction: column; align-items: stretch; gap: 12px; }
-            .time-row button { margin-top: 0; width: 100%; }
             button { width: 100%; }
             .stage-buttons { justify-content: center; }
             .stage-btn { font-size: 0.75rem; padding: 6px 12px; }
             .summary-bar { flex-direction: column; align-items: stretch; text-align: center; gap: 8px; }
-            .bonus-note { justify-content: center; }
             .unsaved-badge { display: inline-block; margin-top: 8px; margin-left: 0; }
             .results-table { margin-top: 20px; }
             th, td { font-size: 0.75rem; padding: 8px 4px; }
+            .team-bonus-row { flex-direction: column; gap: 12px; }
+            .team-bonus-row .control-group { width: 100%; }
         }
         @media (max-width: 480px) {
             .participant-card { padding: 12px; }
@@ -80,7 +79,7 @@
 <body>
 <div class="container">
     <div class="judge-panel">
-        <h2>🛡️ Эстафета "Охрана" (командное время = время участника №3)</h2>
+        <h2>🛡️ Эстафета "Охрана" (общее командное время)</h2>
         <div id="connectionStatus" style="margin-bottom: 15px;"></div>
 
         <div class="control-group">
@@ -101,6 +100,24 @@
             </select>
         </div>
 
+        <!-- Общие параметры команды -->
+        <div id="teamCommonFields" style="display: none;">
+            <div class="team-bonus-row">
+                <div class="control-group">
+                    <label>⏱️ Общее время команды (мм:сс.сс)</label>
+                    <input type="text" id="teamRawTime" placeholder="например 12:34.56">
+                </div>
+                <div class="control-group" style="flex: 0 0 auto;">
+                    <label>🔥 Бонус (-10 сек)</label>
+                    <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0;">
+                        <input type="checkbox" id="teamBonusCheckbox" style="width: 24px; height: 24px;"> 
+                        <span>запасной огнетушитель</span>
+                    </div>
+                </div>
+                <button id="saveTeamTimeBtn" class="btn-secondary">💾 Сохранить общее время и бонус</button>
+            </div>
+        </div>
+
         <div class="participant-selector" id="participantSwitch">
             <button class="participant-btn active" data-participant="1">👤 Участник 1</button>
             <button class="participant-btn" data-participant="2">👤 Участник 2</button>
@@ -113,18 +130,7 @@
                     <span>📋 Данные участника</span>
                     <input type="text" id="participantName" placeholder="ФИО участника" autocomplete="off">
                 </div>
-                <div class="time-row">
-                    <div class="control-group">
-                        <label>⏱️ Чистое время заезда (мм:сс.сс)</label>
-                        <input type="text" id="rawTimeInput" placeholder="например 5:42.35">
-                    </div>
-                    <button id="saveRawTimeBtn" class="btn-secondary">💾 Зафиксировать время</button>
-                </div>
                 <div id="stageButtonsContainer" class="stage-buttons"></div>
-                <div class="bonus-note">
-                    🔥 <strong>Бонус (-10 сек):</strong>
-                    <input type="checkbox" id="bonusExtinguisherCheckbox"> запасной огнетушитель
-                </div>
                 <div id="penaltiesContainer" class="penalties-grid"></div>
                 <div style="display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap;">
                     <button id="saveStageBtn" style="background: #2b6e3c;">💾 Сохранить ошибки этапа</button>
@@ -132,24 +138,22 @@
                     <button id="resetParticipantBtn" class="btn-warning">🔄 Сбросить ВСЕ данные участника</button>
                 </div>
                 <div class="summary-bar">
-                    <span>⚖️ Штраф (сек): <strong id="totalPenaltyDisplay">0</strong></span>
-                    <span>⏱️ Чистое время: <strong id="rawTimeDisplay">—</strong></span>
-                    <span>🏆 ИТОГО: <strong id="totalTimeDisplay">—</strong></span>
+                    <span>⚖️ Штраф участника (сек): <strong id="totalPenaltyDisplay">0</strong></span>
                 </div>
             </div>
         </div>
 
         <div style="margin-top: 20px; text-align: center; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
-            <button id="syncTeamBtn" style="background: #2b6e3c;">💾 Синхронизировать всех участников команды</button>
+            <button id="syncTeamBtn" style="background: #2b6e3c;">💾 Синхронизировать команду</button>
             <button id="resetTeamBtn" class="btn-warning">⚠️ Сбросить команду целиком</button>
         </div>
     </div>
 
     <div class="results-table">
-        <h3>🏆 КОМАНДНЫЙ ЗАЧЁТ (время команды = время участника №3)</h3>
+        <h3>🏆 КОМАНДНЫЙ ЗАЧЁТ (общее время + штрафы всех − бонус)</h3>
         <table id="resultsTable">
             <thead>
-                <tr><th>Место</th><th>Команда</th><th>Уч.1 (ФИО)</th><th>Время 1</th><th>Уч.2 (ФИО)</th><th>Время 2</th><th>Уч.3 (ФИО)</th><th>Время 3</th><th>Время команды (сек)</th></tr>
+                <tr><th>Место</th><th>Команда</th><th>Уч.1 (ФИО)</th><th>Штраф 1</th><th>Уч.2 (ФИО)</th><th>Штраф 2</th><th>Уч.3 (ФИО)</th><th>Штраф 3</th><th>Итоговое время (сек)</th></tr>
             </thead>
             <tbody id="resultsBody"><tr><td colspan="9">Загрузка...</td></tr>
             </tbody>
@@ -188,7 +192,7 @@
         let currentTeam = null;
         let currentParticipant = 1;
         let currentStage = stages[0];
-        let teamData = {};
+        let teamData = {}; // структура: { teamCode: { members: {1:{name, penalties},2:{},3:{}}, teamRawSeconds, teamBonusFlag } }
         let hasUnsavedChanges = false;
         let saveNameTimeout = null;
 
@@ -211,11 +215,17 @@
             return sum;
         }
         
-        function computeTotalForAthlete(ath) {
-            if(!ath || ath.rawSeconds===null || ath.rawSeconds===undefined) return null;
-            let penalty=getPenaltySum(ath.penalties||{});
-            let bonus=ath.bonusFlag?-10:0;
-            return ath.rawSeconds + penalty + bonus;
+        function computeTotalTeamTime(team) {
+            if(!team) return null;
+            const raw = team.teamRawSeconds;
+            if(raw === null || raw === undefined) return null;
+            let totalPenalty = 0;
+            for(let i=1; i<=3; i++) {
+                let ath = team.members[i] || { penalties: {} };
+                totalPenalty += getPenaltySum(ath.penalties || {});
+            }
+            let bonus = team.teamBonusFlag ? 10 : 0;
+            return raw + totalPenalty - bonus;
         }
         
         function getCurrentAthlete() {
@@ -226,8 +236,10 @@
         
         function updateCurrentAthlete(updatedFields) {
             if(!currentTeam) return;
-            if(!teamData[currentTeam]) teamData[currentTeam]={ members: {1:{},2:{},3:{}} };
-            let ath = teamData[currentTeam].members[currentParticipant] || { name:"", rawSeconds:null, bonusFlag:false, penalties:{} };
+            if(!teamData[currentTeam]) {
+                teamData[currentTeam] = { members: {1:{},2:{},3:{}}, teamRawSeconds: null, teamBonusFlag: false };
+            }
+            let ath = teamData[currentTeam].members[currentParticipant] || { name: "", penalties: {} };
             Object.assign(ath, updatedFields);
             teamData[currentTeam].members[currentParticipant] = ath;
             refreshFormFromAthlete(ath);
@@ -240,23 +252,16 @@
             if (nameInput && nameInput.value !== (ath.name || "")) {
                 nameInput.value = ath.name || "";
             }
-            document.getElementById('rawTimeInput').value = (ath.rawSeconds!==null && ath.rawSeconds!==undefined) ? formatTime(ath.rawSeconds) : "";
-            document.getElementById('bonusExtinguisherCheckbox').checked = !!ath.bonusFlag;
         }
         
         function refreshSummary() {
             let ath = getCurrentAthlete();
             if(!ath) {
                 document.getElementById('totalPenaltyDisplay').innerText = "0";
-                document.getElementById('rawTimeDisplay').innerText = "—";
-                document.getElementById('totalTimeDisplay').innerText = "—";
                 return;
             }
             let penaltySum = getPenaltySum(ath.penalties || {});
-            let total = computeTotalForAthlete(ath);
             document.getElementById('totalPenaltyDisplay').innerText = penaltySum;
-            document.getElementById('rawTimeDisplay').innerText = (ath.rawSeconds!==null && ath.rawSeconds!==undefined) ? formatTime(ath.rawSeconds) : "—";
-            document.getElementById('totalTimeDisplay').innerText = (total!==null) ? formatTime(total) : "—";
             
             let badgeParent = document.querySelector('#saveStageBtn').parentNode;
             let oldBadge = badgeParent.querySelector('.unsaved-badge');
@@ -269,11 +274,30 @@
             }
         }
         
+        function refreshTeamCommonFields() {
+            if(!currentTeam || !teamData[currentTeam]) {
+                document.getElementById('teamRawTime').value = "";
+                document.getElementById('teamBonusCheckbox').checked = false;
+                return;
+            }
+            let team = teamData[currentTeam];
+            document.getElementById('teamRawTime').value = (team.teamRawSeconds !== null && team.teamRawSeconds !== undefined) ? formatTime(team.teamRawSeconds) : "";
+            document.getElementById('teamBonusCheckbox').checked = !!team.teamBonusFlag;
+        }
+        
         async function saveCurrentTeamToDB() {
             if(!currentTeam) return false;
             if(!teamData[currentTeam]) return false;
             let members = teamData[currentTeam].members;
-            let penaltiesToStore = { members: members, version: 2 };
+            let teamRaw = teamData[currentTeam].teamRawSeconds;
+            let teamBonus = teamData[currentTeam].teamBonusFlag;
+            // Сохраняем всё в поле penalties: members + общие параметры
+            let penaltiesToStore = { 
+                members: members, 
+                version: 3,
+                team_raw_seconds: teamRaw,
+                team_bonus_flag: teamBonus
+            };
             
             try {
                 const { data: existing, error: selectError } = await supabase
@@ -310,6 +334,24 @@
                 console.error("Ошибка сохранения:", e);
                 alert("Ошибка сохранения: " + e.message);
                 return false;
+            }
+        }
+        
+        async function saveTeamCommon() {
+            if(!currentTeam) { alert("Выберите команду"); return; }
+            let rawSec = parseTime(document.getElementById('teamRawTime').value);
+            if(document.getElementById('teamRawTime').value.trim() !== "" && rawSec === null){
+                alert("Неверный формат времени (мм:сс.сс)");
+                return;
+            }
+            let bonusFlag = document.getElementById('teamBonusCheckbox').checked;
+            if(!teamData[currentTeam]) teamData[currentTeam] = { members: {1:{},2:{},3:{}}, teamRawSeconds: null, teamBonusFlag: false };
+            teamData[currentTeam].teamRawSeconds = rawSec;
+            teamData[currentTeam].teamBonusFlag = bonusFlag;
+            let ok = await saveCurrentTeamToDB();
+            if(ok) {
+                await loadAllResults();
+                alert("Общее время и бонус сохранены");
             }
         }
         
@@ -437,24 +479,27 @@
                 .eq('team_code', currentTeam)
                 .maybeSingle();
             if(error) { console.error(error); return; }
-            let savedPenalties = (data && data.penalties) || {};
-            if(savedPenalties && typeof savedPenalties === 'object' && savedPenalties.members){
-                teamData[currentTeam] = { members: savedPenalties.members };
+            let saved = (data && data.penalties) || {};
+            let members = {};
+            if(saved.members && typeof saved.members === 'object') {
+                members = saved.members;
             } else {
-                let members = {
-                    1: { name: "", rawSeconds: null, bonusFlag: false, penalties: {} },
-                    2: { name: "", rawSeconds: null, bonusFlag: false, penalties: {} },
-                    3: { name: "", rawSeconds: null, bonusFlag: false, penalties: {} }
-                };
-                if(data && data.raw_seconds !== undefined){
-                    members[1].rawSeconds = data.raw_seconds;
-                    if(savedPenalties && savedPenalties.bonus_fire_extinguisher) members[1].bonusFlag = true;
-                    let oldPen = { ...savedPenalties };
-                    delete oldPen.bonus_fire_extinguisher;
-                    members[1].penalties = oldPen;
-                }
-                teamData[currentTeam] = { members };
+                members = { 1:{}, 2:{}, 3:{} };
             }
+            // Обеспечиваем структуру для каждого участника
+            for(let i=1;i<=3;i++) {
+                if(!members[i]) members[i] = { name: "", penalties: {} };
+                if(!members[i].penalties) members[i].penalties = {};
+                if(members[i].name === undefined) members[i].name = "";
+            }
+            let teamRaw = (saved.team_raw_seconds !== undefined) ? saved.team_raw_seconds : null;
+            let teamBonus = saved.team_bonus_flag === true;
+            teamData[currentTeam] = {
+                members: members,
+                teamRawSeconds: teamRaw,
+                teamBonusFlag: teamBonus
+            };
+            refreshTeamCommonFields();
             let ath = teamData[currentTeam].members[currentParticipant];
             if(ath){
                 refreshFormFromAthlete(ath);
@@ -469,20 +514,14 @@
             let ath = getCurrentAthlete();
             if(ath){
                 let name = document.getElementById('participantName').value.trim();
-                let rawSec = parseTime(document.getElementById('rawTimeInput').value);
-                if(document.getElementById('rawTimeInput').value.trim() !== "" && rawSec === null){
-                    alert("Неверный формат времени");
-                    return;
-                }
-                let bonus = document.getElementById('bonusExtinguisherCheckbox').checked;
-                if(ath.name !== name || ath.rawSeconds !== rawSec || ath.bonusFlag !== bonus){
-                    updateCurrentAthlete({ name, rawSeconds: rawSec, bonusFlag: bonus });
+                if(ath.name !== name){
+                    updateCurrentAthlete({ name: name });
                 }
             }
             let ok = await saveCurrentTeamToDB();
             if (ok) {
                 await loadAllResults();
-                alert(`Этап "${currentStage}" для участника ${currentParticipant} сохранён`);
+                alert(`Ошибки этапа "${currentStage}" для участника ${currentParticipant} сохранены`);
             }
         }
         
@@ -494,8 +533,8 @@
         async function resetParticipant() {
             if(!currentTeam) return;
             if(!confirm(`Сбросить все данные участника ${currentParticipant}?`)) return;
-            if(!teamData[currentTeam]) teamData[currentTeam] = { members: {} };
-            teamData[currentTeam].members[currentParticipant] = { name: "", rawSeconds: null, bonusFlag: false, penalties: {} };
+            if(!teamData[currentTeam]) teamData[currentTeam] = { members: {1:{},2:{},3:{}}, teamRawSeconds: null, teamBonusFlag: false };
+            teamData[currentTeam].members[currentParticipant] = { name: "", penalties: {} };
             await saveCurrentTeamToDB();
             await loadTeamFromDB();
             await loadAllResults();
@@ -503,13 +542,11 @@
         
         async function resetTeam() {
             if(!currentTeam) return;
-            if(!confirm(`Сбросить ВСЕХ участников команды ${currentTeam}?`)) return;
+            if(!confirm(`Сбросить ВСЮ команду ${currentTeam} (общее время, бонус, данные всех участников)?`)) return;
             teamData[currentTeam] = {
-                members: {
-                    1: { name: "", rawSeconds: null, bonusFlag: false, penalties: {} },
-                    2: { name: "", rawSeconds: null, bonusFlag: false, penalties: {} },
-                    3: { name: "", rawSeconds: null, bonusFlag: false, penalties: {} }
-                }
+                members: { 1:{name:"", penalties:{}}, 2:{name:"", penalties:{}}, 3:{name:"", penalties:{}} },
+                teamRawSeconds: null,
+                teamBonusFlag: false
             };
             await saveCurrentTeamToDB();
             await loadTeamFromDB();
@@ -519,6 +556,7 @@
         async function syncTeam() {
             if(!currentTeam) { alert("Выберите команду"); return; }
             await saveStage();
+            await saveTeamCommon();
             alert("Команда синхронизирована");
         }
         
@@ -528,42 +566,49 @@
             let rows = [];
             for(let row of data){
                 let team = row.team_code;
-                let members = (row.penalties && row.penalties.members) || {};
-                let p1 = members[1] || {}, p2 = members[2] || {}, p3 = members[3] || {};
-                let t1 = computeTotalForAthlete(p1);
-                let t2 = computeTotalForAthlete(p2);
-                let t3 = computeTotalForAthlete(p3);
-                // Командное время = время ПОСЛЕДНЕГО (третьего) участника
-                let teamTime = (t3 !== null) ? t3 : null;
+                let saved = row.penalties || {};
+                let members = saved.members || {};
+                let p1 = members[1] || { penalties: {} };
+                let p2 = members[2] || { penalties: {} };
+                let p3 = members[3] || { penalties: {} };
+                let penalty1 = getPenaltySum(p1.penalties || {});
+                let penalty2 = getPenaltySum(p2.penalties || {});
+                let penalty3 = getPenaltySum(p3.penalties || {});
+                let teamRaw = (saved.team_raw_seconds !== undefined) ? saved.team_raw_seconds : null;
+                let teamBonus = saved.team_bonus_flag === true;
+                let totalTime = null;
+                if(teamRaw !== null) {
+                    totalTime = teamRaw + penalty1 + penalty2 + penalty3 - (teamBonus ? 10 : 0);
+                }
                 rows.push({
                     teamCode: team,
                     teamName: teamNames[team] || team,
                     p1_name: p1.name || "Уч.1",
-                    p1_total: t1,
+                    p1_penalty: penalty1,
                     p2_name: p2.name || "Уч.2",
-                    p2_total: t2,
+                    p2_penalty: penalty2,
                     p3_name: p3.name || "Уч.3",
-                    p3_total: t3,
-                    team_sum: teamTime
+                    p3_penalty: penalty3,
+                    total_time: totalTime
                 });
             }
-            rows.sort((a,b)=> (a.team_sum ?? Infinity) - (b.team_sum ?? Infinity));
+            rows.sort((a,b)=> (a.total_time ?? Infinity) - (b.total_time ?? Infinity));
             let tbody = document.getElementById('resultsBody');
             tbody.innerHTML = '';
             let rank = 1;
             for(let r of rows){
                 let tr = document.createElement('tr');
-                if(r.team_sum !== null && rank === 1) tr.classList.add('rank-1');
+                if(r.total_time !== null && rank === 1) tr.classList.add('rank-1');
                 tr.innerHTML = `
-                    <td>${r.team_sum !== null ? rank++ : '—'}</td>
+                    <td>${r.total_time !== null ? rank++ : '—'}</td>
                     <td><strong>${r.teamName}</strong> (${r.teamCode})</td>
                     <td>${r.p1_name}</td>
-                    <td>${r.p1_total !== null ? formatTime(r.p1_total) : '—'}</td>
+                    <td>${r.p1_penalty} сек</td>
                     <td>${r.p2_name}</td>
-                    <td>${r.p2_total !== null ? formatTime(r.p2_total) : '—'}</td>
+                    <td>${r.p2_penalty} сек</td>
                     <td>${r.p3_name}</td>
-                    <td>${r.p3_total !== null ? formatTime(r.p3_total) : '—'}</td>
-                    <td><strong>${r.team_sum !== null ? formatTime(r.team_sum) : '—'}</strong></td>
+                    <td>${r.p3_penalty} сек</td>
+                    <td><strong>${r.total_time !== null ? formatTime(r.total_time) : '—'}</strong></td>
                 `;
                 tbody.appendChild(tr);
             }
@@ -574,9 +619,11 @@
             currentTeam = document.getElementById('teamSelect').value || null;
             if(currentTeam){
                 document.getElementById('participantCard').style.display = 'block';
+                document.getElementById('teamCommonFields').style.display = 'block';
                 await loadTeamFromDB();
             } else {
                 document.getElementById('participantCard').style.display = 'none';
+                document.getElementById('teamCommonFields').style.display = 'none';
             }
         }
         
@@ -597,15 +644,15 @@
         }
         
         window.onload = async () => {
-            document.getElementById('connectionStatus').innerHTML = '<span>✅ Подключено (командное время = время участника №3)</span>';
+            document.getElementById('connectionStatus').innerHTML = '<span>✅ Подключено (общее командное время + штрафы участников)</span>';
             renderStageButtons();
             document.getElementById('teamSelect').addEventListener('change', onTeamChange);
             document.getElementById('saveStageBtn').addEventListener('click', saveStage);
             document.getElementById('resetStageBtn').addEventListener('click', resetStageLocal);
-            document.getElementById('saveRawTimeBtn').addEventListener('click', saveStage);
             document.getElementById('resetParticipantBtn').addEventListener('click', resetParticipant);
             document.getElementById('syncTeamBtn').addEventListener('click', syncTeam);
             document.getElementById('resetTeamBtn').addEventListener('click', resetTeam);
+            document.getElementById('saveTeamTimeBtn').addEventListener('click', saveTeamCommon);
             
             document.getElementById('participantName').addEventListener('input', (e) => {
                 if (saveNameTimeout) clearTimeout(saveNameTimeout);
@@ -616,17 +663,6 @@
             document.getElementById('participantName').addEventListener('blur', () => {
                 if (saveNameTimeout) clearTimeout(saveNameTimeout);
                 autoSaveName();
-            });
-            
-            document.getElementById('rawTimeInput').addEventListener('input', (e) => {
-                let rawSec = parseTime(e.target.value);
-                if(e.target.value.trim() !== "" && rawSec === null) return;
-                updateCurrentAthlete({ rawSeconds: rawSec });
-                hasUnsavedChanges = true;
-            });
-            document.getElementById('bonusExtinguisherCheckbox').addEventListener('change', (e) => {
-                updateCurrentAthlete({ bonusFlag: e.target.checked });
-                hasUnsavedChanges = true;
             });
             
             document.querySelectorAll('.participant-btn').forEach(btn => {
