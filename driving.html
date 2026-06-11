@@ -85,11 +85,38 @@
             background: white;
         }
 
+        /* Стили для вкладок */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            border-radius: 40px;
+            transition: 0.2s;
+        }
+        .tab-btn.active {
+            background: #1e3a8a;
+            color: white;
+        }
+        .tab-btn:not(.active):hover {
+            background: #e2e8f0;
+            color: #1e293b;
+        }
+
         .exercise-card {
             background: #f9fafb;
             border-radius: 24px;
             padding: 16px;
-            margin-top: 20px;
             border: 1px solid #e2e8f0;
         }
 
@@ -340,7 +367,7 @@
         @media print {
             body { background: white; padding: 0; margin: 0; }
             .judge-panel, .results-table, .header, .exercise-card, .unsaved-badge,
-            #syncAllBtn, .print-btn, select, button, input, #connectionStatus, .top-actions { display: none !important; }
+            #syncAllBtn, .print-btn, select, button, input, #connectionStatus, .top-actions, .tabs { display: none !important; }
             .print-report-area { display: block !important; margin: 0; padding: 0; }
             .print-sign-line { margin-top: 20px; border-top: 1px dashed #aaa; padding-top: 15px; }
             .print-footer { margin-top: 15px; font-size: 8pt; text-align: center; }
@@ -379,6 +406,12 @@
             .print-top-btn {
                 text-align: center;
             }
+            .tab-btn {
+                flex: 1;
+                text-align: center;
+                padding: 8px 12px;
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
@@ -414,8 +447,14 @@
             </select>
         </div>
 
+        <!-- Вкладки -->
+        <div class="tabs">
+            <button id="tabFigure" class="tab-btn active">🚗 Фигурное вождение</button>
+            <button id="tabSdu" class="tab-btn">🛣️ Вождение в СДУ</button>
+        </div>
+
         <!-- Упражнение 1: Фигурное вождение -->
-        <div id="figureCard" class="exercise-card" style="display: none;">
+        <div id="figureCard" class="exercise-card">
             <div class="exercise-title">
                 <span>🚗 Упражнение 1: Фигурное вождение</span>
                 <input type="text" id="participantName" placeholder="ФИО участника" style="width: auto; flex:1; margin-left: 10px;">
@@ -439,7 +478,7 @@
             </div>
         </div>
 
-        <!-- Упражнение 2: Сложные дорожные условия -->
+        <!-- Упражнение 2: Сложные дорожные условия (изначально скрыто) -->
         <div id="sduCard" class="exercise-card" style="display: none;">
             <div class="exercise-title">
                 <span>🛣️ Упражнение 2: Вождение в сложных дорожных условиях</span>
@@ -481,7 +520,7 @@
             <tbody id="resultsBody">
                 <tr class="loading-row"><td colspan="13"><div class="spinner"></div> Загрузка результатов...</td></tr>
             </tbody>
-         </table>
+        </table>
     </div>
 </div>
 
@@ -758,12 +797,8 @@
         
         async function refreshCurrentTeamUI() {
             if (!currentTeam) {
-                figureCard.style.display = 'none';
-                sduCard.style.display = 'none';
                 return;
             }
-            figureCard.style.display = 'block';
-            sduCard.style.display = 'block';
             const dbData = await loadTeamData(currentTeam);
             if (dbData) {
                 currentData = {
@@ -918,11 +953,11 @@
                     `;
                     tbody.appendChild(tr);
                 }
-            } catch(e) { console.error(e); tbody.innerHTML='<tr><td colspan="13">Ошибка загрузки таблицы</td></tr>'; }
+            } catch(e) { console.error(e); tbody.innerHTML='</tr><td colspan="13">Ошибка загрузки таблицы</td></tr>'; }
             finally { isLoadingTable=false; }
         }
         
-        // ---------- ПЕЧАТЬ ОТЧЁТА (компактная, на одной странице, без колонтитулов) ----------
+        // ---------- ПЕЧАТЬ ОТЧЁТА (компактная, без лишних алертов) ----------
         async function printFullReport() {
             if (!currentTeam) {
                 alert('Пожалуйста, выберите команду (территориальный банк) для печати отчёта.');
@@ -1065,17 +1100,36 @@
             const container = document.getElementById('printReportContainer');
             container.innerHTML = printHtml;
             container.style.display = 'block';
-            // Небольшая подсказка для пользователя (можно убрать, но оставим для удобства)
-        
             window.print();
             container.style.display = 'none';
             container.innerHTML = '';
         }
         
-        // ---------- ИНИЦИАЛИЗАЦИЯ ЭЛЕМЕНТОВ ----------
-        const teamSelect = document.getElementById('teamSelect');
+        // ---------- УПРАВЛЕНИЕ ВКЛАДКАМИ ----------
+        const tabFigure = document.getElementById('tabFigure');
+        const tabSdu = document.getElementById('tabSdu');
         const figureCard = document.getElementById('figureCard');
         const sduCard = document.getElementById('sduCard');
+        
+        function switchToFigure() {
+            figureCard.style.display = 'block';
+            sduCard.style.display = 'none';
+            tabFigure.classList.add('active');
+            tabSdu.classList.remove('active');
+        }
+        
+        function switchToSdu() {
+            figureCard.style.display = 'none';
+            sduCard.style.display = 'block';
+            tabSdu.classList.add('active');
+            tabFigure.classList.remove('active');
+        }
+        
+        tabFigure.addEventListener('click', switchToFigure);
+        tabSdu.addEventListener('click', switchToSdu);
+        
+        // ---------- ИНИЦИАЛИЗАЦИЯ ЭЛЕМЕНТОВ ----------
+        const teamSelect = document.getElementById('teamSelect');
         const participantNameInput = document.getElementById('participantName');
         const figureRawTime = document.getElementById('figureRawTime');
         const sduRawTime = document.getElementById('sduRawTime');
@@ -1094,7 +1148,12 @@
         teamSelect.addEventListener('change', async () => {
             currentTeam = teamSelect.value || null;
             if (currentTeam) await refreshCurrentTeamUI();
-            else { figureCard.style.display = 'none'; sduCard.style.display = 'none'; }
+            else {
+                // Очищаем данные, если команда не выбрана
+                figureCard.style.display = 'block';
+                sduCard.style.display = 'none';
+                // Можно также очистить поля, но оставим как есть
+            }
         });
         participantNameInput.addEventListener('change', async () => { if(currentTeam){ currentData.participant_name = participantNameInput.value; await saveTeamData(currentTeam, currentData); await renderOverallTable(); } });
         saveFigureTimeBtn.addEventListener('click', () => saveTime('figure'));
@@ -1112,7 +1171,9 @@
             try { await supabaseClient.from('driving_results').select('count', { count: 'exact', head: true }); statusDiv.innerHTML = '<span class="status-ok">✅ Подключено</span>'; }
             catch(e){ statusDiv.innerHTML = '<span class="status-error">❌ Ошибка подключения (работа локально)</span>'; }
             await renderOverallTable();
-            figureCard.style.display = 'none'; sduCard.style.display = 'none';
+            // По умолчанию показываем фигурное вождение
+            switchToFigure();
+            // Если команда выбрана из localStorage? Нет, просто ждём выбора.
         }
         init();
     })();
