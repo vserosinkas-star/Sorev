@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Эстафета "Охрана" — синхронизация этапа и участника</title>
+    <title>Эстафета "Охрана"</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
@@ -80,7 +80,7 @@
 <body>
 <div class="container">
     <div class="judge-panel">
-        <h2>🛡️ Эстафета "Охрана" (этап → участник автоматически)</h2>
+        <h2>🛡️ Эстафета "Охрана" </h2>
         <div id="connectionStatus" style="margin-bottom: 15px;"></div>
 
         <div class="control-group">
@@ -157,7 +157,7 @@
     </div>
 
     <div class="results-table">
-        <h3>🏆 КОМАНДНЫЙ ЗАЧЁТ (общее время + штрафы участников − бонус за огнетушитель)</h3>
+        <h3>🏆 КОМАНДНЫЙ ЗАЧЁТ </h3>
         <table id="resultsTable">
             <thead>
                 <tr><th>Место</th><th>Команда</th><th>Уч.1 (ФИО)</th><th>Штраф 1</th><th>Уч.2 (ФИО)</th><th>Штраф 2</th><th>Уч.3 (ФИО)</th><th>Штраф 3</th><th>Итоговое время (сек)</th></tr>
@@ -802,7 +802,7 @@
         }
         
         window.onload = async () => {
-            document.getElementById('connectionStatus').innerHTML = '<span>✅ Подключено (автовыбор участника по этапу)</span>';
+            document.getElementById('connectionStatus').innerHTML = '<span>✅ Подключено</span>';
             renderStageButtons();
             document.getElementById('teamSelect').addEventListener('change', onTeamChange);
             document.getElementById('saveStageBtn').addEventListener('click', saveStage);
