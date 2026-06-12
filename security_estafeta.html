@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Эстафета "Охрана" — общие штрафы</title>
+    <title>Эстафета "Охрана" </title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
@@ -78,7 +78,7 @@
 <body>
 <div class="container">
     <div class="judge-panel">
-        <h2>🛡️ Эстафета "Охрана" </h2>
+        <h2>🛡️ Эстафета "Охрана"</h2>
         <div id="connectionStatus" style="margin-bottom: 15px;"></div>
 
         <div class="control-group">
@@ -88,7 +88,7 @@
                 <option value="УБ">Уральский (УБ)</option>
                 <option value="ДВБ">Дальневосточный (ДВБ)</option>
                 <option value="ББ">Байкальский (ББ)</option>
-                <option value="МРД">Московский (МРД)</option>
+                <option value="МРД">ЦОО ЦА и МБ</option>
                 <option value="ЦЧБ">Центрально-Черноземный (ЦЧБ)</option>
                 <option value="ЮЗБ">Юго-Западный (ЮЗБ)</option>
                 <option value="ПВБ">Поволжский (ПВБ)</option>
@@ -96,6 +96,7 @@
                 <option value="СРБ">Среднерусский (СРБ)</option>
                 <option value="СЗБ">Северо-Западный (СЗБ)</option>
                 <option value="ВВБ">Волго-Вятский (ВВБ)</option>
+                <option value="СТБ">СТБ</option>
             </select>
         </div>
 
@@ -157,7 +158,7 @@
     </div>
 
     <div class="results-table">
-        <h3>🏆 КОМАНДНЫЙ ЗАЧЁТ</h3>
+        <h3>🏆 КОМАНДНЫЙ ЗАЧЁТ (общее время + штрафы участников − бонус за огнетушитель)</h3>
         <table id="resultsTable">
             <thead>
                 <tr><th>Место</th><th>Команда</th><th>Уч.1 (ФИО)</th><th>Штраф 1</th><th>Уч.2 (ФИО)</th><th>Штраф 2</th><th>Уч.3 (ФИО)</th><th>Штраф 3</th><th>Итоговое время (сек)</th></tr>
@@ -174,7 +175,21 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        const teamNames = { "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","МРД":"Московский","ЦЧБ":"Центрально-Черноземный","ЮЗБ":"Юго-Западный","ПВБ":"Поволжский","СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский" };
+        // ОБНОВЛЁННЫЙ СПИСОК КОМАНД
+        const teamNames = { 
+            "УБ":"Уральский",
+            "ДВБ":"Дальневосточный",
+            "ББ":"Байкальский",
+            "МРД":"ЦОО ЦА и МБ",
+            "ЦЧБ":"Центрально-Черноземный",
+            "ЮЗБ":"Юго-Западный",
+            "ПВБ":"Поволжский",
+            "СИБ":"Сибирский",
+            "СРБ":"Среднерусский",
+            "СЗБ":"Северо-Западный",
+            "ВВБ":"Волго-Вятский",
+            "СТБ":"СТБ"
+        };
         const stages = ["Этап 1. Полоса препятствий","Этап 2. Силовые упражнения","Этап 3. Противопожарная подготовка"];
         
         const penaltiesLibrary = [
@@ -565,10 +580,6 @@
             }
             let teamRaw = (saved.team_raw_seconds !== undefined) ? saved.team_raw_seconds : null;
             let teamBonus = (saved.team_bonus_flag === true);
-            // Поддержка старого поля team_extinguisher_fail: если оно true, то бонуса нет (по старым правилам был штраф). Оставляем как false.
-            if (saved.team_extinguisher_fail === true && teamBonus === false) {
-                // не переносим, бонус = false
-            }
             teamData[currentTeam] = {
                 members: members,
                 teamRawSeconds: teamRaw,
@@ -678,9 +689,12 @@
                 tr.innerHTML = `
                     <td>${r.total_time !== null ? rank++ : '—'}</td>
                     <td><strong>${r.teamName}</strong> (${r.teamCode})</td>
-                    <td>${r.p1_name}</td><td>${r.p1_penalty} сек</td>
-                    <td>${r.p2_name}</td><td>${r.p2_penalty} сек</td>
-                    <td>${r.p3_name}</td><td>${r.p3_penalty} сек</td>
+                    <td>${r.p1_name}</td>
+                    <td>${r.p1_penalty} сек</td>
+                    <td>${r.p2_name}</td>
+                    <td>${r.p2_penalty} сек</td>
+                    <td>${r.p3_name}</td>
+                    <td>${r.p3_penalty} сек</td>
                     <td><strong>${r.total_time !== null ? formatTime(r.total_time) : '—'}</strong></td>
                 `;
                 tbody.appendChild(tr);
