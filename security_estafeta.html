@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Эстафета "Охрана" - Судья</title>
+    <title>Эстафета "Охрана" — синхронизация этапа и участника</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
@@ -44,6 +44,8 @@
         .rank-1 { background-color: #fef9c3; font-weight: bold; }
         .team-penalty-row { background: #fff0e0; border-radius: 30px; padding: 15px; margin: 15px 0; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; }
         .team-penalty-row .control-group { margin-bottom: 0; flex: 1; min-width: 200px; }
+        .loading-text { color: #1e3a8a; font-size: 0.9rem; margin-left: 10px; }
+        .error-text { color: #dc2626; font-size: 0.9rem; margin: 10px 0; }
         @media (max-width: 700px) {
             body { padding: 12px; }
             .judge-panel { padding: 16px; }
@@ -78,7 +80,7 @@
 <body>
 <div class="container">
     <div class="judge-panel">
-        <h2>🛡️ Эстафета "Охрана"</h2>
+        <h2>🛡️ Эстафета "Охрана" (этап → участник автоматически)</h2>
         <div id="connectionStatus" style="margin-bottom: 15px;"></div>
 
         <div class="control-group">
@@ -160,7 +162,7 @@
             <thead>
                 <tr><th>Место</th><th>Команда</th><th>Уч.1 (ФИО)</th><th>Штраф 1</th><th>Уч.2 (ФИО)</th><th>Штраф 2</th><th>Уч.3 (ФИО)</th><th>Штраф 3</th><th>Итоговое время (сек)</th></tr>
             </thead>
-            <tbody id="resultsBody"><tr><td colspan="9">Загрузка...</td></tr>
+            <tbody id="resultsBody"><td><td colspan="9">Загрузка...</td></tr>
             </tbody>
         </table>
     </div>
@@ -214,6 +216,7 @@
         let teamData = {};
         let hasUnsavedChanges = false;
         let saveNameTimeout = null;
+        let isLoading = false;
 
         function formatTime(sec) { if (sec===null || isNaN(sec)) return "—"; let m=Math.floor(sec/60); let s=(sec%60).toFixed(2); return `${m}:${s.padStart(5,'0')}`; }
         function parseTime(str) { if(!str.trim()) return null; let parts=str.trim().split(':'); let m=0, s=0; if(parts.length===2){ m=parseInt(parts[0])||0; s=parseFloat(parts[1]); } else if(parts.length===1){ s=parseFloat(parts[0]); } else return null; return m*60+s; }
@@ -250,7 +253,10 @@
         function getCurrentAthlete() {
             if(!currentTeam) return null;
             if(!teamData[currentTeam]) return null;
-            return teamData[currentTeam].members[currentParticipant] || null;
+            if(!teamData[currentTeam].members[currentParticipant]) {
+                teamData[currentTeam].members[currentParticipant] = { name: "", penalties: {} };
+            }
+            return teamData[currentTeam].members[currentParticipant];
         }
         
         function updateCurrentAthlete(updatedFields) {
@@ -303,6 +309,21 @@
             let team = teamData[currentTeam];
             document.getElementById('teamRawTime').value = (team.teamRawSeconds !== null && team.teamRawSeconds !== undefined) ? formatTime(team.teamRawSeconds) : "";
             document.getElementById('teamBonusCheckbox').checked = !!team.teamBonusFlag;
+        }
+        
+        function clearUI() {
+            document.getElementById('participantName').value = "";
+            document.getElementById('teamRawTime').value = "";
+            document.getElementById('teamBonusCheckbox').checked = false;
+            document.getElementById('totalPenaltyDisplay').innerText = "0";
+            document.getElementById('commonPenaltiesContainer').innerHTML = '<div class="loading-text">Загрузка...</div>';
+            document.getElementById('penaltiesContainer').innerHTML = '<div class="loading-text">Загрузка...</div>';
+        }
+        
+        function setErrorInContainers(errorMsg) {
+            const errorHtml = `<div class="error-text">❌ Ошибка: ${errorMsg}</div>`;
+            document.getElementById('commonPenaltiesContainer').innerHTML = errorHtml;
+            document.getElementById('penaltiesContainer').innerHTML = errorHtml;
         }
         
         async function saveCurrentTeamToDB() {
@@ -548,42 +569,93 @@
             }
         }
         
+        function refreshCurrentParticipantUI() {
+            if(!currentTeam || !teamData[currentTeam]) return;
+            let ath = getCurrentAthlete();
+            refreshFormFromAthlete(ath);
+            renderCommonPenaltiesUI();
+            renderPenaltiesUI();
+            refreshSummary();
+            refreshTeamCommonFields();
+        }
+        
+        // Функция переключения этапа с синхронизацией участника
+        function setStageAndParticipant(stageName) {
+            const stageIndex = stages.indexOf(stageName);
+            if (stageIndex === -1) return;
+            currentStage = stageName;
+            // Номер участника = индекс этапа + 1
+            const targetParticipant = stageIndex + 1;
+            if (currentParticipant !== targetParticipant) {
+                currentParticipant = targetParticipant;
+                // Обновить активную кнопку участника
+                document.querySelectorAll('.participant-btn').forEach(btn => {
+                    const p = parseInt(btn.getAttribute('data-participant'));
+                    if (p === currentParticipant) btn.classList.add('active');
+                    else btn.classList.remove('active');
+                });
+                // Перерисовать UI для нового участника
+                if (currentTeam && teamData[currentTeam]) {
+                    refreshCurrentParticipantUI();
+                }
+            }
+            // Обновить активные кнопки этапов
+            renderStageButtons();
+            if(currentTeam) renderPenaltiesUI();
+        }
+        
         async function loadTeamFromDB() {
             if(!currentTeam) return;
-            let { data, error } = await supabase
-                .from('security_estafeta_results')
-                .select('penalties')
-                .eq('team_code', currentTeam)
-                .maybeSingle();
-            if(error) { console.error(error); return; }
-            let saved = (data && data.penalties) || {};
-            let members = {};
-            if(saved.members && typeof saved.members === 'object') {
-                members = saved.members;
-            } else {
-                members = { 1:{}, 2:{}, 3:{} };
+            if(teamData[currentTeam]) {
+                refreshCurrentParticipantUI();
+                return;
             }
-            for(let i=1;i<=3;i++) {
-                if(!members[i]) members[i] = { name: "", penalties: {} };
-                if(!members[i].penalties) members[i].penalties = {};
-                if(members[i].name === undefined) members[i].name = "";
+            if(isLoading) return;
+            isLoading = true;
+            clearUI();
+            
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000);
+                const { data, error } = await supabase
+                    .from('security_estafeta_results')
+                    .select('penalties')
+                    .eq('team_code', currentTeam)
+                    .maybeSingle();
+                clearTimeout(timeoutId);
+                
+                if (error) throw error;
+                let saved = (data && data.penalties) || {};
+                let members = {};
+                if(saved.members && typeof saved.members === 'object') {
+                    members = saved.members;
+                } else {
+                    members = { 1:{}, 2:{}, 3:{} };
+                }
+                for(let i=1;i<=3;i++) {
+                    if(!members[i]) members[i] = { name: "", penalties: {} };
+                    if(!members[i].penalties) members[i].penalties = {};
+                    if(members[i].name === undefined) members[i].name = "";
+                }
+                let teamRaw = (saved.team_raw_seconds !== undefined) ? saved.team_raw_seconds : null;
+                let teamBonus = (saved.team_bonus_flag === true);
+                teamData[currentTeam] = {
+                    members: members,
+                    teamRawSeconds: teamRaw,
+                    teamBonusFlag: teamBonus
+                };
+                refreshCurrentParticipantUI();
+                hasUnsavedChanges = false;
+            } catch(e) {
+                console.error(e);
+                if(e.name === 'AbortError') {
+                    setErrorInContainers("Превышен таймаут загрузки (10 сек). Проверьте интернет.");
+                } else {
+                    setErrorInContainers(e.message);
+                }
+            } finally {
+                isLoading = false;
             }
-            let teamRaw = (saved.team_raw_seconds !== undefined) ? saved.team_raw_seconds : null;
-            let teamBonus = (saved.team_bonus_flag === true);
-            teamData[currentTeam] = {
-                members: members,
-                teamRawSeconds: teamRaw,
-                teamBonusFlag: teamBonus
-            };
-            refreshTeamCommonFields();
-            let ath = teamData[currentTeam].members[currentParticipant];
-            if(ath){
-                refreshFormFromAthlete(ath);
-                renderCommonPenaltiesUI();
-                renderPenaltiesUI();
-                refreshSummary();
-            }
-            hasUnsavedChanges = false;
         }
         
         async function saveStage() {
@@ -613,7 +685,7 @@
             if(!teamData[currentTeam]) teamData[currentTeam] = { members: {1:{},2:{},3:{}}, teamRawSeconds: null, teamBonusFlag: false };
             teamData[currentTeam].members[currentParticipant] = { name: "", penalties: {} };
             await saveCurrentTeamToDB();
-            await loadTeamFromDB();
+            refreshCurrentParticipantUI();
             await loadAllResults();
         }
         
@@ -626,7 +698,7 @@
                 teamBonusFlag: false
             };
             await saveCurrentTeamToDB();
-            await loadTeamFromDB();
+            refreshCurrentParticipantUI();
             await loadAllResults();
         }
         
@@ -638,80 +710,80 @@
         }
         
         async function loadAllResults() {
-            let { data, error } = await supabase.from('security_estafeta_results').select('team_code, penalties');
-            if(error){ console.error(error); return; }
-            let rows = [];
-            for(let row of data){
-                let team = row.team_code;
-                let saved = row.penalties || {};
-                let members = saved.members || {};
-                let p1 = members[1] || { penalties: {} };
-                let p2 = members[2] || { penalties: {} };
-                let p3 = members[3] || { penalties: {} };
-                let penalty1 = getPenaltySum(p1.penalties || {});
-                let penalty2 = getPenaltySum(p2.penalties || {});
-                let penalty3 = getPenaltySum(p3.penalties || {});
-                let teamRaw = (saved.team_raw_seconds !== undefined) ? saved.team_raw_seconds : null;
-                let teamBonus = (saved.team_bonus_flag === true);
-                let totalTime = null;
-                if(teamRaw !== null) {
-                    totalTime = teamRaw + penalty1 + penalty2 + penalty3 - (teamBonus ? 10 : 0);
+            try {
+                let { data, error } = await supabase.from('security_estafeta_results').select('team_code, penalties');
+                if(error) throw error;
+                let rows = [];
+                for(let row of data){
+                    let team = row.team_code;
+                    let saved = row.penalties || {};
+                    let members = saved.members || {};
+                    let p1 = members[1] || { penalties: {} };
+                    let p2 = members[2] || { penalties: {} };
+                    let p3 = members[3] || { penalties: {} };
+                    let penalty1 = getPenaltySum(p1.penalties || {});
+                    let penalty2 = getPenaltySum(p2.penalties || {});
+                    let penalty3 = getPenaltySum(p3.penalties || {});
+                    let teamRaw = (saved.team_raw_seconds !== undefined) ? saved.team_raw_seconds : null;
+                    let teamBonus = (saved.team_bonus_flag === true);
+                    let totalTime = null;
+                    if(teamRaw !== null) {
+                        totalTime = teamRaw + penalty1 + penalty2 + penalty3 - (teamBonus ? 10 : 0);
+                    }
+                    rows.push({
+                        teamCode: team,
+                        teamName: teamNames[team] || team,
+                        p1_name: p1.name || "Уч.1",
+                        p1_penalty: penalty1,
+                        p2_name: p2.name || "Уч.2",
+                        p2_penalty: penalty2,
+                        p3_name: p3.name || "Уч.3",
+                        p3_penalty: penalty3,
+                        total_time: totalTime
+                    });
                 }
-                rows.push({
-                    teamCode: team,
-                    teamName: teamNames[team] || team,
-                    p1_name: p1.name || "Уч.1",
-                    p1_penalty: penalty1,
-                    p2_name: p2.name || "Уч.2",
-                    p2_penalty: penalty2,
-                    p3_name: p3.name || "Уч.3",
-                    p3_penalty: penalty3,
-                    total_time: totalTime
-                });
+                rows.sort((a,b)=> (a.total_time ?? Infinity) - (b.total_time ?? Infinity));
+                let tbody = document.getElementById('resultsBody');
+                tbody.innerHTML = '';
+                let rank = 1;
+                for(let r of rows){
+                    let tr = document.createElement('tr');
+                    if(r.total_time !== null && rank === 1) tr.classList.add('rank-1');
+                    tr.innerHTML = `
+                        <td>${r.total_time !== null ? rank++ : '—'}</td>
+                        <td><strong>${r.teamName}</strong> (${r.teamCode})</td>
+                        <td>${r.p1_name}</td>
+                        <td>${r.p1_penalty} сек</td>
+                        <td>${r.p2_name}</td>
+                        <td>${r.p2_penalty} сек</td>
+                        <td>${r.p3_name}</td>
+                        <td>${r.p3_penalty} сек</td>
+                        <td><strong>${r.total_time !== null ? formatTime(r.total_time) : '—'}</strong></td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+                if(rows.length===0) tbody.innerHTML = '<tr><td colspan="9">Нет данных. Внесите результаты.</td></tr>';
+            } catch(e) {
+                console.error("Ошибка загрузки таблицы:", e);
+                document.getElementById('resultsBody').innerHTML = `<td><td colspan="9">Ошибка: ${e.message}</td></tr>`;
             }
-            rows.sort((a,b)=> (a.total_time ?? Infinity) - (b.total_time ?? Infinity));
-            let tbody = document.getElementById('resultsBody');
-            tbody.innerHTML = '';
-            let rank = 1;
-            for(let r of rows){
-                let tr = document.createElement('tr');
-                if(r.total_time !== null && rank === 1) tr.classList.add('rank-1');
-                tr.innerHTML = `
-                    <td>${r.total_time !== null ? rank++ : '—'}</td>
-                    <td><strong>${r.teamName}</strong> (${r.teamCode})</td>
-                    <td>${r.p1_name}</td>
-                    <td>${r.p1_penalty} сек</td>
-                    <td>${r.p2_name}</td>
-                    <td>${r.p2_penalty} сек</td>
-                    <td>${r.p3_name}</td>
-                    <td>${r.p3_penalty} сек</td>
-                    <td><strong>${r.total_time !== null ? formatTime(r.total_time) : '—'}</strong></td>
-                `;
-                tbody.appendChild(tr);
-            }
-            if(rows.length===0) tbody.innerHTML = '<tr><td colspan="9">Нет данных. Внесите результаты.</td></tr>';
         }
         
         async function onTeamChange() {
-            currentTeam = document.getElementById('teamSelect').value || null;
+            const newTeam = document.getElementById('teamSelect').value || null;
+            if (newTeam === currentTeam) return;
+            currentTeam = newTeam;
             if(currentTeam){
                 document.getElementById('participantCard').style.display = 'block';
                 document.getElementById('teamCommonFields').style.display = 'block';
+                clearUI();
                 await loadTeamFromDB();
+                await loadAllResults();
             } else {
                 document.getElementById('participantCard').style.display = 'none';
                 document.getElementById('teamCommonFields').style.display = 'none';
+                document.getElementById('resultsBody').innerHTML = '<tr><td colspan="9">Выберите команду</td></tr>';
             }
-        }
-        
-        function setActiveParticipantBtn(participantNumber) {
-            document.querySelectorAll('.participant-btn').forEach(btn => {
-                if(parseInt(btn.getAttribute('data-participant')) === participantNumber) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
         }
         
         function renderStageButtons() {
@@ -721,39 +793,16 @@
                 html += `<button class="stage-btn ${currentStage===s ? 'active' : ''}" data-stage="${s}">${s}</button>`;
             }
             container.innerHTML = html;
-            
             document.querySelectorAll('.stage-btn').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    const stage = btn.getAttribute('data-stage');
-                    if (!stage) return;
-                    
-                    currentStage = stage;
-                    
-                    // Определяем номер участника по индексу этапа: этап1 -> участник1, этап2 -> участник2, этап3 -> участник3
-                    const stageIndex = stages.indexOf(stage);
-                    const expectedParticipant = stageIndex + 1;
-                    
-                    if (expectedParticipant !== currentParticipant) {
-                        currentParticipant = expectedParticipant;
-                        setActiveParticipantBtn(currentParticipant);
-                        // Перезагружаем данные нового участника
-                        if (currentTeam) {
-                            await loadTeamFromDB();
-                        }
-                    } else {
-                        // Если участник тот же, обновляем только интерфейс штрафов
-                        renderStageButtons(); // обновит активный стиль кнопок этапов
-                        if (currentTeam) {
-                            renderPenaltiesUI();
-                        }
-                    }
-                    renderStageButtons(); // перерисовываем кнопки этапов для обновления active класса
+                btn.addEventListener('click', () => {
+                    const stageName = btn.getAttribute('data-stage');
+                    setStageAndParticipant(stageName);
                 });
             });
         }
         
         window.onload = async () => {
-            document.getElementById('connectionStatus').innerHTML = '<span>✅ Подключено</span>';
+            document.getElementById('connectionStatus').innerHTML = '<span>✅ Подключено (автовыбор участника по этапу)</span>';
             renderStageButtons();
             document.getElementById('teamSelect').addEventListener('change', onTeamChange);
             document.getElementById('saveStageBtn').addEventListener('click', saveStage);
@@ -779,13 +828,17 @@
                     let newPart = parseInt(btn.getAttribute('data-participant'));
                     if(newPart === currentParticipant) return;
                     currentParticipant = newPart;
-                    setActiveParticipantBtn(currentParticipant);
-                    if(currentTeam) await loadTeamFromDB();
+                    document.querySelectorAll('.participant-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    if(currentTeam && teamData[currentTeam]) {
+                        refreshCurrentParticipantUI();
+                    } else if(currentTeam) {
+                        await loadTeamFromDB();
+                    }
                 });
             });
             
             await onTeamChange();
-            await loadAllResults();
         };
     })();
 </script>
