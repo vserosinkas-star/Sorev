@@ -173,7 +173,7 @@
         .rank-3 { background-color: #ffe0b5 !important; font-weight: bold; }
         .medal-icon { font-size: 1.1rem; margin-right: 4px; display: inline-block; vertical-align: middle; }
 
-        /* Блок лучшего стрелка как в practical_shooting (5).html */
+        /* Блок лучшего стрелка */
         .best-shooter-card {
             display: flex;
             align-items: center;
@@ -340,7 +340,7 @@
     const TB_LIST_INK = ["Байкальский","Волго-Вятский","Дальневосточный","Поволжский","Северо-Западный","Сибирский","Среднерусский","Уральский","Центрально-Черноземный","ПЦП МРД ЦУНДО","Юго-Западный"];
     const TB_LIST_SEC = ["Байкальский","Волго-Вятский","Дальневосточный","Поволжский","Северо-Западный","Сибирский","Среднерусский","Уральский","Центрально-Черноземный","ЦОО ЦА и МБ","Юго-Западный","СТБ"];
     
-    const realInkParticipants = [
+    const realInkParticipants = [ 
         { tb: "Поволжский", name: "Гриднев Виктор Геннадьевич" },
         { tb: "Поволжский", name: "Сернов Александр Сергеевич" },
         { tb: "Поволжский", name: "Полодичук Дмитрий Львович" },
@@ -728,7 +728,7 @@
         if (!p) return;
         const totalTimeGeneral = getTotalTimeGeneral(p);
         const totalTimeCategory = getTotalTimeForCategory(p);
-        let timesTable = '<table style="width:100%; border-collapse:collapse;"><thead><tr><th style="border:1px solid #000; padding:4px;">Упр</th><th style="border:1px solid #000; padding:4px;">Время (сек)</th></table></thead><tbody>';
+        let timesTable = '<table style="width:100%; border-collapse:collapse;"><thead><tr><th style="border:1px solid #000; padding:4px;">Упр</th><th style="border:1px solid #000; padding:4px;">Время (сек)</th></tr></thead><tbody>';
         for(let ex=0; ex<INDIVIDUAL_COUNT; ex++) {
             let label = `Вр${ex+1}`;
             let timeVal = (p.times[ex] && p.times[ex]!=="") ? parseFloat(p.times[ex]).toFixed(2) : '—';
@@ -749,7 +749,6 @@
             container.innerHTML = allRowsHtml;
             return;
         }
-        // Ищем таблицу в сгенерированном HTML
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = allRowsHtml;
         const table = tempDiv.querySelector('table');
@@ -767,11 +766,9 @@
             container.innerHTML = allRowsHtml;
             return;
         }
-        // Скрываем строки начиная с limit+1
         for (let i = limit; i < rows.length; i++) {
             rows[i].classList.add('hidden-row');
         }
-        // Создаём контейнер для таблицы и кнопку
         const wrapper = document.createElement('div');
         wrapper.className = 'expandable-table-container';
         wrapper.appendChild(table.cloneNode(true));
@@ -795,6 +792,61 @@
         wrapper.appendChild(btn);
         container.innerHTML = '';
         container.appendChild(wrapper);
+    }
+    
+    // Рендер рейтинга ТБ через DOM (чистый HTML)
+    function renderTeamRanking(containerId, teams, titleExercises) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+        container.innerHTML = ''; // очищаем
+        if (!teams.length) {
+            container.innerHTML = '<div>Нет данных</div>';
+            return;
+        }
+        const table = document.createElement('table');
+        table.className = 'rank-table';
+        // заголовок
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        ['Место', 'ТБ', 'Сумма мест (всего)', `Места по упражнениям (1-${titleExercises})`].forEach(text => {
+            const th = document.createElement('th');
+            th.textContent = text;
+            headerRow.appendChild(th);
+        });
+        thead.appendChild(headerRow);
+        table.appendChild(thead);
+        // тело
+        const tbody = document.createElement('tbody');
+        teams.forEach((team, idx) => {
+            const place = idx + 1;
+            const tr = document.createElement('tr');
+            if (place === 1) tr.classList.add('rank-1');
+            else if (place === 2) tr.classList.add('rank-2');
+            else if (place === 3) tr.classList.add('rank-3');
+            // место с медалькой
+            const tdPlace = document.createElement('td');
+            let medalHtml = '';
+            if (place === 1) medalHtml = '🥇 ';
+            else if (place === 2) medalHtml = '🥈 ';
+            else if (place === 3) medalHtml = '🥉 ';
+            tdPlace.innerHTML = `<span class="medal-icon">${medalHtml}</span>${place}`;
+            tr.appendChild(tdPlace);
+            // ТБ
+            const tdTb = document.createElement('td');
+            tdTb.textContent = team.tb;
+            tr.appendChild(tdTb);
+            // сумма мест
+            const tdSum = document.createElement('td');
+            tdSum.textContent = team.sumPlaces;
+            tr.appendChild(tdSum);
+            // места по упражнениям
+            const tdPlaces = document.createElement('td');
+            tdPlaces.textContent = team.placesByEx.map(v => v !== null ? v : '—').join(', ');
+            tr.appendChild(tdPlaces);
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        container.appendChild(table);
     }
     
     function computeAll() {
@@ -837,7 +889,7 @@
             let rowClass = (place===1)?'rank-1':(place===2)?'rank-2':(place===3)?'rank-3':'';
             inkHtml += `<tr class="${rowClass}"><td><span class="medal-icon">${medalHtml}</span>${place}</td><td>${escapeHtml(p.name)||'—'}</td><td>${escapeHtml(p.tb)||'—'}</td><td>${p.totalTimeCategory.toFixed(2)}</td></tr>`;
         });
-        inkHtml += '</tbody></table>';
+        inkHtml += '</tbody></tr>';
         makeExpandableTable('rankInkBody', inkHtml, 10);
         
         // 3. Личное первенство Охрана
@@ -853,48 +905,165 @@
         secHtml += '</tbody></table>';
         makeExpandableTable('rankSecBody', secHtml, 10);
         
-        // 4. Рейтинг ТБ Инкассация (без сворачивания)
+        // 4. Рейтинг ТБ Инкассация (теперь через DOM)
         let inkTeams = computeTeamRankings("Инкассация");
         lastTbInkRanking = inkTeams;
-        let inkTeamHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ТБ</th><th>Сумма мест (всего)</th><th>Места по упражнениям (1-8)</th></tr></thead><tbody>';
-        inkTeams.forEach((t, idx)=>{
-            let place = idx+1;
-            let medalHtml = (place===1)?'🥇 ':(place===2)?'🥈 ':(place===3)?'🥉 ':'';
-            let rowClass = (place===1)?'rank-1':(place===2)?'rank-2':(place===3)?'rank-3':'';
-            let placesStr = t.placesByEx.map(v=>v!==null?v:'—').join(', ');
-            inkTeamHtml += `<tr class="${rowClass}"><td><span class="medal-icon">${medalHtml}</span>${place}</td><td>${escapeHtml(t.tb)}</td><td>${t.sumPlaces}</td><td>${placesStr}</td></tr>`;
-        });
-        inkTeamHtml += '</tbody></table>';
-        document.getElementById('tbInkBody').innerHTML = inkTeamHtml;
+        renderTeamRanking('tbInkBody', inkTeams, 8);
         
-        // 5. Рейтинг ТБ Охрана
+        // 5. Рейтинг ТБ Охрана (через DOM)
         let secTeams = computeTeamRankings("Охрана");
         lastTbSecRanking = secTeams;
-        let secTeamHtml = '<table class="rank-table"><thead><tr><th>Место</th><th>ТБ</th><th>Сумма мест (всего)</th><th>Места по упражнениям (1-6)</th></tr></thead><tbody>';
-        secTeams.forEach((t, idx)=>{
-            let place = idx+1;
-            let medalHtml = (place===1)?'🥇 ':(place===2)?'🥈 ':(place===3)?'🥉 ':'';
-            let rowClass = (place===1)?'rank-1':(place===2)?'rank-2':(place===3)?'rank-3':'';
-            let placesStr = t.placesByEx.map(v=>v!==null?v:'—').join(', ');
-            secTeamHtml += `<tr class="${rowClass}"><td><span class="medal-icon">${medalHtml}</span>${place}</td><td>${escapeHtml(t.tb)}</td><td>${t.sumPlaces}</td><td>${placesStr}</td></tr>`;
-        });
-        secTeamHtml += '</tbody></table>';
-        document.getElementById('tbSecBody').innerHTML = secTeamHtml;
+        renderTeamRanking('tbSecBody', secTeams, 6);
         
         updateBestShooter();
     }
     
-    // Ниже идут функции печати участника, команды, экспорта/импорта (полностью сохранены из исходного файла)
-    // Для краткости они не переписаны, но в финальном ответе они будут присутствовать.
-    // В данном коде я их оставляю без изменений, так как они уже есть в предыдущей версии.
+    // ========== ФУНКЦИИ ПЕЧАТИ УЧАСТНИКА И КОМАНДЫ ==========
+    function printParticipantByIdx(idx) {
+        let p = participants[idx]; if(!p) return; computeAll();
+        let totalTimeGeneral = getTotalTimeGeneral(p);
+        let totalTimeCategory = getTotalTimeForCategory(p);
+        let overall = lastOverallRanking.find(o=>o.id===p.id);
+        let personal = (p.category==='Инкассация'?lastInkRanking:lastSecRanking).find(o=>o.id===p.id);
+        let teamRank = (p.category==='Инкассация'?lastTbInkRanking:lastTbSecRanking).find(t=>t.tb===p.tb);
+        let maxEx = (p.category === "Охрана") ? INDIVIDUAL_COUNT : EXERCISES_COUNT;
+        let timesTable = '<table style="width:100%; border-collapse:collapse;"><thead><tr><th style="border:1px solid #000; padding:4px;">Упр</th><th style="border:1px solid #000; padding:4px;">Время (сек)</th></tr></thead><tbody>';
+        for(let ex=0; ex<maxEx; ex++) {
+            let label = (ex<6)?`Вр${ex+1}`:(ex===6?'Вгр1':'Вгр2');
+            let timeVal = (p.times[ex] && p.times[ex]!=="") ? parseFloat(p.times[ex]).toFixed(2) : '—';
+            timesTable += `<tr><td style="border:1px solid #000; padding:4px; text-align:center;">${label}</td><td style="border:1px solid #000; padding:4px; text-align:center;">${timeVal}</td></tr>`;
+        }
+        timesTable += '</tbody></table>';
+        let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Протокол ${escapeHtml(p.name)||'участника'}</title><style>@page { size: A4; margin: 0.5cm; } body { font-family: 'Times New Roman', Times, serif; margin: 0; padding: 0; font-size: 11pt; } .print-protocol { max-width: 100%; margin: 0 auto; } h2, h3 { text-align: center; margin: 6px 0; } .info { margin-bottom: 12px; } table { width: 100%; border-collapse: collapse; margin: 6px 0; } th, td { border: 1px solid #000; padding: 4px; text-align: center; } .sign-block { margin-top: 20px; display: flex; justify-content: space-between; } .sign-line { width: 200px; border-top: 1px solid #000; text-align: center; padding-top: 5px; }</style></head><body><div class="print-protocol"><h2>ПРОТОКОЛ УЧАСТНИКА</h2><div class="info"><p><strong>ФИО:</strong> ${escapeHtml(p.name)||'—'}</p><p><strong>ТБ:</strong> ${escapeHtml(p.tb)||'—'}</p><p><strong>Категория:</strong> ${p.category}</p><p><strong>Суммарное время (Вр1-Вр6):</strong> ${totalTimeGeneral.toFixed(2)} сек</p><p><strong>Суммарное время (с учётом групповых):</strong> ${p.category==='Инкассация' ? totalTimeCategory.toFixed(2)+' сек' : '—'}</p><p><strong>Место в общем зачёте (Вр1-Вр6):</strong> ${overall?.place||'—'}</p><p><strong>Место в личном первенстве (${p.category}):</strong> ${personal?.place||'—'}</p><p><strong>Место ТБ в рейтинге:</strong> ${teamRank?.finalPlace||'—'} (сумма мест команды=${teamRank?.sumPlaces||0})</p></div><h3>Результаты по упражнениям:</h3>${timesTable}<div class="sign-block"><div class="sign-line">Подпись участника</div><div class="sign-line">Подпись судьи</div></div><p style="margin-top:20px; text-align:center">Дата: _______________</p></div><script>window.onload=function(){window.print();};<\/script></body></html>`;
+        let w = window.open('', '_blank', 'width=900,height=700');
+        w.document.write(html);
+        w.document.close();
+    }
     
-    function printParticipantByIdx(idx) { /* ... */ }
-    function printTeam(category, tbName) { /* ... */ }
-    function exportToExcel() { /* ... */ }
-    function importFromExcel(file) { /* ... */ }
+    function printTeam(category, tbName) {
+        if(!tbName) { alert("Выберите ТБ"); return; }
+        computeAll();
+        let members = participants.filter(p=>p.category===category && p.tb===tbName);
+        if (members.length !== 3) alert(`Внимание: в команде ${tbName} (${category}) сейчас ${members.length} участник(ов), а должно быть 3. Печать выполняется с текущим составом.`);
+        let teamRanking = computeTeamRankings(category);
+        let teamInfo = teamRanking.find(t=>t.tb===tbName);
+        if(!teamInfo){ alert("Нет данных для рейтинга"); return; }
+        let memberRows = '';
+        members.forEach((m,idx)=>{
+            let personal = (category==="Инкассация"?lastInkRanking:lastSecRanking).find(o=>o.id===m.id);
+            let totalTime = getTotalTimeForCategory(m);
+            memberRows += `<tr><td style="border:1px solid #000; padding:4px;">${idx+1}</td><td style="border:1px solid #000; padding:4px;">${escapeHtml(m.name)||'—'}</td><td style="border:1px solid #000; padding:4px;">${personal?.place||'—'}</td><td style="border:1px solid #000; padding:4px;">${totalTime.toFixed(2)}</td></tr>`;
+        });
+        let totalEx = (category === "Инкассация") ? EXERCISES_COUNT : INDIVIDUAL_COUNT;
+        let placesRows = '';
+        for(let ex=0; ex<totalEx; ex++) {
+            let label = (ex < INDIVIDUAL_COUNT) ? `Вр${ex+1}` : (ex === INDIVIDUAL_COUNT ? 'Вгр1' : 'Вгр2');
+            let place = teamInfo.placesByEx[ex]!==null ? teamInfo.placesByEx[ex] : '—';
+            placesRows += `<tr><td style="border:1px solid #000; padding:4px;">${label}</td><td style="border:1px solid #000; padding:4px;">${place}</td></tr>`;
+        }
+        let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Протокол команды ${escapeHtml(tbName)}</title><style>@page { size: A4; margin: 0.5cm; } body { font-family: 'Times New Roman', Times, serif; margin: 0; padding: 0; font-size: 11pt; } .print-protocol { max-width: 100%; margin: 0 auto; page-break-inside: avoid; } h2, h3 { text-align: center; margin: 6px 0; } .info { margin-bottom: 12px; } table { width: 100%; border-collapse: collapse; margin: 6px 0; } th, td { border: 1px solid #000; padding: 4px; text-align: center; } .sign-block { margin-top: 20px; display: flex; justify-content: space-between; } .sign-line { width: 200px; border-top: 1px solid #000; text-align: center; padding-top: 5px; }</style></head><body><div class="print-protocol"><h2>ПРОТОКОЛ КОМАНДЫ</h2><div class="info"><p><strong>Территориальный банк:</strong> ${escapeHtml(tbName)}</p><p><strong>Категория:</strong> ${category}</p><p><strong>Итоговое место в рейтинге ТБ:</strong> ${teamInfo.finalPlace}</p><p><strong>Сумма мест (всего):</strong> ${teamInfo.sumPlaces}</p></div><h3>Состав команды</h3><table><thead><tr><th>№</th><th>ФИО</th><th>Место в личном зачёте</th><th>Суммарное время (сек)</th></tr></thead><tbody>${memberRows}</tbody></table><h3>Места команды по упражнениям</h3><table><thead><tr><th>Упражнение</th><th>Место команды</th></tr></thead><tbody>${placesRows}</tbody></table><div class="sign-block"><div class="sign-line">Подпись представителя команды</div><div class="sign-line">Подпись судьи</div></div><p style="margin-top:20px; text-align:center">Дата: _______________</p></div><script>window.onload=function(){window.print();};<\/script></body></html>`;
+        let w = window.open('', '_blank', 'width=900,height=700');
+        w.document.write(html);
+        w.document.close();
+    }
+    
+    // ========== ЭКСПОРТ/ИМПОРТ ==========
+    function exportToExcel() {
+        if (!participants.length) { alert("Нет данных для экспорта"); return; }
+        const headers = ["ФИО", "ТБ", "Категория", "Вр1", "Вр2", "Вр3", "Вр4", "Вр5", "Вр6", "Вгр1", "Вгр2"];
+        const rows = [headers];
+        for (let p of participants) rows.push([p.name||"", p.tb||"", p.category, p.times[0]||"", p.times[1]||"", p.times[2]||"", p.times[3]||"", p.times[4]||"", p.times[5]||"", p.times[6]||"", p.times[7]||""]);
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        ws['!cols'] = [{wch:30},{wch:25},{wch:12},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10},{wch:10}];
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Участники");
+        XLSX.writeFile(wb, `shooting_results_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.xlsx`);
+    }
+    
+    function importFromExcel(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: "" });
+            if (!rows || rows.length < 2) { alert("Excel файл не содержит данных"); return; }
+            let startRow = rows[0] && rows[0].some(cell => typeof cell === 'string' && (cell.includes('ФИО') || cell.includes('ТБ'))) ? 1 : 0;
+            const imported = [];
+            for (let i = startRow; i < rows.length; i++) {
+                const row = rows[i]; if (!row || row.length < 3) continue;
+                const name = row[0]?.toString().trim() || "";
+                const tb = row[1]?.toString().trim() || "";
+                let catRaw = row[2]?.toString().trim() || "";
+                let category = (catRaw === "Охрана") ? "Охрана" : "Инкассация";
+                const times = Array(8).fill("");
+                for (let t=0; t<8; t++) {
+                    let val = row[3+t];
+                    if (val !== undefined && val !== null && val !== "") {
+                        let num = parseFloat(val.toString().replace(',', '.'));
+                        if (!isNaN(num)) times[t] = num;
+                    }
+                }
+                if (!name && times.every(t=>t==="")) continue;
+                imported.push({ id: Date.now()+i+Math.random(), name: name || `Импорт ${i+1}`, tb: tb, category: category, times: times });
+            }
+            const valid = [];
+            const cntMap = new Map();
+            for (let p of imported) {
+                const key = `${p.category}|${p.tb}`;
+                const c = cntMap.get(key)||0;
+                if (c < 3) { cntMap.set(key, c+1); valid.push(p); }
+            }
+            if (valid.length === 0) { alert("Нет корректных участников после проверки лимитов (макс 3 на ТБ)"); return; }
+            participants = valid;
+            saveAndRecalc();
+            alert(`Импортировано ${participants.length} участников.`);
+        };
+        reader.readAsArrayBuffer(file);
+    }
+    
+    function exportJSON() {
+        let data = JSON.stringify(participants.map(p=>({name:p.name, tb:p.tb, category:p.category, times:p.times})), null, 2);
+        let blob = new Blob([data], {type: "application/json"});
+        let a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = "shooting_results.json";
+        a.click();
+        URL.revokeObjectURL(blob);
+    }
+    
+    function importJSON(file) {
+        let reader = new FileReader();
+        reader.onload = e => {
+            try {
+                let imported = JSON.parse(e.target.result);
+                if (Array.isArray(imported)) {
+                    let newParts = imported.map(item => ({
+                        id: Date.now() + Math.random(),
+                        name: item.name || "",
+                        tb: item.tb || "",
+                        category: (item.category === "Инкассация" || item.category === "Охрана") ? item.category : "Инкассация",
+                        times: Array.isArray(item.times) ? item.times.slice(0, EXERCISES_COUNT) : Array(EXERCISES_COUNT).fill("")
+                    }));
+                    const cntMap = new Map();
+                    const valid = [];
+                    for(let p of newParts) {
+                        const key = `${p.category}|${p.tb}`;
+                        const c = cntMap.get(key) || 0;
+                        if (c < 3) { cntMap.set(key, c+1); valid.push(p); }
+                    }
+                    if (valid.length) {
+                        participants = valid;
+                        saveAndRecalc();
+                        alert(`Импортировано ${valid.length} участников.`);
+                    } else alert("Нет валидных участников");
+                } else alert("Неверный формат JSON");
+            } catch(err) { alert("Ошибка импорта: "+err.message); }
+        };
+        reader.readAsText(file);
+    }
+    
     function escapeHtml(str) { if(!str) return ""; return str.replace(/[&<>]/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
-    function exportJSON() { /* ... */ }
-    function importJSON(file) { /* ... */ }
     
     // Инициализация обработчиков
     document.getElementById('addRowBtn').onclick=()=>addParticipant();
