@@ -124,7 +124,6 @@
 
     const staticCommonEstafeta = { "УБ": 688.00, "ББ": 822.00, "МРД": 824.04, "ДВБ": 845.00 };
     
-    // Маппинг команд для стрельбы
     const shootingTeamMap = {
         "Среднерусский": "СРБ",
         "Сибирский": "СИБ",
@@ -262,7 +261,6 @@
         } catch(e) { console.error(e); container.innerHTML = '<div class="loading">Ошибка</div>'; }
     }
 
-    // Вспомогательные функции для получения мест
     async function fetchEstafetaPlaces() {
         const { data } = await supabase.from('estafeta_results').select('*');
         const bestMap = new Map();
@@ -578,32 +576,102 @@
         renderTable('team-standings-ohrana', headers, rows);
     }
 
-    // Эстафета охраны (статика)
-    function renderSecurityEstafeta() {
-        const data = [{ team_code:"ДВБ", direction:"1", total_seconds:1074.56 }];
-        const list = [];
-        for (let code of teamCodes) {
-            const found = data.find(d => d.team_code === code);
-            list.push({ code, dir: found?.direction || '—', total: found?.total_seconds || null });
-        }
-        list.sort((a,b) => (a.total===null)-(b.total===null) || (a.total??Infinity)-(b.total??Infinity));
-        let r = 1;
-        const rows = [];
-        for (let item of list) {
-            const place = item.total !== null ? r++ : null;
-            const rowClass = getPlaceRowClass(place);
-            const placeHtml = place !== null && place <= 3 ? formatPlaceWithMedal(place).outerHTML : (place !== null ? String(place) : '—');
-            rows.push({
-                className: rowClass,
-                cells: [
-                    { html: placeHtml },
-                    { text: getTeamFullOhrana(item.code) },
-                    { text: String(item.dir) },
-                    { text: item.total !== null ? formatTime(item.total) : '—' }
-                ]
+    // ---------- ЭСТАФЕТА ОХРАНЫ (ИСПРАВЛЕНА) ----------
+    async function renderSecurityEstafeta() {
+        const container = document.getElementById('security-estafeta');
+        container.innerHTML = '<div class="loading">Загрузка...</div>';
+        try {
+            const { data, error } = await supabase
+                .from('security_estafeta_results')
+                .select('*');
+            if (error) throw error;
+
+            const teamTimes = new Map(); // code -> total_seconds
+
+            for (const row of data) {
+                const code = row.team_code;
+                if (!teamCodes.includes(code)) continue; // игнорируем посторонние коды (например, СТБ)
+
+                let total = null;
+                if (row.penalties) {
+                    try {
+                        const penalties = typeof row.penalties === 'string'
+                            ? JSON.parse(row.penalties)
+                            : row.penalties;
+                        
+                        // Приоритет: team_raw_seconds (если есть)
+                        if (penalties.team_raw_seconds && typeof penalties.team_raw_seconds === 'number') {
+                            total = penalties.team_raw_seconds;
+                        } 
+                        // Иначе суммируем rawSeconds участников
+                        else if (penalties.members) {
+                            let sum = 0;
+                            let hasAny = false;
+                            for (const key in penalties.members) {
+                                const member = penalties.members[key];
+                                if (member && typeof member.rawSeconds === 'number') {
+                                    sum += member.rawSeconds;
+                                    hasAny = true;
+                                }
+                            }
+                            if (hasAny) total = sum;
+                        }
+                    } catch(e) {
+                        console.warn(`Ошибка парсинга penalties для ${code}`, e);
+                    }
+                }
+                
+                // Если уже есть запись для этой команды, обновляем только если новое время меньше (на случай разных заездов)
+                if (total !== null) {
+                    if (!teamTimes.has(code) || total < teamTimes.get(code)) {
+                        teamTimes.set(code, total);
+                    }
+                }
+            }
+
+            // Формируем массив для всех teamCodes
+            const resultList = [];
+            for (const code of teamCodes) {
+                const total = teamTimes.has(code) ? teamTimes.get(code) : null;
+                resultList.push({ code, total });
+            }
+
+            // Сортировка: сначала те, у кого есть время, потом null
+            resultList.sort((a, b) => {
+                if (a.total === null && b.total === null) return 0;
+                if (a.total === null) return 1;
+                if (b.total === null) return -1;
+                return a.total - b.total;
             });
+
+            // Формируем строки таблицы
+            let rank = 1;
+            const rows = [];
+            for (const item of resultList) {
+                const hasTime = item.total !== null;
+                const place = hasTime ? rank++ : null;
+                const rowClass = getPlaceRowClass(place);
+                const placeHtml = place !== null && place <= 3 
+                    ? formatPlaceWithMedal(place).outerHTML 
+                    : (place !== null ? String(place) : '—');
+                
+                rows.push({
+                    className: rowClass,
+                    cells: [
+                        { html: placeHtml },
+                        { text: getTeamFullOhrana(item.code) },
+                        { text: '1' }, // direction всегда 1 в имеющихся данных
+                        { text: hasTime ? formatTime(item.total) : '—' }
+                    ]
+                });
+            }
+
+            const headers = ['Место', 'Команда', 'Напр.', 'Итоговое время'];
+            renderTable('security-estafeta', headers, rows);
+        } catch(e) {
+            console.error(e);
+            container.innerHTML = '<div class="loading">Ошибка загрузки данных эстафеты охраны</div>';
         }
-        renderTable('security-estafeta', ['Место','Команда','Напр.','Итоговое время'], rows);
     }
 
     // Служебное двоеборье (из Supabase)
@@ -662,9 +730,8 @@
         } catch(e) { console.error(e); container.innerHTML = '<div class="loading">Ошибка</div>'; }
     }
 
-    // Командная эстафета охраны (статика, как в инкассации)
+    // Командная эстафета охраны (та же статика, что и в инкассации, но с названиями охраны)
     function renderTeamEstafetaCommonOhrana() {
-        renderTeamEstafetaCommonInkasso(); // та же статика, но с названиями охраны - переопределим
         const list = [];
         for (let code of teamCodes) {
             const total = staticCommonEstafeta[code] || null;
@@ -691,7 +758,6 @@
 
     // Личное первенство охраны (то же, что в инкассации)
     function renderIndividualOhrana() {
-        renderIndividualInkasso(); // та же статика, но контейнер другой
         const headers = ['Место','Команда','ФИО','Результат'];
         const rows = shootingIndividual.map(p => {
             const rowClass = getPlaceRowClass(p.place);
@@ -715,7 +781,7 @@
 
     async function refreshOhrana() {
         renderSecurityTeamStandings();
-        renderSecurityEstafeta();
+        await renderSecurityEstafeta();   // теперь асинхронная с реальными данными
         await renderServiceDuathlon();
         renderTeamEstafetaCommonOhrana();
         renderIndividualOhrana();
