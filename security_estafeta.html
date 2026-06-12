@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>Эстафета "Охрана" </title>
+    <title>Эстафета "Охрана" - Судья</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
@@ -100,7 +100,6 @@
             </select>
         </div>
 
-        <!-- Общие параметры команды (время + бонус за огнетушитель) -->
         <div id="teamCommonFields" style="display: none;">
             <div class="team-penalty-row">
                 <div class="control-group">
@@ -131,11 +130,9 @@
                     <input type="text" id="participantName" placeholder="ФИО участника" autocomplete="off">
                 </div>
                 
-                <!-- Отдельный блок общих штрафов (независимо от этапа) -->
                 <div class="section-title">⚠️ Общие штрафы (за любые этапы)</div>
                 <div id="commonPenaltiesContainer" class="penalties-grid"></div>
 
-                <!-- Блок с выбором этапа и специфическими штрафами -->
                 <div class="section-title">📌 Штрафы по этапам</div>
                 <div id="stageButtonsContainer" class="stage-buttons"></div>
                 <div id="penaltiesContainer" class="penalties-grid"></div>
@@ -175,7 +172,6 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ОБНОВЛЁННЫЙ СПИСОК КОМАНД
         const teamNames = { 
             "УБ":"Уральский",
             "ДВБ":"Дальневосточный",
@@ -193,19 +189,15 @@
         const stages = ["Этап 1. Полоса препятствий","Этап 2. Силовые упражнения","Этап 3. Противопожарная подготовка"];
         
         const penaltiesLibrary = [
-            // ОБЩИЙ штраф (теперь всегда отображается отдельно)
             { id: "common_not_done", category: "Общие", desc: "Невыполнение любого упражнения на этапах 1-3 (за каждое действие)", sec: 120, type: "count" },
-            // Штрафы этапа 1
             { id: "stage1_falsestart", category: "Этап 1. Полоса препятствий", desc: "Фальстарт (каждый раз)", sec: 5, type: "count" },
             { id: "stage1_fall_boom", category: "Этап 1. Полоса препятствий", desc: "Падение (спрыгивание) с бума", sec: 10, type: "count" },
-            // Штрафы этапа 2
             { id: "stage2_falsestart", category: "Этап 2. Силовые упражнения", desc: "Преждевременный старт (до финиша этапа 1) — за каждое действие", sec: 5, type: "count" },
             { id: "stage2_hammer_points", category: "Этап 2. Силовые упражнения", desc: "Удары кувалдой (силомер): не набрал очки", sec: 10, type: "bool" },
             { id: "stage2_fall_box", category: "Этап 2. Силовые упражнения", desc: "Падение с тумбы (прыжки на тумбы)", sec: 10, type: "count" },
             { id: "stage2_situp_ball", category: "Этап 2. Силовые упражнения", desc: "Sit up: медбол не коснулся земли", sec: 10, type: "count" },
             { id: "stage2_shuttle_line", category: "Этап 2. Силовые упражнения", desc: "Челночный бег: не касание ногой линии", sec: 10, type: "count" },
             { id: "stage2_pullup_miss", category: "Этап 2. Силовые упражнения", desc: "Подтягивания: недобор нормы (8 раз) — штраф за каждый недостающий", sec: 10, type: "pullup_counter" },
-            // Штрафы этапа 3
             { id: "stage3_falsestart", category: "Этап 3. Противопожарная подготовка", desc: "Преждевременный старт (до финиша этапа 2) — за каждое действие", sec: 5, type: "count" },
             { id: "stage3_bop_button", category: "Этап 3. Противопожарная подготовка", desc: "БОП-1: не застёгнута пуговица/крючок", sec: 5, type: "bool" },
             { id: "stage3_bop_straps", category: "Этап 3. Противопожарная подготовка", desc: "БОП-1: лямки брюк не надеты на плечи", sec: 5, type: "bool" },
@@ -242,7 +234,6 @@
             return sum;
         }
         
-        // Общее время команды = общее_время + штрафы_всех - бонус (если есть)
         function computeTotalTeamTime(team) {
             if(!team) return null;
             const raw = team.teamRawSeconds;
@@ -252,7 +243,7 @@
                 let ath = team.members[i] || { penalties: {} };
                 totalPenalty += getPenaltySum(ath.penalties || {});
             }
-            let bonus = team.teamBonusFlag ? 10 : 0; // вычитаем, если бонус есть
+            let bonus = team.teamBonusFlag ? 10 : 0;
             return raw + totalPenalty - bonus;
         }
         
@@ -390,7 +381,6 @@
             saveCurrentTeamToDB().then(() => { loadAllResults(); });
         }
         
-        // Отрисовка общих штрафов (только common_not_done)
         function renderCommonPenaltiesUI() {
             let ath = getCurrentAthlete();
             let container = document.getElementById('commonPenaltiesContainer');
@@ -714,6 +704,16 @@
             }
         }
         
+        function setActiveParticipantBtn(participantNumber) {
+            document.querySelectorAll('.participant-btn').forEach(btn => {
+                if(parseInt(btn.getAttribute('data-participant')) === participantNumber) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+        
         function renderStageButtons() {
             let container = document.getElementById('stageButtonsContainer');
             let html = '';
@@ -721,11 +721,33 @@
                 html += `<button class="stage-btn ${currentStage===s ? 'active' : ''}" data-stage="${s}">${s}</button>`;
             }
             container.innerHTML = html;
+            
             document.querySelectorAll('.stage-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    currentStage = btn.getAttribute('data-stage');
-                    renderStageButtons();
-                    if(currentTeam) renderPenaltiesUI();
+                btn.addEventListener('click', async () => {
+                    const stage = btn.getAttribute('data-stage');
+                    if (!stage) return;
+                    
+                    currentStage = stage;
+                    
+                    // Определяем номер участника по индексу этапа: этап1 -> участник1, этап2 -> участник2, этап3 -> участник3
+                    const stageIndex = stages.indexOf(stage);
+                    const expectedParticipant = stageIndex + 1;
+                    
+                    if (expectedParticipant !== currentParticipant) {
+                        currentParticipant = expectedParticipant;
+                        setActiveParticipantBtn(currentParticipant);
+                        // Перезагружаем данные нового участника
+                        if (currentTeam) {
+                            await loadTeamFromDB();
+                        }
+                    } else {
+                        // Если участник тот же, обновляем только интерфейс штрафов
+                        renderStageButtons(); // обновит активный стиль кнопок этапов
+                        if (currentTeam) {
+                            renderPenaltiesUI();
+                        }
+                    }
+                    renderStageButtons(); // перерисовываем кнопки этапов для обновления active класса
                 });
             });
         }
@@ -757,8 +779,7 @@
                     let newPart = parseInt(btn.getAttribute('data-participant'));
                     if(newPart === currentParticipant) return;
                     currentParticipant = newPart;
-                    document.querySelectorAll('.participant-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
+                    setActiveParticipantBtn(currentParticipant);
                     if(currentTeam) await loadTeamFromDB();
                 });
             });
