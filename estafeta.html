@@ -8,6 +8,9 @@
     <style>
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
         body { background: #f0f4f8; margin: 0; padding: 20px; }
+        .home-wrapper { margin-bottom: 16px; }
+        .home-btn { background: #4b5563; color: white; border: none; padding: 10px 20px; border-radius: 40px; font-weight: 600; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem; }
+        .home-btn:hover { background: #374151; }
         .container { max-width: 1400px; margin: 0 auto; }
         .judge-panel { background: white; border-radius: 20px; padding: 20px 24px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .judge-controls { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; margin-bottom: 20px; }
@@ -20,6 +23,8 @@
         .reset-team-btn { background: #475569; }
         .print-btn { background: #2c5f2d; }
         .print-btn:hover { background: #1f4a20; }
+        .excel-btn { background: #0f766e; }
+        .excel-btn:hover { background: #0d5a54; }
         .stage-info { background: #eef2ff; border-radius: 16px; padding: 12px 20px; margin: 15px 0; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
         .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; }
         .stage-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
@@ -43,101 +48,26 @@
         .status-ok { background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; display: inline-block; }
         .status-error { background: #fee2e2; color: #991b1b; }
         .status-warning { background: #fed7aa; color: #9b4a0c; }
-        
-        /* ========== АДАПТАЦИЯ ДЛЯ МОБИЛЬНЫХ УСТРОЙСТВ ========== */
         @media (max-width: 600px) {
             body { padding: 12px; }
             .judge-panel { padding: 16px; }
-            
-            /* Сетка штрафов — одна колонка, без горизонтальной прокрутки */
-            .penalties-grid {
-                grid-template-columns: 1fr !important;
-                max-height: none !important;
-                overflow-y: visible !important;
-                gap: 8px;
-            }
-            
-            /* Карточка штрафа — вертикальная компоновка */
-            .penalty-card {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
-                padding: 12px;
-            }
-            
-            .penalty-card .desc {
-                width: 100%;
-                font-size: 0.85rem;
-                word-break: break-word;
-            }
-            
-            .penalty-card label {
-                width: 100%;
-                justify-content: space-between;
-                gap: 8px;
-            }
-            
-            /* Счётчики */
-            .counter-control {
-                align-self: flex-start;
-            }
-            
-            /* Элементы управления судьи — вертикально */
-            .judge-controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .judge-controls .control-group,
-            .judge-controls button {
-                width: 100%;
-            }
-            
-            /* Блок с кнопками сохранения/сброса */
-            .stage-info {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 12px;
-            }
-            
-            /* Итоговая строка */
-            .summary-bar {
-                flex-direction: column;
-                align-items: stretch;
-                text-align: center;
-            }
-            
-            .total-time {
-                text-align: center;
-            }
-            
-            /* Кнопки этапов — перенос строк */
-            .stage-buttons {
-                justify-content: center;
-            }
-            
-            .stage-btn {
-                font-size: 0.75rem;
-                padding: 6px 12px;
-            }
-            
-            /* Таблица результатов: оставляем прокрутку только для неё */
-            .results-table {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-            
-            /* Мелкие отступы для заголовков */
-            h2, h3 {
-                font-size: 1.3rem;
-            }
+            .penalties-grid { grid-template-columns: 1fr !important; max-height: none !important; overflow-y: visible !important; gap: 8px; }
+            .penalty-card { flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; }
+            .penalty-card .desc { width: 100%; font-size: 0.85rem; word-break: break-word; }
+            .judge-controls { flex-direction: column; align-items: stretch; }
+            .judge-controls .control-group, .judge-controls button { width: 100%; }
+            .stage-info { flex-direction: column; align-items: stretch; gap: 12px; }
+            .summary-bar { flex-direction: column; align-items: stretch; text-align: center; }
+            .total-time { text-align: center; }
+            .stage-buttons { justify-content: center; }
+            .stage-btn { font-size: 0.75rem; padding: 6px 12px; }
+            .results-table { overflow-x: auto; }
         }
-        
         @media print {
             body { background: white; padding: 0; margin: 0; }
             .judge-panel, .results-table, .stage-buttons, .stage-info, .judge-controls, .penalties-grid, .summary-bar, .unsaved-badge,
             #printReportBtn, #saveRawTimeBtn, #resetTeamBtn, #saveStageBtn, #resetStageBtn, .stage-btn, .control-group button,
-            select, input, .unsaved-badge, #connectionStatus { display: none !important; }
+            select, input, .unsaved-badge, #connectionStatus, .home-wrapper, .home-btn, #excelExportBtn { display: none !important; }
             .print-report-area { display: block !important; margin: 0; padding: 20px; font-size: 12pt; }
             .print-sign-line { margin-top: 40px; border-top: 1px dashed #aaa; padding-top: 20px; }
             .print-footer { margin-top: 30px; font-size: 9pt; text-align: center; }
@@ -146,11 +76,13 @@
     </style>
 </head>
 <body>
+<div class="home-wrapper">
+    <button id="homeBtn" class="home-btn">🏠 На главную</button>
+</div>
 <div class="container">
     <div class="judge-panel">
-        <h2>👨‍⚖️ Эстафета <span style="font-size: 0.8rem; background: #dcfce7; padding: 4px 12px; border-radius: 30px;"></span></h2>
+        <h2>👨‍⚖️ Эстафета</h2>
         <div id="connectionStatus" style="margin-bottom: 15px;"></div>
-        
         <div class="judge-controls">
             <div class="control-group">
                 <label>📌 Направление</label>
@@ -177,11 +109,10 @@
                     <option value="ВВБ">Волго-Вятский (ВВБ)</option>
                 </select>
             </div>
-            <button id="printReportBtn" class="print-btn" style="background:#2c5f2d; margin-left: auto;">🖨️ Печать отчета с подписями</button>
+            <button id="excelExportBtn" class="excel-btn">📊 Выгрузить в Excel</button>
+            <button id="printReportBtn" class="print-btn">🖨️ Печать отчета с подписями</button>
         </div>
-
         <div id="stageButtonsContainer" class="stage-buttons"></div>
-
         <div class="judge-controls" style="margin-top: 0;">
             <div class="control-group" style="min-width: 220px;">
                 <label>⏱️ Чистое время заезда (мм:сс.сс)</label>
@@ -190,7 +121,6 @@
             <button id="saveRawTimeBtn">💾 Зафиксировать время</button>
             <button id="resetTeamBtn" class="reset-team-btn">🔄 Сбросить ВСЕ ошибки команды</button>
         </div>
-
         <div id="stageInfo" class="stage-info">
             <span>✅ Выберите направление, банк и этап</span>
             <div style="display: flex; gap: 10px;">
@@ -198,1146 +128,884 @@
                 <button id="resetStageBtn" class="reset-stage-btn">🗑️ Сбросить ошибки этапа</button>
             </div>
         </div>
-
         <div id="penaltiesContainer" class="penalties-grid">
             <div style="grid-column:1/-1; text-align:center;">⚙️ Выберите направление и команду</div>
         </div>
-
         <div class="summary-bar">
             <span><strong>⚖️ Штраф (сек):</strong> <span id="totalPenaltyDisplay">0</span> сек</span>
             <span><strong>⏱️ Чистое время:</strong> <span id="rawTimeDisplay">—</span></span>
             <span class="total-time"><strong>ИТОГО:</strong> <span id="totalTimeDisplay">—</span></span>
         </div>
     </div>
-    
     <div class="results-table">
         <h3>🏆 Общий зачёт</h3>
         <table id="resultsTable">
             <thead><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></thead>
-            <tbody id="resultsBody"><tr><td colspan="6">Загрузка данных...</td></tr></tbody>
+            <tbody id="resultsBody"><td><td colspan="6">Загрузка данных...</td></tr></tbody>
         </table>
     </div>
 </div>
-
 <div id="printReportContainer" class="print-report-area"></div>
-
 <script>
-    (function() {
-        // ---------- SUPABASE ----------
-        const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        const teamCodes = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
-        const teamNames = {
-            "УБ": "Уральский", "ДВБ": "Дальневосточный", "ББ": "Байкальский", "МРД": "ПЦП МРД ЦУНДО",
-            "ЦЧБ": "Центрально-Черноземный", "ЮЗБ": "Юго-Западный", "ПВБ": "Поволжский",
-            "СИБ": "Сибирский", "СРБ": "Среднерусский", "СЗБ": "Северо-Западный", "ВВБ": "Волго-Вятский"
-        };
-        
-        const stages = [
-            "Получение имущества",
-            "Получение банковских ценностей",
-            "Прокол шины",
-            "Змейка",
-            "Обслуживание УС",
-            "Обслуживание ВСП",
-            "Стрельба",
-            "Пожар",
-            "Медицина",
-            "Инкассация объекта",
-            "Вооруженный преступник",
-            "Наручники",
-            "Общие штрафы"
-        ];
-        
-        // ID нарушений, которые должны отображаться как счётчики (количество действий)
-        const counterPenaltyIds = [
-            'puncture_helper',          // помощь инкассатора
-            'us_cassette_dropped',      // выпала кассета
-            'us_jam_search',            // не осуществлён поиск замятия
-            'us_jam_bad_fix',           // некорректное устранение замятия
-            'us_not_kas',               // кассеты не по маркировке
-            'us_left_property',         // оставление имущества
-            'fire_bad_sk',              // некорректное обращение с СК
-            'obsh_svyaz',               // уронил радиостанцию
-            'obsh_ivr',                 // уронил ИВР
-            'obsh_tsd',                 // уронил ТСД
-            'obsh_gun',                 // выпадение пистолета
-            'obsh_sts'                  // неправильный порядок посадки
-        ];
-        
-        // Зелёная подсветка
-        const greenHighlightIds = [
-
-        
-            "prop_no_radio_start", "prop_bad_sk", "prop_sk_cell",
-            "prop_belt", "bank_belt", "bank_nak_open", "bank_nak",
-            "bank_nak_dv", "pbank_belt1",
-            "puncture_belt", "puncture_no_report", "puncture_handbrake",
-            "puncture_gear", "puncture_repair_report", "us_belt",
-            "us_early_cassette",
-            "us_driver_door_lock", "us_no_command",
-            "us_early_exit",
-            "us_nakop_load", "us_nakop_door",
-            "us_belt1", "vsp_belt", "vsp_nak", "vsp_seif", 
-            "vsp_no_svyaz", "vsp_no_ok", "vsp_sel",
-            "vsp_sk_cell", "vsp_belt1", "shoot_belt", 
-            "shoot_belt1", "fire_belt", "fire_no_report",
-             "fire_bad_sk", "fire_cen", "fire_nak",
-            "fire_sk_cell", "fire_repair_report",
-            "fire_belt1", "med_belt", "med_no_report", "med_no_report1",
-            "med_belt1", "incass_belt", "incass_no_exit_radio", "incass_exit_no_confirm",
-            "incass_blue_key_from_driver", "incass_nakop_after", 
-            "incass_nakop_door_after", "incass_sk_cell_after",
-            "incass_belt1", "handcuff_belt", 
-            "handcuff_no_warning", "handcuff_no_radio_exit", 
-            "handcuff_boarding_no_confirm", "handcuff_driver_no_confirm", 
-            "handcuff_belt1", "obsh_svyaz", "obsh_tsd",
-            "obsh_tsd", "obsh_gun"
-
-            
-        ];
-        
-        function isGreenHighlight(penaltyId) {
-            return greenHighlightIds.includes(penaltyId);
-        }
-        
-        // Специальные идентификаторы для стрельбы
-        const SHOOT_PM_MISS_ID = 'shoot_pm_misses';
-        const SHOOT_SAIGA_HITS_ID = 'shoot_saiga_hits';
-        const PENALTY_PER_MISS_PM = 30;
-        const SAIGA_BONUS_PER_HIT = 10;
-        
-        // ---------- БИБЛИОТЕКА ШТРАФОВ (полная) ----------
-        const penaltiesLibrary = [
-            // === Получение имущества ===
-            { id: "prop_door", category: "Получение имущества", desc: "1. Не закрыты двери/дверь СТС в «гараже»", sec: 30 },
-            { id: "prop_sk", category: "Получение имущества", desc: "Инкассатор: СК не получен", sec: 20 },
-            { id: "prop_yellow_key", category: "Получение имущества", desc: "Инкассатор: Жёлтый ИК-ключ СК не получен", sec: 20 },
-            { id: "prop_nakop_key", category: "Получение имущества", desc: "Инкассатор: Ключ от накопителя не получен", sec: 20 },
-            { id: "prop_dover", category: "Получение имущества", desc: "Инкассатор: Доверенность не получена", sec: 20 },
-            { id: "prop_passport", category: "Получение имущества", desc: "Инкассатор: Паспорт не получен", sec: 20 },
-            { id: "prop_us_key", category: "Получение имущества", desc: "Инкассатор: Ключи от УС не получены", sec: 20 },
-            { id: "prop_tsd", category: "Получение имущества", desc: "Инкассатор: ТСД/радиотерминал не получен", sec: 20 },
-            { id: "prop_ivr", category: "Получение имущества", desc: "Инкассатор: ИВР не получен", sec: 20 },
-            { id: "prop_sk_cell", category: "Получение имущества", desc: "Инкассатор: СК не установлен в специальную ячейку", sec: 20 },
-            { id: "prop_driver_radio", category: "Получение имущества", desc: "Водитель: носимая радиостанция не получена", sec: 20 },
-            { id: "prop_blue_key", category: "Получение имущества", desc: "Водитель: синий ИК-ключ СК не получен", sec: 20 },
-            { id: "prop_car_keys", category: "Получение имущества", desc: "Водитель: ключи от СТС/брелок не получены", sec: 20 },
-            { id: "prop_sumka", category: "Получение имущества", desc: "Не получена сумка-баул для кассет УС", sec: 20 },
-            { id: "prop_check_sk", category: "Получение имущества", desc: "Инкассатор не проверил работоспособность СК с помощью ИК-ключа желтого цвета (открыл/закрыл)", sec: 30 },
-            { id: "prop_no_radio_start", category: "Получение имущества", desc: "Не доложили по автомобильной радиостанции дежурному/оператору ЦМ о начале движения СТС по маршруту (при выезде из «гаража»).", sec: 30 },
-            { id: "prop_bad_sk", category: "Получение имущества", desc: "Некорректное обращение с СК (уронил/кинул на землю)", sec: 50 },
-            { id: "prop_belt", category: "Получение имущества", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            
-            // === Получение банковских ценностей ===
-            { id: "bank_belt", category: "Получение банковских ценностей", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            { id: "bank_cone_1", category: "Получение банковских ценностей", desc: "Наезд на 1 конус", sec: 5 },
-            { id: "bank_cone_2", category: "Получение банковских ценностей", desc: "Наезд на 2 конуса", sec: 10 },
-            { id: "bank_cone_3", category: "Получение банковских ценностей", desc: "Наезд на 3 конуса", sec: 15 },
-            { id: "bank_cone_4", category: "Получение банковских ценностей", desc: "Наезд на 4 и более конуса", sec: 20 },
-            { id: "bank_sts", category: "Получение банковских ценностей", desc: "СТС не заехал в бокс (СТС установлен вне обозначенного периметра)", sec: 50 },    
-            { id: "bank_door_open", category: "Получение банковских ценностей", desc: "Не закрыты двери/дверь СТС в «боксе» ", sec: 30 },
-            { id: "bank_nak_open", category: "Получение банковских ценностей", desc: "Не закрыт накопитель СТС в «боксе» ", sec: 30 },
-            { id: "bank_no_dok", category: "Получение банковских ценностей", desc: "Инкассатор не предъявил документы (удостоверение/ доверенность)", sec: 30 },
-            { id: "bank_bc", category: "Получение банковских ценностей", desc: "Оставление банковских ценностей без охраны", sec: 50 },
-            { id: "bank_scan", category: "Получение банковских ценностей", desc: "Инкассатор не произвел сканирования/имитации с помощью ТСД/радиотерминала ярлыка мешка/ярлыков кассет УС/сейф-пакета (не направил на ярлык мешка/ярлыки кассет УС/сейф-пакет) ", sec: 20 },
-            { id: "bank_ostav", category: "Получение банковских ценностей", desc: "Оставление документов (паспорт, доверенность и т.д.)", sec: 30 },
-            { id: "bank_nak", category: "Получение банковских ценностей", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 30 },
-            { id: "bank_nak_dv", category: "Получение банковских ценностей", desc: "Не была закрыта дверь устройства накопителя до начала движения СТС", sec: 30 },
-            { id: "bank_belt1", category: "Получение банковских ценностей", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-
-            // === Прокол шины ===
-            { id: "puncture_belt", category: "Прокол шины", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            { id: "puncture_no_report", category: "Прокол шины", desc: "Водитель-инкассатор не сообщил по автомобильной радиостанции дежурному/оператору ЦМ о поломке СТС.", sec: 30 },
-            { id: "puncture_hazard", category: "Прокол шины", desc: "Не включена на СТС аварийная сигнализация", sec: 30 },
-            { id: "puncture_engine", category: "Прокол шины", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
-            { id: "puncture_triangle", category: "Прокол шины", desc: "Не выставлен водителем-инкассатором позади СТС в «обозначенное место» знак аварийной остановки", sec: 30 },
-            { id: "puncture_triangle_pass", category: "Прокол шины", desc: "Осуществлена передача инкассатором знака аварийной остановки после выхода из СТС водителю-инкассатору", sec: 30 },
-            { id: "puncture_triangle_side", category: "Прокол шины", desc: "Не выставлен знак аварийной остановки красной светоотражающей частью во внешнюю сторону от СТС", sec: 10 },
-            { id: "puncture_handbrake", category: "Прокол шины", desc: "СТС не заторможен стояночным тормозом", sec: 10 },
-            { id: "puncture_gear", category: "Прокол шины", desc: "Не установлен рычаг переключения передач в положение первой передачи или передачи заднего хода", sec: 10 },
-            { id: "puncture_chocks", category: "Прокол шины", desc: "Под переднее левое колесо не подложены два специальных упора (стопорного башмака) ", sec: 10 },
-            { id: "puncture_jack_pos", category: "Прокол шины", desc: "Головка домкрата не установлена в специальное место СТС (обозначенное судьёй на брифинге)", sec: 30 },
-            { id: "puncture_jack_doors", category: "Прокол шины", desc: "При «поддомкрачивании» спецавтомобиля не закрыты двери/дверь", sec: 50 },
-            { id: "puncture_jack_height", category: "Прокол шины", desc: "СТС не был поддомкрачен на требуемую высоту (чтобы прошла линейка судьи)", sec: 50 },
-            { id: "puncture_imitation", category: "Прокол шины", desc: "Не осуществлена имитация замены колеса (касание колеса)", sec: 20 },
-            { id: "puncture_cleanup_triangle", category: "Прокол шины", desc: "Не убран в СТС знак аварийной остановки", sec: 10 },
-            { id: "puncture_cleanup_chocks", category: "Прокол шины", desc: "Не убраны в сторону два специальных упора (башмака)", sec: 10 },
-            { id: "puncture_cleanup_jack", category: "Прокол шины", desc: "Не откатан в сторону из под СТС домкрат", sec: 10 },
-            { id: "puncture_helper", category: "Прокол шины", desc: "Инкассатор оказывает помощь водителю-инкассатору в выполнении данного упражнения (выставление/убирание башмаков/знака аварийной остановки/домкрата и т.д.)", sec: 30 },
-            { id: "puncture_repair_report", category: "Прокол шины", desc: "Водитель-инкассатор не сообщил по автомобильной радиостанции дежурному/оператору ЦМ об устранении неисправности СТС", sec: 30 },
-            { id: "puncture_belt1", category: "Прокол шины", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-
-            // === Змейка ===
-            { id: "snake_cone", category: "Змейка", desc: "Наезд на конус (1)", sec: 5 },
-            { id: "snake_cone1", category: "Змейка", desc: "Наезд на конус (2)", sec: 10 },
-            { id: "snake_cone2", category: "Змейка", desc: "Наезд на конус (3)", sec: 15 },
-            { id: "snake_cone3", category: "Змейка", desc: "Наезд на конус (4 и более)", sec: 20 },
-
-            // === Обслуживание УС ===
-            { id: "us_belt", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            { id: "us_early_cassette", category: "Обслуживание УС", desc: "Изъятие инкассатором кассет УС из накопителя СТС произведено до остановки СТС", sec: 30 },
-            { id: "us_first_exit", category: "Обслуживание УС", desc: "Инкассатор первым вышел из СТС", sec: 30 },
-            { id: "us_engine", category: "Обслуживание УС", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
-            { id: "us_driver_door_lock", category: "Обслуживание УС", desc: "После выхода из СТС старшего бригады, инкассатор не закрыл за ним водительскую дверь изнутри на механическую задвижку дверь", sec: 30 },
-            { id: "us_no_command", category: "Обслуживание УС", desc: "Старший бригады не подал, по носимой радиостанции, команду инкассатору на выход", sec: 30 },
-            { id: "us_early_exit", category: "Обслуживание УС", desc: "Инкассатор вышел из СТС до команды старшего бригады на выход", sec: 30 },
-            { id: "us_cassette_left", category: "Обслуживание УС", desc: "Инкассатор оставил кассету УС в накопителе", sec: 30 },
-            { id: "us_no_bag", category: "Обслуживание УС", desc: "Транспортировка комплекта кассет УС до/от УС из/до СТС осуществляется без использования сумки-баула", sec: 50 },
-            { id: "us_cassette_dropped", category: "Обслуживание УС", desc: "При транспортировке кассет УС, кассета выпала из сумки-баул на землю", sec: 30 },
-            { id: "us_jam_search", category: "Обслуживание УС", desc: "Не осуществлен поиск и устранения замятия в BRM модуле УС", sec: 30 },
-            { id: "us_jam_bad_fix", category: "Обслуживание УС", desc: "Не корректное устранения замятия (нарушение Памятки 404)", sec: 30 },
-            { id: "us_kup", category: "Обслуживание УС", desc: "Извлеченная/ые купюра/купюры не уложена/ы в находящийся рядом сейф-пакет", sec: 30 },
-            { id: "us_seifpak", category: "Обслуживание УС", desc: "Сейф-пакет не заклеен инкассатором", sec: 30 },
-            { id: "us_no_scan", category: "Обслуживание УС", desc: "С помощью ТСД/радиотерминала не отсканирован сейф-пакет", sec: 30 },
-            { id: "us_seifpak_no_bag", category: "Обслуживание УС", desc: "Сейф-пакет не убран в сумку-баул", sec: 30 },
-            { id: "us_safe_not_open", category: "Обслуживание УС", desc: "Инкассатор не открыл самостоятельно сейф (пришлось обращаться за помощью к судье)", sec: 30 },
-            { id: "us_not_kas", category: "Обслуживание УС", desc: "Кассеты не установлены в соответствии с маркировкой слотов (при этом реджект кассета не установлена в свой слот)", sec: 30 },
-            { id: "us_no_check", category: "Обслуживание УС", desc: "Старший бригады не проверил правильность установки кассет в УС инкассатором", sec: 30 },
-            { id: "us_helper_pack", category: "Обслуживание УС", desc: "Старший бригады оказывает помощь инкассатору в укладке кассет УС в сумку-баул", sec: 30 },
-            { id: "us_code_not_set", category: "Обслуживание УС", desc: "Инкассатор не сбил код замка и не закрыл сейф УС", sec: 30 },
-            { id: "us_left_property", category: "Обслуживание УС", desc: "Оставление имущества (ключ от УС/кассета(ы)/сумка-баул/сейф-пакет)", sec: 30 },
-            { id: "us_senior_first_seat", category: "Обслуживание УС", desc: "Первым сел в СТС старший бригады", sec: 30 },
-            { id: "us_simultaneous_seat", category: "Обслуживание УС", desc: "Старший бригады и инкассатор одновременно сели в СТС", sec: 30 },
-            { id: "us_nakop_load", category: "Обслуживание УС", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 50 },
-            { id: "us_nakop_door", category: "Обслуживание УС", desc: "Не была закрыта дверь устройства накопителя", sec: 30 },
-            { id: "us_broken_key", category: "Обслуживание УС", desc: "Инкассатор при обслуживании УС сломал/погнул/потерял ключ от УС ", sec: 30 },
-            { id: "us_belt1", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-
-             // === Обслуживание ВСП ===
-            { id: "vsp_belt", category: "Обслуживание ВСП", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            { id: "vsp_nak", category: "Обслуживание ВСП", desc: "Инкассатор не закрыл накопитель после изъятия из него сейф-пакета с денежной наличностью", sec: 30 },
-            { id: "vsp_seif", category: "Обслуживание ВСП", desc: "Инкассатор не вложил сейф-пакет с денежной наличностью в СК", sec: 30 },
-            { id: "vsp_sk", category: "Обслуживание ВСП", desc: "Инкассатор не закрыл крышку СК после вложения сейф-пакета с денежной наличностью", sec: 30 },
-            { id: "vsp_no_radio", category: "Обслуживание ВСП", desc: "Инкассатор обслуживает ВСП без носимой радиостанции (не получил у водителя-инкассатора)", sec: 30 },
-            { id: "vsp_no_key", category: "Обслуживание ВСП", desc: "Инкассатор открыл СК без ИК-ключа", sec: 30 },
-            { id: "vsp_no_imit", category: "Обслуживание ВСП", desc: "Не осуществлена имитация сканирования с помощью ТСД/радиотерминала сейф-пакета до вложения сейф-пакета в тележку", sec: 30 },
-            { id: "vsp_no_pak", category: "Обслуживание ВСП", desc: "Не вложен сейф-пакет в тележку", sec: 30 },
-            { id: "vsp_no_plomb", category: "Обслуживание ВСП", desc: "Инкассатор не опломбировал одноразовой пластиковой пломбой тележку (индивидуальное средство хранения)", sec: 30 },
-            { id: "vsp_ostav", category: "Обслуживание ВСП", desc: "Инкассатор оставил СК/имущество на упражнении", sec: 30 },
-            { id: "vsp_no_svyaz", category: "Обслуживание ВСП", desc: "Инкассатор не связался по радиостанции с водителем-инкассатором о возможности выхода с объекта ", sec: 30 },
-            { id: "vsp_no_ok", category: "Обслуживание ВСП", desc: "Водитель-инкассатор не подтвердил по радиостанции возможность выхода", sec: 30 },
-            { id: "vsp_sel", category: "Обслуживание ВСП", desc: "Инкассатор осуществил посадку в СТС без подтверждения от водителя-инкассатора", sec: 30 },
-            { id: "vsp_sk_cell", category: "Обслуживание ВСП", desc: "СК не установлен в специальную ячейку", sec: 30 },
-            { id: "vsp_belt1", category: "Обслуживание ВСП", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            
-            // === Стрельба ===
-            { id: "shoot_belt", category: "Стрельба", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            { id: "shoot_position", category: "Стрельба", desc: "СТС не установлен в обозначенном месте, которое обозначено «Г» образной стоп линией (габариты СТС выходят за обозначенную стоп линию)", sec: 30 },
-            { id: "shoot_engine", category: "Стрельба", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
-            { id: "shoot_door_open", category: "Стрельба", desc: "Не закрыты двери/дверь СТС ", sec: 30 },
-            { id: "shoot_miss", category: "Стрельба", desc: "Не сбита мишень", sec: 10 },
-            { id: "shoot_belt1", category: "Стрельба", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            
-            // === Пожар ===
-            { id: "fire_belt", category: "Пожар", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            { id: "fire_position", category: "Пожар", desc: "СТС не установлен на безопасном расстоянии от огня, которое обозначено «Г» образной стоп линией (габариты СТС выходят за обозначенную стоп линию)", sec: 30 },
-            { id: "fire_engine", category: "Пожар", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
-            { id: "fire_no_report", category: "Пожар", desc: "Водитель-инкассатор не доложил по автомобильной радиостанции дежурному инкассатору/оператору ЦМ о пожаре в СТС", sec: 30 },
-            { id: "fire_avar", category: "Пожар", desc: "Не включена на СТС аварийная сигнализация", sec: 10 },
-            { id: "fire_mayak", category: "Пожар", desc: "Не включен на СТС маячок бело лунного цвета", sec: 10 },
-            { id: "fire_dver_ruk", category: "Пожар", desc: "Водитель-инкассатор открыл руками дверь СТС инкассатору (заднюю правую)", sec: 30 },
-            { id: "fire_ext", category: "Пожар", desc: "Водитель-инкассатор не достал огнетушитель из СТС и тушение осуществлялось из огнетушителя, который находился у стола (запасной)", sec: 30 },
-            { id: "fire_not_been", category: "Пожар", desc: "Водитель-инкассатор не осуществил тушение пожара ", sec: 50 },
-            { id: "fire_no_location", category: "Пожар", desc: "Инкассатор эвакуирует ценности не в обозначенное место", sec: 30 },		
-            { id: "fire_evac", category: "Пожар", desc: "Не все банковские ценности эвакуированы из СТС", sec: 30 },
-            { id: "fire_bad_sk", category: "Пожар", desc: "Некорректное обращение с СК (уронил/кинул на землю)/ не вынес СК из СТС", sec: 50 },
-            { id: "fire_flag", category: "Пожар", desc: "Банковские ценности переносятся в СТС до команды работника МЧС «Потушено»/поднятия флага", sec: 30 },
-            { id: "fire_vmeste", category: "Пожар", desc: "Водитель-инкассатор вместе с инкассатором переносит ценности в СТС", sec: 30 },
-            { id: "fire_close_dver_ruk", category: "Пожар", desc: "Водитель-инкассатор закрыл руками дверь СТС инкассатору (заднюю правую)", sec: 30 },
-            { id: "fire_cen", category: "Пожар", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 30 },
-            { id: "fire_nak", category: "Пожар", desc: "Не была закрыта дверь устройства накопителя после вложения банковских ценностей", sec: 30 },
-            { id: "fire_sk_cell", category: "Пожар", desc: "Инкассатор: СК не установлен в специальную ячейку", sec: 20 },
-            { id: "fire_belt1", category: "Пожар", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            { id: "fire_repair_report", category: "Пожар", desc: "Водитель-инкассатор не сообщил по автомобильной радиостанции дежурному/оператору ЦМ о тушение пожара СТС", sec: 30 },
-           
-            
-            // === Медицина ===
-            { id: "med_belt", category: "Медицина", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            { id: "med_position", category: "Медицина", desc: "СТС не установлен на безопасном расстоянии от огня, которое обозначено «Г» образной стоп линией (габариты СТС выходят за обозначенную стоп линию)", sec: 30 },
-            { id: "med_no_report", category: "Медицина", desc: "Водитель-инкассатор по автомобильной радиостанции не сообщил дежурному/оператору ЦМ о «необходимости оказания первой помощи пострадавшему»", sec: 30 },
-            { id: "med_engine", category: "Медицина", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
-            { id: "med_tourniquet", category: "Медицина", desc: "Наложение турникета на несоответствующую область (бедро) (ниже обозначенного места ранения, на место ранения)", sec: 30 },
-            { id: "med_time", category: "Медицина", desc: "Не обозначено время наложения турникета (бедро)", sec: 30 },
-            { id: "med_tourniquet_povtor", category: "Медицина", desc: "Неправильное наложение турникета ( на бедро), что вызвало повторное кровотечение, угрожающее жизни раненого (расслабление или соскальзывание)",sec: 30 },
-            { id: "med_ipp", category: "Медицина", desc: "Наложение ИПП на несоответствующую область (предплечья) (ниже обозначенного места ранения, на место ранения)", sec: 30 },
-            { id: "med_ipp_razm", category: "Медицина", desc: "Не полностью размотан ИПП на поврежденной области (предплечья)", sec: 20 },
-            { id: "med_ipp_povtor", category: "Медицина", desc: "Неправильное наложение ИПП (предплечье), что  вызвало повторное кровотечение угрожающее жизни раненого (расслабление или соскальзывание)", sec: 30 },
-            { id: "med_ipp_rasl", category: "Медицина", desc: "В случае расслабления или соскальзывания турникета и/или ИПП с манекена во время транспортировки не осуществлено его повторное наложение", sec: 30 },
-            { id: "med_stretcher", category: "Медицина", desc: "Бригада при транспортировки манекена бригада уронила его на землю", sec: 30 },
-            { id: "med_stretcher_ukr", category: "Медицина", desc: "Бригада не переместила манекен в укрытие (обозначенное место)", sec: 30 },
-            { id: "med_no_report1", category: "Медицина", desc: "Водитель-инкассатор не доложил по автомобильной радиостанции дежурному инкассатору/оператору ЦМ об оказании первой медицинской помощи пострадавшему", sec: 30 },
-            { id: "med_belt1", category: "Медицина", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-  
-            // === Инкассация объекта ===
-            { id: "incass_belt", category: "Инкассация объекта", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            { id: "incass_no_radio", category: "Инкассация объекта", desc: "Инкассатор инкассирует клиента без носимой радиостанции (не получил у водителя-инкассатора)", sec: 30 },
-            { id: "incass_no_docs", category: "Инкассация объекта", desc: "Инкассатор не предъявил документы (паспорт, доверенность)", sec: 30 },
-            { id: "incass_no_scan", category: "Инкассация объекта", desc: "Инкассатор не произвел сканирования/имитации с помощью ТСД/радиотерминал сейф-пакета (не направил ТСД/радиотерминал на сейф-пакет)", sec: 20 },
-            { id: "incass_no_sign", category: "Инкассация объекта", desc: "Инкассатор не передал ТСД/радиотерминал клиенту для проставления стилусом своей подписи", sec: 20 },
-            { id: "incass_open_sk_no_key", category: "Инкассация объекта", desc: "Инкассатор открыл СК без ИК-ключа", sec: 30 },
-            { id: "incass_not_loaded", category: "Инкассация объекта", desc: "Не заложен пакет с банковскими ценностями в СК после инкассации объекта", sec: 50 },
-            { id: "incass_tumbler_blue", category: "Инкассация объекта", desc: "Инкассатор не переключил тумблер выбора деактивационного ключа в синее положение", sec: 30 },
-            { id: "incass_sk_not_closed", category: "Инкассация объекта", desc: "Инкассатор не закрыл СК после вложения сейф-пакета с банковскими ценностями", sec: 30 },
-            { id: "incass_left_docs", category: "Инкассация объекта", desc: "Оставление документов (паспорт, доверенность)", sec: 30 },
-            { id: "incass_left_packet", category: "Инкассация объекта", desc: "Оставление сейф-пакета с денежной наличностью", sec: 30 },
-            { id: "incass_left_sk", category: "Инкассация объекта", desc: "Оставление СК", sec: 30 },
-            { id: "incass_no_exit_radio", category: "Инкассация объекта", desc: "Инкассатор не связался по радиостанции с водителем-инкассатором о возможности выхода с объекта инкассации", sec: 30 },
-            { id: "incass_exit_no_confirm", category: "Инкассация объекта", desc: "Не получив подтверждение на выход из объекта от водителя-инкассатора начал инкассатор выходить", sec: 30 },
-            { id: "incass_blue_key_from_driver", category: "Инкассация объекта", desc: "Взял не у водителя-инкассатора ИК-ключ синего цвета в СТС", sec: 30 },
-            { id: "incass_tumbler_yellow_back", category: "Инкассация объекта", desc: "После извлечения сейф-пакета с денежной наличности тумблер выбора деактивационного ключа не был переведён в желтое положение", sec: 30 },
-            { id: "incass_nakop_after", category: "Инкассация объекта", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 50 },
-            { id: "incass_nakop_door_after", category: "Инкассация объекта", desc: "Не была закрыта дверь устройства накопителя", sec: 30 },
-            { id: "incass_sk_cell_after", category: "Инкассация объекта", desc: "СК не установлен в специальную ячейку", sec: 20 },
-            { id: "incass_belt1", category: "Инкассация объекта", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            
-            // === Вооруженный преступник ===
-            { id: "prestupnik_mish", category: "Вооруженный преступник", desc: "Не сдвинута бампером СТС с места выставленная специальная поясная мишень (с оружием)/не коснулся бампером СТС выставленную специальную поясную мишень (с оружием)", sec: 30 },
-            { id: "prestupnik_cone", category: "Вооруженный преступник", desc: "Наезд на конус (1)", sec: 5 },
-            { id: "prestupnik_cone1", category: "Вооруженный преступник", desc: "Наезд на конус (2)", sec: 10 },
-            { id: "prestupnik_cone2", category: "Вооруженный преступник", desc: "Наезд на конус (3)", sec: 15 },
-            { id: "prestupnik_cone3", category: "Вооруженный преступник", desc: "Наезд на конус (4 и более)", sec: 20 },
-            { id: "prestupnik_shluz", category: "Вооруженный преступник", desc: "СТС вышел за пределы габарита шлюзового бокса", sec: 5 },
-            { id: "prestupnik_ogr_cone", category: "Вооруженный преступник", desc: "СТС совершил наезд на ограждающий конус", sec: 5 },
-
-            // === Наручники ===
-            { id: "handcuff_belt", category: "Наручники", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-            { id: "handcuff_no_warning", category: "Наручники", desc: "Инкассатор не предупредил о применении специального средства: Стой, применяю специальное средство - наручники", sec: 10 },
-            { id: "handcuff_loose", category: "Наручники", desc: "В надетом состоянии наручники не надежно зафиксировали конечность (то есть наручники без усилий снимаются с рук манекена). ", sec: 30 },
-            { id: "handcuff_no_report", category: "Наручники", desc: "Инкассатор не осуществил доклад: Наручники надеты", sec: 10 },
-            { id: "handcuff_no_radio", category: "Наручники", desc: "Инкассатор без носимой радиостанции (не получил у водителя-инкассатора)", sec: 30 },
-            { id: "handcuff_no_radio_exit", category: "Наручники", desc: "Инкассатор не связался по радиостанции с водителем-инкассатором о возможности выхода с объекта ", sec: 30 },
-            { id: "handcuff_boarding_no_confirm", category: "Наручники", desc: "Инкассатор осуществил посадку в СТС без подтверждения от водителя-инкассатора", sec: 30 },
-            { id: "handcuff_driver_no_confirm", category: "Наручники", desc: "Водитель-инкассатор не подтвердил по радиостанции возможность выхода", sec: 30 },
-            { id: "handcuff_belt1", category: "Наручники", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
-
-          
-            // === Общие штрафы ===
-            { id: "obsh_bez", category: "Общие штрафы", desc: "Нарушение безопасности движения в результате выезда за границы маршрута (наезда на ограничивающие маршрут конструкции).", sec: 50 },
-            { id: "obsh_lic", category: "Общие штрафы", desc: "Проход лиц за ограждение, на территорию площадки, во время проведения упражнения «Эстафета» без разрешения главного судьи, штрафные баллы присуждаются команде данного представителя/участника", sec: 30 },
-            { id: "obsh_svyaz", category: "Общие штрафы", desc: "Неаккуратное обращение со средствами связи (уронил носимую радиостанцию на пол в СТС/на дорожное покрытие)", sec: 30 },
-            { id: "obsh_ivr", category: "Общие штрафы", desc: "Неаккуратное обращение с ИВР (уронил ИВР на пол в СТС/на дорожное покрытие)", sec: 30 },
-            { id: "obsh_tsd", category: "Общие штрафы", desc: "Неаккуратное обращение с  ТСД/радиотерминалом (уронил на пол в СТС/на дорожное покрытие)", sec: 30 },
-            { id: "obsh_gun", category: "Общие штрафы", desc: "Выпадение пистолета из кобуры", sec: 20 },
-            { id: "obsh_sts", category: "Общие штрафы", desc: "Выход из СТС/посадка в СТС не осуществлена в следующем порядке: инкассатор через заднюю правую дверь, водитель-инкассатор через левую переднюю дверь", sec: 20 }
-        ];
-        
-        // ---------- СОСТОЯНИЕ ----------
-        let currentDirection = null;
-        let currentTeam = null;
-        let currentStage = stages[0];
-        let tempPenalties = {};      // для bool: true/false; для счётчиков: число
-        let hasUnsavedChanges = false;
-        
-        // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
-        function formatTime(sec) {
-            if (sec === null || isNaN(sec)) return "—";
-            let minutes = Math.floor(sec / 60);
-            let seconds = (sec % 60).toFixed(2);
-            return minutes + ":" + seconds.toString().padStart(5, '0');
-        }
-        
-        function parseTime(str) {
-            if (!str.trim()) return null;
-            str = str.trim();
-            let parts = str.split(':');
-            let minutes = 0, seconds = 0;
-            if (parts.length === 2) {
-                minutes = parseInt(parts[0]) || 0;
-                let secPart = parts[1];
-                let dotIndex = secPart.indexOf('.');
-                if (dotIndex !== -1) {
-                    seconds = parseInt(secPart.substring(0, dotIndex)) || 0;
-                    let fraction = parseFloat('0.' + secPart.substring(dotIndex + 1)) || 0;
-                    seconds += fraction;
-                } else {
-                    seconds = parseInt(secPart) || 0;
-                }
-            } else if (parts.length === 1) {
-                let secPart = parts[0];
-                let dotIndex = secPart.indexOf('.');
-                if (dotIndex !== -1) seconds = parseFloat(secPart);
-                else seconds = parseInt(secPart) || 0;
-                minutes = 0;
-            } else return null;
-            let total = minutes * 60 + seconds;
-            return isNaN(total) ? null : total;
-        }
-        
-        // Универсальная сумма штрафа: поддерживает bool (true = 1) и числа
-        function getPenaltySum(penObj) {
-            if (!penObj) return 0;
-            let sum = 0;
-            for (let id in penObj) {
-                let p = penaltiesLibrary.find(p => p.id === id);
-                if (p) {
-                    let val = penObj[id];
-                    if (typeof val === 'number') sum += val * p.sec;
-                    else if (val === true) sum += p.sec;
-                }
-            }
-            // Добавляем штраф за промахи ПМ и бонус за попадания Сайги
-            let pmMisses = penObj[SHOOT_PM_MISS_ID] || 0;
-            let saigaHits = penObj[SHOOT_SAIGA_HITS_ID] || 0;
-            sum += pmMisses * PENALTY_PER_MISS_PM;
-            sum -= saigaHits * SAIGA_BONUS_PER_HIT;
-            return sum;
-        }
-        
-        // Функции для работы с конусами на этапе "Получение банковских ценностей"
-        function getBankConesCount(penObj) {
-            if (!penObj) return 0;
-            if (penObj.bank_cone_4) return 4;
-            if (penObj.bank_cone_3) return 3;
-            if (penObj.bank_cone_2) return 2;
-            if (penObj.bank_cone_1) return 1;
-            return 0;
-        }
-        function setBankConesCount(count) {
-            delete tempPenalties.bank_cone_1;
-            delete tempPenalties.bank_cone_2;
-            delete tempPenalties.bank_cone_3;
-            delete tempPenalties.bank_cone_4;
-            if (count === 1) tempPenalties.bank_cone_1 = true;
-            else if (count === 2) tempPenalties.bank_cone_2 = true;
-            else if (count === 3) tempPenalties.bank_cone_3 = true;
-            else if (count >= 4) tempPenalties.bank_cone_4 = true;
-        }
-        
-        // Функции для конусов на этапе "Змейка"
-        function getSnakeConesCount(penObj) {
-            if (!penObj) return 0;
-            if (penObj.snake_cone3) return 4;
-            if (penObj.snake_cone2) return 3;
-            if (penObj.snake_cone1) return 2;
-            if (penObj.snake_cone) return 1;
-            return 0;
-        }
-        function setSnakeConesCount(count) {
-            delete tempPenalties.snake_cone;
-            delete tempPenalties.snake_cone1;
-            delete tempPenalties.snake_cone2;
-            delete tempPenalties.snake_cone3;
-            if (count === 1) tempPenalties.snake_cone = true;
-            else if (count === 2) tempPenalties.snake_cone1 = true;
-            else if (count === 3) tempPenalties.snake_cone2 = true;
-            else if (count >= 4) tempPenalties.snake_cone3 = true;
-        }
-        
-        // Функции для конусов на этапе "Вооруженный преступник"
-        function getPrestupnikConesCount(penObj) {
-            if (!penObj) return 0;
-            if (penObj.prestupnik_cone3) return 4;
-            if (penObj.prestupnik_cone2) return 3;
-            if (penObj.prestupnik_cone1) return 2;
-            if (penObj.prestupnik_cone) return 1;
-            return 0;
-        }
-        function setPrestupnikConesCount(count) {
-            delete tempPenalties.prestupnik_cone;
-            delete tempPenalties.prestupnik_cone1;
-            delete tempPenalties.prestupnik_cone2;
-            delete tempPenalties.prestupnik_cone3;
-            if (count === 1) tempPenalties.prestupnik_cone = true;
-            else if (count === 2) tempPenalties.prestupnik_cone1 = true;
-            else if (count === 3) tempPenalties.prestupnik_cone2 = true;
-            else if (count >= 4) tempPenalties.prestupnik_cone3 = true;
-        }
-        
-        // ---------- РАБОТА С SUPABASE ----------
-        async function fetchWithRetry(fn, retries = 3, delay = 1000) {
-            for (let i = 0; i < retries; i++) {
-                try { return await fn(); } catch (err) {
-                    if (i === retries - 1) throw err;
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                }
-            }
-        }
-        
-        async function loadTeamData(dir, team) {
-            if (!dir || !team) return null;
-            return await fetchWithRetry(async () => {
-                let { data, error } = await supabaseClient
-                    .from('estafeta_results')
-                    .select('raw_seconds, penalties')
-                    .eq('direction', dir)
-                    .eq('team_code', team)
-                    .maybeSingle();
-                if (error) throw error;
-                return data;
-            }).catch(err => { console.error(err); return null; });
-        }
-        
-        async function saveTeamData(dir, team, rawSeconds, penalties) {
-            let upsertData = { direction: dir, team_code: team, raw_seconds: rawSeconds, penalties: penalties, updated_at: new Date().toISOString() };
-            await fetchWithRetry(async () => {
-                let { error } = await supabaseClient.from('estafeta_results').upsert(upsertData, { onConflict: 'direction, team_code' });
-                if (error) throw error;
-            }).catch(err => console.error(err));
-        }
-        
-        async function loadAllResults() {
-            try {
-                let { data, error } = await supabaseClient.from('estafeta_results').select('direction, team_code, raw_seconds, penalties');
-                if (error) throw error;
-                let rows = [];
-                for (let r of data) {
-                    let raw = r.raw_seconds;
-                    let penalty = getPenaltySum(r.penalties);
-                    let total = raw !== null ? raw + penalty : null;
-                    rows.push({ team: r.team_code, name: teamNames[r.team_code] || r.team_code, dir: r.direction, raw, penalty, total });
-                }
-                rows.sort((a,b) => {
-                    if (a.total === null && b.total === null) return 0;
-                    if (a.total === null) return 1;
-                    if (b.total === null) return -1;
-                    return a.total - b.total;
-                });
-                let tbody = document.getElementById('resultsBody');
-                tbody.innerHTML = '';
-                let rank = 1;
-                for (let r of rows) {
-                    let tr = document.createElement('tr');
-                    if (r.total !== null && rank === 1) tr.classList.add('rank-1');
-                    tr.innerHTML = `<td>${r.total !== null ? rank++ : '—'}</td>
-                                    <td><strong>${r.name}</strong> (${r.team})</td>
-                                    <td>${r.dir}</td>
-                                    <td>${r.raw !== null ? formatTime(r.raw) : '—'}</td>
-                                    <td>${r.penalty}</td>
-                                    <td>${r.total !== null ? formatTime(r.total) : '—'}</td>`;
-                    tbody.appendChild(tr);
-                }
-                if (rows.length === 0) tbody.innerHTML = '<tr><td colspan="6">Нет данных. Внесите результаты.</td></tr>';
-            } catch (err) {
-                console.error(err);
-                document.getElementById('resultsBody').innerHTML = `<tr><td colspan="6">Ошибка загрузки: ${err.message}</td></tr>`;
-            }
-        }
-        
-        async function refreshCurrentTeamData() {
-            if (!currentDirection || !currentTeam) {
-                document.getElementById('rawTimeDisplay').innerText = '—';
-                document.getElementById('totalPenaltyDisplay').innerText = '0';
-                document.getElementById('totalTimeDisplay').innerText = '—';
-                document.getElementById('rawTimeInput').value = '';
-                return;
-            }
-            let data = await loadTeamData(currentDirection, currentTeam);
-            if (data) {
-                let raw = data.raw_seconds;
-                let penaltiesObj = data.penalties || {};
-                let totalPen = getPenaltySum(penaltiesObj);
-                document.getElementById('rawTimeDisplay').innerText = raw !== null ? formatTime(raw) : '—';
-                document.getElementById('totalPenaltyDisplay').innerText = totalPen;
-                let total = raw !== null ? raw + totalPen : null;
-                document.getElementById('totalTimeDisplay').innerText = total !== null ? formatTime(total) : '—';
-                document.getElementById('rawTimeInput').value = raw !== null ? formatTime(raw) : '';
-                
-                // Инициализируем tempPenalties для текущего этапа
-                let stagePenalties = penaltiesLibrary.filter(p => p.category === currentStage);
-                tempPenalties = {};
-                for (let p of stagePenalties) {
-                    let saved = penaltiesObj[p.id];
-                    if (saved !== undefined) {
-                        if (typeof saved === 'number') tempPenalties[p.id] = saved;
-                        else if (saved === true) tempPenalties[p.id] = true;
-                        else if (saved === false) tempPenalties[p.id] = false;
-                        else tempPenalties[p.id] = saved;
-                    } else {
-                        if (counterPenaltyIds.includes(p.id)) tempPenalties[p.id] = 0;
-                        else tempPenalties[p.id] = false;
-                    }
-                }
-                // Для этапа стрельба добавляем специальные счётчики
-                if (currentStage === "Стрельба") {
-                    let pm = penaltiesObj[SHOOT_PM_MISS_ID];
-                    let saiga = penaltiesObj[SHOOT_SAIGA_HITS_ID];
-                    tempPenalties[SHOOT_PM_MISS_ID] = (typeof pm === 'number') ? pm : 0;
-                    tempPenalties[SHOOT_SAIGA_HITS_ID] = (typeof saiga === 'number') ? saiga : 0;
-                } else {
-                    delete tempPenalties[SHOOT_PM_MISS_ID];
-                    delete tempPenalties[SHOOT_SAIGA_HITS_ID];
-                }
-                hasUnsavedChanges = false;
+(function() {
+    // ---------- SUPABASE ----------
+    const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    const teamNames = {
+        "УБ": "Уральский", "ДВБ": "Дальневосточный", "ББ": "Байкальский", "МРД": "ПЦП МРД ЦУНДО",
+        "ЦЧБ": "Центрально-Черноземный", "ЮЗБ": "Юго-Западный", "ПВБ": "Поволжский",
+        "СИБ": "Сибирский", "СРБ": "Среднерусский", "СЗБ": "Северо-Западный", "ВВБ": "Волго-Вятский"
+    };
+    
+    const stages = [
+        "Получение имущества", "Получение банковских ценностей", "Прокол шины", "Змейка",
+        "Обслуживание УС", "Обслуживание ВСП", "Стрельба", "Пожар", "Медицина",
+        "Инкассация объекта", "Вооруженный преступник", "Наручники", "Общие штрафы"
+    ];
+    
+    const counterPenaltyIds = [
+        'puncture_helper', 'us_cassette_dropped', 'us_jam_search', 'us_jam_bad_fix',
+        'us_not_kas', 'us_left_property', 'fire_bad_sk', 'obsh_svyaz',
+        'obsh_ivr', 'obsh_tsd', 'obsh_gun', 'obsh_sts'
+    ];
+    
+    const greenHighlightIds = [
+        "prop_no_radio_start", "prop_bad_sk", "prop_sk_cell", "prop_belt", "bank_belt",
+        "bank_nak_open", "bank_nak", "bank_nak_dv", "pbank_belt1", "puncture_belt",
+        "puncture_no_report", "puncture_handbrake", "puncture_gear", "puncture_repair_report",
+        "us_belt", "us_early_cassette", "us_driver_door_lock", "us_no_command", "us_early_exit",
+        "us_nakop_load", "us_nakop_door", "us_belt1", "vsp_belt", "vsp_nak", "vsp_seif",
+        "vsp_no_svyaz", "vsp_no_ok", "vsp_sel", "vsp_sk_cell", "vsp_belt1", "shoot_belt",
+        "shoot_belt1", "fire_belt", "fire_no_report", "fire_bad_sk", "fire_cen", "fire_nak",
+        "fire_sk_cell", "fire_repair_report", "fire_belt1", "med_belt", "med_no_report",
+        "med_no_report1", "med_belt1", "incass_belt", "incass_no_exit_radio", "incass_exit_no_confirm",
+        "incass_blue_key_from_driver", "incass_nakop_after", "incass_nakop_door_after",
+        "incass_sk_cell_after", "incass_belt1", "handcuff_belt", "handcuff_no_warning",
+        "handcuff_no_radio_exit", "handcuff_boarding_no_confirm", "handcuff_driver_no_confirm",
+        "handcuff_belt1", "obsh_svyaz", "obsh_tsd", "obsh_gun"
+    ];
+    
+    function isGreenHighlight(id) { return greenHighlightIds.includes(id); }
+    
+    const SHOOT_PM_MISS_ID = 'shoot_pm_misses';
+    const SHOOT_SAIGA_HITS_ID = 'shoot_saiga_hits';
+    const PENALTY_PER_MISS_PM = 30;
+    const SAIGA_BONUS_PER_HIT = 10;
+    
+    // ================= ПОЛНАЯ БИБЛИОТЕКА ШТРАФОВ (из исходного файла) =================
+    const penaltiesLibrary = [
+        { id: "prop_door", category: "Получение имущества", desc: "1. Не закрыты двери/дверь СТС в «гараже»", sec: 30 },
+        { id: "prop_sk", category: "Получение имущества", desc: "Инкассатор: СК не получен", sec: 20 },
+        { id: "prop_yellow_key", category: "Получение имущества", desc: "Инкассатор: Жёлтый ИК-ключ СК не получен", sec: 20 },
+        { id: "prop_nakop_key", category: "Получение имущества", desc: "Инкассатор: Ключ от накопителя не получен", sec: 20 },
+        { id: "prop_dover", category: "Получение имущества", desc: "Инкассатор: Доверенность не получена", sec: 20 },
+        { id: "prop_passport", category: "Получение имущества", desc: "Инкассатор: Паспорт не получен", sec: 20 },
+        { id: "prop_us_key", category: "Получение имущества", desc: "Инкассатор: Ключи от УС не получены", sec: 20 },
+        { id: "prop_tsd", category: "Получение имущества", desc: "Инкассатор: ТСД/радиотерминал не получен", sec: 20 },
+        { id: "prop_ivr", category: "Получение имущества", desc: "Инкассатор: ИВР не получен", sec: 20 },
+        { id: "prop_sk_cell", category: "Получение имущества", desc: "Инкассатор: СК не установлен в специальную ячейку", sec: 20 },
+        { id: "prop_driver_radio", category: "Получение имущества", desc: "Водитель: носимая радиостанция не получена", sec: 20 },
+        { id: "prop_blue_key", category: "Получение имущества", desc: "Водитель: синий ИК-ключ СК не получен", sec: 20 },
+        { id: "prop_car_keys", category: "Получение имущества", desc: "Водитель: ключи от СТС/брелок не получены", sec: 20 },
+        { id: "prop_sumka", category: "Получение имущества", desc: "Не получена сумка-баул для кассет УС", sec: 20 },
+        { id: "prop_check_sk", category: "Получение имущества", desc: "Инкассатор не проверил работоспособность СК с помощью ИК-ключа желтого цвета (открыл/закрыл)", sec: 30 },
+        { id: "prop_no_radio_start", category: "Получение имущества", desc: "Не доложили по автомобильной радиостанции дежурному/оператору ЦМ о начале движения СТС по маршруту (при выезде из «гаража»).", sec: 30 },
+        { id: "prop_bad_sk", category: "Получение имущества", desc: "Некорректное обращение с СК (уронил/кинул на землю)", sec: 50 },
+        { id: "prop_belt", category: "Получение имущества", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "bank_belt", category: "Получение банковских ценностей", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "bank_cone_1", category: "Получение банковских ценностей", desc: "Наезд на 1 конус", sec: 5 },
+        { id: "bank_cone_2", category: "Получение банковских ценностей", desc: "Наезд на 2 конуса", sec: 10 },
+        { id: "bank_cone_3", category: "Получение банковских ценностей", desc: "Наезд на 3 конуса", sec: 15 },
+        { id: "bank_cone_4", category: "Получение банковских ценностей", desc: "Наезд на 4 и более конуса", sec: 20 },
+        { id: "bank_sts", category: "Получение банковских ценностей", desc: "СТС не заехал в бокс (СТС установлен вне обозначенного периметра)", sec: 50 },    
+        { id: "bank_door_open", category: "Получение банковских ценностей", desc: "Не закрыты двери/дверь СТС в «боксе» ", sec: 30 },
+        { id: "bank_nak_open", category: "Получение банковских ценностей", desc: "Не закрыт накопитель СТС в «боксе» ", sec: 30 },
+        { id: "bank_no_dok", category: "Получение банковских ценностей", desc: "Инкассатор не предъявил документы (удостоверение/ доверенность)", sec: 30 },
+        { id: "bank_bc", category: "Получение банковских ценностей", desc: "Оставление банковских ценностей без охраны", sec: 50 },
+        { id: "bank_scan", category: "Получение банковских ценностей", desc: "Инкассатор не произвел сканирования/имитации с помощью ТСД/радиотерминала ярлыка мешка/ярлыков кассет УС/сейф-пакета (не направил на ярлык мешка/ярлыки кассет УС/сейф-пакет) ", sec: 20 },
+        { id: "bank_ostav", category: "Получение банковских ценностей", desc: "Оставление документов (паспорт, доверенность и т.д.)", sec: 30 },
+        { id: "bank_nak", category: "Получение банковских ценностей", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 30 },
+        { id: "bank_nak_dv", category: "Получение банковских ценностей", desc: "Не была закрыта дверь устройства накопителя до начала движения СТС", sec: 30 },
+        { id: "bank_belt1", category: "Получение банковских ценностей", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "puncture_belt", category: "Прокол шины", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "puncture_no_report", category: "Прокол шины", desc: "Водитель-инкассатор не сообщил по автомобильной радиостанции дежурному/оператору ЦМ о поломке СТС.", sec: 30 },
+        { id: "puncture_hazard", category: "Прокол шины", desc: "Не включена на СТС аварийная сигнализация", sec: 30 },
+        { id: "puncture_engine", category: "Прокол шины", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
+        { id: "puncture_triangle", category: "Прокол шины", desc: "Не выставлен водителем-инкассатором позади СТС в «обозначенное место» знак аварийной остановки", sec: 30 },
+        { id: "puncture_triangle_pass", category: "Прокол шины", desc: "Осуществлена передача инкассатором знака аварийной остановки после выхода из СТС водителю-инкассатору", sec: 30 },
+        { id: "puncture_triangle_side", category: "Прокол шины", desc: "Не выставлен знак аварийной остановки красной светоотражающей частью во внешнюю сторону от СТС", sec: 10 },
+        { id: "puncture_handbrake", category: "Прокол шины", desc: "СТС не заторможен стояночным тормозом", sec: 10 },
+        { id: "puncture_gear", category: "Прокол шины", desc: "Не установлен рычаг переключения передач в положение первой передачи или передачи заднего хода", sec: 10 },
+        { id: "puncture_chocks", category: "Прокол шины", desc: "Под переднее левое колесо не подложены два специальных упора (стопорного башмака) ", sec: 10 },
+        { id: "puncture_jack_pos", category: "Прокол шины", desc: "Головка домкрата не установлена в специальное место СТС (обозначенное судьёй на брифинге)", sec: 30 },
+        { id: "puncture_jack_doors", category: "Прокол шины", desc: "При «поддомкрачивании» спецавтомобиля не закрыты двери/дверь", sec: 50 },
+        { id: "puncture_jack_height", category: "Прокол шины", desc: "СТС не был поддомкрачен на требуемую высоту (чтобы прошла линейка судьи)", sec: 50 },
+        { id: "puncture_imitation", category: "Прокол шины", desc: "Не осуществлена имитация замены колеса (касание колеса)", sec: 20 },
+        { id: "puncture_cleanup_triangle", category: "Прокол шины", desc: "Не убран в СТС знак аварийной остановки", sec: 10 },
+        { id: "puncture_cleanup_chocks", category: "Прокол шины", desc: "Не убраны в сторону два специальных упора (башмака)", sec: 10 },
+        { id: "puncture_cleanup_jack", category: "Прокол шины", desc: "Не откатан в сторону из под СТС домкрат", sec: 10 },
+        { id: "puncture_helper", category: "Прокол шины", desc: "Инкассатор оказывает помощь водителю-инкассатору в выполнении данного упражнения (выставление/убирание башмаков/знака аварийной остановки/домкрата и т.д.)", sec: 30 },
+        { id: "puncture_repair_report", category: "Прокол шины", desc: "Водитель-инкассатор не сообщил по автомобильной радиостанции дежурному/оператору ЦМ об устранении неисправности СТС", sec: 30 },
+        { id: "puncture_belt1", category: "Прокол шины", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "snake_cone", category: "Змейка", desc: "Наезд на конус (1)", sec: 5 },
+        { id: "snake_cone1", category: "Змейка", desc: "Наезд на конус (2)", sec: 10 },
+        { id: "snake_cone2", category: "Змейка", desc: "Наезд на конус (3)", sec: 15 },
+        { id: "snake_cone3", category: "Змейка", desc: "Наезд на конус (4 и более)", sec: 20 },
+        { id: "us_belt", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "us_early_cassette", category: "Обслуживание УС", desc: "Изъятие инкассатором кассет УС из накопителя СТС произведено до остановки СТС", sec: 30 },
+        { id: "us_first_exit", category: "Обслуживание УС", desc: "Инкассатор первым вышел из СТС", sec: 30 },
+        { id: "us_engine", category: "Обслуживание УС", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
+        { id: "us_driver_door_lock", category: "Обслуживание УС", desc: "После выхода из СТС старшего бригады, инкассатор не закрыл за ним водительскую дверь изнутри на механическую задвижку дверь", sec: 30 },
+        { id: "us_no_command", category: "Обслуживание УС", desc: "Старший бригады не подал, по носимой радиостанции, команду инкассатору на выход", sec: 30 },
+        { id: "us_early_exit", category: "Обслуживание УС", desc: "Инкассатор вышел из СТС до команды старшего бригады на выход", sec: 30 },
+        { id: "us_cassette_left", category: "Обслуживание УС", desc: "Инкассатор оставил кассету УС в накопителе", sec: 30 },
+        { id: "us_no_bag", category: "Обслуживание УС", desc: "Транспортировка комплекта кассет УС до/от УС из/до СТС осуществляется без использования сумки-баула", sec: 50 },
+        { id: "us_cassette_dropped", category: "Обслуживание УС", desc: "При транспортировке кассет УС, кассета выпала из сумки-баул на землю", sec: 30 },
+        { id: "us_jam_search", category: "Обслуживание УС", desc: "Не осуществлен поиск и устранения замятия в BRM модуле УС", sec: 30 },
+        { id: "us_jam_bad_fix", category: "Обслуживание УС", desc: "Не корректное устранения замятия (нарушение Памятки 404)", sec: 30 },
+        { id: "us_kup", category: "Обслуживание УС", desc: "Извлеченная/ые купюра/купюры не уложена/ы в находящийся рядом сейф-пакет", sec: 30 },
+        { id: "us_seifpak", category: "Обслуживание УС", desc: "Сейф-пакет не заклеен инкассатором", sec: 30 },
+        { id: "us_no_scan", category: "Обслуживание УС", desc: "С помощью ТСД/радиотерминала не отсканирован сейф-пакет", sec: 30 },
+        { id: "us_seifpak_no_bag", category: "Обслуживание УС", desc: "Сейф-пакет не убран в сумку-баул", sec: 30 },
+        { id: "us_safe_not_open", category: "Обслуживание УС", desc: "Инкассатор не открыл самостоятельно сейф (пришлось обращаться за помощью к судье)", sec: 30 },
+        { id: "us_not_kas", category: "Обслуживание УС", desc: "Кассеты не установлены в соответствии с маркировкой слотов (при этом реджект кассета не установлена в свой слот)", sec: 30 },
+        { id: "us_no_check", category: "Обслуживание УС", desc: "Старший бригады не проверил правильность установки кассет в УС инкассатором", sec: 30 },
+        { id: "us_helper_pack", category: "Обслуживание УС", desc: "Старший бригады оказывает помощь инкассатору в укладке кассет УС в сумку-баул", sec: 30 },
+        { id: "us_code_not_set", category: "Обслуживание УС", desc: "Инкассатор не сбил код замка и не закрыл сейф УС", sec: 30 },
+        { id: "us_left_property", category: "Обслуживание УС", desc: "Оставление имущества (ключ от УС/кассета(ы)/сумка-баул/сейф-пакет)", sec: 30 },
+        { id: "us_senior_first_seat", category: "Обслуживание УС", desc: "Первым сел в СТС старший бригады", sec: 30 },
+        { id: "us_simultaneous_seat", category: "Обслуживание УС", desc: "Старший бригады и инкассатор одновременно сели в СТС", sec: 30 },
+        { id: "us_nakop_load", category: "Обслуживание УС", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 50 },
+        { id: "us_nakop_door", category: "Обслуживание УС", desc: "Не была закрыта дверь устройства накопителя", sec: 30 },
+        { id: "us_broken_key", category: "Обслуживание УС", desc: "Инкассатор при обслуживании УС сломал/погнул/потерял ключ от УС ", sec: 30 },
+        { id: "us_belt1", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "vsp_belt", category: "Обслуживание ВСП", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "vsp_nak", category: "Обслуживание ВСП", desc: "Инкассатор не закрыл накопитель после изъятия из него сейф-пакета с денежной наличностью", sec: 30 },
+        { id: "vsp_seif", category: "Обслуживание ВСП", desc: "Инкассатор не вложил сейф-пакет с денежной наличностью в СК", sec: 30 },
+        { id: "vsp_sk", category: "Обслуживание ВСП", desc: "Инкассатор не закрыл крышку СК после вложения сейф-пакета с денежной наличностью", sec: 30 },
+        { id: "vsp_no_radio", category: "Обслуживание ВСП", desc: "Инкассатор обслуживает ВСП без носимой радиостанции (не получил у водителя-инкассатора)", sec: 30 },
+        { id: "vsp_no_key", category: "Обслуживание ВСП", desc: "Инкассатор открыл СК без ИК-ключа", sec: 30 },
+        { id: "vsp_no_imit", category: "Обслуживание ВСП", desc: "Не осуществлена имитация сканирования с помощью ТСД/радиотерминала сейф-пакета до вложения сейф-пакета в тележку", sec: 30 },
+        { id: "vsp_no_pak", category: "Обслуживание ВСП", desc: "Не вложен сейф-пакет в тележку", sec: 30 },
+        { id: "vsp_no_plomb", category: "Обслуживание ВСП", desc: "Инкассатор не опломбировал одноразовой пластиковой пломбой тележку (индивидуальное средство хранения)", sec: 30 },
+        { id: "vsp_ostav", category: "Обслуживание ВСП", desc: "Инкассатор оставил СК/имущество на упражнении", sec: 30 },
+        { id: "vsp_no_svyaz", category: "Обслуживание ВСП", desc: "Инкассатор не связался по радиостанции с водителем-инкассатором о возможности выхода с объекта ", sec: 30 },
+        { id: "vsp_no_ok", category: "Обслуживание ВСП", desc: "Водитель-инкассатор не подтвердил по радиостанции возможность выхода", sec: 30 },
+        { id: "vsp_sel", category: "Обслуживание ВСП", desc: "Инкассатор осуществил посадку в СТС без подтверждения от водителя-инкассатора", sec: 30 },
+        { id: "vsp_sk_cell", category: "Обслуживание ВСП", desc: "СК не установлен в специальную ячейку", sec: 30 },
+        { id: "vsp_belt1", category: "Обслуживание ВСП", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "shoot_belt", category: "Стрельба", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "shoot_position", category: "Стрельба", desc: "СТС не установлен в обозначенном месте, которое обозначено «Г» образной стоп линией (габариты СТС выходят за обозначенную стоп линию)", sec: 30 },
+        { id: "shoot_engine", category: "Стрельба", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
+        { id: "shoot_door_open", category: "Стрельба", desc: "Не закрыты двери/дверь СТС ", sec: 30 },
+        { id: "shoot_miss", category: "Стрельба", desc: "Не сбита мишень", sec: 10 },
+        { id: "shoot_belt1", category: "Стрельба", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "fire_belt", category: "Пожар", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "fire_position", category: "Пожар", desc: "СТС не установлен на безопасном расстоянии от огня, которое обозначено «Г» образной стоп линией (габариты СТС выходят за обозначенную стоп линию)", sec: 30 },
+        { id: "fire_engine", category: "Пожар", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
+        { id: "fire_no_report", category: "Пожар", desc: "Водитель-инкассатор не доложил по автомобильной радиостанции дежурному инкассатору/оператору ЦМ о пожаре в СТС", sec: 30 },
+        { id: "fire_avar", category: "Пожар", desc: "Не включена на СТС аварийная сигнализация", sec: 10 },
+        { id: "fire_mayak", category: "Пожар", desc: "Не включен на СТС маячок бело лунного цвета", sec: 10 },
+        { id: "fire_dver_ruk", category: "Пожар", desc: "Водитель-инкассатор открыл руками дверь СТС инкассатору (заднюю правую)", sec: 30 },
+        { id: "fire_ext", category: "Пожар", desc: "Водитель-инкассатор не достал огнетушитель из СТС и тушение осуществлялось из огнетушителя, который находился у стола (запасной)", sec: 30 },
+        { id: "fire_not_been", category: "Пожар", desc: "Водитель-инкассатор не осуществил тушение пожара ", sec: 50 },
+        { id: "fire_no_location", category: "Пожар", desc: "Инкассатор эвакуирует ценности не в обозначенное место", sec: 30 },		
+        { id: "fire_evac", category: "Пожар", desc: "Не все банковские ценности эвакуированы из СТС", sec: 30 },
+        { id: "fire_bad_sk", category: "Пожар", desc: "Некорректное обращение с СК (уронил/кинул на землю)/ не вынес СК из СТС", sec: 50 },
+        { id: "fire_flag", category: "Пожар", desc: "Банковские ценности переносятся в СТС до команды работника МЧС «Потушено»/поднятия флага", sec: 30 },
+        { id: "fire_vmeste", category: "Пожар", desc: "Водитель-инкассатор вместе с инкассатором переносит ценности в СТС", sec: 30 },
+        { id: "fire_close_dver_ruk", category: "Пожар", desc: "Водитель-инкассатор закрыл руками дверь СТС инкассатору (заднюю правую)", sec: 30 },
+        { id: "fire_cen", category: "Пожар", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 30 },
+        { id: "fire_nak", category: "Пожар", desc: "Не была закрыта дверь устройства накопителя после вложения банковских ценностей", sec: 30 },
+        { id: "fire_sk_cell", category: "Пожар", desc: "Инкассатор: СК не установлен в специальную ячейку", sec: 20 },
+        { id: "fire_belt1", category: "Пожар", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "fire_repair_report", category: "Пожар", desc: "Водитель-инкассатор не сообщил по автомобильной радиостанции дежурному/оператору ЦМ о тушение пожара СТС", sec: 30 },
+        { id: "med_belt", category: "Медицина", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "med_position", category: "Медицина", desc: "СТС не установлен на безопасном расстоянии от огня, которое обозначено «Г» образной стоп линией (габариты СТС выходят за обозначенную стоп линию)", sec: 30 },
+        { id: "med_no_report", category: "Медицина", desc: "Водитель-инкассатор по автомобильной радиостанции не сообщил дежурному/оператору ЦМ о «необходимости оказания первой помощи пострадавшему»", sec: 30 },
+        { id: "med_engine", category: "Медицина", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
+        { id: "med_tourniquet", category: "Медицина", desc: "Наложение турникета на несоответствующую область (бедро) (ниже обозначенного места ранения, на место ранения)", sec: 30 },
+        { id: "med_time", category: "Медицина", desc: "Не обозначено время наложения турникета (бедро)", sec: 30 },
+        { id: "med_tourniquet_povtor", category: "Медицина", desc: "Неправильное наложение турникета ( на бедро), что вызвало повторное кровотечение, угрожающее жизни раненого (расслабление или соскальзывание)", sec: 30 },
+        { id: "med_ipp", category: "Медицина", desc: "Наложение ИПП на несоответствующую область (предплечья) (ниже обозначенного места ранения, на место ранения)", sec: 30 },
+        { id: "med_ipp_razm", category: "Медицина", desc: "Не полностью размотан ИПП на поврежденной области (предплечья)", sec: 20 },
+        { id: "med_ipp_povtor", category: "Медицина", desc: "Неправильное наложение ИПП (предплечье), что вызвало повторное кровотечение угрожающее жизни раненого (расслабление или соскальзывание)", sec: 30 },
+        { id: "med_ipp_rasl", category: "Медицина", desc: "В случае расслабления или соскальзывания турникета и/или ИПП с манекена во время транспортировки не осуществлено его повторное наложение", sec: 30 },
+        { id: "med_stretcher", category: "Медицина", desc: "Бригада при транспортировки манекена бригада уронила его на землю", sec: 30 },
+        { id: "med_stretcher_ukr", category: "Медицина", desc: "Бригада не переместила манекен в укрытие (обозначенное место)", sec: 30 },
+        { id: "med_no_report1", category: "Медицина", desc: "Водитель-инкассатор не доложил по автомобильной радиостанции дежурному инкассатору/оператору ЦМ об оказании первой медицинской помощи пострадавшему", sec: 30 },
+        { id: "med_belt1", category: "Медицина", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "incass_belt", category: "Инкассация объекта", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "incass_no_radio", category: "Инкассация объекта", desc: "Инкассатор инкассирует клиента без носимой радиостанции (не получил у водителя-инкассатора)", sec: 30 },
+        { id: "incass_no_docs", category: "Инкассация объекта", desc: "Инкассатор не предъявил документы (паспорт, доверенность)", sec: 30 },
+        { id: "incass_no_scan", category: "Инкассация объекта", desc: "Инкассатор не произвел сканирования/имитации с помощью ТСД/радиотерминал сейф-пакета (не направил ТСД/радиотерминал на сейф-пакет)", sec: 20 },
+        { id: "incass_no_sign", category: "Инкассация объекта", desc: "Инкассатор не передал ТСД/радиотерминал клиенту для проставления стилусом своей подписи", sec: 20 },
+        { id: "incass_open_sk_no_key", category: "Инкассация объекта", desc: "Инкассатор открыл СК без ИК-ключа", sec: 30 },
+        { id: "incass_not_loaded", category: "Инкассация объекта", desc: "Не заложен пакет с банковскими ценностями в СК после инкассации объекта", sec: 50 },
+        { id: "incass_tumbler_blue", category: "Инкассация объекта", desc: "Инкассатор не переключил тумблер выбора деактивационного ключа в синее положение", sec: 30 },
+        { id: "incass_sk_not_closed", category: "Инкассация объекта", desc: "Инкассатор не закрыл СК после вложения сейф-пакета с банковскими ценностями", sec: 30 },
+        { id: "incass_left_docs", category: "Инкассация объекта", desc: "Оставление документов (паспорт, доверенность)", sec: 30 },
+        { id: "incass_left_packet", category: "Инкассация объекта", desc: "Оставление сейф-пакета с денежной наличностью", sec: 30 },
+        { id: "incass_left_sk", category: "Инкассация объекта", desc: "Оставление СК", sec: 30 },
+        { id: "incass_no_exit_radio", category: "Инкассация объекта", desc: "Инкассатор не связался по радиостанции с водителем-инкассатором о возможности выхода с объекта инкассации", sec: 30 },
+        { id: "incass_exit_no_confirm", category: "Инкассация объекта", desc: "Не получив подтверждение на выход из объекта от водителя-инкассатора начал инкассатор выходить", sec: 30 },
+        { id: "incass_blue_key_from_driver", category: "Инкассация объекта", desc: "Взял не у водителя-инкассатора ИК-ключ синего цвета в СТС", sec: 30 },
+        { id: "incass_tumbler_yellow_back", category: "Инкассация объекта", desc: "После извлечения сейф-пакета с денежной наличности тумблер выбора деактивационного ключа не был переведён в желтое положение", sec: 30 },
+        { id: "incass_nakop_after", category: "Инкассация объекта", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 50 },
+        { id: "incass_nakop_door_after", category: "Инкассация объекта", desc: "Не была закрыта дверь устройства накопителя", sec: 30 },
+        { id: "incass_sk_cell_after", category: "Инкассация объекта", desc: "СК не установлен в специальную ячейку", sec: 20 },
+        { id: "incass_belt1", category: "Инкассация объекта", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "prestupnik_mish", category: "Вооруженный преступник", desc: "Не сдвинута бампером СТС с места выставленная специальная поясная мишень (с оружием)/не коснулся бампером СТС выставленную специальную поясную мишень (с оружием)", sec: 30 },
+        { id: "prestupnik_cone", category: "Вооруженный преступник", desc: "Наезд на конус (1)", sec: 5 },
+        { id: "prestupnik_cone1", category: "Вооруженный преступник", desc: "Наезд на конус (2)", sec: 10 },
+        { id: "prestupnik_cone2", category: "Вооруженный преступник", desc: "Наезд на конус (3)", sec: 15 },
+        { id: "prestupnik_cone3", category: "Вооруженный преступник", desc: "Наезд на конус (4 и более)", sec: 20 },
+        { id: "prestupnik_shluz", category: "Вооруженный преступник", desc: "СТС вышел за пределы габарита шлюзового бокса", sec: 5 },
+        { id: "prestupnik_ogr_cone", category: "Вооруженный преступник", desc: "СТС совершил наезд на ограждающий конус", sec: 5 },
+        { id: "handcuff_belt", category: "Наручники", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "handcuff_no_warning", category: "Наручники", desc: "Инкассатор не предупредил о применении специального средства: Стой, применяю специальное средство - наручники", sec: 10 },
+        { id: "handcuff_loose", category: "Наручники", desc: "В надетом состоянии наручники не надежно зафиксировали конечность (то есть наручники без усилий снимаются с рук манекена). ", sec: 30 },
+        { id: "handcuff_no_report", category: "Наручники", desc: "Инкассатор не осуществил доклад: Наручники надеты", sec: 10 },
+        { id: "handcuff_no_radio", category: "Наручники", desc: "Инкассатор без носимой радиостанции (не получил у водителя-инкассатора)", sec: 30 },
+        { id: "handcuff_no_radio_exit", category: "Наручники", desc: "Инкассатор не связался по радиостанции с водителем-инкассатором о возможности выхода с объекта ", sec: 30 },
+        { id: "handcuff_boarding_no_confirm", category: "Наручники", desc: "Инкассатор осуществил посадку в СТС без подтверждения от водителя-инкассатора", sec: 30 },
+        { id: "handcuff_driver_no_confirm", category: "Наручники", desc: "Водитель-инкассатор не подтвердил по радиостанции возможность выхода", sec: 30 },
+        { id: "handcuff_belt1", category: "Наручники", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "obsh_bez", category: "Общие штрафы", desc: "Нарушение безопасности движения в результате выезда за границы маршрута (наезда на ограничивающие маршрут конструкции).", sec: 50 },
+        { id: "obsh_lic", category: "Общие штрафы", desc: "Проход лиц за ограждение, на территорию площадки, во время проведения упражнения «Эстафета» без разрешения главного судьи, штрафные баллы присуждаются команде данного представителя/участника", sec: 30 },
+        { id: "obsh_svyaz", category: "Общие штрафы", desc: "Неаккуратное обращение со средствами связи (уронил носимую радиостанцию на пол в СТС/на дорожное покрытие)", sec: 30 },
+        { id: "obsh_ivr", category: "Общие штрафы", desc: "Неаккуратное обращение с ИВР (уронил ИВР на пол в СТС/на дорожное покрытие)", sec: 30 },
+        { id: "obsh_tsd", category: "Общие штрафы", desc: "Неаккуратное обращение с ТСД/радиотерминалом (уронил на пол в СТС/на дорожное покрытие)", sec: 30 },
+        { id: "obsh_gun", category: "Общие штрафы", desc: "Выпадение пистолета из кобуры", sec: 20 },
+        { id: "obsh_sts", category: "Общие штрафы", desc: "Выход из СТС/посадка в СТС не осуществлена в следующем порядке: инкассатор через заднюю правую дверь, водитель-инкассатор через левую переднюю дверь", sec: 20 }
+    ];
+    
+    // ---------- СОСТОЯНИЕ ----------
+    let currentDirection = null;
+    let currentTeam = null;
+    let currentStage = stages[0];
+    let tempPenalties = {};
+    let hasUnsavedChanges = false;
+    
+    // ---------- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ----------
+    function formatTime(sec) {
+        if (sec === null || isNaN(sec)) return "—";
+        let minutes = Math.floor(sec / 60);
+        let seconds = (sec % 60).toFixed(2);
+        return minutes + ":" + seconds.toString().padStart(5, '0');
+    }
+    function parseTime(str) {
+        if (!str.trim()) return null;
+        str = str.trim();
+        let parts = str.split(':');
+        let minutes = 0, seconds = 0;
+        if (parts.length === 2) {
+            minutes = parseInt(parts[0]) || 0;
+            let secPart = parts[1];
+            let dotIndex = secPart.indexOf('.');
+            if (dotIndex !== -1) {
+                seconds = parseInt(secPart.substring(0, dotIndex)) || 0;
+                let fraction = parseFloat('0.' + secPart.substring(dotIndex + 1)) || 0;
+                seconds += fraction;
             } else {
-                document.getElementById('rawTimeDisplay').innerText = '—';
-                document.getElementById('totalPenaltyDisplay').innerText = '0';
-                document.getElementById('totalTimeDisplay').innerText = '—';
-                document.getElementById('rawTimeInput').value = '';
-                tempPenalties = {};
-                hasUnsavedChanges = false;
-                let stagePenalties = penaltiesLibrary.filter(p => p.category === currentStage);
-                for (let p of stagePenalties) {
+                seconds = parseInt(secPart) || 0;
+            }
+        } else if (parts.length === 1) {
+            let secPart = parts[0];
+            let dotIndex = secPart.indexOf('.');
+            if (dotIndex !== -1) seconds = parseFloat(secPart);
+            else seconds = parseInt(secPart) || 0;
+            minutes = 0;
+        } else return null;
+        let total = minutes * 60 + seconds;
+        return isNaN(total) ? null : total;
+    }
+    function getPenaltySum(penObj) {
+        if (!penObj) return 0;
+        let sum = 0;
+        for (let id in penObj) {
+            let p = penaltiesLibrary.find(p => p.id === id);
+            if (p) {
+                let val = penObj[id];
+                if (typeof val === 'number') sum += val * p.sec;
+                else if (val === true) sum += p.sec;
+            }
+        }
+        let pmMisses = penObj[SHOOT_PM_MISS_ID] || 0;
+        let saigaHits = penObj[SHOOT_SAIGA_HITS_ID] || 0;
+        sum += pmMisses * PENALTY_PER_MISS_PM;
+        sum -= saigaHits * SAIGA_BONUS_PER_HIT;
+        return sum;
+    }
+    function getBankConesCount(penObj) {
+        if (!penObj) return 0;
+        if (penObj.bank_cone_4) return 4;
+        if (penObj.bank_cone_3) return 3;
+        if (penObj.bank_cone_2) return 2;
+        if (penObj.bank_cone_1) return 1;
+        return 0;
+    }
+    function setBankConesCount(count) {
+        delete tempPenalties.bank_cone_1;
+        delete tempPenalties.bank_cone_2;
+        delete tempPenalties.bank_cone_3;
+        delete tempPenalties.bank_cone_4;
+        if (count === 1) tempPenalties.bank_cone_1 = true;
+        else if (count === 2) tempPenalties.bank_cone_2 = true;
+        else if (count === 3) tempPenalties.bank_cone_3 = true;
+        else if (count >= 4) tempPenalties.bank_cone_4 = true;
+    }
+    function getSnakeConesCount(penObj) {
+        if (!penObj) return 0;
+        if (penObj.snake_cone3) return 4;
+        if (penObj.snake_cone2) return 3;
+        if (penObj.snake_cone1) return 2;
+        if (penObj.snake_cone) return 1;
+        return 0;
+    }
+    function setSnakeConesCount(count) {
+        delete tempPenalties.snake_cone;
+        delete tempPenalties.snake_cone1;
+        delete tempPenalties.snake_cone2;
+        delete tempPenalties.snake_cone3;
+        if (count === 1) tempPenalties.snake_cone = true;
+        else if (count === 2) tempPenalties.snake_cone1 = true;
+        else if (count === 3) tempPenalties.snake_cone2 = true;
+        else if (count >= 4) tempPenalties.snake_cone3 = true;
+    }
+    function getPrestupnikConesCount(penObj) {
+        if (!penObj) return 0;
+        if (penObj.prestupnik_cone3) return 4;
+        if (penObj.prestupnik_cone2) return 3;
+        if (penObj.prestupnik_cone1) return 2;
+        if (penObj.prestupnik_cone) return 1;
+        return 0;
+    }
+    function setPrestupnikConesCount(count) {
+        delete tempPenalties.prestupnik_cone;
+        delete tempPenalties.prestupnik_cone1;
+        delete tempPenalties.prestupnik_cone2;
+        delete tempPenalties.prestupnik_cone3;
+        if (count === 1) tempPenalties.prestupnik_cone = true;
+        else if (count === 2) tempPenalties.prestupnik_cone1 = true;
+        else if (count === 3) tempPenalties.prestupnik_cone2 = true;
+        else if (count >= 4) tempPenalties.prestupnik_cone3 = true;
+    }
+    
+    // ---------- SUPABASE ОПЕРАЦИИ ----------
+    async function fetchWithRetry(fn, retries = 3, delay = 1000) {
+        for (let i = 0; i < retries; i++) {
+            try { return await fn(); } catch (err) {
+                if (i === retries - 1) throw err;
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+    }
+    async function loadTeamData(dir, team) {
+        if (!dir || !team) return null;
+        return await fetchWithRetry(async () => {
+            let { data, error } = await supabaseClient
+                .from('estafeta_results')
+                .select('raw_seconds, penalties')
+                .eq('direction', dir)
+                .eq('team_code', team)
+                .maybeSingle();
+            if (error) throw error;
+            return data;
+        }).catch(err => { console.error(err); return null; });
+    }
+    async function saveTeamData(dir, team, rawSeconds, penalties) {
+        let upsertData = { direction: dir, team_code: team, raw_seconds: rawSeconds, penalties: penalties, updated_at: new Date().toISOString() };
+        await fetchWithRetry(async () => {
+            let { error } = await supabaseClient.from('estafeta_results').upsert(upsertData, { onConflict: 'direction, team_code' });
+            if (error) throw error;
+        }).catch(err => console.error(err));
+    }
+    async function loadAllResults() {
+        try {
+            let { data, error } = await supabaseClient.from('estafeta_results').select('direction, team_code, raw_seconds, penalties');
+            if (error) throw error;
+            let rows = [];
+            for (let r of data) {
+                let raw = r.raw_seconds;
+                let penalty = getPenaltySum(r.penalties);
+                let total = raw !== null ? raw + penalty : null;
+                rows.push({ team: r.team_code, name: teamNames[r.team_code] || r.team_code, dir: r.direction, raw, penalty, total });
+            }
+            rows.sort((a,b) => {
+                if (a.total === null && b.total === null) return 0;
+                if (a.total === null) return 1;
+                if (b.total === null) return -1;
+                return a.total - b.total;
+            });
+            let tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = '';
+            let rank = 1;
+            for (let r of rows) {
+                let tr = document.createElement('tr');
+                if (r.total !== null && rank === 1) tr.classList.add('rank-1');
+                tr.innerHTML = `<td>${r.total !== null ? rank++ : '—'}</td><td><strong>${r.name}</strong> (${r.team})</td><td>${r.dir}</td><td>${r.raw !== null ? formatTime(r.raw) : '—'}</td><td>${r.penalty}</td><td>${r.total !== null ? formatTime(r.total) : '—'}</td>`;
+                tbody.appendChild(tr);
+            }
+            if (rows.length === 0) tbody.innerHTML = '<tr><td colspan="6">Нет данных. Внесите результаты.</td></tr>';
+        } catch (err) {
+            console.error(err);
+            document.getElementById('resultsBody').innerHTML = `<tr><td colspan="6">Ошибка загрузки: ${err.message}</td></tr>`;
+        }
+    }
+    
+    async function refreshCurrentTeamData() {
+        if (!currentDirection || !currentTeam) {
+            document.getElementById('rawTimeDisplay').innerText = '—';
+            document.getElementById('totalPenaltyDisplay').innerText = '0';
+            document.getElementById('totalTimeDisplay').innerText = '—';
+            document.getElementById('rawTimeInput').value = '';
+            return;
+        }
+        let data = await loadTeamData(currentDirection, currentTeam);
+        if (data) {
+            let raw = data.raw_seconds;
+            let penaltiesObj = data.penalties || {};
+            let totalPen = getPenaltySum(penaltiesObj);
+            document.getElementById('rawTimeDisplay').innerText = raw !== null ? formatTime(raw) : '—';
+            document.getElementById('totalPenaltyDisplay').innerText = totalPen;
+            let total = raw !== null ? raw + totalPen : null;
+            document.getElementById('totalTimeDisplay').innerText = total !== null ? formatTime(total) : '—';
+            document.getElementById('rawTimeInput').value = raw !== null ? formatTime(raw) : '';
+            
+            let stagePenalties = penaltiesLibrary.filter(p => p.category === currentStage);
+            tempPenalties = {};
+            for (let p of stagePenalties) {
+                let saved = penaltiesObj[p.id];
+                if (saved !== undefined) {
+                    if (typeof saved === 'number') tempPenalties[p.id] = saved;
+                    else if (saved === true) tempPenalties[p.id] = true;
+                    else if (saved === false) tempPenalties[p.id] = false;
+                    else tempPenalties[p.id] = saved;
+                } else {
                     if (counterPenaltyIds.includes(p.id)) tempPenalties[p.id] = 0;
                     else tempPenalties[p.id] = false;
                 }
-                if (currentStage === "Стрельба") {
-                    tempPenalties[SHOOT_PM_MISS_ID] = 0;
-                    tempPenalties[SHOOT_SAIGA_HITS_ID] = 0;
-                }
             }
-            renderPenalties();
-            updateBadge();
-        }
-        
-        // Отрисовка нарушений с поддержкой счётчиков, конусов и стрельбы
-        function renderPenalties() {
-            if (!currentDirection || !currentTeam) {
-                document.getElementById('penaltiesContainer').innerHTML = '<div style="grid-column:1/-1; text-align:center;">⚠️ Выберите направление и банк</div>';
-                return;
-            }
-            
-            // Специальная отрисовка для этапа "Стрельба"
             if (currentStage === "Стрельба") {
-                let pmMisses = tempPenalties[SHOOT_PM_MISS_ID] || 0;
-                let saigaHits = tempPenalties[SHOOT_SAIGA_HITS_ID] || 0;
-                let pmPenalty = pmMisses * PENALTY_PER_MISS_PM;
-                let saigaBonus = saigaHits * SAIGA_BONUS_PER_HIT;
-                let html = `
-                    <div class="penalty-card">
-                        <div class="desc"><strong>🔫 ПМ (4 выстрела) — ПРОМАХИ (1 промах = +30 сек)</strong></div>
-                        <div class="counter-control">
-                            <button class="pm-dec">−</button>
-                            <span class="pm-count">${pmMisses}</span>
-                            <button class="pm-inc">+</button>
-                        </div>
-                        <div style="font-size:0.75rem;">Штраф: +${pmPenalty} сек</div>
-                    </div>
-                    <div class="penalty-card">
-                        <div class="desc"><strong>🎯 САЙГА-12 (5 выстрелов) — ПОПАДАНИЯ (1 попадание = –10 сек)</strong></div>
-                        <div class="counter-control">
-                            <button class="saiga-dec">−</button>
-                            <span class="saiga-count">${saigaHits}</span>
-                            <button class="saiga-inc">+</button>
-                        </div>
-                        <div style="font-size:0.75rem;">Бонус: –${saigaBonus} сек</div>
-                    </div>
-                `;
-                let stagePen = penaltiesLibrary.filter(p => p.category === "Стрельба");
-                for (let p of stagePen) {
-                    let checked = tempPenalties[p.id] === true;
-                    const greenClass = isGreenHighlight(p.id) ? 'penalty-highlight-green' : '';
-                    html += `<div class="penalty-card ${greenClass}">
-                                <input type="checkbox" id="chk_${p.id}" data-id="${p.id}" ${checked ? 'checked' : ''}>
-                                <label for="chk_${p.id}">${p.desc}<span class="penalty-sec">+${p.sec} сек</span></label>
-                             </div>`;
-                }
-                document.getElementById('penaltiesContainer').innerHTML = html;
-                
-                // Обработчики для ПМ
-                const pmDec = document.querySelector('.pm-dec');
-                const pmInc = document.querySelector('.pm-inc');
-                const pmSpan = document.querySelector('.pm-count');
-                if (pmDec && pmInc && pmSpan) {
-                    const updatePM = (delta) => {
-                        let newVal = Math.max(0, Math.min(4, pmMisses + delta));
-                        pmMisses = newVal;
-                        tempPenalties[SHOOT_PM_MISS_ID] = newVal;
-                        pmSpan.innerText = newVal;
-                        let penalty = newVal * PENALTY_PER_MISS_PM;
-                        let parent = pmSpan.closest('.penalty-card');
-                        let secDiv = parent.querySelector('div:last-child');
-                        if (secDiv) secDiv.innerText = `Штраф: +${penalty} сек`;
-                        hasUnsavedChanges = true;
-                        updateSummaryFromTemp();
-                        updateBadge();
-                    };
-                    pmDec.onclick = () => updatePM(-1);
-                    pmInc.onclick = () => updatePM(1);
-                }
-                // Обработчики для Сайги (максимум 5)
-                const saigaDec = document.querySelector('.saiga-dec');
-                const saigaInc = document.querySelector('.saiga-inc');
-                const saigaSpan = document.querySelector('.saiga-count');
-                if (saigaDec && saigaInc && saigaSpan) {
-                    const updateSaiga = (delta) => {
-                        let newVal = Math.max(0, Math.min(5, saigaHits + delta));
-                        saigaHits = newVal;
-                        tempPenalties[SHOOT_SAIGA_HITS_ID] = newVal;
-                        saigaSpan.innerText = newVal;
-                        let bonus = newVal * SAIGA_BONUS_PER_HIT;
-                        let parent = saigaSpan.closest('.penalty-card');
-                        let secDiv = parent.querySelector('div:last-child');
-                        if (secDiv) secDiv.innerText = `Бонус: –${bonus} сек`;
-                        hasUnsavedChanges = true;
-                        updateSummaryFromTemp();
-                        updateBadge();
-                    };
-                    saigaDec.onclick = () => updateSaiga(-1);
-                    saigaInc.onclick = () => updateSaiga(1);
-                }
-                // Обработчики для чекбоксов
-                for (let p of stagePen) {
-                    let cb = document.getElementById(`chk_${p.id}`);
-                    if (cb) {
-                        cb.onchange = (e) => {
-                            let id = e.target.getAttribute('data-id');
-                            if (e.target.checked) tempPenalties[id] = true;
-                            else tempPenalties[id] = false;
-                            hasUnsavedChanges = true;
-                            updateSummaryFromTemp();
-                            updateBadge();
-                        };
-                    }
-                }
-                updateSummaryFromTemp();
-                return;
+                tempPenalties[SHOOT_PM_MISS_ID] = (typeof penaltiesObj[SHOOT_PM_MISS_ID] === 'number') ? penaltiesObj[SHOOT_PM_MISS_ID] : 0;
+                tempPenalties[SHOOT_SAIGA_HITS_ID] = (typeof penaltiesObj[SHOOT_SAIGA_HITS_ID] === 'number') ? penaltiesObj[SHOOT_SAIGA_HITS_ID] : 0;
+            } else {
+                delete tempPenalties[SHOOT_PM_MISS_ID];
+                delete tempPenalties[SHOOT_SAIGA_HITS_ID];
             }
-            
-            // Обычная отрисовка для остальных этапов (с конусами и счётчиками)
-            let stagePen = penaltiesLibrary.filter(p => p.category === currentStage);
-            if (stagePen.length === 0) {
-                document.getElementById('penaltiesContainer').innerHTML = `<div>📭 Для этапа "${currentStage}" нет ошибок</div>`;
-                return;
+            hasUnsavedChanges = false;
+        } else {
+            document.getElementById('rawTimeDisplay').innerText = '—';
+            document.getElementById('totalPenaltyDisplay').innerText = '0';
+            document.getElementById('totalTimeDisplay').innerText = '—';
+            document.getElementById('rawTimeInput').value = '';
+            tempPenalties = {};
+            hasUnsavedChanges = false;
+            let stagePenalties = penaltiesLibrary.filter(p => p.category === currentStage);
+            for (let p of stagePenalties) {
+                if (counterPenaltyIds.includes(p.id)) tempPenalties[p.id] = 0;
+                else tempPenalties[p.id] = false;
             }
-            
-            const isBankStage = (currentStage === "Получение банковских ценностей");
-            const isSnakeStage = (currentStage === "Змейка");
-            const isPrestupnikStage = (currentStage === "Вооруженный преступник");
-            
-            let bankCones = 0;
-            if (isBankStage) bankCones = getBankConesCount(tempPenalties);
-            let snakeCones = 0;
-            if (isSnakeStage) snakeCones = getSnakeConesCount(tempPenalties);
-            let prestupnikCones = 0;
-            if (isPrestupnikStage) prestupnikCones = getPrestupnikConesCount(tempPenalties);
-            
-            let html = '';
+            if (currentStage === "Стрельба") {
+                tempPenalties[SHOOT_PM_MISS_ID] = 0;
+                tempPenalties[SHOOT_SAIGA_HITS_ID] = 0;
+            }
+        }
+        renderPenalties();
+        updateBadge();
+    }
+    
+    // ---------- ОТРИСОВКА ШТРАФОВ (ПОЛНАЯ) ----------
+    function renderPenalties() {
+        if (!currentDirection || !currentTeam) {
+            document.getElementById('penaltiesContainer').innerHTML = '<div style="grid-column:1/-1; text-align:center;">⚠️ Выберите направление и банк</div>';
+            return;
+        }
+        if (currentStage === "Стрельба") {
+            let pmMisses = tempPenalties[SHOOT_PM_MISS_ID] || 0;
+            let saigaHits = tempPenalties[SHOOT_SAIGA_HITS_ID] || 0;
+            let pmPenalty = pmMisses * PENALTY_PER_MISS_PM;
+            let saigaBonus = saigaHits * SAIGA_BONUS_PER_HIT;
+            let html = `
+                <div class="penalty-card"><div class="desc"><strong>🔫 ПМ (4 выстрела) — ПРОМАХИ (1 промах = +30 сек)</strong></div><div class="counter-control"><button class="pm-dec">−</button><span class="pm-count">${pmMisses}</span><button class="pm-inc">+</button></div><div style="font-size:0.75rem;">Штраф: +${pmPenalty} сек</div></div>
+                <div class="penalty-card"><div class="desc"><strong>🎯 САЙГА-12 (5 выстрелов) — ПОПАДАНИЯ (1 попадание = –10 сек)</strong></div><div class="counter-control"><button class="saiga-dec">−</button><span class="saiga-count">${saigaHits}</span><button class="saiga-inc">+</button></div><div style="font-size:0.75rem;">Бонус: –${saigaBonus} сек</div></div>
+            `;
+            let stagePen = penaltiesLibrary.filter(p => p.category === "Стрельба");
             for (let p of stagePen) {
-                if (isBankStage && (p.id === 'bank_cone_1' || p.id === 'bank_cone_2' || p.id === 'bank_cone_3' || p.id === 'bank_cone_4')) {
-                    if (p.id === 'bank_cone_1') {
-                        let conePenalty = 0;
-                        if (bankCones === 1) conePenalty = 5;
-                        else if (bankCones === 2) conePenalty = 10;
-                        else if (bankCones === 3) conePenalty = 15;
-                        else if (bankCones >= 4) conePenalty = 20;
-                        html += `<div class="penalty-card">
-                                    <div class="desc"><strong>Наезд на конусы (количество)</strong><span class="penalty-sec">+5 сек/конус (макс. 20)</span></div>
-                                    <div class="counter-control">
-                                        <button class="cones-dec">−</button>
-                                        <span class="cones-count">${bankCones}</span>
-                                        <button class="cones-inc">+</button>
-                                    </div>
-                                    <div style="font-size:0.75rem;">Штраф: +${conePenalty} сек</div>
-                                </div>`;
-                    }
-                    continue;
-                }
-                if (isSnakeStage && (p.id === 'snake_cone' || p.id === 'snake_cone1' || p.id === 'snake_cone2' || p.id === 'snake_cone3')) {
-                    if (p.id === 'snake_cone') {
-                        let conePenalty = snakeCones * 5;
-                        html += `<div class="penalty-card">
-                                    <div class="desc"><strong>Наезд на конус/бочку</strong><span class="penalty-sec">+5 сек за каждый</span></div>
-                                    <div class="counter-control">
-                                        <button class="snake-cones-dec">−</button>
-                                        <span class="snake-cones-count">${snakeCones}</span>
-                                        <button class="snake-cones-inc">+</button>
-                                    </div>
-                                    <div style="font-size:0.75rem;">Штраф: +${conePenalty} сек</div>
-                                </div>`;
-                    }
-                    continue;
-                }
-                if (isPrestupnikStage && (p.id === 'prestupnik_cone' || p.id === 'prestupnik_cone1' || p.id === 'prestupnik_cone2' || p.id === 'prestupnik_cone3')) {
-                    if (p.id === 'prestupnik_cone') {
-                        let conePenalty = prestupnikCones * 5;
-                        html += `<div class="penalty-card">
-                                    <div class="desc"><strong>Наезд на конус (преступник)</strong><span class="penalty-sec">+5 сек за каждый</span></div>
-                                    <div class="counter-control">
-                                        <button class="prest-cones-dec">−</button>
-                                        <span class="prest-cones-count">${prestupnikCones}</span>
-                                        <button class="prest-cones-inc">+</button>
-                                    </div>
-                                    <div style="font-size:0.75rem;">Штраф: +${conePenalty} сек</div>
-                                </div>`;
-                    }
-                    continue;
-                }
-                
-                if (counterPenaltyIds.includes(p.id)) {
-                    let currentVal = (typeof tempPenalties[p.id] === 'number') ? tempPenalties[p.id] : 0;
-                    let totalSec = currentVal * p.sec;
-                    html += `<div class="penalty-card">
-                                <div class="desc">${p.desc}<span class="penalty-sec">+${p.sec} сек/каждое</span></div>
-                                <div class="counter-control">
-                                    <button class="counter-dec" data-id="${p.id}">−</button>
-                                    <span class="counter-val" data-id="${p.id}">${currentVal}</span>
-                                    <button class="counter-inc" data-id="${p.id}">+</button>
-                                </div>
-                                <div style="font-size:0.75rem; min-width:70px;">Штраф: +${totalSec} сек</div>
-                            </div>`;
-                    continue;
-                }
-                
                 let checked = tempPenalties[p.id] === true;
                 const greenClass = isGreenHighlight(p.id) ? 'penalty-highlight-green' : '';
-                html += `<div class="penalty-card ${greenClass}">
-                            <input type="checkbox" id="chk_${p.id}" data-id="${p.id}" ${checked ? 'checked' : ''}>
-                            <label for="chk_${p.id}">${p.desc}<span class="penalty-sec">+${p.sec} сек</span></label>
-                         </div>`;
+                html += `<div class="penalty-card ${greenClass}"><input type="checkbox" id="chk_${p.id}" data-id="${p.id}" ${checked ? 'checked' : ''}><label for="chk_${p.id}">${p.desc}<span class="penalty-sec">+${p.sec} сек</span></label></div>`;
             }
             document.getElementById('penaltiesContainer').innerHTML = html;
-            
-            // Обработчики для чекбоксов
+            attachShootHandlers(pmMisses, saigaHits);
             for (let p of stagePen) {
-                if (counterPenaltyIds.includes(p.id)) continue;
-                if (isBankStage && (p.id === 'bank_cone_1' || p.id === 'bank_cone_2' || p.id === 'bank_cone_3' || p.id === 'bank_cone_4')) continue;
-                if (isSnakeStage && (p.id === 'snake_cone' || p.id === 'snake_cone1' || p.id === 'snake_cone2' || p.id === 'snake_cone3')) continue;
-                if (isPrestupnikStage && (p.id === 'prestupnik_cone' || p.id === 'prestupnik_cone1' || p.id === 'prestupnik_cone2' || p.id === 'prestupnik_cone3')) continue;
                 let cb = document.getElementById(`chk_${p.id}`);
-                if (cb) {
-                    cb.onchange = (e) => {
-                        let id = e.target.getAttribute('data-id');
-                        if (e.target.checked) tempPenalties[id] = true;
-                        else delete tempPenalties[id];
-                        hasUnsavedChanges = true;
-                        updateBadge();
-                        updateSummaryFromTemp();
-                    };
-                }
+                if (cb) cb.onchange = (e) => { tempPenalties[e.target.dataset.id] = e.target.checked; hasUnsavedChanges = true; updateSummaryFromTemp(); updateBadge(); };
             }
-            
-            // Обработчики для счётчиков (counterPenaltyIds)
-            for (let p of stagePen.filter(p => counterPenaltyIds.includes(p.id))) {
-                let dec = document.querySelector(`.counter-dec[data-id="${p.id}"]`);
-                let inc = document.querySelector(`.counter-inc[data-id="${p.id}"]`);
-                let span = document.querySelector(`.counter-val[data-id="${p.id}"]`);
-                if (dec && inc && span) {
-                    const updateCounter = (delta) => {
-                        let old = (typeof tempPenalties[p.id] === 'number') ? tempPenalties[p.id] : 0;
-                        let newVal = Math.max(0, old + delta);
-                        tempPenalties[p.id] = newVal;
-                        span.innerText = newVal;
-                        let totalSec = newVal * p.sec;
-                        let parent = span.closest('.penalty-card');
-                        let secDiv = parent.querySelector('div:last-child');
-                        if (secDiv) secDiv.innerText = `Штраф: +${totalSec} сек`;
-                        hasUnsavedChanges = true;
-                        updateSummaryFromTemp();
-                        updateBadge();
-                    };
-                    dec.onclick = () => updateCounter(-1);
-                    inc.onclick = () => updateCounter(1);
-                }
-            }
-            
-            // Обработчики конусов для банка
-            if (isBankStage) {
-                const decBtn = document.querySelector('.cones-dec');
-                const incBtn = document.querySelector('.cones-inc');
-                const countSpan = document.querySelector('.cones-count');
-                if (decBtn && incBtn && countSpan) {
-                    const updateCones = (newCount) => {
-                        if (newCount < 0) newCount = 0;
-                        if (newCount > 10) newCount = 10;
-                        setBankConesCount(newCount);
-                        countSpan.innerText = newCount;
-                        let conePenalty = 0;
-                        if (newCount === 1) conePenalty = 5;
-                        else if (newCount === 2) conePenalty = 10;
-                        else if (newCount === 3) conePenalty = 15;
-                        else if (newCount >= 4) conePenalty = 20;
-                        const penaltySpan = document.querySelector('.penalty-card .counter-control + div');
-                        if (penaltySpan) penaltySpan.innerText = `Штраф: +${conePenalty} сек`;
-                        hasUnsavedChanges = true;
-                        updateSummaryFromTemp();
-                        updateBadge();
-                    };
-                    decBtn.onclick = () => updateCones(parseInt(countSpan.innerText) - 1);
-                    incBtn.onclick = () => updateCones(parseInt(countSpan.innerText) + 1);
-                }
-            }
-            // Обработчики конусов для змейки
-            if (isSnakeStage) {
-                const decBtn = document.querySelector('.snake-cones-dec');
-                const incBtn = document.querySelector('.snake-cones-inc');
-                const countSpan = document.querySelector('.snake-cones-count');
-                if (decBtn && incBtn && countSpan) {
-                    const updateCones = (newCount) => {
-                        if (newCount < 0) newCount = 0;
-                        setSnakeConesCount(newCount);
-                        countSpan.innerText = newCount;
-                        let conePenalty = newCount * 5;
-                        const penaltySpan = document.querySelector('.penalty-card .counter-control + div');
-                        if (penaltySpan) penaltySpan.innerText = `Штраф: +${conePenalty} сек`;
-                        hasUnsavedChanges = true;
-                        updateSummaryFromTemp();
-                        updateBadge();
-                    };
-                    decBtn.onclick = () => updateCones(parseInt(countSpan.innerText) - 1);
-                    incBtn.onclick = () => updateCones(parseInt(countSpan.innerText) + 1);
-                }
-            }
-            // Обработчики конусов для преступника
-            if (isPrestupnikStage) {
-                const decBtn = document.querySelector('.prest-cones-dec');
-                const incBtn = document.querySelector('.prest-cones-inc');
-                const countSpan = document.querySelector('.prest-cones-count');
-                if (decBtn && incBtn && countSpan) {
-                    const updateCones = (newCount) => {
-                        if (newCount < 0) newCount = 0;
-                        setPrestupnikConesCount(newCount);
-                        countSpan.innerText = newCount;
-                        let conePenalty = newCount * 5;
-                        const penaltySpan = document.querySelector('.penalty-card .counter-control + div');
-                        if (penaltySpan) penaltySpan.innerText = `Штраф: +${conePenalty} сек`;
-                        hasUnsavedChanges = true;
-                        updateSummaryFromTemp();
-                        updateBadge();
-                    };
-                    decBtn.onclick = () => updateCones(parseInt(countSpan.innerText) - 1);
-                    incBtn.onclick = () => updateCones(parseInt(countSpan.innerText) + 1);
-                }
-            }
-            
             updateSummaryFromTemp();
+            return;
         }
         
-        async function updateSummaryFromTemp() {
-            if (!currentDirection || !currentTeam) return;
-            let data = await loadTeamData(currentDirection, currentTeam);
-            let savedPen = data?.penalties || {};
-            let merged = { ...savedPen };
-            // Удаляем из merged все штрафы текущего этапа
-            let stagePenalties = penaltiesLibrary.filter(p => p.category === currentStage);
-            for (let p of stagePenalties) delete merged[p.id];
-            // Добавляем временные
-            for (let id in tempPenalties) {
-                let val = tempPenalties[id];
-                if (val === true || (typeof val === 'number' && val !== 0)) merged[id] = val;
-                else if (val === false || val === 0) delete merged[id];
+        let stagePen = penaltiesLibrary.filter(p => p.category === currentStage);
+        if (stagePen.length === 0) {
+            document.getElementById('penaltiesContainer').innerHTML = `<div style="grid-column:1/-1; text-align:center;">📭 Для этапа "${currentStage}" нет ошибок</div>`;
+            return;
+        }
+        
+        const isBankStage = (currentStage === "Получение банковских ценностей");
+        const isSnakeStage = (currentStage === "Змейка");
+        const isPrestupnikStage = (currentStage === "Вооруженный преступник");
+        
+        let bankCones = isBankStage ? getBankConesCount(tempPenalties) : 0;
+        let snakeCones = isSnakeStage ? getSnakeConesCount(tempPenalties) : 0;
+        let prestupnikCones = isPrestupnikStage ? getPrestupnikConesCount(tempPenalties) : 0;
+        
+        let html = '';
+        for (let p of stagePen) {
+            if (isBankStage && ['bank_cone_1','bank_cone_2','bank_cone_3','bank_cone_4'].includes(p.id)) {
+                if (p.id === 'bank_cone_1') {
+                    let conePenalty = [0,5,10,15,20][Math.min(bankCones,4)];
+                    html += `<div class="penalty-card"><div class="desc"><strong>Наезд на конусы (количество)</strong><span class="penalty-sec">+5 сек/конус (макс. 20)</span></div><div class="counter-control"><button class="cones-dec">−</button><span class="cones-count">${bankCones}</span><button class="cones-inc">+</button></div><div style="font-size:0.75rem;">Штраф: +${conePenalty} сек</div></div>`;
+                }
+                continue;
             }
-            let totalDisplay = getPenaltySum(merged);
-            document.getElementById('totalPenaltyDisplay').innerText = totalDisplay;
-            let raw = data?.raw_seconds ?? null;
-            let total = raw !== null ? raw + totalDisplay : null;
-            document.getElementById('totalTimeDisplay').innerText = total !== null ? formatTime(total) : '—';
+            if (isSnakeStage && ['snake_cone','snake_cone1','snake_cone2','snake_cone3'].includes(p.id)) {
+                if (p.id === 'snake_cone') {
+                    let conePenalty = snakeCones * 5;
+                    html += `<div class="penalty-card"><div class="desc"><strong>Наезд на конус/бочку</strong><span class="penalty-sec">+5 сек за каждый</span></div><div class="counter-control"><button class="snake-cones-dec">−</button><span class="snake-cones-count">${snakeCones}</span><button class="snake-cones-inc">+</button></div><div style="font-size:0.75rem;">Штраф: +${conePenalty} сек</div></div>`;
+                }
+                continue;
+            }
+            if (isPrestupnikStage && ['prestupnik_cone','prestupnik_cone1','prestupnik_cone2','prestupnik_cone3'].includes(p.id)) {
+                if (p.id === 'prestupnik_cone') {
+                    let conePenalty = prestupnikCones * 5;
+                    html += `<div class="penalty-card"><div class="desc"><strong>Наезд на конус (преступник)</strong><span class="penalty-sec">+5 сек за каждый</span></div><div class="counter-control"><button class="prest-cones-dec">−</button><span class="prest-cones-count">${prestupnikCones}</span><button class="prest-cones-inc">+</button></div><div style="font-size:0.75rem;">Штраф: +${conePenalty} сек</div></div>`;
+                }
+                continue;
+            }
+            if (counterPenaltyIds.includes(p.id)) {
+                let currentVal = (typeof tempPenalties[p.id] === 'number') ? tempPenalties[p.id] : 0;
+                let totalSec = currentVal * p.sec;
+                html += `<div class="penalty-card"><div class="desc">${p.desc}<span class="penalty-sec">+${p.sec} сек/каждое</span></div><div class="counter-control"><button class="counter-dec" data-id="${p.id}">−</button><span class="counter-val" data-id="${p.id}">${currentVal}</span><button class="counter-inc" data-id="${p.id}">+</button></div><div style="font-size:0.75rem;">Штраф: +${totalSec} сек</div></div>`;
+                continue;
+            }
+            let checked = tempPenalties[p.id] === true;
+            const greenClass = isGreenHighlight(p.id) ? 'penalty-highlight-green' : '';
+            html += `<div class="penalty-card ${greenClass}"><input type="checkbox" id="chk_${p.id}" data-id="${p.id}" ${checked ? 'checked' : ''}><label for="chk_${p.id}">${p.desc}<span class="penalty-sec">+${p.sec} сек</span></label></div>`;
         }
+        document.getElementById('penaltiesContainer').innerHTML = html;
         
-        function updateBadge() {
-            let div = document.getElementById('stageInfo');
-            let old = div.querySelector('.unsaved-badge');
-            if (old) old.remove();
-            if (hasUnsavedChanges && currentDirection && currentTeam) {
-                let badge = document.createElement('span');
-                badge.className = 'unsaved-badge';
-                badge.innerText = '⚠️ Есть несохранённые изменения';
-                div.appendChild(badge);
+        // Обработчики чекбоксов
+        for (let p of stagePen) {
+            if (counterPenaltyIds.includes(p.id)) continue;
+            if (isBankStage && ['bank_cone_1','bank_cone_2','bank_cone_3','bank_cone_4'].includes(p.id)) continue;
+            if (isSnakeStage && ['snake_cone','snake_cone1','snake_cone2','snake_cone3'].includes(p.id)) continue;
+            if (isPrestupnikStage && ['prestupnik_cone','prestupnik_cone1','prestupnik_cone2','prestupnik_cone3'].includes(p.id)) continue;
+            let cb = document.getElementById(`chk_${p.id}`);
+            if (cb) cb.onchange = (e) => { tempPenalties[e.target.dataset.id] = e.target.checked; hasUnsavedChanges = true; updateSummaryFromTemp(); updateBadge(); };
+        }
+        // Обработчики счётчиков
+        for (let p of stagePen.filter(p => counterPenaltyIds.includes(p.id))) {
+            let dec = document.querySelector(`.counter-dec[data-id="${p.id}"]`);
+            let inc = document.querySelector(`.counter-inc[data-id="${p.id}"]`);
+            let span = document.querySelector(`.counter-val[data-id="${p.id}"]`);
+            if (dec && inc && span) {
+                let update = (delta) => {
+                    let old = (typeof tempPenalties[p.id] === 'number') ? tempPenalties[p.id] : 0;
+                    let newVal = Math.max(0, old + delta);
+                    tempPenalties[p.id] = newVal;
+                    span.innerText = newVal;
+                    let totalSec = newVal * p.sec;
+                    let parent = span.closest('.penalty-card');
+                    let secDiv = parent.querySelector('div:last-child');
+                    if (secDiv) secDiv.innerText = `Штраф: +${totalSec} сек`;
+                    hasUnsavedChanges = true;
+                    updateSummaryFromTemp();
+                    updateBadge();
+                };
+                dec.onclick = () => update(-1);
+                inc.onclick = () => update(1);
             }
         }
-        
-        async function saveStage() {
-            if (!currentDirection || !currentTeam) { alert('Выберите команду'); return; }
-            let existing = await loadTeamData(currentDirection, currentTeam);
-            let penaltiesObj = existing?.penalties || {};
-            let stagePenalties = penaltiesLibrary.filter(p => p.category === currentStage);
-            // Удаляем старые штрафы этого этапа
-            for (let p of stagePenalties) delete penaltiesObj[p.id];
-            // Добавляем новые из tempPenalties (числа или true)
-            for (let id in tempPenalties) {
-                let val = tempPenalties[id];
-                if (val === true || (typeof val === 'number' && val !== 0)) {
-                    penaltiesObj[id] = val;
-                } else if (val === false || val === 0) {
-                    delete penaltiesObj[id];
+        // Конусы банк
+        if (isBankStage) {
+            let dec = document.querySelector('.cones-dec'), inc = document.querySelector('.cones-inc'), span = document.querySelector('.cones-count');
+            if (dec && inc && span) {
+                let update = (newCount) => {
+                    newCount = Math.max(0, Math.min(10, newCount));
+                    setBankConesCount(newCount);
+                    span.innerText = newCount;
+                    let conePenalty = [0,5,10,15,20][Math.min(newCount,4)];
+                    let parent = span.closest('.penalty-card');
+                    let secDiv = parent.querySelector('div:last-child');
+                    if (secDiv) secDiv.innerText = `Штраф: +${conePenalty} сек`;
+                    hasUnsavedChanges = true;
+                    updateSummaryFromTemp();
+                    updateBadge();
+                };
+                dec.onclick = () => update(parseInt(span.innerText) - 1);
+                inc.onclick = () => update(parseInt(span.innerText) + 1);
+            }
+        }
+        // Конусы змейка
+        if (isSnakeStage) {
+            let dec = document.querySelector('.snake-cones-dec'), inc = document.querySelector('.snake-cones-inc'), span = document.querySelector('.snake-cones-count');
+            if (dec && inc && span) {
+                let update = (newCount) => {
+                    newCount = Math.max(0, newCount);
+                    setSnakeConesCount(newCount);
+                    span.innerText = newCount;
+                    let conePenalty = newCount * 5;
+                    let parent = span.closest('.penalty-card');
+                    let secDiv = parent.querySelector('div:last-child');
+                    if (secDiv) secDiv.innerText = `Штраф: +${conePenalty} сек`;
+                    hasUnsavedChanges = true;
+                    updateSummaryFromTemp();
+                    updateBadge();
+                };
+                dec.onclick = () => update(parseInt(span.innerText) - 1);
+                inc.onclick = () => update(parseInt(span.innerText) + 1);
+            }
+        }
+        // Конусы преступник
+        if (isPrestupnikStage) {
+            let dec = document.querySelector('.prest-cones-dec'), inc = document.querySelector('.prest-cones-inc'), span = document.querySelector('.prest-cones-count');
+            if (dec && inc && span) {
+                let update = (newCount) => {
+                    newCount = Math.max(0, newCount);
+                    setPrestupnikConesCount(newCount);
+                    span.innerText = newCount;
+                    let conePenalty = newCount * 5;
+                    let parent = span.closest('.penalty-card');
+                    let secDiv = parent.querySelector('div:last-child');
+                    if (secDiv) secDiv.innerText = `Штраф: +${conePenalty} сек`;
+                    hasUnsavedChanges = true;
+                    updateSummaryFromTemp();
+                    updateBadge();
+                };
+                dec.onclick = () => update(parseInt(span.innerText) - 1);
+                inc.onclick = () => update(parseInt(span.innerText) + 1);
+            }
+        }
+        updateSummaryFromTemp();
+    }
+    
+    function attachShootHandlers(pmMisses, saigaHits) {
+        let pmDec = document.querySelector('.pm-dec'), pmInc = document.querySelector('.pm-inc'), pmSpan = document.querySelector('.pm-count');
+        if (pmDec && pmInc && pmSpan) {
+            let updatePM = (delta) => { let newVal = Math.max(0, Math.min(4, pmMisses + delta)); tempPenalties[SHOOT_PM_MISS_ID] = newVal; pmSpan.innerText = newVal; let penalty = newVal * PENALTY_PER_MISS_PM; let parent = pmSpan.closest('.penalty-card'); let secDiv = parent.querySelector('div:last-child'); if (secDiv) secDiv.innerText = `Штраф: +${penalty} сек`; hasUnsavedChanges = true; updateSummaryFromTemp(); updateBadge(); };
+            pmDec.onclick = () => updatePM(-1);
+            pmInc.onclick = () => updatePM(1);
+        }
+        let saigaDec = document.querySelector('.saiga-dec'), saigaInc = document.querySelector('.saiga-inc'), saigaSpan = document.querySelector('.saiga-count');
+        if (saigaDec && saigaInc && saigaSpan) {
+            let updateSaiga = (delta) => { let newVal = Math.max(0, Math.min(5, saigaHits + delta)); tempPenalties[SHOOT_SAIGA_HITS_ID] = newVal; saigaSpan.innerText = newVal; let bonus = newVal * SAIGA_BONUS_PER_HIT; let parent = saigaSpan.closest('.penalty-card'); let secDiv = parent.querySelector('div:last-child'); if (secDiv) secDiv.innerText = `Бонус: –${bonus} сек`; hasUnsavedChanges = true; updateSummaryFromTemp(); updateBadge(); };
+            saigaDec.onclick = () => updateSaiga(-1);
+            saigaInc.onclick = () => updateSaiga(1);
+        }
+    }
+    
+    async function updateSummaryFromTemp() {
+        if (!currentDirection || !currentTeam) return;
+        let data = await loadTeamData(currentDirection, currentTeam);
+        let savedPen = data?.penalties || {};
+        let merged = { ...savedPen };
+        let stagePenalties = penaltiesLibrary.filter(p => p.category === currentStage);
+        for (let p of stagePenalties) delete merged[p.id];
+        for (let id in tempPenalties) {
+            let val = tempPenalties[id];
+            if (val === true || (typeof val === 'number' && val !== 0)) merged[id] = val;
+            else if (val === false || val === 0) delete merged[id];
+        }
+        let totalDisplay = getPenaltySum(merged);
+        document.getElementById('totalPenaltyDisplay').innerText = totalDisplay;
+        let raw = data?.raw_seconds ?? null;
+        let total = raw !== null ? raw + totalDisplay : null;
+        document.getElementById('totalTimeDisplay').innerText = total !== null ? formatTime(total) : '—';
+    }
+    
+    function updateBadge() {
+        let div = document.getElementById('stageInfo');
+        let old = div.querySelector('.unsaved-badge');
+        if (old) old.remove();
+        if (hasUnsavedChanges && currentDirection && currentTeam) {
+            let badge = document.createElement('span');
+            badge.className = 'unsaved-badge';
+            badge.innerText = '⚠️ Есть несохранённые изменения';
+            div.appendChild(badge);
+        }
+    }
+    
+    async function saveStage() {
+        if (!currentDirection || !currentTeam) { alert('Выберите команду'); return; }
+        let existing = await loadTeamData(currentDirection, currentTeam);
+        let penaltiesObj = existing?.penalties || {};
+        let stagePenalties = penaltiesLibrary.filter(p => p.category === currentStage);
+        for (let p of stagePenalties) delete penaltiesObj[p.id];
+        for (let id in tempPenalties) {
+            let val = tempPenalties[id];
+            if (val === true || (typeof val === 'number' && val !== 0)) penaltiesObj[id] = val;
+            else if (val === false || val === 0) delete penaltiesObj[id];
+        }
+        let rawSeconds = existing?.raw_seconds ?? null;
+        await saveTeamData(currentDirection, currentTeam, rawSeconds, penaltiesObj);
+        hasUnsavedChanges = false;
+        updateBadge();
+        await refreshCurrentTeamData();
+        await loadAllResults();
+        alert('Ошибки этапа сохранены');
+    }
+    
+    async function saveRawTime() {
+        if (!currentDirection || !currentTeam) { alert('Выберите команду'); return; }
+        let rawStr = document.getElementById('rawTimeInput').value.trim();
+        let rawSeconds = rawStr === '' ? null : parseTime(rawStr);
+        if (rawStr !== '' && rawSeconds === null) { alert('Неверный формат времени. Используйте мм:сс.сс'); return; }
+        let existing = await loadTeamData(currentDirection, currentTeam);
+        let penaltiesObj = existing?.penalties || {};
+        await saveTeamData(currentDirection, currentTeam, rawSeconds, penaltiesObj);
+        await refreshCurrentTeamData();
+        await loadAllResults();
+        alert('Время сохранено');
+    }
+    
+    async function resetAllPenalties() {
+        if (!currentDirection || !currentTeam) { alert('Выберите команду'); return; }
+        if (!confirm('Сбросить ВСЕ ошибки для этой команды?')) return;
+        let existing = await loadTeamData(currentDirection, currentTeam);
+        let rawSeconds = existing?.raw_seconds ?? null;
+        await saveTeamData(currentDirection, currentTeam, rawSeconds, {});
+        await refreshCurrentTeamData();
+        await loadAllResults();
+        alert('Сброшено');
+    }
+    
+    function resetTemp() { refreshCurrentTeamData(); }
+    
+    async function printFullReport() {
+        if (!currentDirection || !currentTeam) { alert('Сначала выберите направление и команду!'); return; }
+        const data = await loadTeamData(currentDirection, currentTeam);
+        if (!data) { alert('Нет сохранённых данных для этой команды. Сначала зафиксируйте время или ошибки.'); return; }
+        const rawSec = data.raw_seconds;
+        const penaltiesObj = data.penalties || {};
+        const activePenalties = [];
+        for (let [id, val] of Object.entries(penaltiesObj)) {
+            if (val === true || (typeof val === 'number' && val > 0)) {
+                const penaltyInfo = penaltiesLibrary.find(p => p.id === id);
+                if (penaltyInfo) {
+                    let count = (typeof val === 'number') ? val : 1;
+                    for (let i = 0; i < count; i++) activePenalties.push({ ...penaltyInfo });
                 }
             }
-            let rawSeconds = existing?.raw_seconds ?? null;
-            await saveTeamData(currentDirection, currentTeam, rawSeconds, penaltiesObj);
-            hasUnsavedChanges = false;
-            updateBadge();
-            await refreshCurrentTeamData();
-            await loadAllResults();
-            alert('Ошибки этапа сохранены');
         }
-        
-        async function saveRawTime() {
-            if (!currentDirection || !currentTeam) { alert('Выберите команду'); return; }
-            let rawStr = document.getElementById('rawTimeInput').value.trim();
-            let rawSeconds = rawStr === '' ? null : parseTime(rawStr);
-            if (rawStr !== '' && rawSeconds === null) { alert('Неверный формат времени. Используйте мм:сс.сс'); return; }
-            let existing = await loadTeamData(currentDirection, currentTeam);
-            let penaltiesObj = existing?.penalties || {};
-            await saveTeamData(currentDirection, currentTeam, rawSeconds, penaltiesObj);
-            await refreshCurrentTeamData();
-            await loadAllResults();
-            alert('Время сохранено');
+        let pmMisses = penaltiesObj[SHOOT_PM_MISS_ID] || 0;
+        let saigaHits = penaltiesObj[SHOOT_SAIGA_HITS_ID] || 0;
+        if (pmMisses > 0) activePenalties.push({ category: "Стрельба", desc: `Промахи из ПМ (${pmMisses} шт.)`, sec: pmMisses * PENALTY_PER_MISS_PM });
+        if (saigaHits > 0) activePenalties.push({ category: "Стрельба", desc: `Попадания из Сайги-12 (${saigaHits} шт.)`, sec: -saigaHits * SAIGA_BONUS_PER_HIT });
+        const grouped = {};
+        for (let p of activePenalties) { if (!grouped[p.category]) grouped[p.category] = []; grouped[p.category].push(p); }
+        const totalPenalty = getPenaltySum(penaltiesObj);
+        const totalTime = (rawSec !== null && rawSec !== undefined) ? rawSec + totalPenalty : null;
+        const teamFullName = teamNames[currentTeam] || currentTeam;
+        const now = new Date().toLocaleString('ru-RU');
+        const printHtml = `<div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px;"><h1 style="text-align: center;">🏁 ОТЧЕТ О ПРОХОЖДЕНИИ ЭСТАФЕТЫ</h1><div style="text-align: center; margin-bottom: 24px;">Дата формирования: ${now}</div><div style="background: #f8fafc; padding: 16px; border-radius: 16px; margin-bottom: 24px;"><div><strong>Команда:</strong> ${teamFullName} (${currentTeam})</div><div><strong>Направление:</strong> ${currentDirection}</div><div><strong>Чистое время:</strong> ${rawSec !== null ? formatTime(rawSec) : '—'}</div><div><strong>Общий штраф:</strong> ${totalPenalty} секунд</div><div><strong>Итоговое время:</strong> ${totalTime !== null ? formatTime(totalTime) : '—'}</div></div><h3>📋 Перечень допущенных ошибок:</h3>${Object.keys(grouped).length === 0 ? '<p>✅ Штрафные нарушения отсутствуют.</p>' : Object.entries(grouped).map(([stageName, arr]) => `<div style="margin-bottom: 20px;"><h4>🎯 ${stageName}</h4><table style="width:100%; border-collapse: collapse;"><thead><tr style="background:#e2e8f0;"><th style="padding:8px; text-align:left;">Нарушение</th><th style="padding:8px;">Штраф (сек)</th></tr></thead><tbody>${arr.map(p => `<tr><td style="padding:8px;">${p.desc}</td><td style="padding:8px;">${p.sec >= 0 ? '+' : ''}${p.sec}</td></tr>`).join('')}</tbody></table></div>`).join('')}<div class="print-sign-line" style="margin-top: 48px; border-top: 1px dashed #aaa; padding-top: 24px;"><div style="display: flex; justify-content: space-between; flex-wrap: wrap;"><div><strong>Представитель команды:</strong> __________________</div><div><strong>Главный Судья (ФИО):</strong> __________________</div></div><div style="margin-top: 20px; text-align: right;"><strong>Дата:</strong> __________________</div><div style="margin-top: 20px; font-size: 10px; text-align: center;">Подпись представителя команды подтверждает согласие с результатами.</div></div></div>`;
+        const container = document.getElementById('printReportContainer');
+        container.innerHTML = printHtml;
+        container.style.display = 'block';
+        window.print();
+        container.style.display = 'none';
+        container.innerHTML = '';
+    }
+    
+    function renderStageButtons() {
+        const container = document.getElementById('stageButtonsContainer');
+        let html = '';
+        for (let stage of stages) {
+            html += `<button class="stage-btn ${currentStage === stage ? 'active' : ''}" data-stage="${stage}">${stage}</button>`;
         }
-        
-        async function resetAllPenalties() {
-            if (!currentDirection || !currentTeam) { alert('Выберите команду'); return; }
-            if (!confirm('Сбросить ВСЕ ошибки для этой команды?')) return;
-            let existing = await loadTeamData(currentDirection, currentTeam);
-            let rawSeconds = existing?.raw_seconds ?? null;
-            await saveTeamData(currentDirection, currentTeam, rawSeconds, {});
-            await refreshCurrentTeamData();
-            await loadAllResults();
-            alert('Сброшено');
-        }
-        
-        function resetTemp() { refreshCurrentTeamData(); }
-        
-        // Печать отчёта
-        async function printFullReport() {
-            if (!currentDirection || !currentTeam) {
-                alert('Сначала выберите направление и команду!');
-                return;
-            }
-            const data = await loadTeamData(currentDirection, currentTeam);
-            if (!data) {
-                alert('Нет сохранённых данных для этой команды. Сначала зафиксируйте время или ошибки.');
-                return;
-            }
-            const rawSec = data.raw_seconds;
-            const penaltiesObj = data.penalties || {};
-            const activePenalties = [];
-            for (let [id, val] of Object.entries(penaltiesObj)) {
-                if (val === true || (typeof val === 'number' && val > 0)) {
-                    const penaltyInfo = penaltiesLibrary.find(p => p.id === id);
-                    if (penaltyInfo) {
-                        let count = (typeof val === 'number') ? val : 1;
-                        for (let i = 0; i < count; i++) {
-                            activePenalties.push({ ...penaltyInfo });
-                        }
-                    }
-                }
-            }
-            // Добавим отдельные записи для промахов ПМ и попаданий Сайги
-            let pmMisses = penaltiesObj[SHOOT_PM_MISS_ID] || 0;
-            let saigaHits = penaltiesObj[SHOOT_SAIGA_HITS_ID] || 0;
-            if (pmMisses > 0) {
-                activePenalties.push({ category: "Стрельба", desc: `Промахи из ПМ (${pmMisses} шт.)`, sec: pmMisses * PENALTY_PER_MISS_PM });
-            }
-            if (saigaHits > 0) {
-                activePenalties.push({ category: "Стрельба", desc: `Попадания из Сайги-12 (${saigaHits} шт.)`, sec: -saigaHits * SAIGA_BONUS_PER_HIT });
-            }
-            const grouped = {};
-            for (let p of activePenalties) {
-                if (!grouped[p.category]) grouped[p.category] = [];
-                grouped[p.category].push(p);
-            }
-            const totalPenalty = getPenaltySum(penaltiesObj);
-            const totalTime = (rawSec !== null && rawSec !== undefined) ? rawSec + totalPenalty : null;
-            const teamFullName = teamNames[currentTeam] || currentTeam;
-            const now = new Date().toLocaleString('ru-RU');
-            const printHtml = `
-                <div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px;">
-                    <h1 style="text-align: center; margin-bottom: 8px;">🏁 ОТЧЕТ О ПРОХОЖДЕНИИ ЭСТАФЕТЫ</h1>
-                    <div style="text-align: center; margin-bottom: 24px; color: #2c3e66;">Дата формирования: ${now}</div>
-                    <div style="background: #f8fafc; padding: 16px; border-radius: 16px; margin-bottom: 24px;">
-                        <div><strong>Команда (территориальный банк):</strong> ${teamFullName} (${currentTeam})</div>
-                        <div><strong>Направление:</strong> ${currentDirection}</div>
-                        <div><strong>Чистое время заезда:</strong> ${rawSec !== null ? formatTime(rawSec) : '—'}</div>
-                        <div><strong>Общий штраф:</strong> ${totalPenalty} секунд</div>
-                        <div><strong>Итоговое время:</strong> ${totalTime !== null ? formatTime(totalTime) : '—'}</div>
-                    </div>
-                    <h3>📋 Перечень допущенных ошибок (штрафных нарушений):</h3>
-                    ${Object.keys(grouped).length === 0 ? '<p style="color: green;">✅ Штрафные нарушения отсутствуют.</p>' : ''}
-                    ${Object.entries(grouped).map(([stageName, penaltiesArr]) => `
-                        <div style="margin-bottom: 20px;">
-                            <h4 style="background: #eef2ff; padding: 8px 12px; border-radius: 12px;">🎯 ${stageName}</h4>
-                            <table style="width: 100%; border-collapse: collapse; margin-top: 8px;">
-                                <thead><tr style="background: #e2e8f0;"><th style="padding: 8px; text-align: left;">Нарушение</th><th style="padding: 8px; width: 100px;">Штраф (сек)</th> <tr></thead>
-                                <tbody>
-                                    ${penaltiesArr.map(p => `<tr style="border-bottom: 1px solid #cbd5e1;"><td style="padding: 8px;">${p.desc}</td><td style="padding: 8px;">${p.sec >= 0 ? '+' : ''}${p.sec}</td></tr>`).join('')}
-                                </tbody>
-                              </table>
-                        </div>
-                    `).join('')}
-                    <div class="print-sign-line" style="margin-top: 48px; border-top: 1px dashed #aaa; padding-top: 24px;">
-                        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px;">
-                            <div style="min-width: 250px;"><strong>Представитель команды:</strong> __________________</div>
-                            <div style="min-width: 200px;"><strong>Главный Судья (ФИО):</strong> __________________</div>
-                        </div>
-                        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
-                            <div><strong>Дата:</strong> __________________</div>
-                        </div>
-                        <div style="margin-top: 20px; font-size: 10px; color: #4b5563; text-align: center;">
-                            Подпись представителя команды подтверждает согласие с зафиксированными результатами и отсутствие претензий.
-                        </div>
-                    </div>
-                    <div class="print-footer" style="margin-top: 40px; font-size: 9pt; text-align: center; color: #6c757d;">
-                        Официальный протокол дисциплины "Эстафета"
-                    </div>
-                </div>
-            `;
-            const container = document.getElementById('printReportContainer');
-            container.innerHTML = printHtml;
-            container.style.display = 'block';
-            window.print();
-            container.style.display = 'none';
-            container.innerHTML = '';
-        }
-        
-        // Кнопки этапов
-        function renderStageButtons() {
-            const container = document.getElementById('stageButtonsContainer');
-            let html = '';
-            for (let stage of stages) {
-                html += `<button class="stage-btn ${currentStage === stage ? 'active' : ''}" data-stage="${stage}">${stage}</button>`;
-            }
-            container.innerHTML = html;
-            document.querySelectorAll('.stage-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    const newStage = btn.getAttribute('data-stage');
-                    if (newStage === currentStage) return;
-                    currentStage = newStage;
-                    renderStageButtons();
-                    if (currentDirection && currentTeam) refreshCurrentTeamData();
-                    else { tempPenalties = {}; hasUnsavedChanges = false; renderPenalties(); updateBadge(); }
-                    let span = document.querySelector('#stageInfo span:first-child');
-                    if (span && currentDirection && currentTeam) {
-                        let teamName = document.getElementById('teamSelect').options[document.getElementById('teamSelect').selectedIndex]?.text || currentTeam;
-                        span.innerText = `📍 Направление ${currentDirection}, команда ${teamName} | Этап: ${currentStage}`;
-                    }
-                });
+        container.innerHTML = html;
+        document.querySelectorAll('.stage-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const newStage = btn.getAttribute('data-stage');
+                if (newStage === currentStage) return;
+                currentStage = newStage;
+                renderStageButtons();
+                if (currentDirection && currentTeam) refreshCurrentTeamData();
+                else { tempPenalties = {}; hasUnsavedChanges = false; renderPenalties(); updateBadge(); }
             });
+        });
+    }
+    
+    async function onSelectionChange() {
+        currentDirection = document.getElementById('directionSelect').value ? parseInt(document.getElementById('directionSelect').value) : null;
+        currentTeam = document.getElementById('teamSelect').value || null;
+        if (currentDirection && currentTeam) await refreshCurrentTeamData();
+        else {
+            document.getElementById('penaltiesContainer').innerHTML = '<div style="grid-column:1/-1; text-align:center;">⚠️ Выберите направление и банк</div>';
+            document.getElementById('rawTimeDisplay').innerText = '—';
+            document.getElementById('totalPenaltyDisplay').innerText = '0';
+            document.getElementById('totalTimeDisplay').innerText = '—';
         }
-        
-        async function onSelectionChange() {
-            currentDirection = document.getElementById('directionSelect').value ? parseInt(document.getElementById('directionSelect').value) : null;
-            currentTeam = document.getElementById('teamSelect').value || null;
-            if (currentDirection && currentTeam) await refreshCurrentTeamData();
-            else {
-                document.getElementById('penaltiesContainer').innerHTML = '<div style="grid-column:1/-1; text-align:center;">⚠️ Выберите направление и банк</div>';
-                document.getElementById('rawTimeDisplay').innerText = '—';
-                document.getElementById('totalPenaltyDisplay').innerText = '0';
-                document.getElementById('totalTimeDisplay').innerText = '—';
-            }
-            let span = document.querySelector('#stageInfo span:first-child');
-            if (span && currentDirection && currentTeam) {
-                let teamName = document.getElementById('teamSelect').options[document.getElementById('teamSelect').selectedIndex]?.text || currentTeam;
-                span.innerText = `📍 Направление ${currentDirection}, команда ${teamName} | Этап: ${currentStage}`;
-            } else if (span) span.innerText = '✅ Выберите направление, банк и этап';
+        let span = document.querySelector('#stageInfo span:first-child');
+        if (span && currentDirection && currentTeam) {
+            let teamName = document.getElementById('teamSelect').options[document.getElementById('teamSelect').selectedIndex]?.text || currentTeam;
+            span.innerText = `📍 Направление ${currentDirection}, команда ${teamName} | Этап: ${currentStage}`;
+        } else if (span) span.innerText = '✅ Выберите направление, банк и этап';
+    }
+    
+    function exportToExcel() {
+        const table = document.getElementById('resultsTable');
+        const cloneTable = table.cloneNode(true);
+        const now = new Date().toLocaleString('ru-RU');
+        const caption = document.createElement('caption');
+        caption.style.fontSize = '16px';
+        caption.style.marginBottom = '10px';
+        caption.style.fontWeight = 'bold';
+        caption.innerText = `Результаты эстафеты (сформировано: ${now})`;
+        cloneTable.prepend(caption);
+        const wb = `<html><head><meta charset="UTF-8"><title>Результаты эстафеты</title><style>th,td{border:1px solid #ccc;padding:6px;text-align:center;}table{border-collapse:collapse;width:100%;}.rank-1{background-color:#fef9c3;}</style></head><body>${cloneTable.outerHTML}</body></html>`;
+        const blob = new Blob([wb], { type: 'application/vnd.ms-excel' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = 'estafeta_results.xls';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+    
+    function goHome() { window.location.href = '/'; }
+    
+    async function init() {
+        let statusDiv = document.getElementById('connectionStatus');
+        statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>';
+        try {
+            let { error } = await supabaseClient.from('estafeta_results').select('count', { count: 'exact', head: true });
+            if (error) throw error;
+            statusDiv.innerHTML = '<span class="status-ok">✅ Подключено</span>';
+        } catch (err) {
+            console.error(err);
+            statusDiv.innerHTML = `<span class="status-error">❌ Ошибка: ${err.message}. Данные будут только локально.</span>`;
         }
-        
-        async function init() {
-            let statusDiv = document.getElementById('connectionStatus');
-            statusDiv.innerHTML = '<span class="status-warning">⏳ Проверка подключения...</span>';
-            try {
-                let { error } = await supabaseClient.from('estafeta_results').select('count', { count: 'exact', head: true });
-                if (error) throw error;
-                statusDiv.innerHTML = '<span class="status-ok">✅ Подключено</span>';
-            } catch (err) {
-                console.error(err);
-                statusDiv.innerHTML = `<span class="status-error">❌ Ошибка: ${err.message}. Данные будут только локально.</span>`;
-            }
-            await loadAllResults();
-            renderStageButtons();
-            document.getElementById('directionSelect').addEventListener('change', onSelectionChange);
-            document.getElementById('teamSelect').addEventListener('change', onSelectionChange);
-            document.getElementById('saveStageBtn').addEventListener('click', saveStage);
-            document.getElementById('resetStageBtn').addEventListener('click', resetTemp);
-            document.getElementById('saveRawTimeBtn').addEventListener('click', saveRawTime);
-            document.getElementById('resetTeamBtn').addEventListener('click', resetAllPenalties);
-            document.getElementById('printReportBtn').addEventListener('click', printFullReport);
-            onSelectionChange();
-        }
-        
-        init();
-    })();
+        await loadAllResults();
+        renderStageButtons();
+        document.getElementById('directionSelect').addEventListener('change', onSelectionChange);
+        document.getElementById('teamSelect').addEventListener('change', onSelectionChange);
+        document.getElementById('saveStageBtn').addEventListener('click', saveStage);
+        document.getElementById('resetStageBtn').addEventListener('click', resetTemp);
+        document.getElementById('saveRawTimeBtn').addEventListener('click', saveRawTime);
+        document.getElementById('resetTeamBtn').addEventListener('click', resetAllPenalties);
+        document.getElementById('printReportBtn').addEventListener('click', printFullReport);
+        document.getElementById('excelExportBtn').addEventListener('click', exportToExcel);
+        document.getElementById('homeBtn').addEventListener('click', goHome);
+        onSelectionChange();
+    }
+    init();
+})();
 </script>
 </body>
 </html>
