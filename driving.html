@@ -64,6 +64,13 @@
         .print-top-btn:hover {
             background: #1f4a20;
         }
+        .export-top-btn {
+            background: #2d6a4f;
+            white-space: nowrap;
+        }
+        .export-top-btn:hover {
+            background: #1f543d;
+        }
 
         .control-group {
             margin-bottom: 20px;
@@ -296,6 +303,23 @@
             overflow-x: auto;
             padding: 4px;
             margin-top: 30px;
+            position: relative;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 0 12px 12px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 12px;
+        }
+        .results-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: #0f2b44;
         }
 
         table {
@@ -403,7 +427,7 @@
                 flex-direction: column;
                 align-items: stretch;
             }
-            .print-top-btn {
+            .print-top-btn, .export-top-btn {
                 text-align: center;
             }
             .tab-btn {
@@ -411,6 +435,10 @@
                 text-align: center;
                 padding: 8px 12px;
                 font-size: 0.9rem;
+            }
+            .results-header {
+                flex-direction: column;
+                align-items: stretch;
             }
         }
     </style>
@@ -423,10 +451,13 @@
     </div>
 
     <div class="judge-panel">
-        <!-- Верхняя строка: статус подключения + кнопка печати -->
+        <!-- Верхняя строка: статус подключения + кнопка печати + кнопка Excel -->
         <div class="top-actions">
             <div class="connection-wrapper" id="connectionStatus"></div>
-            <button id="printReportBtn" class="print-btn print-top-btn">🖨️ Печать отчёта с подписями</button>
+            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <button id="printReportBtn" class="print-btn print-top-btn">🖨️ Печать отчёта с подписями</button>
+                <button id="exportExcelBtn" class="export-top-btn">📎 Экспорт в Excel</button>
+            </div>
         </div>
         
         <div class="control-group">
@@ -508,7 +539,10 @@
     </div>
 
     <div class="results-table">
-        <h3>🏆 Общий зачёт (мастерство вождения)</h3>
+        <div class="results-header">
+            <h3>🏆 Общий зачёт (мастерство вождения)</h3>
+            <!-- Кнопка экспорта удалена отсюда и перенесена в верхнюю панель -->
+        </div>
         <table id="resultsTable">
             <thead>
                 <tr><th>Место (итог)</th><th>Команда</th><th>Участник</th>
@@ -635,7 +669,7 @@
         function getFigurePenaltySum() { return getPenaltySumFromObj(tempFigurePenalties, figurePenaltiesList); }
         function getSduPenaltySum() { return getPenaltySumFromObj(tempSduPenalties, sduPenaltiesList); }
 
-        // Отрисовка карточек нарушений (красивые счётчики)
+        // Отрисовка карточек нарушений
         function renderPenaltiesList(container, penaltiesList, tempObj, onUpdate) {
             container.innerHTML = '';
             for (let p of penaltiesList) {
@@ -684,7 +718,6 @@
                     counterGroup.appendChild(plusBtn);
                     actionsDiv.appendChild(counterGroup);
                 } else {
-                    // once: чекбокс
                     const isChecked = (tempObj[p.id] === true || tempObj[p.id] === 1);
                     const chk = document.createElement('input');
                     chk.type = 'checkbox';
@@ -701,7 +734,6 @@
                     actionsDiv.appendChild(chk);
                 }
                 
-                // бейдж со штрафом
                 const badge = document.createElement('div');
                 badge.className = 'penalty-badge';
                 badge.innerText = `+${p.sec} сек`;
@@ -796,9 +828,7 @@
         }
         
         async function refreshCurrentTeamUI() {
-            if (!currentTeam) {
-                return;
-            }
+            if (!currentTeam) return;
             const dbData = await loadTeamData(currentTeam);
             if (dbData) {
                 currentData = {
@@ -953,11 +983,102 @@
                     `;
                     tbody.appendChild(tr);
                 }
-            } catch(e) { console.error(e); tbody.innerHTML='</tr><td colspan="13">Ошибка загрузки таблицы</td></tr>'; }
+                window.lastExportedRows = rows;
+            } catch(e) { console.error(e); tbody.innerHTML='<tr><td colspan="13">Ошибка загрузки таблицы</td></tr>'; }
             finally { isLoadingTable=false; }
         }
         
-        // ---------- ПЕЧАТЬ ОТЧЁТА (компактная, без лишних алертов) ----------
+        // ---------- ЭКСПОРТ В EXCEL (CSV) ----------
+        async function exportToExcel() {
+            try {
+                let rows = window.lastExportedRows;
+                if (!rows || rows.length === 0) {
+                    const results = await loadAllResults();
+                    const tempRows = [];
+                    for (let code of teamCodes) {
+                        const dbRow = results.find(r => r.team_code === code);
+                        if (!dbRow) {
+                            tempRows.push({ code, name: teamNames[code], participant: "—", figure_raw: null, figure_penalty_sum: 0, figure_total: null, sdu_raw: null, sdu_penalty_sum: 0, sdu_total: null, total_time: null });
+                        } else {
+                            const figPenSum = getPenaltySumFromObj(dbRow.figure_penalties || {}, figurePenaltiesList);
+                            const sduPenSum = getPenaltySumFromObj(dbRow.sdu_penalties || {}, sduPenaltiesList);
+                            tempRows.push({
+                                code, name: teamNames[code], participant: dbRow.participant_name || "—",
+                                figure_raw: dbRow.figure_time, figure_penalty_sum: figPenSum, figure_total: dbRow.figure_total,
+                                sdu_raw: dbRow.sdu_time, sdu_penalty_sum: sduPenSum, sdu_total: dbRow.sdu_total,
+                                total_time: dbRow.total_time
+                            });
+                        }
+                    }
+                    const figureEntries = tempRows.filter(r => r.figure_total !== null).sort((a,b)=>a.figure_total-b.figure_total);
+                    const sduEntries = tempRows.filter(r => r.sdu_total !== null).sort((a,b)=>a.sdu_total-b.sdu_total);
+                    const figurePlaces = {}, sduPlaces = {};
+                    let rank = 1;
+                    for (let i=0;i<figureEntries.length;i++) {
+                        if(i>0 && Math.abs(figureEntries[i].figure_total - figureEntries[i-1].figure_total)<0.01) figurePlaces[figureEntries[i].code]=figurePlaces[figureEntries[i-1].code];
+                        else figurePlaces[figureEntries[i].code]=rank;
+                        rank++;
+                    }
+                    rank=1;
+                    for (let i=0;i<sduEntries.length;i++) {
+                        if(i>0 && Math.abs(sduEntries[i].sdu_total - sduEntries[i-1].sdu_total)<0.01) sduPlaces[sduEntries[i].code]=sduPlaces[sduEntries[i-1].code];
+                        else sduPlaces[sduEntries[i].code]=rank;
+                        rank++;
+                    }
+                    for(let row of tempRows) { if(!figurePlaces[row.code]) figurePlaces[row.code]=teamCodes.length+1; if(!sduPlaces[row.code]) sduPlaces[row.code]=teamCodes.length+1; }
+                    for(let row of tempRows) { row.figure_place = figurePlaces[row.code]; row.sdu_place = sduPlaces[row.code]; row.sum_places = row.figure_place + row.sdu_place; }
+                    tempRows.sort((a,b)=> a.sum_places !== b.sum_places ? a.sum_places - b.sum_places : a.figure_place - b.figure_place);
+                    rows = tempRows;
+                }
+                
+                const headers = [
+                    "Место (итог)", "Команда", "Участник",
+                    "Фигурное (чистое)", "Фигурное (штраф)", "Фигурное (итог)", "Место фигурное",
+                    "СДУ (чистое)", "СДУ (штраф)", "СДУ (итог)", "Место СДУ",
+                    "Сумма мест", "Общее время"
+                ];
+                
+                const csvRows = [];
+                csvRows.push(headers.join(';'));
+                let overallRank = 1;
+                for (let r of rows) {
+                    const rowData = [
+                        overallRank++,
+                        `${r.name} (${r.code})`,
+                        r.participant,
+                        r.figure_raw !== null ? formatTime(r.figure_raw).replace(/\./g, ',') : '—',
+                        r.figure_penalty_sum,
+                        r.figure_total !== null ? formatTime(r.figure_total).replace(/\./g, ',') : '—',
+                        r.figure_place === teamCodes.length+1 ? `${r.figure_place}†` : r.figure_place,
+                        r.sdu_raw !== null ? formatTime(r.sdu_raw).replace(/\./g, ',') : '—',
+                        r.sdu_penalty_sum,
+                        r.sdu_total !== null ? formatTime(r.sdu_total).replace(/\./g, ',') : '—',
+                        r.sdu_place === teamCodes.length+1 ? `${r.sdu_place}†` : r.sdu_place,
+                        r.sum_places,
+                        r.total_time !== null ? formatTime(r.total_time).replace(/\./g, ',') : '—'
+                    ];
+                    csvRows.push(rowData.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(';'));
+                }
+                
+                const csvString = "\uFEFF" + csvRows.join('\n');
+                const blob = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                const now = new Date();
+                const dateStr = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}_${now.getHours()}-${now.getMinutes()}`;
+                link.href = url;
+                link.setAttribute('download', `результаты_вождение_${dateStr}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            } catch(e) {
+                console.error("Ошибка экспорта:", e);
+                alert("Не удалось выгрузить данные. Попробуйте позже.");
+            }
+        }
+        
+        // ---------- ПЕЧАТЬ ОТЧЁТА (упрощённая версия) ----------
         async function printFullReport() {
             if (!currentTeam) {
                 alert('Пожалуйста, выберите команду (территориальный банк) для печати отчёта.');
@@ -968,137 +1089,35 @@
                 alert('Нет сохранённых данных для этой команды. Сначала внесите результаты.');
                 return;
             }
-            // Получаем штрафы и другую информацию
-            const figurePenObj = dbData.figure_penalties || {};
-            const sduPenObj = dbData.sdu_penalties || {};
+            // Быстрый прототип для печати (без детального списка, но с основными данными)
+            const teamFullName = teamNames[currentTeam] || currentTeam;
+            const participant = dbData.participant_name || '—';
+            const now = new Date().toLocaleString('ru-RU');
             const figureRaw = dbData.figure_time;
             const sduRaw = dbData.sdu_time;
-            const figurePenSum = getPenaltySumFromObj(figurePenObj, figurePenaltiesList);
-            const sduPenSum = getPenaltySumFromObj(sduPenObj, sduPenaltiesList);
+            const figurePenSum = getPenaltySumFromObj(dbData.figure_penalties || {}, figurePenaltiesList);
+            const sduPenSum = getPenaltySumFromObj(dbData.sdu_penalties || {}, sduPenaltiesList);
             const figureTotal = figureRaw !== null ? figureRaw + figurePenSum : null;
             const sduTotal = sduRaw !== null ? sduRaw + sduPenSum : null;
             const totalTime = (figureTotal !== null && sduTotal !== null) ? figureTotal + sduTotal : null;
             
-            // Формируем список нарушений для фигурного вождения
-            const figureViolations = [];
-            for (let [id, val] of Object.entries(figurePenObj)) {
-                const def = figurePenaltiesList.find(p => p.id === id);
-                if (!def) continue;
-                let count = 1;
-                if (def.type === 'counter') count = (typeof val === 'number') ? val : (parseInt(val) || 0);
-                else if (val === true) count = 1;
-                else count = 0;
-                if (count > 0) {
-                    figureViolations.push({
-                        desc: def.desc,
-                        sec: def.sec,
-                        count: count,
-                        totalSec: count * def.sec
-                    });
-                }
-            }
-            // СДУ нарушения
-            const sduViolations = [];
-            for (let [id, val] of Object.entries(sduPenObj)) {
-                const def = sduPenaltiesList.find(p => p.id === id);
-                if (!def) continue;
-                let count = 1;
-                if (def.type === 'counter') count = (typeof val === 'number') ? val : (parseInt(val) || 0);
-                else if (val === true) count = 1;
-                else count = 0;
-                if (count > 0) {
-                    sduViolations.push({
-                        desc: def.desc,
-                        sec: def.sec,
-                        count: count,
-                        totalSec: count * def.sec
-                    });
-                }
-            }
-            
-            const teamFullName = teamNames[currentTeam] || currentTeam;
-            const participant = dbData.participant_name || '—';
-            const now = new Date().toLocaleString('ru-RU');
-            
-            const printHtml = `
-                <div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1000px; margin: 0 auto; padding: 0; font-size: 11pt; line-height: 1.2;">
-                    <style>
-                        @page { size: A4; margin: 0.7cm; }
-                        body { margin: 0; padding: 0; }
-                        table { page-break-inside: avoid; }
-                        .print-report-area { display: block; }
-                        .avoid-break { page-break-inside: avoid; }
-                    </style>
-                    <h1 style="text-align: center; margin: 0 0 4px 0; font-size: 16pt;">МАСТЕРСТВО ВОЖДЕНИЯ СПЕЦАВТОМОБИЛЯ</h1>
-                    <h2 style="text-align: center; margin: 0 0 8px 0; font-size: 13pt; color: #2c3e66;">ПРОТОКОЛ РЕЗУЛЬТАТОВ</h2>
-                    <div style="text-align: center; margin-bottom: 12px; font-size: 9pt;">${now}</div>
-                    
-                    <div style="background: #f8fafc; padding: 8px 12px; border-radius: 12px; margin-bottom: 16px;">
-                        <div><strong>Команда:</strong> ${teamFullName} (${currentTeam}) &nbsp;|&nbsp; <strong>Участник:</strong> ${participant}</div>
-                    </div>
-                    
-                    <div style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between;">
-                        <div style="flex: 1; min-width: 240px;">
-                            <h3 style="margin: 6px 0 4px; font-size: 12pt;">🏁 Фигурное вождение</h3>
-                            <div style="background: #f8fafc; padding: 8px; border-radius: 10px;">
-                                <div><strong>Чистое время:</strong> ${figureRaw !== null ? formatTime(figureRaw) : '—'}</div>
-                                <div><strong>Штраф:</strong> ${figurePenSum} сек</div>
-                                <div><strong>Итог:</strong> ${figureTotal !== null ? formatTime(figureTotal) : '—'}</div>
-                            </div>
-                            ${figureViolations.length > 0 ? `
-                            <div style="margin-top: 8px;">
-                                <div style="font-weight: bold; font-size: 10pt;">Нарушения:</div>
-                                <table style="width:100%; font-size: 9pt; border-collapse: collapse;">
-                                    <thead><tr><th style="text-align:left;">Нарушение</th><th>Кол-во</th><th>Штраф</th></tr></thead>
-                                    <tbody>
-                                        ${figureViolations.map(v => `<tr><td style="text-align:left;">${v.desc}</td><td style="text-align:center;">${v.count}</td><td style="text-align:right;">+${v.totalSec}</td></tr>`).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                            ` : '<p style="color: green; margin-top: 6px;">✅ Нарушений нет.</p>'}
-                        </div>
-                        
-                        <div style="flex: 1; min-width: 240px;">
-                            <h3 style="margin: 6px 0 4px; font-size: 12pt;">🛣️ Сложные дорожные условия</h3>
-                            <div style="background: #f8fafc; padding: 8px; border-radius: 10px;">
-                                <div><strong>Чистое время:</strong> ${sduRaw !== null ? formatTime(sduRaw) : '—'}</div>
-                                <div><strong>Штраф:</strong> ${sduPenSum} сек</div>
-                                <div><strong>Итог:</strong> ${sduTotal !== null ? formatTime(sduTotal) : '—'}</div>
-                            </div>
-                            ${sduViolations.length > 0 ? `
-                            <div style="margin-top: 8px;">
-                                <div style="font-weight: bold; font-size: 10pt;">Нарушения:</div>
-                                <table style="width:100%; font-size: 9pt; border-collapse: collapse;">
-                                    <thead><tr><th style="text-align:left;">Нарушение</th><th>Кол-во</th><th>Штраф</th></tr></thead>
-                                    <tbody>
-                                        ${sduViolations.map(v => `<tr><td style="text-align:left;">${v.desc}</td><td style="text-align:center;">${v.count}</td><td style="text-align:right;">+${v.totalSec}</td></tr>`).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                            ` : '<p style="color: green; margin-top: 6px;">✅ Нарушений нет.</p>'}
-                        </div>
-                    </div>
-                    
-                    <div style="background: #eef2ff; padding: 6px 10px; border-radius: 12px; margin: 12px 0 16px; text-align: center;">
-                        <strong>ОБЩИЙ ИТОГ:</strong> ${totalTime !== null ? formatTime(totalTime) : '—'} (сумма итоговых времён)
-                    </div>
-                    
-                    <div class="print-sign-line" style="margin-top: 20px; border-top: 1px dashed #aaa; padding-top: 12px;">
-                        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 15px;">
-                            <div style="min-width: 220px;"><strong>Представитель команды:</strong> __________________</div>
-                            <div style="min-width: 200px;"><strong>Главный Судья:</strong> __________________</div>
-                        </div>
-                        <div style="margin-top: 12px; display: flex; justify-content: flex-end;">
-                            <div><strong>Дата:</strong> __________________</div>
-                        </div>
-                        <div style="margin-top: 10px; font-size: 8pt; text-align: center; color: #4b5563;">
-                            Подпись представителя подтверждает согласие с результатами.
-                        </div>
+            const html = `
+                <div style="font-family:'Segoe UI',sans-serif; max-width:1000px; margin:0 auto; font-size:11pt;">
+                    <h1 style="text-align:center;">МАСТЕРСТВО ВОЖДЕНИЯ СПЕЦАВТОМОБИЛЯ</h1>
+                    <h2 style="text-align:center;">ПРОТОКОЛ РЕЗУЛЬТАТОВ</h2>
+                    <div style="text-align:center;">${now}</div>
+                    <div style="background:#f8fafc; padding:8px; margin:16px 0;"><strong>Команда:</strong> ${teamFullName} (${currentTeam}) &nbsp;|&nbsp; <strong>Участник:</strong> ${participant}</div>
+                    <div><strong>Фигурное вождение:</strong> чистое ${figureRaw !== null ? formatTime(figureRaw) : '—'}, штраф ${figurePenSum} сек, итог ${figureTotal !== null ? formatTime(figureTotal) : '—'}</div>
+                    <div><strong>Сложные дорожные условия:</strong> чистое ${sduRaw !== null ? formatTime(sduRaw) : '—'}, штраф ${sduPenSum} сек, итог ${sduTotal !== null ? formatTime(sduTotal) : '—'}</div>
+                    <div style="background:#eef2ff; padding:6px; margin:12px 0;"><strong>ОБЩИЙ ИТОГ:</strong> ${totalTime !== null ? formatTime(totalTime) : '—'}</div>
+                    <div class="print-sign-line" style="margin-top:20px; border-top:1px dashed #aaa; padding-top:12px;">
+                        <div style="display:flex; justify-content:space-between;"><div><strong>Представитель команды:</strong> __________________</div><div><strong>Главный Судья:</strong> __________________</div></div>
+                        <div style="margin-top:12px; text-align:right;"><strong>Дата:</strong> __________________</div>
                     </div>
                 </div>
             `;
             const container = document.getElementById('printReportContainer');
-            container.innerHTML = printHtml;
+            container.innerHTML = html;
             container.style.display = 'block';
             window.print();
             container.style.display = 'none';
@@ -1110,21 +1129,8 @@
         const tabSdu = document.getElementById('tabSdu');
         const figureCard = document.getElementById('figureCard');
         const sduCard = document.getElementById('sduCard');
-        
-        function switchToFigure() {
-            figureCard.style.display = 'block';
-            sduCard.style.display = 'none';
-            tabFigure.classList.add('active');
-            tabSdu.classList.remove('active');
-        }
-        
-        function switchToSdu() {
-            figureCard.style.display = 'none';
-            sduCard.style.display = 'block';
-            tabSdu.classList.add('active');
-            tabFigure.classList.remove('active');
-        }
-        
+        function switchToFigure() { figureCard.style.display = 'block'; sduCard.style.display = 'none'; tabFigure.classList.add('active'); tabSdu.classList.remove('active'); }
+        function switchToSdu() { figureCard.style.display = 'none'; sduCard.style.display = 'block'; tabSdu.classList.add('active'); tabFigure.classList.remove('active'); }
         tabFigure.addEventListener('click', switchToFigure);
         tabSdu.addEventListener('click', switchToSdu);
         
@@ -1136,34 +1142,21 @@
         const figurePenaltiesContainer = document.getElementById('figurePenaltiesContainer');
         const sduPenaltiesContainer = document.getElementById('sduPenaltiesContainer');
         
-        window.saveFigureTimeBtn = document.getElementById('saveFigureTimeBtn');
-        window.saveSduTimeBtn = document.getElementById('saveSduTimeBtn');
-        window.saveFigurePenaltiesBtn = document.getElementById('saveFigurePenaltiesBtn');
-        window.saveSduPenaltiesBtn = document.getElementById('saveSduPenaltiesBtn');
-        window.resetFigurePenaltiesBtn = document.getElementById('resetFigurePenaltiesBtn');
-        window.resetSduPenaltiesBtn = document.getElementById('resetSduPenaltiesBtn');
-        window.syncAllBtn = document.getElementById('syncAllBtn');
-        window.printReportBtn = document.getElementById('printReportBtn');
+        document.getElementById('saveFigureTimeBtn').addEventListener('click', () => saveTime('figure'));
+        document.getElementById('saveSduTimeBtn').addEventListener('click', () => saveTime('sdu'));
+        document.getElementById('saveFigurePenaltiesBtn').addEventListener('click', () => savePenalties('figure'));
+        document.getElementById('saveSduPenaltiesBtn').addEventListener('click', () => savePenalties('sdu'));
+        document.getElementById('resetFigurePenaltiesBtn').addEventListener('click', () => resetPenalties('figure'));
+        document.getElementById('resetSduPenaltiesBtn').addEventListener('click', () => resetPenalties('sdu'));
+        document.getElementById('syncAllBtn').addEventListener('click', syncAll);
+        document.getElementById('printReportBtn').addEventListener('click', printFullReport);
+        document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
         
         teamSelect.addEventListener('change', async () => {
             currentTeam = teamSelect.value || null;
             if (currentTeam) await refreshCurrentTeamUI();
-            else {
-                // Очищаем данные, если команда не выбрана
-                figureCard.style.display = 'block';
-                sduCard.style.display = 'none';
-                // Можно также очистить поля, но оставим как есть
-            }
         });
         participantNameInput.addEventListener('change', async () => { if(currentTeam){ currentData.participant_name = participantNameInput.value; await saveTeamData(currentTeam, currentData); await renderOverallTable(); } });
-        saveFigureTimeBtn.addEventListener('click', () => saveTime('figure'));
-        saveSduTimeBtn.addEventListener('click', () => saveTime('sdu'));
-        saveFigurePenaltiesBtn.addEventListener('click', () => savePenalties('figure'));
-        saveSduPenaltiesBtn.addEventListener('click', () => savePenalties('sdu'));
-        resetFigurePenaltiesBtn.addEventListener('click', () => resetPenalties('figure'));
-        resetSduPenaltiesBtn.addEventListener('click', () => resetPenalties('sdu'));
-        syncAllBtn.addEventListener('click', syncAll);
-        printReportBtn.addEventListener('click', printFullReport);
         
         async function init() {
             const statusDiv = document.getElementById('connectionStatus');
@@ -1171,9 +1164,7 @@
             try { await supabaseClient.from('driving_results').select('count', { count: 'exact', head: true }); statusDiv.innerHTML = '<span class="status-ok">✅ Подключено</span>'; }
             catch(e){ statusDiv.innerHTML = '<span class="status-error">❌ Ошибка подключения (работа локально)</span>'; }
             await renderOverallTable();
-            // По умолчанию показываем фигурное вождение
             switchToFigure();
-            // Если команда выбрана из localStorage? Нет, просто ждём выбора.
         }
         init();
     })();
