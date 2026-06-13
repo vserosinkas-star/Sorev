@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Итоги соревнований | Сбербанк</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
         body { background: #f0f4f8; padding: 24px 20px; }
@@ -12,8 +13,10 @@
         .header { background: linear-gradient(135deg, #1e3a5f 0%, #0f2b44 100%); color: white; padding: 28px 20px; border-radius: 32px; margin-bottom: 32px; text-align: center; }
         .header h1 { font-size: 1.8rem; margin-bottom: 8px; }
         .header-actions { display: flex; justify-content: center; gap: 16px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
-        .back-link, .print-btn { display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 40px; color: white; text-decoration: none; font-size: 0.9rem; transition: 0.2s; border: none; cursor: pointer; font-weight: 600; }
-        .back-link:hover, .print-btn:hover { background: rgba(255,255,255,0.35); }
+        .back-link, .print-btn, .excel-btn { display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 40px; color: white; text-decoration: none; font-size: 0.9rem; transition: 0.2s; border: none; cursor: pointer; font-weight: 600; }
+        .back-link:hover, .print-btn:hover, .excel-btn:hover { background: rgba(255,255,255,0.35); }
+        .excel-btn { background: rgba(33, 115, 70, 0.8); }
+        .excel-btn:hover { background: #1e7e34; }
         .print-btn { background: rgba(255,255,255,0.25); margin: 0; }
         .tabs { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
         .tab-btn { background: #e2e8f0; border: none; padding: 12px 28px; border-radius: 40px; font-size: 1.1rem; font-weight: 600; cursor: pointer; color: #1e293b; transition: 0.2s; }
@@ -38,7 +41,7 @@
         @media (max-width: 700px) { th, td { padding: 8px 4px; font-size: 0.8rem; } .section h2 { font-size: 1.3rem; } .tab-btn { padding: 8px 18px; font-size: 0.9rem; } }
         footer { text-align: center; margin-top: 30px; color: #5c6f87; font-size: 0.75rem; }
         .plus-place { color: #b45309; font-size: 0.8rem; margin-left: 2px; }
-        @media print { body { background: white; padding: 0; margin: 0; } .container { max-width: 100%; margin: 0; padding: 10px; } .header { background: #1e3a5f; color: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; border-radius: 0; margin-bottom: 15px; } .header-actions, .tabs, .tab-btn, .refresh-btn, .back-link, .print-btn { display: none !important; } .tab-pane { display: none !important; } .tab-pane.active-pane { display: block !important; } .section { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; padding: 15px; border-radius: 8px; } .rank-1, .rank-2, .rank-3 { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+        @media print { body { background: white; padding: 0; margin: 0; } .container { max-width: 100%; margin: 0; padding: 10px; } .header { background: #1e3a5f; color: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; border-radius: 0; margin-bottom: 15px; } .header-actions, .tabs, .tab-btn, .refresh-btn, .back-link, .print-btn, .excel-btn { display: none !important; } .tab-pane { display: none !important; } .tab-pane.active-pane { display: block !important; } .section { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; padding: 15px; border-radius: 8px; } .rank-1, .rank-2, .rank-3 { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
     </style>
 </head>
 <body>
@@ -49,6 +52,7 @@
         <div class="header-actions">
             <a href="index.html" class="back-link">← Вернуться на главную</a>
             <button class="print-btn" onclick="window.print();">🖨️ Печать результатов</button>
+            <button class="excel-btn" id="exportExcelBtn">📊 Выгрузить в Excel</button>
         </div>
     </div>
     <div class="tabs">
@@ -56,7 +60,7 @@
         <button class="tab-btn" data-tab="ohrana">🛡️ ОХРАНА</button>
     </div>
 
-    <!-- Вкладка ИНКАССАЦИЯ (полностью рабочая) -->
+    <!-- Вкладка ИНКАССАЦИЯ -->
     <div id="inkasso-pane" class="tab-pane active-pane">
         <div style="text-align: right;"><button id="refreshInkassoBtn" class="refresh-btn">🔄 Обновить все данные</button></div>
         <div class="section"><h2>📋 Командное первенство (инкассация)</h2><div class="table-wrapper" id="team-standings-inkasso"><div class="loading">Загрузка...</div></div><div class="subnote">* При равных значениях суммы мест - приоритетом является результат испытаний по дисциплине "Огневая подготовка".</div></div>
@@ -67,7 +71,7 @@
         <div class="section"><h2>🚔 Командная эстафета (охрана + инкассация)</h2><div class="table-wrapper" id="team-estafeta-common"><div class="loading">Загрузка...</div></div></div>
     </div>
 
-    <!-- Вкладка ОХРАНА (исправлена: 12 команд, время из team_raw_seconds) -->
+    <!-- Вкладка ОХРАНА -->
     <div id="ohrana-pane" class="tab-pane">
         <div style="text-align: right;"><button id="refreshOhranaBtn" class="refresh-btn">🔄 Обновить данные охраны</button></div>
         <div class="section"><h2>🛡️ Командное первенство (охрана)</h2><div class="table-wrapper" id="team-standings-ohrana"><div class="loading">Загрузка...</div></div><div class="subnote">* При равных значениях суммы мест - приоритетом является результат испытаний по дисциплине "Огневая подготовка".</div></div>
@@ -217,7 +221,7 @@
         container.appendChild(table);
     }
 
-    // ========== ИНКАССАЦИЯ (полностью рабочая, из исходного файла) ==========
+    // ========== ИНКАССАЦИЯ (полностью рабочая) ==========
     async function renderTeamStandingsInkasso() {
         const container = document.getElementById('team-standings-inkasso');
         container.innerHTML = '<div class="loading">Загрузка...</div>';
@@ -535,7 +539,7 @@
         renderTable('team-estafeta-common', ['Место','Команда','Итоговое время'], rows);
     }
 
-    // ========== ОХРАНА (исправлено: 12 команд, время из team_raw_seconds) ==========
+    // ========== ОХРАНА ==========
     function renderSecurityTeamStandings() {
         const securityStandings = [
             { code:"ДВБ", est:1, duathlon:12, shoot:2, total:15 },
@@ -578,7 +582,6 @@
         container.innerHTML = '<div class="loading">Загрузка...</div>';
         try {
             const { data } = await supabase.from('security_estafeta_results').select('*');
-            // Подготовим карту для всех 12 команд
             const teamsData = new Map();
             for (let code of teamCodesOhrana) {
                 teamsData.set(code, { member1: '—', member2: '—', member3: '—', totalSeconds: null });
@@ -587,14 +590,12 @@
                 const code = row.team_code;
                 if (!teamsData.has(code)) continue;
                 let totalSeconds = null;
-                // Извлекаем team_raw_seconds из поля penalties
                 try {
                     const penalties = typeof row.penalties === 'string' ? JSON.parse(row.penalties) : row.penalties;
                     if (penalties && typeof penalties === 'object' && 'team_raw_seconds' in penalties && penalties.team_raw_seconds !== null) {
                         totalSeconds = penalties.team_raw_seconds;
                     }
                 } catch(e) {}
-                // Извлекаем имена участников
                 let member1 = '—', member2 = '—', member3 = '—';
                 try {
                     const penalties = typeof row.penalties === 'string' ? JSON.parse(row.penalties) : row.penalties;
@@ -607,7 +608,6 @@
                 } catch(e) {}
                 teamsData.set(code, { member1, member2, member3, totalSeconds });
             }
-            // Преобразуем в массив и сортируем: сначала имеющие время (по возрастанию)
             const items = Array.from(teamsData.entries()).map(([code, data]) => ({ code, ...data }));
             items.sort((a,b) => {
                 if (a.totalSeconds === null && b.totalSeconds === null) return 0;
@@ -735,6 +735,64 @@
         renderTable('individual-pistol-ohrana', headers, rows);
     }
 
+    // ---------- ЭКСПОРТ В EXCEL ----------
+    function exportToExcel() {
+        const activePane = document.querySelector('.tab-pane.active-pane');
+        const isInkasso = (activePane.id === 'inkasso-pane');
+        const sections = activePane.querySelectorAll('.section');
+        const workbook = XLSX.utils.book_new();
+        
+        sections.forEach((section, idx) => {
+            const titleElem = section.querySelector('h2');
+            let title = titleElem ? titleElem.innerText.trim() : `Раздел ${idx+1}`;
+            // Очищаем заголовок от эмодзи и лишних символов для имени листа
+            let sheetName = title.replace(/[^а-яА-Яa-zA-Z0-9_\-\s]/g, '').substring(0, 31);
+            if (!sheetName) sheetName = `Sheet${idx+1}`;
+            
+            const table = section.querySelector('table');
+            if (!table) return;
+            
+            // Получаем данные из таблицы
+            const rowsData = [];
+            // Заголовки (первая строка th)
+            const headerCells = table.querySelectorAll('thead th');
+            if (headerCells.length) {
+                const headerRow = [];
+                headerCells.forEach(th => headerRow.push(th.innerText.trim()));
+                rowsData.push(headerRow);
+            }
+            // Данные тела таблицы
+            const bodyRows = table.querySelectorAll('tbody tr');
+            bodyRows.forEach(tr => {
+                const row = [];
+                tr.querySelectorAll('td').forEach(td => {
+                    // Убираем html-теги (например, медали), оставляем текст
+                    row.push(td.innerText.trim());
+                });
+                if (row.length) rowsData.push(row);
+            });
+            
+            if (rowsData.length === 0) return;
+            
+            const worksheet = XLSX.utils.aoa_to_sheet(rowsData);
+            // Автоширина столбцов
+            const colWidths = [];
+            for (let i = 0; i < rowsData[0].length; i++) {
+                let maxLen = 10;
+                for (let j = 0; j < rowsData.length; j++) {
+                    const cell = rowsData[j][i] || '';
+                    maxLen = Math.max(maxLen, cell.length);
+                }
+                colWidths.push({ wch: Math.min(maxLen + 2, 40) });
+            }
+            worksheet['!cols'] = colWidths;
+            XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+        });
+        
+        const fileName = `results_${isInkasso ? 'inkasso' : 'ohrana'}_2026.xlsx`;
+        XLSX.writeFile(workbook, fileName);
+    }
+
     // ---------- ОБНОВЛЕНИЕ ----------
     async function refreshInkasso() {
         await renderTeamStandingsInkasso();
@@ -779,6 +837,7 @@
 
     document.getElementById('refreshInkassoBtn').addEventListener('click', refreshInkasso);
     document.getElementById('refreshOhranaBtn').addEventListener('click', refreshOhrana);
+    document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
     refreshInkasso();
     refreshOhrana();
     initTabs();
