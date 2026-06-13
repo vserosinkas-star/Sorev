@@ -22,18 +22,70 @@
             margin: 0 auto;
         }
 
+        /* Шапка: кнопка слева, заголовок по центру */
         .header {
             background: linear-gradient(135deg, #1e3a5f, #0f2b44);
             color: white;
-            padding: 20px;
             border-radius: 28px;
             margin-bottom: 30px;
-            text-align: center;
+            padding: 16px 24px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 16px;
         }
-
-        .header h1 {
+        .home-btn {
+            background: #4b5563;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            justify-self: start;
+        }
+        .home-btn:hover {
+            background: #374151;
+        }
+        .header-text {
+            text-align: center;
+            justify-self: center;
+        }
+        .header-text h1 {
             margin: 0;
             font-size: 1.6rem;
+        }
+        .header-text p {
+            margin: 5px 0 0;
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+        /* Пустой блок справа для баланса (невидимый) */
+        .header-placeholder {
+            justify-self: end;
+            visibility: hidden;
+        }
+        @media (max-width: 700px) {
+            .header {
+                grid-template-columns: 1fr;
+                gap: 12px;
+                text-align: center;
+            }
+            .home-btn {
+                justify-self: center;
+            }
+            .header-text {
+                justify-self: center;
+            }
+            .header-placeholder {
+                display: none;
+            }
         }
 
         .judge-panel {
@@ -445,9 +497,14 @@
 </head>
 <body>
 <div class="container">
+    <!-- Шапка: кнопка слева, заголовок по центру, пустой блок справа для симметрии -->
     <div class="header">
-        <h1>🚐 Мастерство вождения спецавтомобиля</h1>
-        <p>Фигурное вождение + вождение в сложных дорожных условиях | Поштучные нарушения</p>
+        <button id="homeBtn" class="home-btn">🏠 На главную</button>
+        <div class="header-text">
+            <h1>🚐 Мастерство вождения спецавтомобиля</h1>
+            <p>Фигурное вождение + вождение в сложных дорожных условиях | Поштучные нарушения</p>
+        </div>
+        <div class="header-placeholder"></div>
     </div>
 
     <div class="judge-panel">
@@ -541,7 +598,6 @@
     <div class="results-table">
         <div class="results-header">
             <h3>🏆 Общий зачёт (мастерство вождения)</h3>
-            <!-- Кнопка экспорта удалена отсюда и перенесена в верхнюю панель -->
         </div>
         <table id="resultsTable">
             <thead>
@@ -967,19 +1023,19 @@
                     const tr = document.createElement('tr');
                     if(overallRank===1) tr.classList.add('rank-1');
                     tr.innerHTML = `
-                        <td>${overallRank++}</td>
-                        <td><strong>${r.name} (${r.code})</strong></td>
-                        <td>${r.participant}</td>
-                        <td>${r.figure_raw !== null ? formatTime(r.figure_raw) : '—'}</td>
-                        <td>${r.figure_penalty_sum}</td>
-                        <td>${r.figure_total !== null ? formatTime(r.figure_total) : '—'}</td>
-                        <td>${r.figure_place}${r.figure_place===teamCodes.length+1?'†':''}</td>
-                        <td>${r.sdu_raw !== null ? formatTime(r.sdu_raw) : '—'}</td>
-                        <td>${r.sdu_penalty_sum}</td>
-                        <td>${r.sdu_total !== null ? formatTime(r.sdu_total) : '—'}</td>
-                        <td>${r.sdu_place}${r.sdu_place===teamCodes.length+1?'†':''}</td>
-                        <td><strong>${r.sum_places}</strong></td>
-                        <td>${r.total_time !== null ? formatTime(r.total_time) : '—'}</td>
+                         <td>${overallRank++}</td>
+                         <td><strong>${r.name} (${r.code})</strong></td>
+                         <td>${r.participant}</td>
+                         <td>${r.figure_raw !== null ? formatTime(r.figure_raw) : '—'}</td>
+                         <td>${r.figure_penalty_sum}</td>
+                         <td>${r.figure_total !== null ? formatTime(r.figure_total) : '—'}</td>
+                         <td>${r.figure_place}${r.figure_place===teamCodes.length+1?'†':''}</td>
+                         <td>${r.sdu_raw !== null ? formatTime(r.sdu_raw) : '—'}</td>
+                         <td>${r.sdu_penalty_sum}</td>
+                         <td>${r.sdu_total !== null ? formatTime(r.sdu_total) : '—'}</td>
+                         <td>${r.sdu_place}${r.sdu_place===teamCodes.length+1?'†':''}</td>
+                         <td><strong>${r.sum_places}</strong></td>
+                         <td>${r.total_time !== null ? formatTime(r.total_time) : '—'}</td>
                     `;
                     tbody.appendChild(tr);
                 }
@@ -1078,7 +1134,7 @@
             }
         }
         
-        // ---------- ПЕЧАТЬ ОТЧЁТА (упрощённая версия) ----------
+        // ---------- ПЕЧАТЬ ОТЧЁТА ----------
         async function printFullReport() {
             if (!currentTeam) {
                 alert('Пожалуйста, выберите команду (территориальный банк) для печати отчёта.');
@@ -1089,7 +1145,6 @@
                 alert('Нет сохранённых данных для этой команды. Сначала внесите результаты.');
                 return;
             }
-            // Быстрый прототип для печати (без детального списка, но с основными данными)
             const teamFullName = teamNames[currentTeam] || currentTeam;
             const participant = dbData.participant_name || '—';
             const now = new Date().toLocaleString('ru-RU');
@@ -1151,6 +1206,7 @@
         document.getElementById('syncAllBtn').addEventListener('click', syncAll);
         document.getElementById('printReportBtn').addEventListener('click', printFullReport);
         document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
+        document.getElementById('homeBtn').addEventListener('click', () => { window.location.href = '/'; });
         
         teamSelect.addEventListener('change', async () => {
             currentTeam = teamSelect.value || null;
