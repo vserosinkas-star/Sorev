@@ -5,370 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Чек-лист судьи — Мастерство вождения спецавтомобиля</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
-        body {
-            background: #f0f4f8;
-            font-family: 'Segoe UI', 'Roboto', system-ui, sans-serif;
-            margin: 0;
-            padding: 24px 20px;
-            color: #1e2a3e;
-        }
-
-        .container {
-            max-width: 1280px;
-            margin: 0 auto;
-        }
-
-        /* шапка основная (видимая на экране) */
-        .main-header {
-            background: linear-gradient(135deg, #1e3a5f, #0f2b44);
-            color: white;
-            padding: 20px 28px;
-            border-radius: 32px;
-            margin-bottom: 32px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-        }
-
-        .main-header h1 {
-            margin: 0 0 6px;
-            font-size: 1.9rem;
-        }
-
-        .toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            background: white;
-            padding: 16px 24px;
-            border-radius: 48px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .print-btn {
-            background: #2c5f2d;
-            border: none;
-            padding: 12px 28px;
-            border-radius: 40px;
-            font-weight: 700;
-            font-size: 1rem;
-            color: white;
-            cursor: pointer;
-            transition: 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .print-btn:hover {
-            background: #1f4a20;
-            transform: translateY(-2px);
-        }
-
-        .info-note {
-            background: #fef9e3;
-            border-left: 5px solid #f5a623;
-            padding: 10px 18px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            color: #5e3a0c;
-        }
-
-        /* блок общих данных (для заполнения один раз) */
-        .meta-fields {
-            background: #fefce8;
-            border-radius: 28px;
-            padding: 20px 28px;
-            margin-bottom: 32px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 24px;
-            border: 1px solid #fde68a;
-            page-break-inside: avoid;
-            break-inside: avoid;
-        }
-
-        .meta-field {
-            flex: 1 1 200px;
-        }
-
-        .meta-field label {
-            display: block;
-            font-weight: 700;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            color: #b45309;
-            margin-bottom: 6px;
-            letter-spacing: 0.5px;
-        }
-
-        .meta-field input, .meta-field textarea {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 24px;
-            border: 1px solid #d1d5db;
-            font-size: 0.9rem;
-            background: white;
-            font-family: inherit;
-        }
-
-        /* секция упражнения */
-        .exercise-section {
-            background: white;
-            border-radius: 32px;
-            margin-bottom: 32px;
-            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
-            break-inside: avoid;
-            page-break-inside: avoid;
-        }
-
-        /* разрыв страницы между двумя упражнениями при печати */
-        .exercise-section:first-child {
-            page-break-after: always;
-            break-after: page;
-        }
-
-        .exercise-header {
-            background: #f1f5f9;
-            padding: 18px 24px;
-            border-radius: 32px 32px 0 0;
-            border-bottom: 2px solid #cbd5e1;
-        }
-
-        .exercise-header h2 {
-            margin: 0;
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #0c4a6e;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .penalty-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .penalty-table th {
-            text-align: left;
-            padding: 16px 20px 8px 24px;
-            font-weight: 600;
-            color: #334155;
-            font-size: 0.85rem;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .penalty-table td {
-            padding: 12px 20px 12px 24px;
-            border-bottom: 1px solid #edf2f7;
-            vertical-align: middle;
-        }
-
-        .penalty-desc {
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-
-        .penalty-seconds {
-            background: #eef2ff;
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            white-space: nowrap;
-            color: #1e3a5f;
-            display: inline-block;
-        }
-
-        .check-col {
-            width: 70px;
-            text-align: center;
-        }
-
-        .counter-col {
-            width: 130px;
-        }
-
-        input[type="checkbox"] {
-            width: 22px;
-            height: 22px;
-            cursor: pointer;
-            accent-color: #1e3a8a;
-            transform: scale(1.1);
-        }
-
-        .counter-input {
-            width: 80px;
-            padding: 8px 10px;
-            font-size: 0.9rem;
-            text-align: center;
-            border-radius: 28px;
-            border: 1px solid #cbd5e1;
-            background: white;
-            font-weight: 500;
-        }
-
-        /* дублируемая шапка (скрыта на экране, видна при печати) */
-        .print-meta {
-            display: none;
-        }
-
-        .sign-line {
-            margin-top: 40px;
-            border-top: 1px dashed #9ca3af;
-            padding-top: 30px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            gap: 30px;
-            page-break-inside: avoid;
-        }
-
-        .sign-item {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .sign-item span {
-            font-weight: 600;
-            border-bottom: 1px dotted #4b5563;
-        }
-
-        .print-footer {
-            text-align: center;
-            font-size: 0.7rem;
-            color: #6c757d;
-            margin-top: 48px;
-            padding-bottom: 20px;
-        }
-
+        * { box-sizing: border-box; }
+        body { background: #f0f4f8; font-family: 'Segoe UI', 'Roboto', system-ui, sans-serif; margin: 0; padding: 24px 20px; color: #1e2a3e; }
+        .container { max-width: 1280px; margin: 0 auto; }
+        .main-header { background: linear-gradient(135deg, #1e3a5f, #0f2b44); color: white; padding: 20px 28px; border-radius: 32px; margin-bottom: 32px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .main-header h1 { margin: 0 0 6px; font-size: 1.9rem; }
+        .toolbar { display: flex; flex-wrap: wrap; gap: 16px; justify-content: space-between; align-items: center; margin-bottom: 30px; background: white; padding: 16px 24px; border-radius: 48px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .print-btn { background: #2c5f2d; border: none; padding: 12px 28px; border-radius: 40px; font-weight: 700; font-size: 1rem; color: white; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; gap: 10px; }
+        .print-btn:hover { background: #1f4a20; transform: translateY(-2px); }
+        .info-note { background: #fef9e3; border-left: 5px solid #f5a623; padding: 10px 18px; border-radius: 20px; font-size: 0.85rem; color: #5e3a0c; }
+        .meta-fields { background: #fefce8; border-radius: 28px; padding: 20px 28px; margin-bottom: 32px; display: flex; flex-wrap: wrap; gap: 24px; border: 1px solid #fde68a; page-break-inside: avoid; break-inside: avoid; }
+        .meta-field { flex: 1 1 200px; }
+        .meta-field label { display: block; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: #b45309; margin-bottom: 6px; letter-spacing: 0.5px; }
+        .meta-field input, .meta-field textarea { width: 100%; padding: 10px 14px; border-radius: 24px; border: 1px solid #d1d5db; font-size: 0.9rem; background: white; font-family: inherit; }
+        .exercise-section { background: white; border-radius: 32px; margin-bottom: 32px; box-shadow: 0 6px 14px rgba(0,0,0,0.05); break-inside: avoid; page-break-inside: avoid; }
+        .exercise-header { background: #f1f5f9; padding: 18px 24px; border-radius: 32px 32px 0 0; border-bottom: 2px solid #cbd5e1; }
+        .exercise-header h2 { margin: 0; font-size: 1.6rem; font-weight: 700; color: #0c4a6e; display: flex; align-items: center; gap: 10px; }
+        .penalty-table { width: 100%; border-collapse: collapse; }
+        .penalty-table th { text-align: left; padding: 16px 20px 8px 24px; font-weight: 600; color: #334155; font-size: 0.85rem; border-bottom: 1px solid #e2e8f0; }
+        .penalty-table td { padding: 12px 20px 12px 24px; border-bottom: 1px solid #edf2f7; vertical-align: middle; }
+        .penalty-desc { font-weight: 500; font-size: 0.95rem; }
+        .penalty-seconds { background: #eef2ff; padding: 4px 12px; border-radius: 30px; font-size: 0.75rem; font-weight: 700; white-space: nowrap; color: #1e3a5f; display: inline-block; }
+        .check-col { width: 70px; text-align: center; }
+        .counter-col { width: 130px; }
+        input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; accent-color: #1e3a8a; transform: scale(1.1); }
+        .counter-input { width: 80px; padding: 8px 10px; font-size: 0.9rem; text-align: center; border-radius: 28px; border: 1px solid #cbd5e1; background: white; font-weight: 500; }
+        .print-meta { display: none; }
+        .sign-line { margin-top: 40px; border-top: 1px dashed #9ca3af; padding-top: 30px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 30px; page-break-inside: avoid; }
+        .sign-item { flex: 1; min-width: 200px; }
+        .sign-item span { font-weight: 600; border-bottom: 1px dotted #4b5563; }
+        .print-footer { text-align: center; font-size: 0.7rem; color: #6c757d; margin-top: 48px; padding-bottom: 20px; }
         @media print {
-            body {
-                background: white;
-                padding: 0.2in;
-                margin: 0;
-                font-size: 10pt;
-            }
-            .toolbar, .print-btn, .info-note, .main-header, .meta-fields {
-                display: none;
-            }
-            .print-meta {
-                display: block;
-                background: #fefce8;
-                border: 1px solid #cca;
-                border-radius: 20px;
-                padding: 16px 20px;
-                margin-bottom: 20px;
-                display: flex;
-                flex-wrap: wrap;
-                gap: 16px;
-                break-inside: avoid;
-            }
-            .exercise-section {
-                break-inside: avoid;
-                page-break-inside: avoid;
-                box-shadow: none;
-                border: 1px solid #ccc;
-                margin-bottom: 0;
-            }
-            .exercise-section:first-child {
-                page-break-after: always;
-            }
-            input[type="checkbox"] {
-                transform: scale(0.9);
-                border: 1px solid black;
-            }
-            .counter-input {
-                border: 1px solid #000;
-                background: none;
-                padding: 4px;
-                width: 60px;
-            }
-            .exercise-header {
-                background: #eef2ff;
-            }
+            body { background: white; padding: 0.1in; margin: 0; font-size: 8pt; }
+            .toolbar, .print-btn, .info-note, .main-header, .meta-fields { display: none; }
+            .print-meta { display: flex; background: #fefce8; border: 1px solid #cca; border-radius: 20px; padding: 10px 12px; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; break-inside: avoid; }
+            .exercise-section { break-inside: avoid; page-break-inside: avoid; box-shadow: none; border: 1px solid #ccc; margin-bottom: 10px; }
+            /* убираем принудительный разрыв между упражнениями */
+            .exercise-section:first-child { page-break-after: avoid; break-after: avoid; }
+            input[type="checkbox"] { transform: scale(0.9); border: 1px solid black; }
+            .counter-input { border: 1px solid #000; background: none; padding: 2px; width: 45px; font-size: 8pt; }
+            .exercise-header { background: #eef2ff; padding: 8px 12px; }
+            .exercise-header h2 { font-size: 1.2rem; }
+            .penalty-table th, .penalty-table td { padding: 4px 6px; }
+            .penalty-desc { font-size: 8pt; }
+            .penalty-seconds { font-size: 7pt; padding: 2px 6px; }
+            .sign-line { margin-top: 15px; padding-top: 10px; }
+            .print-footer { margin-top: 20px; }
         }
-
-        @media (max-width: 700px) {
-            body {
-                padding: 16px;
-            }
-            .penalty-table td, .penalty-table th {
-                padding: 10px 12px;
-            }
-            .counter-col {
-                width: auto;
-            }
-        }
+        @media (max-width: 700px) { body { padding: 16px; } .penalty-table td, .penalty-table th { padding: 10px 12px; } .counter-col { width: auto; } }
     </style>
 </head>
 <body>
 <div class="container">
-    <div class="main-header">
-        <h1>🚐 Мастерство вождения спецавтомобиля</h1>
-        <p>Судейский чек-лист (фигурное вождение + вождение в сложных дорожных условиях)</p>
-    </div>
-
-    <div class="toolbar">
-        <div class="info-note">
-            ✅ Для нарушений со счётчиком укажите количество раз. Штраф начисляется за каждое.
-        </div>
-        <button class="print-btn" id="printChecklistsBtn">🖨️ Распечатать чек-листы</button>
-    </div>
-
-    <!-- ОСНОВНОЙ БЛОК ДЛЯ ЗАПОЛНЕНИЯ (видимый, будет скрыт при печати) -->
+    <div class="main-header"><h1>🚐 Мастерство вождения спецавтомобиля</h1><p>Судейский чек-лист (фигурное вождение + вождение в сложных дорожных условиях)</p></div>
+    <div class="toolbar"><div class="info-note">✅ Для нарушений со счётчиком укажите количество раз. Штраф начисляется за каждое.</div><button class="print-btn" id="printChecklistsBtn">🖨️ Распечатать чек-листы</button></div>
     <div class="meta-fields" id="mainMetaBlock">
-        <div class="meta-field">
-            <label>🏦 Территориальный банк / команда</label>
-            <input type="text" id="teamName" placeholder="Например: Уральский (УБ)" value="_________________________">
-        </div>
-        <div class="meta-field">
-            <label>👤 Участник (ФИО)</label>
-            <input type="text" id="participantName" placeholder="Фамилия И.О." value="_________________________">
-        </div>
-        <div class="meta-field">
-            <label>⚖️ Судья (ФИО)</label>
-            <input type="text" id="judgeName" placeholder="Фамилия И.О." value="_________________________">
-        </div>
-        <div class="meta-field">
-            <label>📅 Дата проведения</label>
-            <input type="text" id="eventDate" placeholder="ДД.ММ.ГГГГ" value="____.____.20__">
-        </div>
-        <div class="meta-field">
-            <label>📝 Примечания</label>
-            <textarea id="remarks" rows="1" placeholder="Особые отметки, замечания...">_________________________</textarea>
-        </div>
+        <div class="meta-field"><label>🏦 Территориальный банк / команда</label><input type="text" id="teamName" placeholder="Например: Уральский (УБ)" value="_________________________"></div>
+        <div class="meta-field"><label>👤 Участник (ФИО)</label><input type="text" id="participantName" placeholder="Фамилия И.О." value="_________________________"></div>
+        <div class="meta-field"><label>⚖️ Судья (ФИО)</label><input type="text" id="judgeName" placeholder="Фамилия И.О." value="_________________________"></div>
+        <div class="meta-field"><label>📅 Дата проведения</label><input type="text" id="eventDate" placeholder="ДД.ММ.ГГГГ" value="____.____.20__"></div>
+        <div class="meta-field"><label>📝 Примечания</label><textarea id="remarks" rows="1" placeholder="Особые отметки, замечания...">_________________________</textarea></div>
     </div>
-
-    <!-- Контейнер для упражнений (каждое упражнение — отдельная секция) -->
     <div id="exercisesContainer"></div>
-
-    <!-- Блок подписей -->
-    <div class="sign-line">
-        <div class="sign-item">
-            <span>Подпись судьи</span><br><br> __________________________
-        </div>
-        <div class="sign-item">
-            <span>Подпись участника</span><br><br> __________________________
-        </div>
-        <div class="sign-item">
-            <span>Расшифровка подписи</span><br><br> __________________________
-        </div>
-    </div>
-    <div class="print-footer">
-        Официальный чек-лист нарушений по дисциплине «Мастерство вождения спецавтомобиля»<br>
-        Каждая отметка фиксирует факт нарушения. Для счётчиков — количество в поле «Кол-во».
-    </div>
+    <div class="sign-line"><div class="sign-item"><span>Подпись судьи</span><br><br> __________________________</div><div class="sign-item"><span>Подпись участника</span><br><br> __________________________</div><div class="sign-item"><span>Расшифровка подписи</span><br><br> __________________________</div></div>
+    <div class="print-footer">Официальный чек-лист нарушений по дисциплине «Мастерство вождения спецавтомобиля»<br>Каждая отметка фиксирует факт нарушения. Для счётчиков — количество в поле «Кол-во».</div>
 </div>
-
 <script>
-    // ---------- БИБЛИОТЕКА НАРУШЕНИЙ (по данным из исходной панели) ----------
     const figurePenaltiesList = [
         { id: "fig_cone", desc: "🚧 Касание, падение или сдвиг конуса (стойки) на всех фигурах (выезд за выделенную линию)", sec: 5, type: "counter" },
         { id: "fig_malt", desc: "🔄 Проезд конусов фигуры «Мальтийский крест» в неправильном направлении (за каждый конус)", sec: 5, type: "counter" },
@@ -391,7 +93,6 @@
         { id: "fig_help", desc: "🤝 Посторонняя помощь участнику", sec: 30, type: "once" },
         { id: "fig_proh", desc: "🚷 Проход лиц за ограждение без разрешения судьи", sec: 30, type: "once" }
     ];
-
     const sduPenaltiesList = [
         { id: "sdu_wrong_scheme", desc: "🗺️ Проезд не по схеме (несоблюдение последовательности) (за каждую фигуру)", sec: 15, type: "counter" },
         { id: "sdu_missed_figure", desc: "❌ За каждую пропущенную (невыполненную фигуру)", sec: 60, type: "counter" },
@@ -399,161 +100,57 @@
         { id: "sdu_belt", desc: "🔒 Водитель не пристёгнут ремнем безопасности", sec: 10, type: "once" },
         { id: "sdu_cone", desc: "🚧 Касание, падение или сдвиг конуса", sec: 5, type: "once" }
     ];
-
-    // Функция создания копии мета-блока (для вставки перед каждым упражнением при печати)
     function createMetaClone() {
-        const originalBlock = document.getElementById('mainMetaBlock');
-        if (!originalBlock) return null;
-        const clone = document.createElement('div');
-        clone.className = 'print-meta';
-        const fields = originalBlock.querySelectorAll('.meta-field');
-        fields.forEach(field => {
-            const clonedField = field.cloneNode(true);
-            // Убираем id, чтобы не было конфликтов
-            const inputs = clonedField.querySelectorAll('input, textarea');
-            inputs.forEach(inp => {
-                if (inp.id) inp.id = inp.id + '_clone_' + Math.random().toString(36).substr(2, 6);
-            });
-            clone.appendChild(clonedField);
-        });
+        const original = document.getElementById('mainMetaBlock'); if (!original) return null;
+        const clone = document.createElement('div'); clone.className = 'print-meta';
+        const fields = original.querySelectorAll('.meta-field');
+        fields.forEach(field => { const clonedField = field.cloneNode(true); const inputs = clonedField.querySelectorAll('input, textarea'); inputs.forEach(inp => { if (inp.id) inp.id = inp.id + '_clone_' + Math.random().toString(36).substr(2, 6); }); clone.appendChild(clonedField); });
         return clone;
     }
-
-    // Синхронизация значений из основного блока во все копии
     function syncMetaToClones() {
-        const mainBlock = document.getElementById('mainMetaBlock');
-        const clones = document.querySelectorAll('.print-meta');
-        if (!mainBlock) return;
-        const teamName = mainBlock.querySelector('#teamName')?.value || '';
-        const participantName = mainBlock.querySelector('#participantName')?.value || '';
-        const judgeName = mainBlock.querySelector('#judgeName')?.value || '';
-        const eventDate = mainBlock.querySelector('#eventDate')?.value || '';
-        const remarks = mainBlock.querySelector('#remarks')?.value || '';
-
+        const main = document.getElementById('mainMetaBlock'); const clones = document.querySelectorAll('.print-meta'); if (!main) return;
+        const team = main.querySelector('#teamName')?.value || ''; const participant = main.querySelector('#participantName')?.value || ''; const judge = main.querySelector('#judgeName')?.value || ''; const date = main.querySelector('#eventDate')?.value || ''; const remarks = main.querySelector('#remarks')?.value || '';
         clones.forEach(clone => {
-            const teamInput = clone.querySelector('input[id*="teamName"]');
-            if (teamInput) teamInput.value = teamName;
-            const partInput = clone.querySelector('input[id*="participantName"]');
-            if (partInput) partInput.value = participantName;
-            const judgeInput = clone.querySelector('input[id*="judgeName"]');
-            if (judgeInput) judgeInput.value = judgeName;
-            const dateInput = clone.querySelector('input[id*="eventDate"]');
-            if (dateInput) dateInput.value = eventDate;
-            const remarksArea = clone.querySelector('textarea[id*="remarks"]');
-            if (remarksArea) remarksArea.value = remarks;
+            const teamInp = clone.querySelector('input[id*="teamName"]'); if (teamInp) teamInp.value = team;
+            const partInp = clone.querySelector('input[id*="participantName"]'); if (partInp) partInp.value = participant;
+            const judgeInp = clone.querySelector('input[id*="judgeName"]'); if (judgeInp) judgeInp.value = judge;
+            const dateInp = clone.querySelector('input[id*="eventDate"]'); if (dateInp) dateInp.value = date;
+            const remarksArea = clone.querySelector('textarea[id*="remarks"]'); if (remarksArea) remarksArea.value = remarks;
         });
     }
-
-    // Генерация таблицы для списка нарушений
     function buildPenaltyRows(penaltiesList, tbody) {
         for (let p of penaltiesList) {
             const row = document.createElement('tr');
             if (p.type === 'counter') {
-                const maxVal = p.maxCount || 99;
-                row.innerHTML = `
-                    <td class="penalty-desc">${p.desc}</td>
-                    <td class="check-col">—</td>
-                    <td class="counter-col"><input type="number" class="counter-input" data-id="${p.id}" min="0" max="${maxVal}" value="0" step="1"></td>
-                    <td><span class="penalty-seconds">+${p.sec} сек/каждое</span></td>
-                `;
+                row.innerHTML = `<td class="penalty-desc">${p.desc}</td><td class="check-col">—</td><td class="counter-col"><input type="number" class="counter-input" data-id="${p.id}" min="0" max="99" value="0" step="1"></td><td><span class="penalty-seconds">+${p.sec} сек/каждое</span></td>`;
             } else {
-                row.innerHTML = `
-                    <td class="penalty-desc">${p.desc}</td>
-                    <td class="check-col"><input type="checkbox" data-id="${p.id}"></td>
-                    <td class="counter-col">—</td>
-                    <td><span class="penalty-seconds">+${p.sec} сек</span></td>
-                `;
+                row.innerHTML = `<td class="penalty-desc">${p.desc}</td><td class="check-col"><input type="checkbox" data-id="${p.id}"></td><td class="counter-col">—</td><td><span class="penalty-seconds">+${p.sec} сек</span></td>`;
             }
             tbody.appendChild(row);
         }
     }
-
-    // Построение всего чек-листа (два упражнения)
     function buildChecklists() {
-        const container = document.getElementById('exercisesContainer');
-        container.innerHTML = '';
-
-        // --- Упражнение 1: Фигурное вождение ---
-        const figClone = createMetaClone();
-        if (figClone) container.appendChild(figClone);
-
-        const figSection = document.createElement('div');
-        figSection.className = 'exercise-section';
-        const figHeader = document.createElement('div');
-        figHeader.className = 'exercise-header';
-        figHeader.innerHTML = `<h2>🚗 Упражнение 1: Фигурное вождение</h2>`;
-        figSection.appendChild(figHeader);
-
-        const figTable = document.createElement('table');
-        figTable.className = 'penalty-table';
-        const thead = document.createElement('thead');
-        thead.innerHTML = `<tr><th>Нарушение / описание</th><th class="check-col">✓ Отметка</th><th class="counter-col">Кол-во (для счётчика)</th><th>Штраф (сек)</th></tr>`;
-        figTable.appendChild(thead);
-        const figBody = document.createElement('tbody');
-        buildPenaltyRows(figurePenaltiesList, figBody);
-        figTable.appendChild(figBody);
-        figSection.appendChild(figTable);
-        container.appendChild(figSection);
-
-        // --- Упражнение 2: Вождение в СДУ ---
-        const sduClone = createMetaClone();
-        if (sduClone) container.appendChild(sduClone);
-
-        const sduSection = document.createElement('div');
-        sduSection.className = 'exercise-section';
-        const sduHeader = document.createElement('div');
-        sduHeader.className = 'exercise-header';
-        sduHeader.innerHTML = `<h2>🛣️ Упражнение 2: Вождение в сложных дорожных условиях (СДУ)</h2>`;
-        sduSection.appendChild(sduHeader);
-
-        const sduTable = document.createElement('table');
-        sduTable.className = 'penalty-table';
-        const sduThead = document.createElement('thead');
-        sduThead.innerHTML = `<tr><th>Нарушение / описание</th><th class="check-col">✓ Отметка</th><th class="counter-col">Кол-во (для счётчика)</th><th>Штраф (сек)</th></tr>`;
-        sduTable.appendChild(sduThead);
-        const sduBody = document.createElement('tbody');
-        buildPenaltyRows(sduPenaltiesList, sduBody);
-        sduTable.appendChild(sduBody);
-        sduSection.appendChild(sduTable);
-        container.appendChild(sduSection);
-
-        // Синхронизируем мета-данные во все созданные копии
+        const container = document.getElementById('exercisesContainer'); container.innerHTML = '';
+        const figClone = createMetaClone(); if (figClone) container.appendChild(figClone);
+        const figSection = document.createElement('div'); figSection.className = 'exercise-section';
+        const figHeader = document.createElement('div'); figHeader.className = 'exercise-header'; figHeader.innerHTML = `<h2>🚗 Упражнение 1: Фигурное вождение</h2>`; figSection.appendChild(figHeader);
+        const figTable = document.createElement('table'); figTable.className = 'penalty-table';
+        const thead = document.createElement('thead'); thead.innerHTML = `<tr><th>Нарушение / описание</th><th class="check-col">✓ Отметка</th><th class="counter-col">Кол-во (для счётчика)</th><th>Штраф (сек)</th></tr>`; figTable.appendChild(thead);
+        const figBody = document.createElement('tbody'); buildPenaltyRows(figurePenaltiesList, figBody); figTable.appendChild(figBody); figSection.appendChild(figTable); container.appendChild(figSection);
+        const sduClone = createMetaClone(); if (sduClone) container.appendChild(sduClone);
+        const sduSection = document.createElement('div'); sduSection.className = 'exercise-section';
+        const sduHeader = document.createElement('div'); sduHeader.className = 'exercise-header'; sduHeader.innerHTML = `<h2>🛣️ Упражнение 2: Вождение в сложных дорожных условиях (СДУ)</h2>`; sduSection.appendChild(sduHeader);
+        const sduTable = document.createElement('table'); sduTable.className = 'penalty-table';
+        const sduThead = document.createElement('thead'); sduThead.innerHTML = `<tr><th>Нарушение / описание</th><th class="check-col">✓ Отметка</th><th class="counter-col">Кол-во (для счётчика)</th><th>Штраф (сек)</th></tr>`; sduTable.appendChild(sduThead);
+        const sduBody = document.createElement('tbody'); buildPenaltyRows(sduPenaltiesList, sduBody); sduTable.appendChild(sduBody); sduSection.appendChild(sduTable); container.appendChild(sduSection);
         syncMetaToClones();
     }
-
-    // Обработка печати
-    document.getElementById('printChecklistsBtn').addEventListener('click', () => {
-        syncMetaToClones();  // подтянуть актуальные значения перед печатью
-        window.print();
-    });
-
-    // Инициализация чек-листов
+    document.getElementById('printChecklistsBtn').addEventListener('click', () => { syncMetaToClones(); window.print(); });
     buildChecklists();
-
-    // Синхронизация при изменении полей в основном блоке
     const mainInputs = document.querySelectorAll('#mainMetaBlock input, #mainMetaBlock textarea');
-    mainInputs.forEach(inp => {
-        inp.addEventListener('input', () => syncMetaToClones());
-        inp.addEventListener('change', () => syncMetaToClones());
-    });
-
-    // Оформление плейсхолдеров
+    mainInputs.forEach(inp => { inp.addEventListener('input', () => syncMetaToClones()); inp.addEventListener('change', () => syncMetaToClones()); });
     const placeholders = document.querySelectorAll('#mainMetaBlock input, #mainMetaBlock textarea');
-    placeholders.forEach(inp => {
-        if (inp.value === "_________________________" || inp.value === "____.____.20__") {
-            inp.style.color = "#6c757d";
-            inp.addEventListener('focus', function() {
-                if (this.value === "_________________________" || this.value === "____.____.20__") this.value = "";
-            });
-            inp.addEventListener('blur', function() {
-                if (this.value === "") {
-                    if (this.id === "eventDate") this.value = "____.____.20__";
-                    else this.value = "_________________________";
-                    syncMetaToClones();
-                }
-            });
-        }
-    });
+    placeholders.forEach(inp => { if (inp.value === "_________________________" || inp.value === "____.____.20__") { inp.style.color = "#6c757d"; inp.addEventListener('focus', function() { if (this.value === "_________________________" || this.value === "____.____.20__") this.value = ""; }); inp.addEventListener('blur', function() { if (this.value === "") { if (this.id === "eventDate") this.value = "____.____.20__"; else this.value = "_________________________"; syncMetaToClones(); } }); } });
 </script>
 </body>
 </html>
