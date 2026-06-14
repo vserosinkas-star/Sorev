@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Чек-листы судьи — Эстафета (шапка на каждом этапе)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #eef2f7;
+            font-family: 'Segoe UI', 'Roboto', system-ui, sans-serif;
+            margin: 0;
+            padding: 24px 20px;
+            color: #1e2a3e;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        /* шапка и панель */
+        .header {
+            background: linear-gradient(135deg, #1e3a5f, #0f2b44);
+            color: white;
+            padding: 20px 28px;
+            border-radius: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            margin: 0 0 6px;
+            font-size: 1.9rem;
+        }
+
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 16px 24px;
+            border-radius: 48px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .print-btn {
+            background: #1e6f3f;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .print-btn:hover {
+            background: #0f5a33;
+            transform: translateY(-2px);
+        }
+
+        .info-note {
+            background: #fef9e3;
+            border-left: 5px solid #f5a623;
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #5e3a0c;
+        }
+
+        /* Основной блок для заполнения (видимый всегда) */
+        .meta-fields {
+            background: #fefce8;
+            border-radius: 28px;
+            padding: 20px 28px;
+            margin-bottom: 32px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            border: 1px solid #fde68a;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        /* Дублируемые шапки (видны только при печати) */
+        .stage-meta {
+            display: none;
+        }
+
+        .meta-field {
+            flex: 1 1 200px;
+        }
+
+        .meta-field label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #b45309;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-field input, .meta-field textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 24px;
+            border: 1px solid #d1d5db;
+            font-size: 0.9rem;
+            background: white;
+            font-family: inherit;
+        }
+
+        .meta-field textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        /* секция этапа */
+        .stage-section {
+            background: white;
+            border-radius: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        /* разрыв страницы перед каждым этапом, кроме первого */
+        .stage-section:not(:first-child) {
+            page-break-before: always;
+            break-before: page;
+            margin-top: 0;
+        }
+
+        .stage-header {
+            background: #f1f5f9;
+            padding: 18px 24px;
+            border-radius: 32px 32px 0 0;
+            border-bottom: 2px solid #cbd5e1;
+        }
+
+        .stage-header h2 {
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #0c4a6e;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stage-header .stage-total {
+            font-size: 0.85rem;
+            background: #e2e8f0;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-weight: normal;
+            margin-left: 12px;
+        }
+
+        .penalty-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .penalty-table th {
+            text-align: left;
+            padding: 16px 20px 8px 24px;
+            font-weight: 600;
+            color: #334155;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .penalty-table td {
+            padding: 12px 20px 12px 24px;
+            border-bottom: 1px solid #edf2f7;
+            vertical-align: middle;
+        }
+
+        .penalty-desc {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .penalty-seconds {
+            background: #eef2ff;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+            color: #1e3a5f;
+            display: inline-block;
+        }
+
+        .check-col {
+            width: 70px;
+            text-align: center;
+        }
+
+        .counter-col {
+            width: 130px;
+        }
+
+        input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: #1e3a8a;
+            transform: scale(1.1);
+        }
+
+        .counter-input {
+            width: 80px;
+            padding: 8px 10px;
+            font-size: 0.9rem;
+            text-align: center;
+            border-radius: 28px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-weight: 500;
+        }
+
+        .sign-line {
+            margin-top: 40px;
+            border-top: 1px dashed #9ca3af;
+            padding-top: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 30px;
+            page-break-inside: avoid;
+        }
+
+        .sign-item {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .sign-item span {
+            font-weight: 600;
+            border-bottom: 1px dotted #4b5563;
+        }
+
+        .print-footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #6c757d;
+            margin-top: 48px;
+            padding-bottom: 20px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0.2in;
+                margin: 0;
+                font-size: 10pt;
+            }
+            .toolbar, .print-btn, .info-note, .meta-fields {
+                display: none;
+            }
+            .stage-meta {
+                display: block;
+                background: #fefce8;
+                border: 1px solid #cca;
+                border-radius: 20px;
+                padding: 16px 20px;
+                margin-bottom: 20px;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 16px;
+                break-inside: avoid;
+            }
+            .stage-section {
+                break-inside: avoid;
+                page-break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ccc;
+                margin-bottom: 0;
+            }
+            .stage-section:not(:first-child) {
+                page-break-before: always;
+                margin-top: 0;
+            }
+            input[type="checkbox"] {
+                transform: scale(0.9);
+                border: 1px solid black;
+            }
+            .counter-input {
+                border: 1px solid #000;
+                background: none;
+                padding: 4px;
+                width: 60px;
+            }
+            .stage-header {
+                background: #eef2ff;
+            }
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 16px;
+            }
+            .penalty-table td, .penalty-table th {
+                padding: 10px 12px;
+            }
+            .counter-col {
+                width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📋 Эстафета — судейские чек-листы</h1>
+        <p>Фиксация нарушений на этапах | Каждый этап печатается на отдельной странице с общей шапкой</p>
+    </div>
+
+    <div class="toolbar">
+        <div class="info-note">
+            ✅ Для нарушений со счётчиком укажите количество раз. Штраф начисляется за каждое.
+        </div>
+        <button class="print-btn" id="printChecklistsBtn">🖨️ Распечатать чек-листы (по этапам)</button>
+    </div>
+
+    <!-- ОСНОВНОЙ БЛОК ДЛЯ ЗАПОЛНЕНИЯ (видимый, будет скрыт при печати) -->
+    <div class="meta-fields" id="mainMetaBlock">
+        <div class="meta-field">
+            <label>🏦 Территориальный банк / команда</label>
+            <input type="text" id="teamName" placeholder="Например: Уральский (УБ)" value="_________________________">
+        </div>
+        <div class="meta-field">
+            <label>🧭 Направление</label>
+            <input type="text" id="direction" placeholder="1 или 2" value="______">
+        </div>
+        <div class="meta-field">
+            <label>⚖️ Судья (ФИО)</label>
+            <input type="text" id="judgeName" placeholder="Фамилия И.О." value="_________________________">
+        </div>
+        <div class="meta-field">
+            <label>📅 Дата проведения</label>
+            <input type="text" id="eventDate" placeholder="ДД.ММ.ГГГГ" value="____.____.20__">
+        </div>
+        <div class="meta-field">
+            <label>📝 Примечания</label>
+            <textarea id="remarks" rows="1" placeholder="Особые отметки, замечания...">_________________________</textarea>
+        </div>
+    </div>
+
+    <!-- Контейнер для чек-листов по этапам (включая скрытые копии шапки) -->
+    <div id="stagesContainer"></div>
+
+    <!-- Блок подписей (печатается в конце) -->
+    <div class="sign-line">
+        <div class="sign-item">
+            <span>Подпись судьи</span><br><br> __________________________
+        </div>
+        <div class="sign-item">
+            <span>Подпись представителя команды</span><br><br> __________________________
+        </div>
+        <div class="sign-item">
+            <span>Расшифровка подписи</span><br><br> __________________________
+        </div>
+    </div>
+    <div class="print-footer">
+        Официальный чек-лист нарушений по этапам дисциплины «Эстафета»<br>
+        Каждая отметка фиксирует факт нарушения. Для счётчиков — количество в поле «Кол-во».
+    </div>
+</div>
+
+<script>
+    // ========== ПОЛНАЯ БИБЛИОТЕКА НАРУШЕНИЙ (из файла estafeta) ==========
+    const penaltiesLibrary = [
+        { id: "prop_door", category: "Получение имущества", desc: "1. Не закрыты двери/дверь СТС в «гараже»", sec: 30 },
+        { id: "prop_sk", category: "Получение имущества", desc: "Инкассатор: СК не получен", sec: 20 },
+        { id: "prop_yellow_key", category: "Получение имущества", desc: "Инкассатор: Жёлтый ИК-ключ СК не получен", sec: 20 },
+        { id: "prop_nakop_key", category: "Получение имущества", desc: "Инкассатор: Ключ от накопителя не получен", sec: 20 },
+        { id: "prop_dover", category: "Получение имущества", desc: "Инкассатор: Доверенность не получена", sec: 20 },
+        { id: "prop_passport", category: "Получение имущества", desc: "Инкассатор: Паспорт не получен", sec: 20 },
+        { id: "prop_us_key", category: "Получение имущества", desc: "Инкассатор: Ключи от УС не получены", sec: 20 },
+        { id: "prop_tsd", category: "Получение имущества", desc: "Инкассатор: ТСД/радиотерминал не получен", sec: 20 },
+        { id: "prop_ivr", category: "Получение имущества", desc: "Инкассатор: ИВР не получен", sec: 20 },
+        { id: "prop_sk_cell", category: "Получение имущества", desc: "Инкассатор: СК не установлен в специальную ячейку", sec: 20 },
+        { id: "prop_driver_radio", category: "Получение имущества", desc: "Водитель: носимая радиостанция не получена", sec: 20 },
+        { id: "prop_blue_key", category: "Получение имущества", desc: "Водитель: синий ИК-ключ СК не получен", sec: 20 },
+        { id: "prop_car_keys", category: "Получение имущества", desc: "Водитель: ключи от СТС/брелок не получены", sec: 20 },
+        { id: "prop_sumka", category: "Получение имущества", desc: "Не получена сумка-баул для кассет УС", sec: 20 },
+        { id: "prop_check_sk", category: "Получение имущества", desc: "Инкассатор не проверил работоспособность СК с помощью ИК-ключа желтого цвета (открыл/закрыл)", sec: 30 },
+        { id: "prop_no_radio_start", category: "Получение имущества", desc: "Не доложили по автомобильной радиостанции дежурному/оператору ЦМ о начале движения СТС по маршруту (при выезде из «гаража»).", sec: 30 },
+        { id: "prop_bad_sk", category: "Получение имущества", desc: "Некорректное обращение с СК (уронил/кинул на землю)", sec: 50 },
+        { id: "prop_belt", category: "Получение имущества", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "bank_belt", category: "Получение банковских ценностей", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "bank_cone_1", category: "Получение банковских ценностей", desc: "Наезд на 1 конус", sec: 5 },
+        { id: "bank_cone_2", category: "Получение банковских ценностей", desc: "Наезд на 2 конуса", sec: 10 },
+        { id: "bank_cone_3", category: "Получение банковских ценностей", desc: "Наезд на 3 конуса", sec: 15 },
+        { id: "bank_cone_4", category: "Получение банковских ценностей", desc: "Наезд на 4 и более конуса", sec: 20 },
+        { id: "bank_sts", category: "Получение банковских ценностей", desc: "СТС не заехал в бокс (СТС установлен вне обозначенного периметра)", sec: 50 },    
+        { id: "bank_door_open", category: "Получение банковских ценностей", desc: "Не закрыты двери/дверь СТС в «боксе» ", sec: 30 },
+        { id: "bank_nak_open", category: "Получение банковских ценностей", desc: "Не закрыт накопитель СТС в «боксе» ", sec: 30 },
+        { id: "bank_no_dok", category: "Получение банковских ценностей", desc: "Инкассатор не предъявил документы (удостоверение/ доверенность)", sec: 30 },
+        { id: "bank_bc", category: "Получение банковских ценностей", desc: "Оставление банковских ценностей без охраны", sec: 50 },
+        { id: "bank_scan", category: "Получение банковских ценностей", desc: "Инкассатор не произвел сканирования/имитации с помощью ТСД/радиотерминала ярлыка мешка/ярлыков кассет УС/сейф-пакета (не направил на ярлык мешка/ярлыки кассет УС/сейф-пакет) ", sec: 20 },
+        { id: "bank_ostav", category: "Получение банковских ценностей", desc: "Оставление документов (паспорт, доверенность и т.д.)", sec: 30 },
+        { id: "bank_nak", category: "Получение банковских ценностей", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 30 },
+        { id: "bank_nak_dv", category: "Получение банковских ценностей", desc: "Не была закрыта дверь устройства накопителя до начала движения СТС", sec: 30 },
+        { id: "bank_belt1", category: "Получение банковских ценностей", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "puncture_belt", category: "Прокол шины", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "puncture_no_report", category: "Прокол шины", desc: "Водитель-инкассатор не сообщил по автомобильной радиостанции дежурному/оператору ЦМ о поломке СТС.", sec: 30 },
+        { id: "puncture_hazard", category: "Прокол шины", desc: "Не включена на СТС аварийная сигнализация", sec: 30 },
+        { id: "puncture_engine", category: "Прокол шины", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
+        { id: "puncture_triangle", category: "Прокол шины", desc: "Не выставлен водителем-инкассатором позади СТС в «обозначенное место» знак аварийной остановки", sec: 30 },
+        { id: "puncture_triangle_pass", category: "Прокол шины", desc: "Осуществлена передача инкассатором знака аварийной остановки после выхода из СТС водителю-инкассатору", sec: 30 },
+        { id: "puncture_triangle_side", category: "Прокол шины", desc: "Не выставлен знак аварийной остановки красной светоотражающей частью во внешнюю сторону от СТС", sec: 10 },
+        { id: "puncture_handbrake", category: "Прокол шины", desc: "СТС не заторможен стояночным тормозом", sec: 10 },
+        { id: "puncture_gear", category: "Прокол шины", desc: "Не установлен рычаг переключения передач в положение первой передачи или передачи заднего хода", sec: 10 },
+        { id: "puncture_chocks", category: "Прокол шины", desc: "Под переднее левое колесо не подложены два специальных упора (стопорного башмака) ", sec: 10 },
+        { id: "puncture_jack_pos", category: "Прокол шины", desc: "Головка домкрата не установлена в специальное место СТС (обозначенное судьёй на брифинге)", sec: 30 },
+        { id: "puncture_jack_doors", category: "Прокол шины", desc: "При «поддомкрачивании» спецавтомобиля не закрыты двери/дверь", sec: 50 },
+        { id: "puncture_jack_height", category: "Прокол шины", desc: "СТС не был поддомкрачен на требуемую высоту (чтобы прошла линейка судьи)", sec: 50 },
+        { id: "puncture_imitation", category: "Прокол шины", desc: "Не осуществлена имитация замены колеса (касание колеса)", sec: 20 },
+        { id: "puncture_cleanup_triangle", category: "Прокол шины", desc: "Не убран в СТС знак аварийной остановки", sec: 10 },
+        { id: "puncture_cleanup_chocks", category: "Прокол шины", desc: "Не убраны в сторону два специальных упора (башмака)", sec: 10 },
+        { id: "puncture_cleanup_jack", category: "Прокол шины", desc: "Не откатан в сторону из под СТС домкрат", sec: 10 },
+        { id: "puncture_helper", category: "Прокол шины", desc: "Инкассатор оказывает помощь водителю-инкассатору в выполнении данного упражнения (выставление/убирание башмаков/знака аварийной остановки/домкрата и т.д.)", sec: 30, isCounter: true, maxCount: 10 },
+        { id: "puncture_repair_report", category: "Прокол шины", desc: "Водитель-инкассатор не сообщил по автомобильной радиостанции дежурному/оператору ЦМ об устранении неисправности СТС", sec: 30 },
+        { id: "puncture_belt1", category: "Прокол шины", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "snake_cone", category: "Змейка", desc: "Наезд на конус (1)", sec: 5 },
+        { id: "snake_cone1", category: "Змейка", desc: "Наезд на конус (2)", sec: 10 },
+        { id: "snake_cone2", category: "Змейка", desc: "Наезд на конус (3)", sec: 15 },
+        { id: "snake_cone3", category: "Змейка", desc: "Наезд на конус (4 и более)", sec: 20 },
+        { id: "us_belt", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "us_early_cassette", category: "Обслуживание УС", desc: "Изъятие инкассатором кассет УС из накопителя СТС произведено до остановки СТС", sec: 30 },
+        { id: "us_first_exit", category: "Обслуживание УС", desc: "Инкассатор первым вышел из СТС", sec: 30 },
+        { id: "us_engine", category: "Обслуживание УС", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
+        { id: "us_driver_door_lock", category: "Обслуживание УС", desc: "После выхода из СТС старшего бригады, инкассатор не закрыл за ним водительскую дверь изнутри на механическую задвижку дверь", sec: 30 },
+        { id: "us_no_command", category: "Обслуживание УС", desc: "Старший бригады не подал, по носимой радиостанции, команду инкассатору на выход", sec: 30 },
+        { id: "us_early_exit", category: "Обслуживание УС", desc: "Инкассатор вышел из СТС до команды старшего бригады на выход", sec: 30 },
+        { id: "us_cassette_left", category: "Обслуживание УС", desc: "Инкассатор оставил кассету УС в накопителе", sec: 30 },
+        { id: "us_no_bag", category: "Обслуживание УС", desc: "Транспортировка комплекта кассет УС до/от УС из/до СТС осуществляется без использования сумки-баула", sec: 50 },
+        { id: "us_cassette_dropped", category: "Обслуживание УС", desc: "При транспортировке кассет УС, кассета выпала из сумки-баул на землю", sec: 30, isCounter: true, maxCount: 10 },
+        { id: "us_jam_search", category: "Обслуживание УС", desc: "Не осуществлен поиск и устранения замятия в BRM модуле УС", sec: 30, isCounter: true, maxCount: 10 },
+        { id: "us_jam_bad_fix", category: "Обслуживание УС", desc: "Не корректное устранения замятия (нарушение Памятки 404)", sec: 30, isCounter: true, maxCount: 10 },
+        { id: "us_kup", category: "Обслуживание УС", desc: "Извлеченная/ые купюра/купюры не уложена/ы в находящийся рядом сейф-пакет", sec: 30 },
+        { id: "us_seifpak", category: "Обслуживание УС", desc: "Сейф-пакет не заклеен инкассатором", sec: 30 },
+        { id: "us_no_scan", category: "Обслуживание УС", desc: "С помощью ТСД/радиотерминала не отсканирован сейф-пакет", sec: 30 },
+        { id: "us_seifpak_no_bag", category: "Обслуживание УС", desc: "Сейф-пакет не убран в сумку-баул", sec: 30 },
+        { id: "us_safe_not_open", category: "Обслуживание УС", desc: "Инкассатор не открыл самостоятельно сейф (пришлось обращаться за помощью к судье)", sec: 30 },
+        { id: "us_not_kas", category: "Обслуживание УС", desc: "Кассеты не установлены в соответствии с маркировкой слотов (при этом реджект кассета не установлена в свой слот)", sec: 30, isCounter: true, maxCount: 10 },
+        { id: "us_no_check", category: "Обслуживание УС", desc: "Старший бригады не проверил правильность установки кассет в УС инкассатором", sec: 30 },
+        { id: "us_helper_pack", category: "Обслуживание УС", desc: "Старший бригады оказывает помощь инкассатору в укладке кассет УС в сумку-баул", sec: 30 },
+        { id: "us_code_not_set", category: "Обслуживание УС", desc: "Инкассатор не сбил код замка и не закрыл сейф УС", sec: 30 },
+        { id: "us_left_property", category: "Обслуживание УС", desc: "Оставление имущества (ключ от УС/кассета(ы)/сумка-баул/сейф-пакет)", sec: 30, isCounter: true, maxCount: 10 },
+        { id: "us_senior_first_seat", category: "Обслуживание УС", desc: "Первым сел в СТС старший бригады", sec: 30 },
+        { id: "us_simultaneous_seat", category: "Обслуживание УС", desc: "Старший бригады и инкассатор одновременно сели в СТС", sec: 30 },
+        { id: "us_nakop_load", category: "Обслуживание УС", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 50 },
+        { id: "us_nakop_door", category: "Обслуживание УС", desc: "Не была закрыта дверь устройства накопителя", sec: 30 },
+        { id: "us_broken_key", category: "Обслуживание УС", desc: "Инкассатор при обслуживании УС сломал/погнул/потерял ключ от УС ", sec: 30 },
+        { id: "us_belt1", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "vsp_belt", category: "Обслуживание ВСП", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "vsp_nak", category: "Обслуживание ВСП", desc: "Инкассатор не закрыл накопитель после изъятия из него сейф-пакета с денежной наличностью", sec: 30 },
+        { id: "vsp_seif", category: "Обслуживание ВСП", desc: "Инкассатор не вложил сейф-пакет с денежной наличностью в СК", sec: 30 },
+        { id: "vsp_sk", category: "Обслуживание ВСП", desc: "Инкассатор не закрыл крышку СК после вложения сейф-пакета с денежной наличностью", sec: 30 },
+        { id: "vsp_no_radio", category: "Обслуживание ВСП", desc: "Инкассатор обслуживает ВСП без носимой радиостанции (не получил у водителя-инкассатора)", sec: 30 },
+        { id: "vsp_no_key", category: "Обслуживание ВСП", desc: "Инкассатор открыл СК без ИК-ключа", sec: 30 },
+        { id: "vsp_no_imit", category: "Обслуживание ВСП", desc: "Не осуществлена имитация сканирования с помощью ТСД/радиотерминала сейф-пакета до вложения сейф-пакета в тележку", sec: 30 },
+        { id: "vsp_no_pak", category: "Обслуживание ВСП", desc: "Не вложен сейф-пакет в тележку", sec: 30 },
+        { id: "vsp_no_plomb", category: "Обслуживание ВСП", desc: "Инкассатор не опломбировал одноразовой пластиковой пломбой тележку (индивидуальное средство хранения)", sec: 30 },
+        { id: "vsp_ostav", category: "Обслуживание ВСП", desc: "Инкассатор оставил СК/имущество на упражнении", sec: 30 },
+        { id: "vsp_no_svyaz", category: "Обслуживание ВСП", desc: "Инкассатор не связался по радиостанции с водителем-инкассатором о возможности выхода с объекта ", sec: 30 },
+        { id: "vsp_no_ok", category: "Обслуживание ВСП", desc: "Водитель-инкассатор не подтвердил по радиостанции возможность выхода", sec: 30 },
+        { id: "vsp_sel", category: "Обслуживание ВСП", desc: "Инкассатор осуществил посадку в СТС без подтверждения от водителя-инкассатора", sec: 30 },
+        { id: "vsp_sk_cell", category: "Обслуживание ВСП", desc: "СК не установлен в специальную ячейку", sec: 20 },
+        { id: "vsp_belt1", category: "Обслуживание ВСП", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "shoot_belt", category: "Стрельба", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "shoot_position", category: "Стрельба", desc: "СТС не установлен в обозначенном месте, которое обозначено «Г» образной стоп линией (габариты СТС выходят за обозначенную стоп линию)", sec: 30 },
+        { id: "shoot_engine", category: "Стрельба", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
+        { id: "shoot_door_open", category: "Стрельба", desc: "Не закрыты двери/дверь СТС ", sec: 30 },
+        { id: "shoot_miss", category: "Стрельба", desc: "Не сбита мишень", sec: 10 },
+        { id: "shoot_belt1", category: "Стрельба", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "fire_belt", category: "Пожар", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "fire_position", category: "Пожар", desc: "СТС не установлен на безопасном расстоянии от огня, которое обозначено «Г» образной стоп линией (габариты СТС выходят за обозначенную стоп линию)", sec: 30 },
+        { id: "fire_engine", category: "Пожар", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
+        { id: "fire_no_report", category: "Пожар", desc: "Водитель-инкассатор не доложил по автомобильной радиостанции дежурному инкассатору/оператору ЦМ о пожаре в СТС", sec: 30 },
+        { id: "fire_avar", category: "Пожар", desc: "Не включена на СТС аварийная сигнализация", sec: 10 },
+        { id: "fire_mayak", category: "Пожар", desc: "Не включен на СТС маячок бело лунного цвета", sec: 10 },
+        { id: "fire_dver_ruk", category: "Пожар", desc: "Водитель-инкассатор открыл руками дверь СТС инкассатору (заднюю правую)", sec: 30 },
+        { id: "fire_ext", category: "Пожар", desc: "Водитель-инкассатор не достал огнетушитель из СТС и тушение осуществлялось из огнетушителя, который находился у стола (запасной)", sec: 30 },
+        { id: "fire_not_been", category: "Пожар", desc: "Водитель-инкассатор не осуществил тушение пожара ", sec: 50 },
+        { id: "fire_no_location", category: "Пожар", desc: "Инкассатор эвакуирует ценности не в обозначенное место", sec: 30 },		
+        { id: "fire_evac", category: "Пожар", desc: "Не все банковские ценности эвакуированы из СТС", sec: 30 },
+        { id: "fire_bad_sk", category: "Пожар", desc: "Некорректное обращение с СК (уронил/кинул на землю)/ не вынес СК из СТС", sec: 50 },
+        { id: "fire_flag", category: "Пожар", desc: "Банковские ценности переносятся в СТС до команды работника МЧС «Потушено»/поднятия флага", sec: 30 },
+        { id: "fire_vmeste", category: "Пожар", desc: "Водитель-инкассатор вместе с инкассатором переносит ценности в СТС", sec: 30 },
+        { id: "fire_close_dver_ruk", category: "Пожар", desc: "Водитель-инкассатор закрыл руками дверь СТС инкассатору (заднюю правую)", sec: 30 },
+        { id: "fire_cen", category: "Пожар", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 30 },
+        { id: "fire_nak", category: "Пожар", desc: "Не была закрыта дверь устройства накопителя после вложения банковских ценностей", sec: 30 },
+        { id: "fire_sk_cell", category: "Пожар", desc: "Инкассатор: СК не установлен в специальную ячейку", sec: 20 },
+        { id: "fire_belt1", category: "Пожар", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "fire_repair_report", category: "Пожар", desc: "Водитель-инкассатор не сообщил по автомобильной радиостанции дежурному/оператору ЦМ о тушение пожара СТС", sec: 30 },
+        { id: "med_belt", category: "Медицина", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "med_position", category: "Медицина", desc: "СТС не установлен на безопасном расстоянии от огня, которое обозначено «Г» образной стоп линией (габариты СТС выходят за обозначенную стоп линию)", sec: 30 },
+        { id: "med_no_report", category: "Медицина", desc: "Водитель-инкассатор по автомобильной радиостанции не сообщил дежурному/оператору ЦМ о «необходимости оказания первой помощи пострадавшему»", sec: 30 },
+        { id: "med_engine", category: "Медицина", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
+        { id: "med_tourniquet", category: "Медицина", desc: "Наложение турникета на несоответствующую область (бедро) (ниже обозначенного места ранения, на место ранения)", sec: 30 },
+        { id: "med_time", category: "Медицина", desc: "Не обозначено время наложения турникета (бедро)", sec: 30 },
+        { id: "med_tourniquet_povtor", category: "Медицина", desc: "Неправильное наложение турникета ( на бедро), что вызвало повторное кровотечение, угрожающее жизни раненого (расслабление или соскальзывание)", sec: 30 },
+        { id: "med_ipp", category: "Медицина", desc: "Наложение ИПП на несоответствующую область (предплечья) (ниже обозначенного места ранения, на место ранения)", sec: 30 },
+        { id: "med_ipp_razm", category: "Медицина", desc: "Не полностью размотан ИПП на поврежденной области (предплечья)", sec: 20 },
+        { id: "med_ipp_povtor", category: "Медицина", desc: "Неправильное наложение ИПП (предплечье), что вызвало повторное кровотечение угрожающее жизни раненого (расслабление или соскальзывание)", sec: 30 },
+        { id: "med_ipp_rasl", category: "Медицина", desc: "В случае расслабления или соскальзывания турникета и/или ИПП с манекена во время транспортировки не осуществлено его повторное наложение", sec: 30 },
+        { id: "med_stretcher", category: "Медицина", desc: "Бригада при транспортировки манекена бригада уронила его на землю", sec: 30 },
+        { id: "med_stretcher_ukr", category: "Медицина", desc: "Бригада не переместила манекен в укрытие (обозначенное место)", sec: 30 },
+        { id: "med_no_report1", category: "Медицина", desc: "Водитель-инкассатор не доложил по автомобильной радиостанции дежурному инкассатору/оператору ЦМ об оказании первой медицинской помощи пострадавшему", sec: 30 },
+        { id: "med_belt1", category: "Медицина", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "incass_belt", category: "Инкассация объекта", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "incass_no_radio", category: "Инкассация объекта", desc: "Инкассатор инкассирует клиента без носимой радиостанции (не получил у водителя-инкассатора)", sec: 30 },
+        { id: "incass_no_docs", category: "Инкассация объекта", desc: "Инкассатор не предъявил документы (паспорт, доверенность)", sec: 30 },
+        { id: "incass_no_scan", category: "Инкассация объекта", desc: "Инкассатор не произвел сканирования/имитации с помощью ТСД/радиотерминал сейф-пакета (не направил ТСД/радиотерминал на сейф-пакет)", sec: 20 },
+        { id: "incass_no_sign", category: "Инкассация объекта", desc: "Инкассатор не передал ТСД/радиотерминал клиенту для проставления стилусом своей подписи", sec: 20 },
+        { id: "incass_open_sk_no_key", category: "Инкассация объекта", desc: "Инкассатор открыл СК без ИК-ключа", sec: 30 },
+        { id: "incass_not_loaded", category: "Инкассация объекта", desc: "Не заложен пакет с банковскими ценностями в СК после инкассации объекта", sec: 50 },
+        { id: "incass_tumbler_blue", category: "Инкассация объекта", desc: "Инкассатор не переключил тумблер выбора деактивационного ключа в синее положение", sec: 30 },
+        { id: "incass_sk_not_closed", category: "Инкассация объекта", desc: "Инкассатор не закрыл СК после вложения сейф-пакета с банковскими ценностями", sec: 30 },
+        { id: "incass_left_docs", category: "Инкассация объекта", desc: "Оставление документов (паспорт, доверенность)", sec: 30 },
+        { id: "incass_left_packet", category: "Инкассация объекта", desc: "Оставление сейф-пакета с денежной наличностью", sec: 30 },
+        { id: "incass_left_sk", category: "Инкассация объекта", desc: "Оставление СК", sec: 30 },
+        { id: "incass_no_exit_radio", category: "Инкассация объекта", desc: "Инкассатор не связался по радиостанции с водителем-инкассатором о возможности выхода с объекта инкассации", sec: 30 },
+        { id: "incass_exit_no_confirm", category: "Инкассация объекта", desc: "Не получив подтверждение на выход из объекта от водителя-инкассатора начал инкассатор выходить", sec: 30 },
+        { id: "incass_blue_key_from_driver", category: "Инкассация объекта", desc: "Взял не у водителя-инкассатора ИК-ключ синего цвета в СТС", sec: 30 },
+        { id: "incass_tumbler_yellow_back", category: "Инкассация объекта", desc: "После извлечения сейф-пакета с денежной наличности тумблер выбора деактивационного ключа не был переведён в желтое положение", sec: 30 },
+        { id: "incass_nakop_after", category: "Инкассация объекта", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 50 },
+        { id: "incass_nakop_door_after", category: "Инкассация объекта", desc: "Не была закрыта дверь устройства накопителя", sec: 30 },
+        { id: "incass_sk_cell_after", category: "Инкассация объекта", desc: "СК не установлен в специальную ячейку", sec: 20 },
+        { id: "incass_belt1", category: "Инкассация объекта", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "prestupnik_mish", category: "Вооруженный преступник", desc: "Не сдвинута бампером СТС с места выставленная специальная поясная мишень (с оружием)/не коснулся бампером СТС выставленную специальную поясную мишень (с оружием)", sec: 30 },
+        { id: "prestupnik_cone", category: "Вооруженный преступник", desc: "Наезд на конус (1)", sec: 5 },
+        { id: "prestupnik_cone1", category: "Вооруженный преступник", desc: "Наезд на конус (2)", sec: 10 },
+        { id: "prestupnik_cone2", category: "Вооруженный преступник", desc: "Наезд на конус (3)", sec: 15 },
+        { id: "prestupnik_cone3", category: "Вооруженный преступник", desc: "Наезд на конус (4 и более)", sec: 20 },
+        { id: "prestupnik_shluz", category: "Вооруженный преступник", desc: "СТС вышел за пределы габарита шлюзового бокса", sec: 5 },
+        { id: "prestupnik_ogr_cone", category: "Вооруженный преступник", desc: "СТС совершил наезд на ограждающий конус", sec: 5 },
+        { id: "handcuff_belt", category: "Наручники", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "handcuff_no_warning", category: "Наручники", desc: "Инкассатор не предупредил о применении специального средства: Стой, применяю специальное средство - наручники", sec: 10 },
+        { id: "handcuff_loose", category: "Наручники", desc: "В надетом состоянии наручники не надежно зафиксировали конечность (то есть наручники без усилий снимаются с рук манекена). ", sec: 30 },
+        { id: "handcuff_no_report", category: "Наручники", desc: "Инкассатор не осуществил доклад: Наручники надеты", sec: 10 },
+        { id: "handcuff_no_radio", category: "Наручники", desc: "Инкассатор без носимой радиостанции (не получил у водителя-инкассатора)", sec: 30 },
+        { id: "handcuff_no_radio_exit", category: "Наручники", desc: "Инкассатор не связался по радиостанции с водителем-инкассатором о возможности выхода с объекта ", sec: 30 },
+        { id: "handcuff_boarding_no_confirm", category: "Наручники", desc: "Инкассатор осуществил посадку в СТС без подтверждения от водителя-инкассатора", sec: 30 },
+        { id: "handcuff_driver_no_confirm", category: "Наручники", desc: "Водитель-инкассатор не подтвердил по радиостанции возможность выхода", sec: 30 },
+        { id: "handcuff_belt1", category: "Наручники", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
+        { id: "obsh_bez", category: "Общие штрафы", desc: "Нарушение безопасности движения в результате выезда за границы маршрута (наезда на ограничивающие маршрут конструкции).", sec: 50 },
+        { id: "obsh_lic", category: "Общие штрафы", desc: "Проход лиц за ограждение, на территорию площадки, во время проведения упражнения «Эстафета» без разрешения главного судьи, штрафные баллы присуждаются команде данного представителя/участника", sec: 30 },
+        { id: "obsh_svyaz", category: "Общие штрафы", desc: "Неаккуратное обращение со средствами связи (уронил носимую радиостанцию на пол в СТС/на дорожное покрытие)", sec: 30, isCounter: true, maxCount: 10 },
+        { id: "obsh_ivr", category: "Общие штрафы", desc: "Неаккуратное обращение с ИВР (уронил ИВР на пол в СТС/на дорожное покрытие)", sec: 30, isCounter: true, maxCount: 10 },
+        { id: "obsh_tsd", category: "Общие штрафы", desc: "Неаккуратное обращение с ТСД/радиотерминалом (уронил на пол в СТС/на дорожное покрытие)", sec: 30, isCounter: true, maxCount: 10 },
+        { id: "obsh_gun", category: "Общие штрафы", desc: "Выпадение пистолета из кобуры", sec: 20, isCounter: true, maxCount: 10 },
+        { id: "obsh_sts", category: "Общие штрафы", desc: "Выход из СТС/посадка в СТС не осуществлена в следующем порядке: инкассатор через заднюю правую дверь, водитель-инкассатор через левую переднюю дверь", sec: 20, isCounter: true, maxCount: 10 }
+    ];
+
+    // Порядок этапов
+    const stages = [
+        "Получение имущества",
+        "Получение банковских ценностей",
+        "Прокол шины",
+        "Змейка",
+        "Обслуживание УС",
+        "Обслуживание ВСП",
+        "Стрельба",
+        "Пожар",
+        "Медицина",
+        "Инкассация объекта",
+        "Вооруженный преступник",
+        "Наручники",
+        "Общие штрафы"
+    ];
+
+    // Функция создания копии мета-блока (для вставки перед этапом)
+    function createMetaClone() {
+        const originalBlock = document.getElementById('mainMetaBlock');
+        if (!originalBlock) return null;
+        const clone = document.createElement('div');
+        clone.className = 'stage-meta';
+        // Копируем содержимое
+        const fields = originalBlock.querySelectorAll('.meta-field');
+        fields.forEach(field => {
+            const clonedField = field.cloneNode(true);
+            // Обновляем id и привязки, чтобы не было конфликта
+            const inputs = clonedField.querySelectorAll('input, textarea');
+            inputs.forEach(inp => {
+                if (inp.id) inp.id = inp.id + '_clone_' + Math.random().toString(36).substr(2, 6);
+            });
+            clone.appendChild(clonedField);
+        });
+        return clone;
+    }
+
+    // Синхронизация значений из основного блока во все скрытые копии
+    function syncMetaToClones() {
+        const mainBlock = document.getElementById('mainMetaBlock');
+        const clones = document.querySelectorAll('.stage-meta');
+        if (!mainBlock) return;
+        // Получаем значения из оригинальных полей
+        const teamName = mainBlock.querySelector('#teamName')?.value || '';
+        const direction = mainBlock.querySelector('#direction')?.value || '';
+        const judgeName = mainBlock.querySelector('#judgeName')?.value || '';
+        const eventDate = mainBlock.querySelector('#eventDate')?.value || '';
+        const remarks = mainBlock.querySelector('#remarks')?.value || '';
+        
+        clones.forEach(clone => {
+            const teamInput = clone.querySelector('input[id*="teamName"]');
+            if (teamInput) teamInput.value = teamName;
+            const dirInput = clone.querySelector('input[id*="direction"]');
+            if (dirInput) dirInput.value = direction;
+            const judgeInput = clone.querySelector('input[id*="judgeName"]');
+            if (judgeInput) judgeInput.value = judgeName;
+            const dateInput = clone.querySelector('input[id*="eventDate"]');
+            if (dateInput) dateInput.value = eventDate;
+            const remarksArea = clone.querySelector('textarea[id*="remarks"]');
+            if (remarksArea) remarksArea.value = remarks;
+        });
+    }
+
+    // Генерация чек-листов с вставкой скрытых копий шапки перед каждым этапом
+    function buildChecklists() {
+        const container = document.getElementById('stagesContainer');
+        container.innerHTML = '';
+        
+        for (let idx = 0; idx < stages.length; idx++) {
+            const stage = stages[idx];
+            const stagePenalties = penaltiesLibrary.filter(p => p.category === stage);
+            const isBankStage = (stage === "Получение банковских ценностей");
+            const isSnakeStage = (stage === "Змейка");
+            const isPrestupnikStage = (stage === "Вооруженный преступник");
+            const isShootStage = (stage === "Стрельба");
+            
+            // Создаём мета-блок (копию) для этого этапа (скрыт на экране, виден при печати)
+            const metaClone = createMetaClone();
+            if (metaClone) container.appendChild(metaClone);
+            
+            // Секция этапа
+            const section = document.createElement('div');
+            section.className = 'stage-section';
+            
+            const headerDiv = document.createElement('div');
+            headerDiv.className = 'stage-header';
+            headerDiv.innerHTML = `<h2>🏁 ${stage} <span class="stage-total">${stagePenalties.length} нарушений</span></h2>`;
+            section.appendChild(headerDiv);
+            
+            const table = document.createElement('table');
+            table.className = 'penalty-table';
+            const thead = document.createElement('thead');
+            thead.innerHTML = `<tr><th>Нарушение / описание</th><th class="check-col">✓ Отметка</th><th class="counter-col">Кол-во (для счётчика)</th><th>Штраф (сек)</th></tr>`;
+            table.appendChild(thead);
+            const tbody = document.createElement('tbody');
+            
+            // Специальные счётчики (конусы, стрельба)
+            if (isBankStage) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="penalty-desc"><strong>Наезд на конусы (при заезде в бокс)</strong> (каждый конус = +5 сек)</td>
+                    <td class="check-col">—</td>
+                    <td class="counter-col"><input type="number" class="counter-input bank-cones" min="0" max="20" value="0" step="1"></td>
+                    <td><span class="penalty-seconds">+5 сек/конус</span></td>
+                `;
+                tbody.appendChild(row);
+            }
+            if (isSnakeStage) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="penalty-desc"><strong>Наезд на конус/бочку</strong> (каждый конус = +5 сек)</td>
+                    <td class="check-col">—</td>
+                    <td class="counter-col"><input type="number" class="counter-input snake-cones" min="0" max="20" value="0" step="1"></td>
+                    <td><span class="penalty-seconds">+5 сек/конус</span></td>
+                `;
+                tbody.appendChild(row);
+            }
+            if (isPrestupnikStage) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="penalty-desc"><strong>Наезд на конус (преступник)</strong> (каждый конус = +5 сек)</td>
+                    <td class="check-col">—</td>
+                    <td class="counter-col"><input type="number" class="counter-input prestupnik-cones" min="0" max="20" value="0" step="1"></td>
+                    <td><span class="penalty-seconds">+5 сек/конус</span></td>
+                `;
+                tbody.appendChild(row);
+            }
+            if (isShootStage) {
+                const rowPm = document.createElement('tr');
+                rowPm.innerHTML = `
+                    <td class="penalty-desc"><strong>🔫 ПМ (4 выстрела) — ПРОМАХИ</strong> (каждый промах = +30 сек)</td>
+                    <td class="check-col">—</td>
+                    <td class="counter-col"><input type="number" class="counter-input pm-misses" min="0" max="4" value="0" step="1"></td>
+                    <td><span class="penalty-seconds">+30 сек/промах</span></td>
+                `;
+                tbody.appendChild(rowPm);
+                const rowSaiga = document.createElement('tr');
+                rowSaiga.innerHTML = `
+                    <td class="penalty-desc"><strong>🎯 САЙГА-12 (5 выстрелов) — ПОПАДАНИЯ</strong> (каждое попадание = –10 сек)</td>
+                    <td class="check-col">—</td>
+                    <td class="counter-col"><input type="number" class="counter-input saiga-hits" min="0" max="5" value="0" step="1"></td>
+                    <td><span class="penalty-seconds">–10 сек/попадание</span></td>
+                `;
+                tbody.appendChild(rowSaiga);
+            }
+            
+            // Остальные нарушения (пропускаем уже обработанные конусы и специфику)
+            const skipIds = [];
+            if (isBankStage) skipIds.push('bank_cone_1','bank_cone_2','bank_cone_3','bank_cone_4');
+            if (isSnakeStage) skipIds.push('snake_cone','snake_cone1','snake_cone2','snake_cone3');
+            if (isPrestupnikStage) skipIds.push('prestupnik_cone','prestupnik_cone1','prestupnik_cone2','prestupnik_cone3');
+            
+            for (let p of stagePenalties) {
+                if (skipIds.includes(p.id)) continue;
+                if (p.isCounter === true) {
+                    const maxVal = p.maxCount || 99;
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="penalty-desc">${p.desc}</td>
+                        <td class="check-col">—</td>
+                        <td class="counter-col"><input type="number" class="counter-input" data-id="${p.id}" min="0" max="${maxVal}" value="0" step="1"></td>
+                        <td><span class="penalty-seconds">+${p.sec} сек/каждое</span></td>
+                    `;
+                    tbody.appendChild(row);
+                } else {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="penalty-desc">${p.desc}</td>
+                        <td class="check-col"><input type="checkbox" data-id="${p.id}"></td>
+                        <td class="counter-col">—</td>
+                        <td><span class="penalty-seconds">+${p.sec} сек</span></td>
+                    `;
+                    tbody.appendChild(row);
+                }
+            }
+            
+            table.appendChild(tbody);
+            section.appendChild(table);
+            container.appendChild(section);
+        }
+        
+        // После генерации синхронизируем значения мета-полей во все копии
+        syncMetaToClones();
+        
+        // Добавляем обработчики событий на основные поля для синхронизации
+        const mainInputs = document.querySelectorAll('#mainMetaBlock input, #mainMetaBlock textarea');
+        mainInputs.forEach(inp => {
+            inp.addEventListener('input', () => syncMetaToClones());
+            inp.addEventListener('change', () => syncMetaToClones());
+        });
+    }
+    
+    // Печать
+    document.getElementById('printChecklistsBtn').addEventListener('click', () => {
+        syncMetaToClones(); // перед печатью ещё раз синхронизируем
+        window.print();
+    });
+    
+    // Инициализация
+    buildChecklists();
+    
+    // Стилизация плейсхолдеров
+    const placeholders = document.querySelectorAll('#mainMetaBlock input, #mainMetaBlock textarea');
+    placeholders.forEach(inp => {
+        if (inp.value === "_________________________" || inp.value === "______" || inp.value === "____.____.20__") {
+            inp.style.color = "#6c757d";
+            inp.addEventListener('focus', function() {
+                if (this.value === "_________________________" || this.value === "______" || this.value === "____.____.20__") this.value = "";
+            });
+            inp.addEventListener('blur', function() {
+                if (this.value === "") {
+                    if (this.id === "direction") this.value = "______";
+                    else if (this.id === "eventDate") this.value = "____.____.20__";
+                    else this.value = "_________________________";
+                    syncMetaToClones();
+                }
+            });
+        }
+    });
+</script>
+</body>
+</html>
