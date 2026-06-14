@@ -9,8 +9,45 @@
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
         body { background: #f0f4f8; margin: 0; padding: 20px; }
         .container { max-width: 1400px; margin: 0 auto; }
-        .header { background: linear-gradient(135deg, #1e3a5f, #0f2b44); color: white; padding: 20px; border-radius: 28px; margin-bottom: 30px; text-align: center; }
+        
+        /* хедер с поддержкой кнопки "На главную" */
+        .header { 
+            background: linear-gradient(135deg, #1e3a5f, #0f2b44); 
+            color: white; 
+            padding: 20px; 
+            border-radius: 28px; 
+            margin-bottom: 30px; 
+            text-align: center; 
+            position: relative; /* для абсолютного позиционирования кнопки */
+        }
         .header h1 { margin: 0; font-size: 1.6rem; }
+        
+        /* Кнопка "На главную" — стиль из lots.html */
+        .home-button {
+            position: absolute;
+            top: 24px;
+            left: 28px;
+            background: rgba(255,255,240,0.2);
+            backdrop-filter: blur(4px);
+            padding: 8px 18px;
+            border-radius: 40px;
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,200,0.3);
+            z-index: 5;
+        }
+        .home-button:hover {
+            background: rgba(255,255,240,0.35);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        
         .judge-panel { background: white; border-radius: 28px; padding: 20px 24px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .control-group { margin-bottom: 20px; }
         .control-group label { font-weight: 600; display: block; margin-bottom: 6px; color: #1e3a5f; }
@@ -59,10 +96,26 @@
             button { width: 100%; }
             .time-row { flex-direction: column; align-items: stretch; }
             .print-btn { margin-left: 0; }
+            
+            /* адаптив кнопки "На главную" как в lots.html */
+            .home-button {
+                position: static;
+                display: inline-flex;
+                margin-bottom: 16px;
+                width: fit-content;
+                left: auto;
+                top: auto;
+            }
+            .header {
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
         }
         @media print {
             .judge-panel, .results-table, .stage-buttons, .penalties-grid, .summary-bar, .unsaved-badge,
-            #printTriathlonReportBtn, .time-row button, .participant-card button, .header, .flex-between { display: none !important; }
+            #printTriathlonReportBtn, .time-row button, .participant-card button, .header, .flex-between, .home-button { display: none !important; }
             .print-report-area { display: block !important; margin: 0; padding: 20px; font-size: 12pt; }
             .print-sign-line { margin-top: 40px; border-top: 1px dashed #aaa; padding-top: 20px; }
             .print-footer { margin-top: 30px; font-size: 9pt; text-align: center; }
@@ -73,6 +126,10 @@
 <body>
 <div class="container">
     <div class="header">
+        <!-- КНОПКА НА ГЛАВНУЮ (как в lots.html) -->
+        <a href="index.html" class="home-button">
+            🏠 На главную
+        </a>
         <h1>🏃‍♂️ Командный триатлон — фиксация нарушений</h1>
         <p>Бег, силовые упражнения, стрельба (счётчики для всех повторяющихся нарушений)</p>
     </div>
@@ -161,7 +218,8 @@
                     <th>Сумма команды</th>
                 </tr>
             </thead>
-            <tbody id="resultsBody"><tr><td colspan="11">Загрузка данных...</td></tr></tbody>
+            <tbody id="resultsBody"><tr><td colspan="11">Загрузка данных...</td></tr>
+            </tbody>
         </table>
     </div>
 </div>
@@ -775,9 +833,9 @@
                                 <table style="width: 100%; border-collapse: collapse; margin-top: 4px;">
                                     <thead><tr style="background: #e2e8f0;"><th style="padding: 6px; text-align: left;">Нарушение</th><th style="padding: 6px; width: 80px;">Штраф (сек)</th></tr></thead>
                                     <tbody>
-                                        ${penaltiesArr.map(p => `<tr style="border-bottom: 1px solid #cbd5e1;"><td style="padding: 6px;">${p.desc}</td><td style="padding: 6px;">+${p.sec}</td></td>`).join('')}
+                                        ${penaltiesArr.map(p => `<tr style="border-bottom: 1px solid #cbd5e1;"><td style="padding: 6px;">${p.desc}</td><td style="padding: 6px;">+${p.sec}</td></tr>`).join('')}
                                     </tbody>
-                                </table>
+                                 </table>
                             </div>`;
                 }
                 return html;
