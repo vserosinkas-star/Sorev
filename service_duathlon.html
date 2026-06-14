@@ -9,9 +9,46 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif; }
         body { background: #f0f4f8; padding: 16px; }
         .container { max-width: 1400px; margin: 0 auto; }
-        .header { background: linear-gradient(135deg, #1e3a5f, #0f2b44); color: white; padding: 20px; border-radius: 28px; margin-bottom: 24px; text-align: center; }
-        .header h1 { font-size: 1.5rem; }
-        .header p { margin-top: 8px; font-size: 0.85rem; opacity: 0.9; }
+        
+        /* Шапка с кнопкой на главную (как в lots) */
+        .header {
+            background: linear-gradient(135deg, #1e3a5f, #0f2b44);
+            color: white;
+            padding: 24px 28px;
+            border-radius: 32px;
+            margin-bottom: 24px;
+            text-align: center;
+            box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+        .header h1 { margin: 0; font-size: 1.8rem; font-weight: 700; letter-spacing: -0.3px; }
+        .header p { margin-top: 8px; font-size: 1rem; opacity: 0.9; font-weight: 500; }
+        
+        .home-button {
+            position: absolute;
+            top: 24px;
+            left: 28px;
+            background: rgba(255,255,240,0.2);
+            backdrop-filter: blur(4px);
+            padding: 8px 18px;
+            border-radius: 40px;
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,200,0.3);
+            cursor: pointer;
+        }
+        .home-button:hover {
+            background: rgba(255,255,240,0.35);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        
         .judge-panel { background: white; border-radius: 28px; padding: 20px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
         .control-group { margin-bottom: 20px; }
         .control-group label { font-weight: 600; display: block; margin-bottom: 6px; color: #1e3a5f; }
@@ -35,6 +72,10 @@
         button:hover { background: #1e40af; }
         .btn-secondary { background: #475569; }
         .btn-warning { background: #f97316; }
+        .excel-btn { background: #0f766e; }
+        .excel-btn:hover { background: #0d5a54; }
+        .print-btn { background: #2c5f2d; }
+        .print-btn:hover { background: #1f4a20; }
         .summary-bar { background: #f1f5f9; border-radius: 20px; padding: 16px; margin-top: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-weight: 600; font-size: 0.9rem; }
         .summary-bar span { background: white; padding: 6px 12px; border-radius: 40px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .results-table { background: white; border-radius: 24px; overflow-x: auto; padding: 4px; margin-top: 30px; }
@@ -44,10 +85,52 @@
         .rank-1 { background-color: #fef9c3; font-weight: bold; }
         .error-message { background: #fee2e2; color: #b91c1c; padding: 12px; border-radius: 20px; margin-bottom: 16px; text-align: center; }
         .info-message { background: #e0f2fe; color: #0369a1; padding: 12px; border-radius: 20px; margin-bottom: 16px; text-align: center; }
+        .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: bold; margin-left: 12px; white-space: nowrap; }
+
+        /* ПЕЧАТНАЯ ВЕРСИЯ — ОДИН ЛИСТ, БЕЗ РАЗРЫВОВ */
+        @media print {
+            body { background: white; padding: 0; margin: 0; }
+            .judge-panel, .results-table, .participant-selector, .participant-card, .control-group button, 
+            button, select, input, #statusMessage, #globalError, .unsaved-badge, .home-button,
+            .container > .judge-panel, .container > .results-table { display: none !important; }
+            
+            .print-report-area {
+                display: block !important;
+                margin: 0;
+                padding: 12px !important;
+                font-size: 10pt !important;
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .print-report-area * {
+                page-break-inside: avoid;
+                break-inside: avoid;
+            }
+            .print-report-area .print-sign-line {
+                margin-top: 20px !important;
+                padding-top: 12px !important;
+            }
+            .print-report-area h1 { font-size: 16pt !important; margin: 0 0 8px !important; }
+            .print-report-area h3 { font-size: 12pt !important; margin: 12px 0 6px !important; }
+            .print-report-area h4 { font-size: 11pt !important; margin: 8px 0 4px !important; }
+            .print-report-area div, .print-report-area p, .print-report-area li { font-size: 9pt !important; }
+            .print-report-area .signature-line { font-size: 9pt !important; }
+            .print-report-area ul { margin-left: 20px; }
+            body, html { height: auto; overflow: visible; }
+        }
+        .print-report-area { display: none; }
 
         /* Мобильная адаптация */
         @media (max-width: 700px) {
             body { padding: 12px; }
+            .header { padding: 16px 20px; text-align: center; }
+            .header h1 { font-size: 1.3rem; }
+            .home-button {
+                position: static;
+                display: inline-flex;
+                margin-bottom: 16px;
+                width: fit-content;
+            }
             .penalties-grid { grid-template-columns: 1fr !important; max-height: none !important; overflow-y: visible !important; gap: 12px; }
             .penalty-card { flex-direction: column; align-items: flex-start; gap: 8px; width: 100%; }
             .penalty-card .desc { width: 100%; }
@@ -65,7 +148,6 @@
             th, td { font-size: 0.75rem; padding: 8px 4px; }
         }
         @media (max-width: 480px) {
-            .header { padding: 16px; }
             .participant-card { padding: 12px; }
             .control-group label { font-size: 0.85rem; }
             select, input { padding: 10px; font-size: 0.9rem; }
@@ -76,10 +158,15 @@
 </head>
 <body>
 <div class="container">
+    <!-- ШАПКА С КНОПКОЙ НА ГЛАВНУЮ -->
     <div class="header">
+        <a href="index.html" class="home-button">
+            🏠 На главную
+        </a>
         <h1>🏃‍♂️🎯 СЛУЖЕБНОЕ ДВОЕБОРЬЕ</h1>
         <p>Дистанция 1280 м • ПМ (+30 сек/промах) • Сайга-12 (–10 сек/попадание)</p>
     </div>
+    
     <div id="statusMessage" class="info-message">Подключение</div>
     <div id="globalError" class="error-message" style="display: none;"></div>
 
@@ -95,6 +182,14 @@
                 <option value="СРБ">Среднерусский (СРБ)</option><option value="СЗБ">Северо-Западный (СЗБ)</option>
                 <option value="ВВБ">Волго-Вятский (ВВБ)</option><option value="СТБ">СТБ</option>
             </select>
+        </div>
+
+        <!-- Блок кнопок управления командой -->
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0 10px; align-items: center; justify-content: flex-start;">
+            <button id="syncTeamBtn" style="background:#2b6e3c;">💾 Синхронизировать команду</button>
+            <button id="resetTeamBtn" class="btn-warning">⚠️ Сбросить команду</button>
+            <button id="excelExportBtn" class="excel-btn">📊 Выгрузить в Excel</button>
+            <button id="printReportBtn" class="print-btn">🖨️ Печать отчета с подписями</button>
         </div>
 
         <div class="participant-selector">
@@ -125,11 +220,6 @@
                 </div>
             </div>
         </div>
-
-        <div style="margin: 24px 0; display: flex; gap: 12px; justify-content: center;">
-            <button id="syncTeamBtn" style="background:#2b6e3c;">Синхронизировать команду</button>
-            <button id="resetTeamBtn" class="btn-warning">Сбросить команду</button>
-        </div>
     </div>
 
     <div class="results-table">
@@ -140,6 +230,8 @@
         </table>
     </div>
 </div>
+
+<div id="printReportContainer" class="print-report-area"></div>
 
 <script>
 (function(){
@@ -155,7 +247,6 @@
     // ---------- Константы ----------
     const PENALTY_PER_MISS_PM = 30;
     const SAIGA_BONUS_PER_HIT = 10;
-    // Новый список штрафов: для каждого указан тип: 'counter' (счётчик) или 'checkbox'
     const penaltiesCatalog = [
         { id: "falsestart", label: "Фальстарт", seconds: 5, type: "counter", max: 10 },
         { id: "gun_drop", label: "Падение оружия (оружие коснулось земли)", seconds: 20, type: "counter", max: 10 },
@@ -201,6 +292,7 @@
     function showStatus(msg, isError=false) { statusDiv.innerHTML = msg; statusDiv.className = isError ? 'error-message' : 'info-message'; }
 
     function formatTime(sec) { if(sec===null||isNaN(sec)) return "—"; let m=Math.floor(sec/60), s=(sec%60).toFixed(2); return `${m}:${s.padStart(5,'0')}`; }
+    function formatTimeShort(sec) { if(sec===null||isNaN(sec)) return "—"; let m=Math.floor(sec/60), s=Math.floor(sec%60); return `${m}:${s.toString().padStart(2,'0')}`; }
     function parseTime(str) { if(!str?.trim()) return null; let s=str.trim(); let m=0, sec=0; if(s.includes(":")){ let p=s.split(":"); m=parseInt(p[0])||0; let sp=p[1]; sec=sp.includes(".")?parseFloat(sp):parseInt(sp); } else sec=parseFloat(s); return isNaN(m)||isNaN(sec)?null:m*60+sec; }
     
     function getPenaltySum(pen) {
@@ -228,7 +320,7 @@
 
     async function saveAthleteToSupabase(team, part, ath){
         const total = computeTotal(ath);
-        const penaltiesJson = { ...ath.penalties }; // уже числа/булевы
+        const penaltiesJson = { ...ath.penalties };
         const { error } = await supabase.from(TABLE_NAME).upsert({
             team_code: team, participant_number: part, participant_name: ath.name||"",
             raw_seconds: ath.rawSeconds, misses: ath.missesPM||0, penalties: penaltiesJson,
@@ -253,10 +345,9 @@
                     name: row.participant_name || "",
                     rawSeconds: row.raw_seconds,
                     missesPM: row.misses || 0,
-                    hitsSaiga: (row.penalties && row.penalties.hitsSaiga) ? row.penalties.hitsSaiga : 0, // старая поддержка, но мы не используем hitsSaiga в penalties
+                    hitsSaiga: (row.penalties && row.penalties.hitsSaiga) ? row.penalties.hitsSaiga : 0,
                     penalties: row.penalties || {}
                 };
-                // Удаляем лишние поля из penalties, если они попали (например, hitsSaiga, grenadeMiss) – они больше не нужны
                 if (newCache[team][part].penalties && typeof newCache[team][part].penalties === 'object') {
                     delete newCache[team][part].penalties.hitsSaiga;
                     delete newCache[team][part].penalties.grenadeMiss;
@@ -268,7 +359,6 @@
                 for(let i=1;i<=3;i++){
                     if(!newCache[team][i]) newCache[team][i] = { name:"", rawSeconds:null, missesPM:0, hitsSaiga:0, penalties:{} };
                     if(defaultNames[team] && defaultNames[team][i-1] && !newCache[team][i].name) newCache[team][i].name = defaultNames[team][i-1];
-                    // Инициализируем недостающие штрафы нулями
                     for (let p of penaltiesCatalog) {
                         if (newCache[team][i].penalties[p.id] === undefined) {
                             newCache[team][i].penalties[p.id] = (p.type === 'counter') ? 0 : false;
@@ -344,7 +434,6 @@
             }
         }
         penaltiesContainer.innerHTML = html;
-        // Обработчики для счётчиков
         for (let p of penaltiesCatalog.filter(p => p.type === 'counter')) {
             const dec = document.querySelector(`.counter-dec[data-id="${p.id}"]`);
             const inc = document.querySelector(`.counter-inc[data-id="${p.id}"]`);
@@ -366,7 +455,6 @@
                 inc.onclick = () => updateCounter(1);
             }
         }
-        // Обработчики для чекбоксов
         for (let p of penaltiesCatalog.filter(p => p.type !== 'counter')) {
             const cb = document.getElementById(`chk_${p.id}`);
             if (cb) {
@@ -411,7 +499,6 @@
         const data = allData[currentTeam][currentParticipant];
         if (!data) return;
         currentAthlete = JSON.parse(JSON.stringify(data));
-        // Убедимся, что все поля penalties инициализированы
         for (let p of penaltiesCatalog) {
             if (currentAthlete.penalties[p.id] === undefined) {
                 currentAthlete.penalties[p.id] = (p.type === 'counter') ? 0 : false;
@@ -524,6 +611,124 @@
         renderOverallTable();
     }
 
+    // --- Экспорт в Excel ---
+    function exportToExcel() {
+        const table = document.getElementById('resultsTable');
+        const cloneTable = table.cloneNode(true);
+        const now = new Date().toLocaleString('ru-RU');
+        const caption = document.createElement('caption');
+        caption.style.fontSize = '16px';
+        caption.style.marginBottom = '10px';
+        caption.style.fontWeight = 'bold';
+        caption.innerText = `Служебное двоеборье (сформировано: ${now})`;
+        cloneTable.prepend(caption);
+        const wb = `<html><head><meta charset="UTF-8"><title>Служебное двоеборье результаты</title><style>th,td{border:1px solid #ccc;padding:6px;text-align:center;}table{border-collapse:collapse;width:100%;}.rank-1{background-color:#fef9c3;}</style></head><body>${cloneTable.outerHTML}</body></html>`;
+        const blob = new Blob([wb], { type: 'application/vnd.ms-excel' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = 'service_duathlon_results.xls';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    function buildPenaltyDescriptionList(athlete) {
+        const list = [];
+        if (athlete.missesPM > 0) {
+            list.push({ desc: `Промахи из ПМ (${athlete.missesPM} шт.)`, sec: athlete.missesPM * PENALTY_PER_MISS_PM });
+        }
+        if (athlete.hitsSaiga > 0) {
+            list.push({ desc: `Попадания из Сайги-12 (${athlete.hitsSaiga} шт.)`, sec: -athlete.hitsSaiga * SAIGA_BONUS_PER_HIT });
+        }
+        for (let p of penaltiesCatalog) {
+            let val = athlete.penalties[p.id];
+            if (p.type === 'counter' && typeof val === 'number' && val > 0) {
+                list.push({ desc: `${p.label} (${val} раз)`, sec: val * p.seconds });
+            } else if (p.type !== 'counter' && val === true) {
+                list.push({ desc: p.label, sec: p.seconds });
+            }
+        }
+        return list;
+    }
+
+    function printReport() {
+        if (!currentTeam) {
+            alert("Сначала выберите команду!");
+            return;
+        }
+        const teamFullName = teamNames[currentTeam] || currentTeam;
+        const members = allData[currentTeam];
+        if (!members) {
+            alert("Данные команды не загружены");
+            return;
+        }
+        let teamTotal = 0;
+        let hasTeamTotal = false;
+        const athletesData = [];
+        for (let i = 1; i <= 3; i++) {
+            const ath = members[i] || { name: `Участник ${i}`, rawSeconds: null, missesPM: 0, hitsSaiga: 0, penalties: {} };
+            const total = computeTotal(ath);
+            if (total !== null) {
+                teamTotal += total;
+                hasTeamTotal = true;
+            }
+            athletesData.push({
+                number: i,
+                name: ath.name || `Участник ${i}`,
+                raw: ath.rawSeconds,
+                misses: ath.missesPM || 0,
+                hits: ath.hitsSaiga || 0,
+                penaltiesList: buildPenaltyDescriptionList(ath),
+                total: total
+            });
+        }
+        const now = new Date().toLocaleString('ru-RU');
+        let printHtml = `<div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1000px; margin: 0 auto; padding: 12px;">
+            <h1 style="text-align: center;">🏁 ОТЧЕТ ПО СЛУЖЕБНОМУ ДВОЕБОРЬЮ</h1>
+            <div style="text-align: center; margin-bottom: 16px;">Дата формирования: ${now}</div>
+            <div style="background: #f8fafc; padding: 12px; border-radius: 16px; margin-bottom: 20px;">
+                <div><strong>Команда:</strong> ${teamFullName} (${currentTeam})</div>
+                <div><strong>Суммарное время команды:</strong> ${hasTeamTotal ? formatTimeShort(teamTotal) : '—'}</div>
+            </div>
+            <h3>📋 Детализация по участникам:</h3>`;
+        
+        for (let ath of athletesData) {
+            printHtml += `<div style="margin-bottom: 20px; border-left: 4px solid #1e3a5f; padding-left: 12px;">
+                <h4>👤 ${ath.name}</h4>
+                <div><strong>Чистое время бега:</strong> ${ath.raw !== null ? formatTimeShort(ath.raw) : '—'}</div>
+                <div><strong>Промахи ПМ:</strong> ${ath.misses} (штраф +${ath.misses * PENALTY_PER_MISS_PM} сек)</div>
+                <div><strong>Попадания Сайги:</strong> ${ath.hits} (бонус –${ath.hits * SAIGA_BONUS_PER_HIT} сек)</div>`;
+            if (ath.penaltiesList.length > 0) {
+                printHtml += `<div><strong>Штрафы за ошибки:</strong></div><ul>`;
+                for (let p of ath.penaltiesList) {
+                    printHtml += `<li>${p.desc} — ${p.sec >= 0 ? '+' : ''}${p.sec} сек</li>`;
+                }
+                printHtml += `</ul>`;
+            } else {
+                printHtml += `<p>✅ Нет дополнительных штрафов.</p>`;
+            }
+            printHtml += `<div><strong>ИТОГОВОЕ ВРЕМЯ УЧАСТНИКА:</strong> ${ath.total !== null ? `${ath.total.toFixed(2)} сек (${formatTimeShort(ath.total)})` : '—'}</div>
+            </div>`;
+        }
+        printHtml += `<div class="print-sign-line" style="margin-top: 24px; border-top: 1px dashed #aaa; padding-top: 16px;">
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                <div><strong>Представитель команды:</strong> __________________</div>
+                <div><strong>Главный судья (ФИО):</strong> __________________</div>
+            </div>
+            <div style="margin-top: 12px; text-align: right;"><strong>Дата:</strong> __________________</div>
+            <div style="margin-top: 12px; font-size: 9pt; text-align: center;">Подпись представителя команды подтверждает согласие с результатами.</div>
+        </div></div>`;
+        
+        const container = document.getElementById('printReportContainer');
+        container.innerHTML = printHtml;
+        container.style.display = 'block';
+        window.print();
+        container.style.display = 'none';
+        container.innerHTML = '';
+    }
+
     // Event listeners
     teamSelect.addEventListener('change', onTeamChange);
     document.querySelectorAll('.participant-btn').forEach(btn => btn.addEventListener('click', () => setActiveParticipant(parseInt(btn.dataset.participant))));
@@ -531,6 +736,8 @@
     document.getElementById('resetParticipantBtn').addEventListener('click', resetCurrentAthlete);
     document.getElementById('syncTeamBtn').addEventListener('click', syncFullTeam);
     document.getElementById('resetTeamBtn').addEventListener('click', resetTeam);
+    document.getElementById('excelExportBtn').addEventListener('click', exportToExcel);
+    document.getElementById('printReportBtn').addEventListener('click', printReport);
     
     const liveFields = [nameInput, rawTimeInput, missesPM, hitsSaiga];
     liveFields.forEach(field => {
