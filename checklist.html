@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Чек-листы дисциплин | Сбербанк многоборье</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: #f0f4f8;
+            padding: 24px 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #1e3a5f 0%, #0f2b44 100%);
+            color: white;
+            padding: 28px 24px;
+            border-radius: 40px;
+            margin-bottom: 32px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.2);
+            padding: 8px 20px;
+            border-radius: 40px;
+            text-decoration: none;
+            color: white;
+            font-weight: 500;
+            margin-top: 16px;
+            transition: 0.2s;
+        }
+        .back-link:hover {
+            background: rgba(255,255,255,0.35);
+        }
+        .category {
+            margin-bottom: 48px;
+        }
+        .category h2 {
+            font-size: 1.7rem;
+            color: #0f2b44;
+            border-left: 6px solid #f5a623;
+            padding-left: 20px;
+            margin-bottom: 24px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 28px;
+        }
+        .checklist-card {
+            background: white;
+            border-radius: 32px;
+            padding: 24px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-decoration: none;
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e2edf7;
+        }
+        .checklist-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px -12px rgba(0,0,0,0.15);
+            border-color: #cbdff0;
+        }
+        .card-icon {
+            font-size: 2.8rem;
+            margin-bottom: 16px;
+        }
+        .checklist-card h3 {
+            font-size: 1.45rem;
+            margin-bottom: 8px;
+            color: #1e3a5f;
+        }
+        .checklist-card p {
+            color: #475569;
+            line-height: 1.4;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+            flex: 1;
+        }
+        .btn-open {
+            background: #f5a62320;
+            color: #c47d0e;
+            border: 1px solid #f5a62340;
+            padding: 8px 16px;
+            border-radius: 60px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-align: center;
+            transition: 0.2s;
+            align-self: flex-start;
+        }
+        .checklist-card:hover .btn-open {
+            background: #f5a623;
+            color: #1e3a5f;
+            border-color: #f5a623;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 48px;
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+        @media (max-width: 700px) {
+            .grid { grid-template-columns: 1fr; }
+            .header h1 { font-size: 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📋 Чек-листы судейских бригад</h1>
+        <p>Фиксация нарушений по каждой дисциплине — печать, отметки, подсчёт штрафов</p>
+        <a href="index.html" class="back-link">← На главную</a>
+    </div>
+
+    <!-- ИНКАССАЦИЯ -->
+    <div class="category">
+        <h2>🚛 Инкассация</h2>
+        <div class="grid">
+            <a href="checklist.html?discipline=estafeta_ink" class="checklist-card">
+                <div class="card-icon">🚛⚡</div>
+                <h3>Эстафета (инкассация)</h3>
+                <p>«Маршрут инкассации» — транспортировка сумок, бум, барьер, стрельба, медицина.</p>
+                <div class="btn-open">📄 Открыть чек-лист →</div>
+            </a>
+            <a href="checklist.html?discipline=triathlon" class="checklist-card">
+                <div class="card-icon">🏃‍♂️💪🔫</div>
+                <h3>Командный триатлон</h3>
+                <p>Полный чек-лист нарушений: бег, силовые, стрельба, кантовка, горка и др.</p>
+                <div class="btn-open">📄 Открыть чек-лист →</div>
+            </a>
+            <a href="checklist.html?discipline=driving" class="checklist-card">
+                <div class="card-icon">🚐🔄</div>
+                <h3>Мастерство вождения</h3>
+                <p>Фигурное вождение, парковка, сбитые фишки, превышение времени.</p>
+                <div class="btn-open">📄 Открыть чек-лист →</div>
+            </a>
+            <a href="checklist.html?discipline=shooting_ink" class="checklist-card">
+                <div class="card-icon">🎯🔫</div>
+                <h3>Практическая стрельба (инкассация)</h3>
+                <p>Упражнения из ПМ, Сайги, АКМС — промахи, процедурки, безопасность.</p>
+                <div class="btn-open">📄 Открыть чек-лист →</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- ОХРАНА -->
+    <div class="category">
+        <h2>🛡️ Охрана</h2>
+        <div class="grid">
+            <a href="checklist.html?discipline=estafeta_ohrana" class="checklist-card">
+                <div class="card-icon">🛡️🔥</div>
+                <h3>Эстафета (охрана)</h3>
+                <p>Полоса препятствий, силовой этап, противопожарная подготовка.</p>
+                <div class="btn-open">📄 Открыть чек-лист →</div>
+            </a>
+            <a href="checklist.html?discipline=duathlon" class="checklist-card">
+                <div class="card-icon">🏃‍♂️🎯</div>
+                <h3>Служебное двоеборье</h3>
+                <p>Бег 1000 м + стрельба из пистолета (фальстарт, срез, промахи).</p>
+                <div class="btn-open">📄 Открыть чек-лист →</div>
+            </a>
+            <a href="checklist.html?discipline=shooting_ohrana" class="checklist-card">
+                <div class="card-icon">🎯🔫</div>
+                <h3>Практическая стрельба (охрана)</h3>
+                <p>Та же программа, что для инкассации, но с акцентом на безопасность.</p>
+                <div class="btn-open">📄 Открыть чек-лист →</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- КОМАНДНАЯ ЭСТАФЕТА -->
+    <div class="category">
+        <h2>👥 Совместная эстафета</h2>
+        <div class="grid">
+            <a href="checklist.html?discipline=team_estafeta" class="checklist-card">
+                <div class="card-icon">👥🚛</div>
+                <h3>Командная эстафета (инкассация+охрана)</h3>
+                <p>Совместные действия, эвакуация, синхронная транспортировка.</p>
+                <div class="btn-open">📄 Открыть чек-лист →</div>
+            </a>
+        </div>
+    </div>
+
+    <div class="footer">
+        ⚡ Каждый чек-лист адаптирован под правила дисциплины. Отметьте нарушения, распечатайте и подпишите.
+    </div>
+</div>
+</body>
+</html>
