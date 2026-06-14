@@ -9,6 +9,26 @@
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
         body { background: #f0f4f8; padding: 20px; margin: 0; }
         .container { max-width: 1400px; margin: 0 auto; }
+        
+        /* Новая стилизованная шапка — скопировано из team_estafeta */
+        .header {
+            background: linear-gradient(135deg, #1e3a5f, #0f2b44);
+            color: white;
+            padding: 20px;
+            border-radius: 28px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.6rem;
+        }
+        .header p {
+            margin: 8px 0 0;
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+        
         .judge-panel { background: white; border-radius: 28px; padding: 20px 24px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .control-group { margin-bottom: 20px; }
         .control-group label { font-weight: 600; display: block; margin-bottom: 6px; color: #1e3a5f; }
@@ -46,9 +66,13 @@
         .team-penalty-row .control-group { margin-bottom: 0; flex: 1; min-width: 200px; }
         .loading-text { color: #1e3a8a; font-size: 0.9rem; margin-left: 10px; }
         .error-text { color: #dc2626; font-size: 0.9rem; margin: 10px 0; }
+        
+        /* Адаптация под мобильные – улучшенная (как в team_estafeta) */
         @media (max-width: 700px) {
             body { padding: 12px; }
             .judge-panel { padding: 16px; }
+            .header h1 { font-size: 1.3rem; }
+            .header p { font-size: 0.8rem; }
             .penalties-grid { grid-template-columns: 1fr; max-height: none; overflow-y: visible; }
             .penalty-card { flex-direction: column; align-items: flex-start; }
             .penalty-card .desc { width: 100%; }
@@ -79,8 +103,13 @@
 </head>
 <body>
 <div class="container">
+    <!-- НОВАЯ СТИЛИЗОВАННАЯ ШАПКА, аналогичная team_estafeta -->
+    <div class="header">
+        <h1>🛡️ Эстафета "Охрана"</h1>
+        <p>Фиксация ошибок на этапах, синхронизация через облако</p>
+    </div>
+
     <div class="judge-panel">
-        <h2>🛡️ Эстафета "Охрана" </h2>
         <div id="connectionStatus" style="margin-bottom: 15px;"></div>
 
         <div class="control-group">
@@ -162,7 +191,7 @@
             <thead>
                 <tr><th>Место</th><th>Команда</th><th>Уч.1 (ФИО)</th><th>Штраф 1</th><th>Уч.2 (ФИО)</th><th>Штраф 2</th><th>Уч.3 (ФИО)</th><th>Штраф 3</th><th>Итоговое время (сек)</th></tr>
             </thead>
-            <tbody id="resultsBody"><td><td colspan="9">Загрузка...</td></tr>
+            <tbody id="resultsBody"><tr><td colspan="9">Загрузка...</td></tr>
             </tbody>
         </table>
     </div>
@@ -765,7 +794,7 @@
                 if(rows.length===0) tbody.innerHTML = '<tr><td colspan="9">Нет данных. Внесите результаты.</td></tr>';
             } catch(e) {
                 console.error("Ошибка загрузки таблицы:", e);
-                document.getElementById('resultsBody').innerHTML = `<td><td colspan="9">Ошибка: ${e.message}</td></tr>`;
+                document.getElementById('resultsBody').innerHTML = `<tr><td colspan="9">Ошибка: ${e.message}</td></tr>`;
             }
         }
         
