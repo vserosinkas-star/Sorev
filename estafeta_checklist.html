@@ -3,12 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Чек-листы судьи — Эстафета (шапка на каждом этапе)</title>
+    <title>Чек-листы судьи — Эстафета (без футера)</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
-
+        * { box-sizing: border-box; }
         body {
             background: #eef2f7;
             font-family: 'Segoe UI', 'Roboto', system-ui, sans-serif;
@@ -16,13 +13,7 @@
             padding: 24px 20px;
             color: #1e2a3e;
         }
-
-        .container {
-            max-width: 1280px;
-            margin: 0 auto;
-        }
-
-        /* шапка и панель */
+        .container { max-width: 1280px; margin: 0 auto; }
         .header {
             background: linear-gradient(135deg, #1e3a5f, #0f2b44);
             color: white;
@@ -31,12 +22,7 @@
             margin-bottom: 32px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
-
-        .header h1 {
-            margin: 0 0 6px;
-            font-size: 1.9rem;
-        }
-
+        .header h1 { margin: 0 0 6px; font-size: 1.9rem; }
         .toolbar {
             display: flex;
             flex-wrap: wrap;
@@ -49,7 +35,6 @@
             border-radius: 48px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-
         .print-btn {
             background: #1e6f3f;
             border: none;
@@ -64,12 +49,7 @@
             align-items: center;
             gap: 10px;
         }
-
-        .print-btn:hover {
-            background: #0f5a33;
-            transform: translateY(-2px);
-        }
-
+        .print-btn:hover { background: #0f5a33; transform: translateY(-2px); }
         .info-note {
             background: #fef9e3;
             border-left: 5px solid #f5a623;
@@ -78,79 +58,56 @@
             font-size: 0.85rem;
             color: #5e3a0c;
         }
-
-        /* Основной блок для заполнения (видимый всегда) */
+        /* Компактный блок полей */
         .meta-fields {
             background: #fefce8;
             border-radius: 28px;
-            padding: 20px 28px;
+            padding: 12px 20px;
             margin-bottom: 32px;
             display: flex;
             flex-wrap: wrap;
-            gap: 24px;
+            align-items: flex-end;
+            gap: 10px 16px;
             border: 1px solid #fde68a;
-            page-break-inside: avoid;
-            break-inside: avoid;
         }
-
-        /* Дублируемые шапки (видны только при печати) */
-        .stage-meta {
-            display: none;
-        }
-
         .meta-field {
-            flex: 1 1 200px;
+            display: flex;
+            flex-direction: column;
+            min-width: 80px;
         }
-
         .meta-field label {
-            display: block;
             font-weight: 700;
-            font-size: 0.8rem;
+            font-size: 0.65rem;
             text-transform: uppercase;
             color: #b45309;
-            margin-bottom: 6px;
-            letter-spacing: 0.5px;
+            margin-bottom: 2px;
+            letter-spacing: 0.3px;
         }
-
-        .meta-field input, .meta-field textarea {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 24px;
+        .meta-field input, .meta-field select {
+            padding: 4px 8px;
+            border-radius: 16px;
             border: 1px solid #d1d5db;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
             background: white;
             font-family: inherit;
         }
-
-        .meta-field textarea {
-            resize: vertical;
-            min-height: 70px;
+        .meta-field.remarks-field { flex-grow: 1; min-width: 120px; }
+        .meta-field.remarks-field input { width: 100%; }
+        @media (min-width: 800px) {
+            .meta-fields { flex-wrap: nowrap; }
         }
-
-        /* секция этапа */
         .stage-section {
             background: white;
             border-radius: 32px;
             margin-bottom: 32px;
             box-shadow: 0 6px 14px rgba(0,0,0,0.05);
-            break-inside: avoid;
-            page-break-inside: avoid;
         }
-
-        /* разрыв страницы перед каждым этапом, кроме первого */
-        .stage-section:not(:first-child) {
-            page-break-before: always;
-            break-before: page;
-            margin-top: 0;
-        }
-
         .stage-header {
             background: #f1f5f9;
             padding: 18px 24px;
             border-radius: 32px 32px 0 0;
             border-bottom: 2px solid #cbd5e1;
         }
-
         .stage-header h2 {
             margin: 0;
             font-size: 1.6rem;
@@ -160,7 +117,6 @@
             align-items: center;
             gap: 10px;
         }
-
         .stage-header .stage-total {
             font-size: 0.85rem;
             background: #e2e8f0;
@@ -169,12 +125,7 @@
             font-weight: normal;
             margin-left: 12px;
         }
-
-        .penalty-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
+        .penalty-table { width: 100%; border-collapse: collapse; }
         .penalty-table th {
             text-align: left;
             padding: 16px 20px 8px 24px;
@@ -183,18 +134,12 @@
             font-size: 0.85rem;
             border-bottom: 1px solid #e2e8f0;
         }
-
         .penalty-table td {
             padding: 12px 20px 12px 24px;
             border-bottom: 1px solid #edf2f7;
             vertical-align: middle;
         }
-
-        .penalty-desc {
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-
+        .penalty-desc { font-weight: 500; font-size: 0.95rem; }
         .penalty-seconds {
             background: #eef2ff;
             padding: 4px 12px;
@@ -205,24 +150,9 @@
             color: #1e3a5f;
             display: inline-block;
         }
-
-        .check-col {
-            width: 70px;
-            text-align: center;
-        }
-
-        .counter-col {
-            width: 130px;
-        }
-
-        input[type="checkbox"] {
-            width: 22px;
-            height: 22px;
-            cursor: pointer;
-            accent-color: #1e3a8a;
-            transform: scale(1.1);
-        }
-
+        .check-col { width: 70px; text-align: center; }
+        .counter-col { width: 130px; }
+        input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; accent-color: #1e3a8a; transform: scale(1.1); }
         .counter-input {
             width: 80px;
             padding: 8px 10px;
@@ -233,7 +163,6 @@
             background: white;
             font-weight: 500;
         }
-
         .sign-line {
             margin-top: 40px;
             border-top: 1px dashed #9ca3af;
@@ -242,85 +171,65 @@
             flex-wrap: wrap;
             justify-content: space-between;
             gap: 30px;
-            page-break-inside: avoid;
         }
-
-        .sign-item {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .sign-item span {
-            font-weight: 600;
-            border-bottom: 1px dotted #4b5563;
-        }
-
-        .print-footer {
-            text-align: center;
-            font-size: 0.7rem;
-            color: #6c757d;
-            margin-top: 48px;
-            padding-bottom: 20px;
-        }
+        .sign-item { flex: 1; min-width: 200px; }
+        .sign-item span { font-weight: 600; border-bottom: 1px dotted #4b5563; }
+        .stage-meta { display: none; }
 
         @media print {
             body {
                 background: white;
-                padding: 0.2in;
+                padding: 0.1in;
                 margin: 0;
-                font-size: 10pt;
+                font-size: 7pt;
             }
-            .toolbar, .print-btn, .info-note, .meta-fields {
-                display: none;
-            }
+            .toolbar, .print-btn, .info-note, .meta-fields { display: none; }
             .stage-meta {
-                display: block;
+                display: flex;
                 background: #fefce8;
                 border: 1px solid #cca;
                 border-radius: 20px;
-                padding: 16px 20px;
-                margin-bottom: 20px;
-                display: flex;
+                padding: 6px 10px;
+                margin-bottom: 15px;
                 flex-wrap: wrap;
-                gap: 16px;
-                break-inside: avoid;
+                gap: 8px;
+                align-items: center;
+            }
+            .stage-meta .meta-field {
+                flex-direction: row;
+                align-items: center;
+                gap: 4px;
+                min-width: auto;
+            }
+            .stage-meta .meta-field label {
+                font-size: 6pt;
+                margin-bottom: 0;
+            }
+            .stage-meta .meta-field input, .stage-meta .meta-field select {
+                font-size: 6pt;
+                padding: 2px 4px;
+                width: auto;
+                min-width: 50px;
             }
             .stage-section {
-                break-inside: avoid;
-                page-break-inside: avoid;
+                page-break-before: always;
+                break-before: page;
+                break-inside: auto;
+                page-break-inside: auto;
                 box-shadow: none;
                 border: 1px solid #ccc;
                 margin-bottom: 0;
             }
-            .stage-section:not(:first-child) {
-                page-break-before: always;
-                margin-top: 0;
-            }
-            input[type="checkbox"] {
-                transform: scale(0.9);
-                border: 1px solid black;
-            }
-            .counter-input {
-                border: 1px solid #000;
-                background: none;
-                padding: 4px;
-                width: 60px;
-            }
-            .stage-header {
-                background: #eef2ff;
-            }
-        }
-
-        @media (max-width: 700px) {
-            body {
-                padding: 16px;
-            }
-            .penalty-table td, .penalty-table th {
-                padding: 10px 12px;
-            }
-            .counter-col {
-                width: auto;
-            }
+            .stage-section:first-child { page-break-before: avoid; }
+            input[type="checkbox"] { transform: scale(0.8); border: 1px solid black; }
+            .counter-input { border: 1px solid #000; background: none; padding: 2px; width: 40px; font-size: 7pt; }
+            .stage-header { background: #eef2ff; padding: 6px 10px; }
+            .stage-header h2 { font-size: 1rem; }
+            .stage-header .stage-total { font-size: 0.7rem; padding: 2px 6px; }
+            .penalty-table th, .penalty-table td { padding: 3px 5px; }
+            .penalty-desc { font-size: 7pt; }
+            .penalty-seconds { font-size: 6pt; padding: 1px 4px; }
+            .sign-line { margin-top: 15px; padding-top: 10px; }
         }
     </style>
 </head>
@@ -328,63 +237,54 @@
 <div class="container">
     <div class="header">
         <h1>📋 Эстафета — судейские чек-листы</h1>
-        <p>Фиксация нарушений на этапах | Каждый этап печатается на отдельной странице с общей шапкой</p>
+        <p>Фиксация нарушений на этапах | Разрыв больших этапов разрешён (каждая страница содержит мета-данные)</p>
     </div>
-
     <div class="toolbar">
-        <div class="info-note">
-            ✅ Для нарушений со счётчиком укажите количество раз. Штраф начисляется за каждое.
-        </div>
+        <div class="info-note">✅ Для нарушений со счётчиком укажите количество раз. Штраф начисляется за каждое.</div>
         <button class="print-btn" id="printChecklistsBtn">🖨️ Распечатать чек-листы (по этапам)</button>
     </div>
 
-    <!-- ОСНОВНОЙ БЛОК ДЛЯ ЗАПОЛНЕНИЯ (видимый, будет скрыт при печати) -->
+    <!-- КОМПАКТНЫЙ БЛОК ПОЛЕЙ С ВЫПАДАЮЩИМ СПИСКОМ ТБ И ОДНОСТРОЧНЫМ ПОЛЕМ ПРИМ. -->
     <div class="meta-fields" id="mainMetaBlock">
         <div class="meta-field">
-            <label>🏦 Территориальный банк / команда</label>
-            <input type="text" id="teamName" placeholder="Например: Уральский (УБ)" value="_________________________">
+            <label>🏦 ТБ</label>
+            <select id="tbSelect">
+                <option value="Северо-Западный">Северо-Западный</option>
+                <option value="Московский">Московский</option>
+                <option value="Центрально-Чернозёмный">Центрально-Чернозёмный</option>
+                <option value="Поволжский">Поволжский</option>
+                <option value="Уральский" selected>Уральский</option>
+                <option value="Западно-Сибирский">Западно-Сибирский</option>
+                <option value="Восточно-Сибирский">Восточно-Сибирский</option>
+                <option value="Дальневосточный">Дальневосточный</option>
+                <option value="Северо-Кавказский">Северо-Кавказский</option>
+                <option value="Волго-Вятский">Волго-Вятский</option>
+                <option value="Южный">Южный</option>
+            </select>
         </div>
         <div class="meta-field">
-            <label>🧭 Направление</label>
-            <input type="text" id="direction" placeholder="1 или 2" value="______">
+            <label>🧭 Напр.</label>
+            <input type="text" id="direction" value="______" style="width:70px">
         </div>
         <div class="meta-field">
-            <label>⚖️ Судья (ФИО)</label>
-            <input type="text" id="judgeName" placeholder="Фамилия И.О." value="_________________________">
+            <label>⚖️ Судья</label>
+            <input type="text" id="judgeName" value="_________________________" style="width:140px">
         </div>
         <div class="meta-field">
-            <label>📅 Дата проведения</label>
-            <input type="text" id="eventDate" placeholder="ДД.ММ.ГГГГ" value="____.____.20__">
+            <label>📅 Дата</label>
+            <input type="text" id="eventDate" value="____.____.20__" style="width:100px">
         </div>
-        <div class="meta-field">
-            <label>📝 Примечания</label>
-            <textarea id="remarks" rows="1" placeholder="Особые отметки, замечания...">_________________________</textarea>
+        <div class="meta-field remarks-field">
+            <label>📝 Прим.</label>
+            <input type="text" id="remarks" value="_________________________" style="width:100%">
         </div>
     </div>
 
-    <!-- Контейнер для чек-листов по этапам (включая скрытые копии шапки) -->
     <div id="stagesContainer"></div>
-
-    <!-- Блок подписей (печатается в конце) -->
-    <div class="sign-line">
-        <div class="sign-item">
-            <span>Подпись судьи</span><br><br> __________________________
-        </div>
-        <div class="sign-item">
-            <span>Подпись представителя команды</span><br><br> __________________________
-        </div>
-        <div class="sign-item">
-            <span>Расшифровка подписи</span><br><br> __________________________
-        </div>
-    </div>
-    <div class="print-footer">
-        Официальный чек-лист нарушений по этапам дисциплины «Эстафета»<br>
-        Каждая отметка фиксирует факт нарушения. Для счётчиков — количество в поле «Кол-во».
-    </div>
 </div>
 
 <script>
-    // ========== ПОЛНАЯ БИБЛИОТЕКА НАРУШЕНИЙ (из файла estafeta) ==========
+    // ========== ПОЛНАЯ БАЗА НАРУШЕНИЙ (13 этапов) ==========
     const penaltiesLibrary = [
         { id: "prop_door", category: "Получение имущества", desc: "1. Не закрыты двери/дверь СТС в «гараже»", sec: 30 },
         { id: "prop_sk", category: "Получение имущества", desc: "Инкассатор: СК не получен", sec: 20 },
@@ -409,7 +309,7 @@
         { id: "bank_cone_2", category: "Получение банковских ценностей", desc: "Наезд на 2 конуса", sec: 10 },
         { id: "bank_cone_3", category: "Получение банковских ценностей", desc: "Наезд на 3 конуса", sec: 15 },
         { id: "bank_cone_4", category: "Получение банковских ценностей", desc: "Наезд на 4 и более конуса", sec: 20 },
-        { id: "bank_sts", category: "Получение банковских ценностей", desc: "СТС не заехал в бокс (СТС установлен вне обозначенного периметра)", sec: 50 },    
+        { id: "bank_sts", category: "Получение банковских ценностей", desc: "СТС не заехал в бокс (СТС установлен вне обозначенного периметра)", sec: 50 },
         { id: "bank_door_open", category: "Получение банковских ценностей", desc: "Не закрыты двери/дверь СТС в «боксе» ", sec: 30 },
         { id: "bank_nak_open", category: "Получение банковских ценностей", desc: "Не закрыт накопитель СТС в «боксе» ", sec: 30 },
         { id: "bank_no_dok", category: "Получение банковских ценностей", desc: "Инкассатор не предъявил документы (удостоверение/ доверенность)", sec: 30 },
@@ -572,7 +472,6 @@
         { id: "obsh_sts", category: "Общие штрафы", desc: "Выход из СТС/посадка в СТС не осуществлена в следующем порядке: инкассатор через заднюю правую дверь, водитель-инкассатор через левую переднюю дверь", sec: 20, isCounter: true, maxCount: 10 }
     ];
 
-    // Порядок этапов
     const stages = [
         "Получение имущества",
         "Получение банковских ценностей",
@@ -589,198 +488,124 @@
         "Общие штрафы"
     ];
 
-    // Функция создания копии мета-блока (для вставки перед этапом)
     function createMetaClone() {
-        const originalBlock = document.getElementById('mainMetaBlock');
-        if (!originalBlock) return null;
+        const original = document.getElementById('mainMetaBlock');
+        if (!original) return null;
         const clone = document.createElement('div');
         clone.className = 'stage-meta';
-        // Копируем содержимое
-        const fields = originalBlock.querySelectorAll('.meta-field');
+        const fields = original.querySelectorAll('.meta-field');
         fields.forEach(field => {
             const clonedField = field.cloneNode(true);
-            // Обновляем id и привязки, чтобы не было конфликта
-            const inputs = clonedField.querySelectorAll('input, textarea');
-            inputs.forEach(inp => {
-                if (inp.id) inp.id = inp.id + '_clone_' + Math.random().toString(36).substr(2, 6);
-            });
+            const inputs = clonedField.querySelectorAll('input, select');
+            inputs.forEach(inp => { if (inp.id) inp.id = inp.id + '_clone_' + Math.random().toString(36).substr(2, 6); });
             clone.appendChild(clonedField);
         });
         return clone;
     }
 
-    // Синхронизация значений из основного блока во все скрытые копии
     function syncMetaToClones() {
-        const mainBlock = document.getElementById('mainMetaBlock');
+        const main = document.getElementById('mainMetaBlock');
         const clones = document.querySelectorAll('.stage-meta');
-        if (!mainBlock) return;
-        // Получаем значения из оригинальных полей
-        const teamName = mainBlock.querySelector('#teamName')?.value || '';
-        const direction = mainBlock.querySelector('#direction')?.value || '';
-        const judgeName = mainBlock.querySelector('#judgeName')?.value || '';
-        const eventDate = mainBlock.querySelector('#eventDate')?.value || '';
-        const remarks = mainBlock.querySelector('#remarks')?.value || '';
-        
+        if (!main) return;
+        const tb = main.querySelector('#tbSelect')?.value || '';
+        const dir = main.querySelector('#direction')?.value || '';
+        const judge = main.querySelector('#judgeName')?.value || '';
+        const date = main.querySelector('#eventDate')?.value || '';
+        const remarks = main.querySelector('#remarks')?.value || '';
         clones.forEach(clone => {
-            const teamInput = clone.querySelector('input[id*="teamName"]');
-            if (teamInput) teamInput.value = teamName;
-            const dirInput = clone.querySelector('input[id*="direction"]');
-            if (dirInput) dirInput.value = direction;
-            const judgeInput = clone.querySelector('input[id*="judgeName"]');
-            if (judgeInput) judgeInput.value = judgeName;
-            const dateInput = clone.querySelector('input[id*="eventDate"]');
-            if (dateInput) dateInput.value = eventDate;
-            const remarksArea = clone.querySelector('textarea[id*="remarks"]');
-            if (remarksArea) remarksArea.value = remarks;
+            const tbSel = clone.querySelector('select[id*="tbSelect"]'); if (tbSel) tbSel.value = tb;
+            const dirInp = clone.querySelector('input[id*="direction"]'); if (dirInp) dirInp.value = dir;
+            const judgeInp = clone.querySelector('input[id*="judgeName"]'); if (judgeInp) judgeInp.value = judge;
+            const dateInp = clone.querySelector('input[id*="eventDate"]'); if (dateInp) dateInp.value = date;
+            const remarksInp = clone.querySelector('input[id*="remarks"]'); if (remarksInp) remarksInp.value = remarks;
         });
     }
 
-    // Генерация чек-листов с вставкой скрытых копий шапки перед каждым этапом
     function buildChecklists() {
         const container = document.getElementById('stagesContainer');
         container.innerHTML = '';
-        
         for (let idx = 0; idx < stages.length; idx++) {
             const stage = stages[idx];
             const stagePenalties = penaltiesLibrary.filter(p => p.category === stage);
-            const isBankStage = (stage === "Получение банковских ценностей");
-            const isSnakeStage = (stage === "Змейка");
-            const isPrestupnikStage = (stage === "Вооруженный преступник");
-            const isShootStage = (stage === "Стрельба");
-            
-            // Создаём мета-блок (копию) для этого этапа (скрыт на экране, виден при печати)
-            const metaClone = createMetaClone();
-            if (metaClone) container.appendChild(metaClone);
-            
-            // Секция этапа
             const section = document.createElement('div');
             section.className = 'stage-section';
-            
+            const metaClone = createMetaClone();
+            if (metaClone) section.appendChild(metaClone);
             const headerDiv = document.createElement('div');
             headerDiv.className = 'stage-header';
             headerDiv.innerHTML = `<h2>🏁 ${stage} <span class="stage-total">${stagePenalties.length} нарушений</span></h2>`;
             section.appendChild(headerDiv);
-            
             const table = document.createElement('table');
             table.className = 'penalty-table';
             const thead = document.createElement('thead');
             thead.innerHTML = `<tr><th>Нарушение / описание</th><th class="check-col">✓ Отметка</th><th class="counter-col">Кол-во (для счётчика)</th><th>Штраф (сек)</th></tr>`;
             table.appendChild(thead);
             const tbody = document.createElement('tbody');
-            
-            // Специальные счётчики (конусы, стрельба)
-            if (isBankStage) {
+
+            // Спецобработка для этапов с конусами и стрельбой
+            if (stage === "Получение банковских ценностей") {
                 const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="penalty-desc"><strong>Наезд на конусы (при заезде в бокс)</strong> (каждый конус = +5 сек)</td>
-                    <td class="check-col">—</td>
-                    <td class="counter-col"><input type="number" class="counter-input bank-cones" min="0" max="20" value="0" step="1"></td>
-                    <td><span class="penalty-seconds">+5 сек/конус</span></td>
-                `;
+                row.innerHTML = `<td class="penalty-desc"><strong>Наезд на конусы (при заезде в бокс)</strong> (каждый конус = +5 сек)</td><td class="check-col">—</td><td class="counter-col"><input type="number" class="counter-input" min="0" max="20" value="0" step="1"><tr><td class="penalty-seconds">+5 сек/конус</span></td>`;
                 tbody.appendChild(row);
             }
-            if (isSnakeStage) {
+            if (stage === "Змейка") {
                 const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="penalty-desc"><strong>Наезд на конус/бочку</strong> (каждый конус = +5 сек)</td>
-                    <td class="check-col">—</td>
-                    <td class="counter-col"><input type="number" class="counter-input snake-cones" min="0" max="20" value="0" step="1"></td>
-                    <td><span class="penalty-seconds">+5 сек/конус</span></td>
-                `;
+                row.innerHTML = `<td class="penalty-desc"><strong>Наезд на конус/бочку</strong> (каждый конус = +5 сек)</td><td class="check-col">—</td><td class="counter-col"><input type="number" class="counter-input" min="0" max="20" value="0" step="1"></td><td><span class="penalty-seconds">+5 сек/конус</span></td>`;
                 tbody.appendChild(row);
             }
-            if (isPrestupnikStage) {
+            if (stage === "Вооруженный преступник") {
                 const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="penalty-desc"><strong>Наезд на конус (преступник)</strong> (каждый конус = +5 сек)</td>
-                    <td class="check-col">—</td>
-                    <td class="counter-col"><input type="number" class="counter-input prestupnik-cones" min="0" max="20" value="0" step="1"></td>
-                    <td><span class="penalty-seconds">+5 сек/конус</span></td>
-                `;
+                row.innerHTML = `<td class="penalty-desc"><strong>Наезд на конус (преступник)</strong> (каждый конус = +5 сек)</td><td class="check-col">—</td><td class="counter-col"><input type="number" class="counter-input" min="0" max="20" value="0" step="1"></td><td><span class="penalty-seconds">+5 сек/конус</span></td>`;
                 tbody.appendChild(row);
             }
-            if (isShootStage) {
+            if (stage === "Стрельба") {
                 const rowPm = document.createElement('tr');
-                rowPm.innerHTML = `
-                    <td class="penalty-desc"><strong>🔫 ПМ (4 выстрела) — ПРОМАХИ</strong> (каждый промах = +30 сек)</td>
-                    <td class="check-col">—</td>
-                    <td class="counter-col"><input type="number" class="counter-input pm-misses" min="0" max="4" value="0" step="1"></td>
-                    <td><span class="penalty-seconds">+30 сек/промах</span></td>
-                `;
+                rowPm.innerHTML = `<td class="penalty-desc"><strong>🔫 ПМ (4 выстрела) — ПРОМАХИ</strong> (каждый промах = +30 сек)</td><td class="check-col">—</td><td class="counter-col"><input type="number" class="counter-input pm-misses" min="0" max="4" value="0" step="1"></td><td><span class="penalty-seconds">+30 сек/промах</span></td>`;
                 tbody.appendChild(rowPm);
                 const rowSaiga = document.createElement('tr');
-                rowSaiga.innerHTML = `
-                    <td class="penalty-desc"><strong>🎯 САЙГА-12 (5 выстрелов) — ПОПАДАНИЯ</strong> (каждое попадание = –10 сек)</td>
-                    <td class="check-col">—</td>
-                    <td class="counter-col"><input type="number" class="counter-input saiga-hits" min="0" max="5" value="0" step="1"></td>
-                    <td><span class="penalty-seconds">–10 сек/попадание</span></td>
-                `;
+                rowSaiga.innerHTML = `<td class="penalty-desc"><strong>🎯 САЙГА-12 (5 выстрелов) — ПОПАДАНИЯ</strong> (каждое попадание = –10 сек)</td><td class="check-col">—</td><td class="counter-col"><input type="number" class="counter-input saiga-hits" min="0" max="5" value="0" step="1"></td><td><span class="penalty-seconds">–10 сек/попадание</span></td>`;
                 tbody.appendChild(rowSaiga);
             }
-            
-            // Остальные нарушения (пропускаем уже обработанные конусы и специфику)
+
             const skipIds = [];
-            if (isBankStage) skipIds.push('bank_cone_1','bank_cone_2','bank_cone_3','bank_cone_4');
-            if (isSnakeStage) skipIds.push('snake_cone','snake_cone1','snake_cone2','snake_cone3');
-            if (isPrestupnikStage) skipIds.push('prestupnik_cone','prestupnik_cone1','prestupnik_cone2','prestupnik_cone3');
-            
+            if (stage === "Получение банковских ценностей") skipIds.push('bank_cone_1','bank_cone_2','bank_cone_3','bank_cone_4');
+            if (stage === "Змейка") skipIds.push('snake_cone','snake_cone1','snake_cone2','snake_cone3');
+            if (stage === "Вооруженный преступник") skipIds.push('prestupnik_cone','prestupnik_cone1','prestupnik_cone2','prestupnik_cone3');
             for (let p of stagePenalties) {
                 if (skipIds.includes(p.id)) continue;
-                if (p.isCounter === true) {
+                const row = document.createElement('tr');
+                if (p.isCounter) {
                     const maxVal = p.maxCount || 99;
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="penalty-desc">${p.desc}</td>
-                        <td class="check-col">—</td>
-                        <td class="counter-col"><input type="number" class="counter-input" data-id="${p.id}" min="0" max="${maxVal}" value="0" step="1"></td>
-                        <td><span class="penalty-seconds">+${p.sec} сек/каждое</span></td>
-                    `;
-                    tbody.appendChild(row);
+                    row.innerHTML = `<td class="penalty-desc">${p.desc}${p.maxCount ? ` (макс. ${p.maxCount})` : ''}</td><td class="check-col">—</td><td class="counter-col"><input type="number" class="counter-input" min="0" max="${maxVal}" value="0" step="1"></td><td><span class="penalty-seconds">+${p.sec} сек/каждое</span></td>`;
                 } else {
-                    const row = document.createElement('tr');
-                    row.innerHTML = `
-                        <td class="penalty-desc">${p.desc}</td>
-                        <td class="check-col"><input type="checkbox" data-id="${p.id}"></td>
-                        <td class="counter-col">—</td>
-                        <td><span class="penalty-seconds">+${p.sec} сек</span></td>
-                    `;
-                    tbody.appendChild(row);
+                    row.innerHTML = `<td class="penalty-desc">${p.desc}</td><td class="check-col"><input type="checkbox"></td><td class="counter-col">—</td><td><span class="penalty-seconds">+${p.sec} сек</span></td>`;
                 }
+                tbody.appendChild(row);
             }
-            
             table.appendChild(tbody);
             section.appendChild(table);
+
+            // Только подписи, футер УБРАН
+            const signBlock = document.createElement('div');
+            signBlock.className = 'sign-line';
+            signBlock.innerHTML = `<div class="sign-item"><span>Подпись судьи</span><br><br> __________________________</div><div class="sign-item"><span>Подпись представителя команды</span><br><br> __________________________</div><div class="sign-item"><span>Расшифровка подписи</span><br><br> __________________________</div>`;
+            section.appendChild(signBlock);
+
             container.appendChild(section);
         }
-        
-        // После генерации синхронизируем значения мета-полей во все копии
         syncMetaToClones();
-        
-        // Добавляем обработчики событий на основные поля для синхронизации
-        const mainInputs = document.querySelectorAll('#mainMetaBlock input, #mainMetaBlock textarea');
-        mainInputs.forEach(inp => {
-            inp.addEventListener('input', () => syncMetaToClones());
-            inp.addEventListener('change', () => syncMetaToClones());
-        });
+        const mainInputs = document.querySelectorAll('#mainMetaBlock input, #mainMetaBlock select');
+        mainInputs.forEach(inp => { inp.addEventListener('input', () => syncMetaToClones()); inp.addEventListener('change', () => syncMetaToClones()); });
     }
-    
-    // Печать
-    document.getElementById('printChecklistsBtn').addEventListener('click', () => {
-        syncMetaToClones(); // перед печатью ещё раз синхронизируем
-        window.print();
-    });
-    
-    // Инициализация
+
+    document.getElementById('printChecklistsBtn').addEventListener('click', () => { syncMetaToClones(); window.print(); });
     buildChecklists();
-    
-    // Стилизация плейсхолдеров
-    const placeholders = document.querySelectorAll('#mainMetaBlock input, #mainMetaBlock textarea');
+
+    const placeholders = document.querySelectorAll('#mainMetaBlock input');
     placeholders.forEach(inp => {
         if (inp.value === "_________________________" || inp.value === "______" || inp.value === "____.____.20__") {
             inp.style.color = "#6c757d";
-            inp.addEventListener('focus', function() {
-                if (this.value === "_________________________" || this.value === "______" || this.value === "____.____.20__") this.value = "";
-            });
+            inp.addEventListener('focus', function() { if (this.value === "_________________________" || this.value === "______" || this.value === "____.____.20__") this.value = ""; });
             inp.addEventListener('blur', function() {
                 if (this.value === "") {
                     if (this.id === "direction") this.value = "______";
