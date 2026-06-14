@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Чек-лист судьи</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            background: #e9edf2;
+            font-family: 'Segoe UI', 'Roboto', system-ui, sans-serif;
+            margin: 0;
+            padding: 24px 20px;
+            color: #1e2a3e;
+        }
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+        .header {
+            background: linear-gradient(145deg, #1e3a5f, #0f2b44);
+            color: white;
+            padding: 20px 28px;
+            border-radius: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            margin: 0 0 8px;
+            font-size: 1.9rem;
+        }
+        .header p {
+            margin: 0;
+            opacity: 0.85;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 12px;
+            color: #f5a623;
+            text-decoration: none;
+            font-weight: 500;
+            background: rgba(255,255,255,0.15);
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+        }
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 16px 24px;
+            border-radius: 48px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .print-btn {
+            background: #1e6f3f;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .print-btn:hover { background: #0f5a33; transform: translateY(-2px); }
+        .info-note {
+            background: #fef9e3;
+            border-left: 5px solid #f5a623;
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        .stage-section {
+            background: white;
+            border-radius: 32px;
+            margin-bottom: 32px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+        .stage-section:not(:first-child) {
+            page-break-before: always;
+            break-before: page;
+            margin-top: 0;
+        }
+        .stage-header {
+            background: #f1f5f9;
+            padding: 18px 24px;
+            border-radius: 32px 32px 0 0;
+            border-bottom: 2px solid #cbd5e1;
+        }
+        .stage-header h2 {
+            margin: 0;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #0c4a6e;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .penalty-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .penalty-table th {
+            text-align: left;
+            padding: 16px 20px 8px 24px;
+            font-weight: 600;
+            color: #334155;
+            font-size: 0.85rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .penalty-table td {
+            padding: 12px 20px 12px 24px;
+            border-bottom: 1px solid #edf2f7;
+            vertical-align: middle;
+        }
+        .penalty-seconds {
+            background: #f1f5f9;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            white-space: nowrap;
+            color: #1e3a5f;
+            display: inline-block;
+        }
+        .check-col { width: 70px; text-align: center; }
+        .counter-col { width: 130px; }
+        input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; accent-color: #1e3a8a; }
+        .counter-input {
+            width: 80px;
+            padding: 8px 10px;
+            font-size: 0.9rem;
+            text-align: center;
+            border-radius: 28px;
+            border: 1px solid #cbd5e1;
+        }
+        .meta-fields {
+            background: #fefce8;
+            border-radius: 28px;
+            padding: 20px 28px;
+            margin-bottom: 32px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            border: 1px solid #fde68a;
+            page-break-inside: avoid;
+        }
+        .meta-field { flex: 1 1 200px; }
+        .meta-field label {
+            display: block;
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #b45309;
+            margin-bottom: 6px;
+        }
+        .meta-field input, .meta-field textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 24px;
+            border: 1px solid #d1d5db;
+            font-family: inherit;
+        }
+        .sign-line {
+            margin-top: 40px;
+            border-top: 1px dashed #9ca3af;
+            padding-top: 30px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 30px;
+        }
+        .sign-item { flex: 1; min-width: 200px; }
+        .sign-item span { font-weight: 600; border-bottom: 1px dotted #4b5563; }
+        .print-footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #6c757d;
+            margin-top: 48px;
+            padding-bottom: 20px;
+        }
+        @media print {
+            body { background: white; padding: 0.2in; }
+            .toolbar, .print-btn, .back-link, .no-print { display: none; }
+            .stage-section { break-inside: avoid; page-break-inside: avoid; border: 1px solid #ccc; }
+            .stage-section:not(:first-child) { page-break-before: always; }
+            .counter-input { border: 1px solid #000; background: none; }
+        }
+        @media (max-width: 700px) {
+            .penalty-table td, .penalty-table th { padding: 10px 12px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1 id="disciplineTitle">📋 Чек-лист нарушений</h1>
+        <p id="disciplineDesc">Фиксация нарушений на этапах | Каждый этап печатается на отдельной странице</p>
+        <a href="checklists.html" class="back-link">← Ко всем чек-листам</a>
+    </div>
+
+    <div class="toolbar">
+        <div class="info-note">✅ Для нарушений со счётчиком укажите количество раз. Штраф за каждое.</div>
+        <button class="print-btn" id="printBtn">🖨️ Распечатать чек-лист</button>
+    </div>
+
+    <div class="meta-fields">
+        <div class="meta-field"><label>🏦 Территориальный банк / команда</label><input type="text" id="teamName" value="_________________________"></div>
+        <div class="meta-field"><label>👤 Участник №1 (ФИО)</label><input type="text" id="participant1" value="_________________________"></div>
+        <div class="meta-field"><label>👤 Участник №2 (ФИО)</label><input type="text" id="participant2" value="_________________________"></div>
+        <div class="meta-field"><label>⚖️ Судья (ФИО)</label><input type="text" id="judgeName" value="_________________________"></div>
+        <div class="meta-field"><label>📅 Дата проведения</label><input type="text" id="eventDate" value="____.____.20__"></div>
+        <div class="meta-field"><label>📝 Примечания</label><textarea id="remarks" rows="1">_________________________</textarea></div>
+    </div>
+
+    <div id="stagesContainer"></div>
+
+    <div class="sign-line">
+        <div class="sign-item"><span>Подпись судьи</span><br><br> __________________________</div>
+        <div class="sign-item"><span>Подпись представителя команды</span><br><br> __________________________</div>
+        <div class="sign-item"><span>Расшифровка подписи</span><br><br> __________________________</div>
+    </div>
+    <div class="print-footer">Официальный чек-лист нарушений · Каждая отметка фиксирует факт нарушения</div>
+</div>
+
+<script>
+    // ----- БАЗА ДАННЫХ НАРУШЕНИЙ ПО ДИСЦИПЛИНАМ -----
+    const DISCIPLINES_DATA = {
+        // ТРИАТЛОН (полные данные из предоставленного файла)
+        triathlon: {
+            name: "Командный триатлон (инкассация)",
+            desc: "Бег, силовые, стрельба, кантовка, горка, покрышки, скалодром, медицина",
+            penalties: [
+                { category: "Транспортирование сумки-баул с БЦ", desc: "Некорректное обращение с сумкой-баул (уронил/бросил)", sec: 20, isCounter: true, maxCount: 10 },
+                { category: "Транспортирование сумки-баул с БЦ", desc: "Перенос сумки двумя руками (помощь второй рукой)", sec: 20 },
+                { category: "Загрузка БЦ в СТС", desc: "Уронил/бросил сумку-баул", sec: 20, isCounter: true, maxCount: 10 },
+                { category: "Загрузка БЦ в СТС", desc: "Не перенесены сумки-баул в накопитель СТС", sec: 20, isCounter: true, maxCount: 10 },
+                { category: "Загрузка БЦ в СТС", desc: "Не перенесены мешки с мелочью в накопитель СТС", sec: 20, isCounter: true, maxCount: 10 },
+                { category: "Загрузка БЦ в СТС", desc: "Перенос мешков двумя руками", sec: 20 },
+                { category: "Бум", desc: "Уронили/бросили сумку-баул", sec: 20, isCounter: true, maxCount: 10 },
+                { category: "Бум", desc: "Сумка-баул транспортируется одним участником", sec: 20 },
+                { category: "Барьер", desc: "Уронил/бросил сумку-баул", sec: 20, isCounter: true },
+                { category: "Барьер", desc: "Перенос сумки двумя руками", sec: 20 },
+                { category: "Кантовка колеса и кувалда", desc: "Уронил/бросил сумку-баул", sec: 20, isCounter: true },
+                { category: "Кантовка колеса и кувалда", desc: "Не наносил удары кувалдой во время кантовки колеса", sec: 20 },
+                { category: "Стрельба", desc: "Не сбита мишень", sec: 10, isCounter: true, maxCount: 7 },
+                { category: "Стрельба", desc: "Процедурка", sec: 10, isCounter: true, maxCount: 6 },
+                { category: "Препятствие", desc: "Уронил/бросил сумку-баул", sec: 20, isCounter: true },
+                { category: "Горка", desc: "Уронил/бросил сумку-баул", sec: 20, isCounter: true },
+                { category: "Покрышки", desc: "Не выстроены две башни по 4 покрышки", sec: 20, isCounter: true, maxCount: 2 },
+                { category: "Скалодром", desc: "Уронил/бросил сумку-баул", sec: 20, isCounter: true },
+                { category: "Медицина", desc: "Расслабление/соскальзывание турникета", sec: 20, isCounter: true },
+                { category: "Медицина", desc: "Турникет наложен ниже/на место ранения", sec: 20 }
+            ]
+        },
+        // Эстафета инкассации (сокращённый вариант на основе триатлона)
+        estafeta_ink: {
+            name: "Эстафета (инкассация)",
+            desc: "Транспортировка, бум, барьер, стрельба, медицина",
+            penalties: [
+                { category: "Транспортировка", desc: "Уронил сумку-баул", sec: 20, isCounter: true, maxCount: 10 },
+                { category: "Транспортировка", desc: "Перенос сумки двумя руками", sec: 20 },
+                { category: "Бум", desc: "Падение сумки на буме", sec: 20, isCounter: true },
+                { category: "Барьер", desc: "Сумка переносится одним участником", sec: 20 },
+                { category: "Стрельба", desc: "Промах по мишени", sec: 10, isCounter: true, maxCount: 8 },
+                { category: "Стрельба", desc: "Нарушение техники безопасности", sec: 30 },
+                { category: "Медицина", desc: "Неправильное наложение турникета", sec: 20 }
+            ]
+        },
+        driving: {
+            name: "Мастерство вождения",
+            desc: "Фигурное вождение, парковка, скоростное маневрирование",
+            penalties: [
+                { category: "Фигурное вождение", desc: "Сбита фишка / конус", sec: 10, isCounter: true, maxCount: 15 },
+                { category: "Фигурное вождение", desc: "Пересечение линии разметки", sec: 15, isCounter: true },
+                { category: "Парковка", desc: "Не въехал в габариты", sec: 20 },
+                { category: "Скоростное маневрирование", desc: "Превышение контрольного времени", sec: 30 },
+                { category: "Общие", desc: "Не пристегнут ремень", sec: 15 }
+            ]
+        },
+        shooting_ink: {
+            name: "Практическая стрельба (инкассация)",
+            desc: "ПМ, Сайга, АКМС",
+            penalties: [
+                { category: "Упражнение из ПМ", desc: "Промах", sec: 10, isCounter: true, maxCount: 10 },
+                { category: "Упражнение из Сайги", desc: "Процедурка", sec: 10, isCounter: true },
+                { category: "Упражнение из АКМС", desc: "Нарушение безопасности", sec: 30 },
+                { category: "Общие", desc: "Падение оружия", sec: 40, isCounter: true }
+            ]
+        },
+        estafeta_ohrana: {
+            name: "Эстафета (охрана)",
+            desc: "Полоса препятствий, силовой этап, противопожарная подготовка",
+            penalties: [
+                { category: "Полоса препятствий", desc: "Сбит элемент полосы", sec: 15, isCounter: true },
+                { category: "Силовой этап", desc: "Упражнение не засчитано", sec: 30 },
+                { category: "Противопожарная подготовка", desc: "Неправильное тушение очага", sec: 20 }
+            ]
+        },
+        duathlon: {
+            name: "Служебное двоеборье",
+            desc: "Бег 1000 м + стрельба из пистолета",
+            penalties: [
+                { category: "Бег", desc: "Фальстарт", sec: 10 },
+                { category: "Бег", desc: "Срез дистанции", sec: 20, isCounter: true },
+                { category: "Стрельба", desc: "Промах", sec: 10, isCounter: true, maxCount: 8 },
+                { category: "Стрельба", desc: "Неисправление задержки", sec: 25 }
+            ]
+        },
+        shooting_ohrana: {
+            name: "Практическая стрельба (охрана)",
+            desc: "Акцент на безопасность и тактику",
+            penalties: [
+                { category: "Пистолетное упражнение", desc: "Промах", sec: 10, isCounter: true },
+                { category: "Автомат", desc: "Нарушение направления ствола", sec: 40 },
+                { category: "Скоростная стрельба", desc: "Процедурка", sec: 15, isCounter: true }
+            ]
+        },
+        team_estafeta: {
+            name: "Командная эстафета",
+            desc: "Совместные действия инкассации и охраны",
+            penalties: [
+                { category: "Синхронная транспортировка", desc: "Падение груза", sec: 30, isCounter: true },
+                { category: "Штурм препятствия", desc: "Несогласованность действий", sec: 20 },
+                { category: "Эвакуация", desc: "Неправильная фиксация пострадавшего", sec: 25 }
+            ]
+        }
+    };
+
+    function getDisciplineFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        let d = params.get('discipline');
+        if (!d || !DISCIPLINES_DATA[d]) d = 'triathlon';
+        return d;
+    }
+
+    function buildChecklists() {
+        const disciplineKey = getDisciplineFromURL();
+        const data = DISCIPLINES_DATA[disciplineKey];
+        document.getElementById('disciplineTitle').innerHTML = `📋 ${data.name}`;
+        document.getElementById('disciplineDesc').innerText = data.desc;
+
+        // группируем по категориям
+        const categories = {};
+        data.penalties.forEach(p => {
+            if (!categories[p.category]) categories[p.category] = [];
+            categories[p.category].push(p);
+        });
+
+        const container = document.getElementById('stagesContainer');
+        container.innerHTML = '';
+
+        for (let [catName, items] of Object.entries(categories)) {
+            const section = document.createElement('div');
+            section.className = 'stage-section';
+            section.innerHTML = `<div class="stage-header"><h2>🏁 ${catName} <span class="stage-total">${items.length} нарушений</span></h2></div>`;
+            const table = document.createElement('table');
+            table.className = 'penalty-table';
+            table.innerHTML = `<thead><tr><th>Нарушение / описание</th><th class="check-col">✓ Отметка</th><th class="counter-col">Кол-во</th><th>Штраф (сек)</th></tr></thead><tbody></tbody>`;
+            const tbody = table.querySelector('tbody');
+
+            items.forEach(item => {
+                const row = document.createElement('tr');
+                if (item.isCounter) {
+                    row.innerHTML = `
+                        <td class="penalty-desc">${item.desc}${item.maxCount ? ` (макс. ${item.maxCount})` : ''}</td>
+                        <td class="check-col">—</td>
+                        <td class="counter-col"><input type="number" class="counter-input" min="0" max="${item.maxCount || 99}" value="0" step="1"></td>
+                        <td><span class="penalty-seconds">+${item.sec} сек / раз</span></td>
+                    `;
+                } else {
+                    row.innerHTML = `
+                        <td class="penalty-desc">${item.desc}</td>
+                        <td class="check-col"><input type="checkbox" class="violation-check"></td>
+                        <td class="counter-col">—</td>
+                        <td><span class="penalty-seconds">+${item.sec} сек</span></td>
+                    `;
+                }
+                tbody.appendChild(row);
+            });
+            section.appendChild(table);
+            container.appendChild(section);
+        }
+    }
+
+    document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+    // плейсхолдеры для полей
+    const placeholders = ['teamName', 'participant1', 'participant2', 'judgeName', 'eventDate'];
+    placeholders.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && el.value === "_________________________") {
+            el.style.color = "#6c757d";
+            el.addEventListener('focus', function() { if (this.value === "_________________________") this.value = ""; });
+            el.addEventListener('blur', function() { if (this.value === "") this.value = "_________________________"; });
+        }
+    });
+    const remarks = document.getElementById('remarks');
+    if (remarks && remarks.value === "_________________________") {
+        remarks.style.color = "#6c757d";
+        remarks.addEventListener('focus', function() { if (this.value === "_________________________") this.value = ""; });
+        remarks.addEventListener('blur', function() { if (this.value === "") this.value = "_________________________"; });
+    }
+
+    buildChecklists();
+</script>
+</body>
+</html>
