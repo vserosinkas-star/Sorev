@@ -10,7 +10,7 @@
         body { background: #f0f4f8; padding: 20px; margin: 0; }
         .container { max-width: 1400px; margin: 0 auto; }
         
-        /* Новая стилизованная шапка — скопировано из team_estafeta, но с кнопкой На главную */
+        /* Шапка + кнопка на главную */
         .header {
             background: linear-gradient(135deg, #1e3a5f, #0f2b44);
             color: white;
@@ -20,17 +20,8 @@
             text-align: center;
             position: relative;
         }
-        .header h1 {
-            margin: 0;
-            font-size: 1.6rem;
-        }
-        .header p {
-            margin: 8px 0 0;
-            opacity: 0.9;
-            font-size: 0.9rem;
-        }
-        
-        /* Кнопка на главную (как в lots) */
+        .header h1 { margin: 0; font-size: 1.6rem; }
+        .header p { margin: 8px 0 0; opacity: 0.9; font-size: 0.9rem; }
         .home-button {
             position: absolute;
             top: 24px;
@@ -63,6 +54,24 @@
         button:hover { background: #1e40af; }
         .btn-secondary { background: #475569; }
         .btn-warning { background: #f97316; }
+        .excel-btn { background: #0f766e; }
+        .excel-btn:hover { background: #0d5a54; }
+        .print-btn { background: #2c5f2d; }
+        .print-btn:hover { background: #1f4a20; }
+        
+        /* Блок кнопок управления командой — перенесён вверх */
+        .team-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0 10px;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        .team-actions button {
+            flex: 0 0 auto;
+        }
+        
         .participant-selector { display: flex; gap: 12px; margin: 20px 0 16px; flex-wrap: wrap; }
         .participant-btn { background: #e2e8f0; border: none; padding: 8px 20px; border-radius: 40px; font-size: 0.9rem; font-weight: 500; color: #1e293b; cursor: pointer; flex: 1; text-align: center; }
         .participant-btn.active { background: #1e3a8a; color: white; }
@@ -93,19 +102,27 @@
         .loading-text { color: #1e3a8a; font-size: 0.9rem; margin-left: 10px; }
         .error-text { color: #dc2626; font-size: 0.9rem; margin: 10px 0; }
         
-        /* Адаптация под мобильные – улучшенная (как в team_estafeta + корректировка кнопки home) */
+        /* Печатная версия */
+        @media print {
+            body { background: white; padding: 0; margin: 0; }
+            .judge-panel, .results-table, .stage-buttons, .stage-info, .judge-controls, .penalties-grid, .summary-bar, .unsaved-badge,
+            .participant-selector, .participant-card, .team-penalty-row, .header .home-button,
+            button, select, input, #connectionStatus, .home-button, .team-actions,
+            .container > .judge-panel, .container > .results-table { display: none !important; }
+            .print-report-area { display: block !important; margin: 0; padding: 20px; font-size: 12pt; }
+            .print-sign-line { margin-top: 40px; border-top: 1px dashed #aaa; padding-top: 20px; }
+        }
+        .print-report-area { display: none; }
+        
+        /* Адаптивность */
         @media (max-width: 700px) {
             body { padding: 12px; }
             .judge-panel { padding: 16px; }
             .header h1 { font-size: 1.3rem; }
             .header p { font-size: 0.8rem; }
-            /* Кнопка на главную на мобильных становится статичной, не перекрывает заголовок */
-            .home-button {
-                position: static;
-                display: inline-flex;
-                margin-bottom: 16px;
-                width: fit-content;
-            }
+            .home-button { position: static; display: inline-flex; margin-bottom: 16px; width: fit-content; }
+            .team-actions { flex-direction: column; align-items: stretch; }
+            .team-actions button { width: 100%; }
             .penalties-grid { grid-template-columns: 1fr; max-height: none; overflow-y: visible; }
             .penalty-card { flex-direction: column; align-items: flex-start; }
             .penalty-card .desc { width: 100%; }
@@ -136,11 +153,9 @@
 </head>
 <body>
 <div class="container">
-    <!-- НОВАЯ СТИЛИЗОВАННАЯ ШАПКА, аналогичная team_estafeta + кнопка на главную -->
+    <!-- ШАПКА -->
     <div class="header">
-        <a href="index.html" class="home-button">
-            🏠 На главную
-        </a>
+        <a href="index.html" class="home-button">🏠 На главную</a>
         <h1>🛡️ Эстафета "Охрана"</h1>
         <p>Фиксация ошибок на этапах, синхронизация через облако</p>
     </div>
@@ -165,6 +180,14 @@
                 <option value="ВВБ">Волго-Вятский (ВВБ)</option>
                 <option value="СТБ">СТБ</option>
             </select>
+        </div>
+
+        <!-- КНОПКИ УПРАВЛЕНИЯ КОМАНДОЙ (перенесены вверх) -->
+        <div class="team-actions">
+            <button id="syncTeamBtn" style="background: #2b6e3c;">💾 Синхронизировать команду</button>
+            <button id="resetTeamBtn" class="btn-warning">⚠️ Сбросить команду целиком</button>
+            <button id="excelExportBtn" class="excel-btn">📊 Выгрузить в Excel</button>
+            <button id="printReportBtn" class="print-btn">🖨️ Печать отчета с подписями</button>
         </div>
 
         <div id="teamCommonFields" style="display: none;">
@@ -214,11 +237,6 @@
                 </div>
             </div>
         </div>
-
-        <div style="margin-top: 20px; text-align: center; display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
-            <button id="syncTeamBtn" style="background: #2b6e3c;">💾 Синхронизировать команду</button>
-            <button id="resetTeamBtn" class="btn-warning">⚠️ Сбросить команду целиком</button>
-        </div>
     </div>
 
     <div class="results-table">
@@ -227,11 +245,13 @@
             <thead>
                 <tr><th>Место</th><th>Команда</th><th>Уч.1 (ФИО)</th><th>Штраф 1</th><th>Уч.2 (ФИО)</th><th>Штраф 2</th><th>Уч.3 (ФИО)</th><th>Штраф 3</th><th>Итоговое время (сек)</th></tr>
             </thead>
-            <tbody id="resultsBody"><td><td colspan="9">Загрузка...</td></tr>
+            <tbody id="resultsBody"><tr><td colspan="9">Загрузка...</td></tr>
             </tbody>
         </table>
     </div>
 </div>
+
+<div id="printReportContainer" class="print-report-area"></div>
 
 <script>
     (function(){
@@ -284,6 +304,7 @@
         let isLoading = false;
 
         function formatTime(sec) { if (sec===null || isNaN(sec)) return "—"; let m=Math.floor(sec/60); let s=(sec%60).toFixed(2); return `${m}:${s.padStart(5,'0')}`; }
+        function formatTimeShort(sec) { if (sec===null || isNaN(sec)) return "—"; let m=Math.floor(sec/60); let s=Math.floor(sec%60); return `${m}:${s.toString().padStart(2,'0')}`; }
         function parseTime(str) { if(!str.trim()) return null; let parts=str.trim().split(':'); let m=0, s=0; if(parts.length===2){ m=parseInt(parts[0])||0; s=parseFloat(parts[1]); } else if(parts.length===1){ s=parseFloat(parts[0]); } else return null; return m*60+s; }
         
         function getPenaltySum(penObj) {
@@ -644,27 +665,22 @@
             refreshTeamCommonFields();
         }
         
-        // Функция переключения этапа с синхронизацией участника
         function setStageAndParticipant(stageName) {
             const stageIndex = stages.indexOf(stageName);
             if (stageIndex === -1) return;
             currentStage = stageName;
-            // Номер участника = индекс этапа + 1
             const targetParticipant = stageIndex + 1;
             if (currentParticipant !== targetParticipant) {
                 currentParticipant = targetParticipant;
-                // Обновить активную кнопку участника
                 document.querySelectorAll('.participant-btn').forEach(btn => {
                     const p = parseInt(btn.getAttribute('data-participant'));
                     if (p === currentParticipant) btn.classList.add('active');
                     else btn.classList.remove('active');
                 });
-                // Перерисовать UI для нового участника
                 if (currentTeam && teamData[currentTeam]) {
                     refreshCurrentParticipantUI();
                 }
             }
-            // Обновить активные кнопки этапов
             renderStageButtons();
             if(currentTeam) renderPenaltiesUI();
         }
@@ -823,7 +839,7 @@
                         <td>${r.p2_penalty} сек</td>
                         <td>${r.p3_name}</td>
                         <td>${r.p3_penalty} сек</td>
-                        <td><strong>${r.total_time !== null ? formatTime(r.total_time) : '—'}</strong>
+                        <td><strong>${r.total_time !== null ? formatTime(r.total_time) : '—'}</strong></td>
                     `;
                     tbody.appendChild(tr);
                 }
@@ -847,7 +863,7 @@
             } else {
                 document.getElementById('participantCard').style.display = 'none';
                 document.getElementById('teamCommonFields').style.display = 'none';
-                document.getElementById('resultsBody').innerHTML = '<tr><td colspan="9">Выберите команду</td></tr>';
+                document.getElementById('resultsBody').innerHTML = '<tr><td colspan="9">Выберите команду</td>';
             }
         }
         
@@ -866,6 +882,134 @@
             });
         }
         
+        // Экспорт в Excel
+        function exportToExcel() {
+            const table = document.getElementById('resultsTable');
+            const cloneTable = table.cloneNode(true);
+            const now = new Date().toLocaleString('ru-RU');
+            const caption = document.createElement('caption');
+            caption.style.fontSize = '16px';
+            caption.style.marginBottom = '10px';
+            caption.style.fontWeight = 'bold';
+            caption.innerText = `Результаты эстафеты "Охрана" (сформировано: ${now})`;
+            cloneTable.prepend(caption);
+            const wb = `<html><head><meta charset="UTF-8"><title>Эстафета Охрана результаты</title><style>th,td{border:1px solid #ccc;padding:6px;text-align:center;}table{border-collapse:collapse;width:100%;}.rank-1{background-color:#fef9c3;}</style></head><body>${cloneTable.outerHTML}</body></html>`;
+            const blob = new Blob([wb], { type: 'application/vnd.ms-excel' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.href = url;
+            link.download = 'security_estafeta_results.xls';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+        
+        // Построение списка штрафов для печати
+        function buildPenaltyListForAthlete(penaltiesObj) {
+            if (!penaltiesObj) return [];
+            const list = [];
+            for (let [id, val] of Object.entries(penaltiesObj)) {
+                const p = penaltiesLibrary.find(p => p.id === id);
+                if (!p) continue;
+                let count = 0;
+                let sec = 0;
+                if (p.type === 'bool' && val === true) {
+                    count = 1;
+                    sec = p.sec;
+                } else if (p.type === 'count' && typeof val === 'number') {
+                    count = val;
+                    sec = val * p.sec;
+                } else if (p.type === 'pullup_counter' && typeof val === 'number') {
+                    const misses = Math.max(0, 8 - val);
+                    count = misses;
+                    sec = misses * p.sec;
+                }
+                if (count > 0 || (p.type === 'bool' && val === true)) {
+                    list.push({ desc: p.desc, count: count, sec: sec, stage: p.category });
+                }
+            }
+            return list;
+        }
+        
+        // Печать отчёта с подписями
+        async function printReport() {
+            if (!currentTeam) {
+                alert("Сначала выберите команду!");
+                return;
+            }
+            const team = teamData[currentTeam];
+            if (!team) {
+                alert("Данные команды не загружены. Попробуйте выбрать команду заново.");
+                return;
+            }
+            const teamFullName = teamNames[currentTeam] || currentTeam;
+            const rawSec = team.teamRawSeconds;
+            const bonusUsed = team.teamBonusFlag;
+            let totalPenalty = 0;
+            const athletes = [];
+            for (let i = 1; i <= 3; i++) {
+                const ath = team.members[i] || { name: `Участник ${i}`, penalties: {} };
+                const penalty = getPenaltySum(ath.penalties || {});
+                totalPenalty += penalty;
+                const penaltiesList = buildPenaltyListForAthlete(ath.penalties || {});
+                athletes.push({
+                    num: i,
+                    name: ath.name || `Участник ${i}`,
+                    penaltySum: penalty,
+                    penaltiesList
+                });
+            }
+            const totalTime = (rawSec !== null && rawSec !== undefined) ? rawSec + totalPenalty - (bonusUsed ? 10 : 0) : null;
+            const now = new Date().toLocaleString('ru-RU');
+            
+            let printHtml = `<div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px;">
+                <h1 style="text-align: center;">🏁 ОТЧЕТ ПО ЭСТАФЕТЕ "ОХРАНА"</h1>
+                <div style="text-align: center; margin-bottom: 24px;">Дата формирования: ${now}</div>
+                <div style="background: #f8fafc; padding: 16px; border-radius: 16px; margin-bottom: 24px;">
+                    <div><strong>Команда:</strong> ${teamFullName} (${currentTeam})</div>
+                    <div><strong>Общее время команды (чистое):</strong> ${rawSec !== null ? formatTimeShort(rawSec) : '—'}</div>
+                    <div><strong>Бонус за огнетушитель:</strong> ${bonusUsed ? 'Да (–10 сек)' : 'Нет'}</div>
+                    <div><strong>Суммарный штраф всех участников:</strong> ${totalPenalty} сек</div>
+                    <div><strong>ИТОГОВОЕ ВРЕМЯ КОМАНДЫ:</strong> ${totalTime !== null ? formatTimeShort(totalTime) : '—'}</div>
+                </div>
+                <h3>📋 Детализация по участникам:</h3>`;
+            
+            for (let ath of athletes) {
+                printHtml += `<div style="margin-bottom: 30px; border-left: 4px solid #1e3a5f; padding-left: 16px;">
+                    <h4>👤 ${ath.name}</h4>
+                    <div><strong>Общий штраф:</strong> ${ath.penaltySum} сек</div>`;
+                if (ath.penaltiesList.length === 0) {
+                    printHtml += `<p>✅ Нет штрафных нарушений.</p>`;
+                } else {
+                    printHtml += `<table style="width:100%; border-collapse: collapse; margin-top: 8px;">
+                        <thead><tr style="background:#e2e8f0;"><th style="padding:8px; text-align:left;">Нарушение</th><th style="padding:8px;">Кол-во</th><th style="padding:8px;">Штраф (сек)</th></tr></thead><tbody>`;
+                    for (let p of ath.penaltiesList) {
+                        printHtml += `<tr><td style="padding:8px;">${p.desc}</td><td style="padding:8px;">${p.count || 1}</td><td style="padding:8px;">+${p.sec}</td></tr>`;
+                    }
+                    printHtml += `</tbody></table>`;
+                }
+                printHtml += `</div>`;
+            }
+            
+            printHtml += `<div class="print-sign-line" style="margin-top: 48px; border-top: 1px dashed #aaa; padding-top: 24px;">
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                    <div><strong>Представитель команды:</strong> __________________</div>
+                    <div><strong>Главный судья (ФИО):</strong> __________________</div>
+                </div>
+                <div style="margin-top: 20px; text-align: right;"><strong>Дата:</strong> __________________</div>
+                <div style="margin-top: 20px; font-size: 10px; text-align: center;">Подпись представителя команды подтверждает согласие с результатами.</div>
+            </div></div>`;
+            
+            const container = document.getElementById('printReportContainer');
+            container.innerHTML = printHtml;
+            container.style.display = 'block';
+            window.print();
+            container.style.display = 'none';
+            container.innerHTML = '';
+        }
+        
+        // Инициализация
         window.onload = async () => {
             document.getElementById('connectionStatus').innerHTML = '<span>✅ Подключено</span>';
             renderStageButtons();
@@ -876,6 +1020,8 @@
             document.getElementById('syncTeamBtn').addEventListener('click', syncTeam);
             document.getElementById('resetTeamBtn').addEventListener('click', resetTeam);
             document.getElementById('saveTeamTimeBtn').addEventListener('click', saveTeamCommon);
+            document.getElementById('excelExportBtn').addEventListener('click', exportToExcel);
+            document.getElementById('printReportBtn').addEventListener('click', printReport);
             
             document.getElementById('participantName').addEventListener('input', (e) => {
                 if (saveNameTimeout) clearTimeout(saveNameTimeout);
