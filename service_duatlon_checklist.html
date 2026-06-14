@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Чек-лист судьи — Служебное двоеборье</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             background: #f0f4f8;
@@ -30,11 +28,7 @@
             margin-bottom: 32px;
             box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
-
-        .main-header h1 {
-            margin: 0 0 6px;
-            font-size: 1.9rem;
-        }
+        .main-header h1 { margin: 0 0 6px; font-size: 1.9rem; }
 
         .toolbar {
             display: flex;
@@ -48,7 +42,6 @@
             border-radius: 48px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-
         .print-btn {
             background: #2c5f2d;
             border: none;
@@ -63,12 +56,7 @@
             align-items: center;
             gap: 10px;
         }
-
-        .print-btn:hover {
-            background: #1f4a20;
-            transform: translateY(-2px);
-        }
-
+        .print-btn:hover { background: #1f4a20; transform: translateY(-2px); }
         .info-note {
             background: #fef9e3;
             border-left: 5px solid #f5a623;
@@ -78,7 +66,6 @@
             color: #5e3a0c;
         }
 
-        /* Основной блок для заполнения (видимый) */
         .meta-fields {
             background: #fefce8;
             border-radius: 28px;
@@ -91,11 +78,7 @@
             page-break-inside: avoid;
             break-inside: avoid;
         }
-
-        .meta-field {
-            flex: 1 1 200px;
-        }
-
+        .meta-field { flex: 1 1 200px; }
         .meta-field label {
             display: block;
             font-weight: 700;
@@ -105,7 +88,6 @@
             margin-bottom: 6px;
             letter-spacing: 0.5px;
         }
-
         .meta-field input, .meta-field textarea {
             width: 100%;
             padding: 10px 14px;
@@ -116,7 +98,6 @@
             font-family: inherit;
         }
 
-        /* Секция участника (печатается отдельной страницей) */
         .participant-section {
             background: white;
             border-radius: 32px;
@@ -126,31 +107,18 @@
             page-break-inside: avoid;
         }
 
-        .participant-section:not(:first-child) {
-            page-break-before: always;
-            break-before: page;
-            margin-top: 0;
-        }
-
         .participant-header {
             background: #f1f5f9;
             padding: 18px 24px;
             border-radius: 32px 32px 0 0;
             border-bottom: 2px solid #cbd5e1;
         }
-
-        .participant-header h2 {
-            margin: 0;
-            font-size: 1.6rem;
-            font-weight: 700;
-            color: #0c4a6e;
-        }
+        .participant-header h2 { margin: 0; font-size: 1.6rem; font-weight: 700; color: #0c4a6e; }
 
         .penalty-table {
             width: 100%;
             border-collapse: collapse;
         }
-
         .penalty-table th {
             text-align: left;
             padding: 16px 20px 8px 24px;
@@ -159,18 +127,12 @@
             font-size: 0.85rem;
             border-bottom: 1px solid #e2e8f0;
         }
-
         .penalty-table td {
             padding: 12px 20px 12px 24px;
             border-bottom: 1px solid #edf2f7;
             vertical-align: middle;
         }
-
-        .penalty-desc {
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-
+        .penalty-desc { font-weight: 500; font-size: 0.95rem; }
         .penalty-seconds {
             background: #eef2ff;
             padding: 4px 12px;
@@ -181,24 +143,9 @@
             color: #1e3a5f;
             display: inline-block;
         }
-
-        .check-col {
-            width: 70px;
-            text-align: center;
-        }
-
-        .counter-col {
-            width: 130px;
-        }
-
-        input[type="checkbox"] {
-            width: 22px;
-            height: 22px;
-            cursor: pointer;
-            accent-color: #1e3a8a;
-            transform: scale(1.1);
-        }
-
+        .check-col { width: 70px; text-align: center; }
+        .counter-col { width: 130px; }
+        input[type="checkbox"] { width: 22px; height: 22px; cursor: pointer; accent-color: #1e3a8a; transform: scale(1.1); }
         .counter-input {
             width: 80px;
             padding: 8px 10px;
@@ -210,10 +157,7 @@
             font-weight: 500;
         }
 
-        /* Дублируемая шапка (печатная) */
-        .print-meta {
-            display: none;
-        }
+        .print-meta { display: none; }
 
         .sign-line {
             margin-top: 40px;
@@ -225,16 +169,8 @@
             gap: 30px;
             page-break-inside: avoid;
         }
-
-        .sign-item {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .sign-item span {
-            font-weight: 600;
-            border-bottom: 1px dotted #4b5563;
-        }
+        .sign-item { flex: 1; min-width: 200px; }
+        .sign-item span { font-weight: 600; border-bottom: 1px dotted #4b5563; }
 
         .print-footer {
             text-align: center;
@@ -242,6 +178,7 @@
             color: #6c757d;
             margin-top: 48px;
             padding-bottom: 20px;
+            page-break-inside: avoid;
         }
 
         .field-row {
@@ -251,44 +188,29 @@
             margin-bottom: 20px;
             padding: 0 24px;
         }
-        .field-row .field {
-            flex: 1;
-            min-width: 180px;
-        }
-        .field-row label {
-            font-weight: 600;
-            font-size: 0.85rem;
-            display: block;
-            margin-bottom: 4px;
-            color: #1e3a5f;
-        }
-        .field-row input {
-            width: 100%;
-            padding: 8px 12px;
-            border-radius: 20px;
-            border: 1px solid #cbd5e1;
-        }
+        .field-row .field { flex: 1; min-width: 180px; }
+        .field-row label { font-weight: 600; font-size: 0.85rem; display: block; margin-bottom: 4px; color: #1e3a5f; }
+        .field-row input { width: 100%; padding: 8px 12px; border-radius: 20px; border: 1px solid #cbd5e1; }
 
         @media print {
             body {
                 background: white;
-                padding: 0.2in;
+                padding: 0.1in;
                 margin: 0;
-                font-size: 10pt;
+                font-size: 8pt;
             }
             .toolbar, .print-btn, .info-note, .main-header, .meta-fields {
                 display: none;
             }
             .print-meta {
-                display: block;
+                display: flex;
                 background: #fefce8;
                 border: 1px solid #cca;
                 border-radius: 20px;
-                padding: 16px 20px;
-                margin-bottom: 20px;
-                display: flex;
+                padding: 8px 12px;
+                margin-bottom: 10px;
                 flex-wrap: wrap;
-                gap: 16px;
+                gap: 8px;
                 break-inside: avoid;
             }
             .participant-section {
@@ -298,9 +220,14 @@
                 border: 1px solid #ccc;
                 margin-bottom: 0;
             }
-            .participant-section:not(:first-child) {
+            /* Каждый участник — на новой странице */
+            .participant-section {
                 page-break-before: always;
-                margin-top: 0;
+                break-before: page;
+            }
+            /* Первый участник — тоже с новой страницы (после скрытого заголовка) */
+            .participant-section:first-child {
+                page-break-before: avoid; /* можно оставить avoid, если не хотим пустую страницу в начале */
             }
             input[type="checkbox"] {
                 transform: scale(0.9);
@@ -309,24 +236,52 @@
             .counter-input {
                 border: 1px solid #000;
                 background: none;
-                padding: 4px;
-                width: 60px;
+                padding: 2px;
+                width: 50px;
+                font-size: 8pt;
             }
             .participant-header {
                 background: #eef2ff;
+                padding: 6px 12px;
+            }
+            .participant-header h2 {
+                font-size: 1.2rem;
+            }
+            .penalty-table th, .penalty-table td {
+                padding: 4px 6px;
+            }
+            .penalty-desc {
+                font-size: 8pt;
+            }
+            .penalty-seconds {
+                font-size: 7pt;
+                padding: 2px 6px;
+            }
+            .field-row {
+                padding: 0 10px;
+                margin-bottom: 8px;
+            }
+            .field-row label {
+                font-size: 7pt;
+            }
+            .field-row input {
+                font-size: 8pt;
+                padding: 2px 6px;
+            }
+            .sign-line {
+                margin-top: 15px;
+                padding-top: 10px;
+            }
+            .print-footer {
+                margin-top: 15px;
+                padding-bottom: 10px;
             }
         }
 
         @media (max-width: 700px) {
-            body {
-                padding: 16px;
-            }
-            .penalty-table td, .penalty-table th {
-                padding: 10px 12px;
-            }
-            .counter-col {
-                width: auto;
-            }
+            body { padding: 16px; }
+            .penalty-table td, .penalty-table th { padding: 10px 12px; }
+            .counter-col { width: auto; }
         }
     </style>
 </head>
@@ -344,51 +299,17 @@
         <button class="print-btn" id="printChecklistsBtn">🖨️ Распечатать чек-листы</button>
     </div>
 
-    <!-- Основной блок для заполнения (видимый, скрывается при печати) -->
     <div class="meta-fields" id="mainMetaBlock">
-        <div class="meta-field">
-            <label>🏦 Территориальный банк / команда</label>
-            <input type="text" id="teamName" placeholder="Например: Уральский (УБ)" value="_________________________">
-        </div>
-        <div class="meta-field">
-            <label>⚖️ Судья (ФИО)</label>
-            <input type="text" id="judgeName" placeholder="Фамилия И.О." value="_________________________">
-        </div>
-        <div class="meta-field">
-            <label>📅 Дата проведения</label>
-            <input type="text" id="eventDate" placeholder="ДД.ММ.ГГГГ" value="____.____.20__">
-        </div>
-        <div class="meta-field">
-            <label>📝 Примечания</label>
-            <textarea id="remarks" rows="1" placeholder="Особые отметки, замечания...">_________________________</textarea>
-        </div>
+        <div class="meta-field"><label>🏦 Территориальный банк / команда</label><input type="text" id="teamName" placeholder="Например: Уральский (УБ)" value="_________________________"></div>
+        <div class="meta-field"><label>⚖️ Судья (ФИО)</label><input type="text" id="judgeName" placeholder="Фамилия И.О." value="_________________________"></div>
+        <div class="meta-field"><label>📅 Дата проведения</label><input type="text" id="eventDate" placeholder="ДД.ММ.ГГГГ" value="____.____.20__"></div>
+        <div class="meta-field"><label>📝 Примечания</label><textarea id="remarks" rows="1" placeholder="Особые отметки, замечания...">_________________________</textarea></div>
     </div>
 
-    <!-- Контейнер для трёх участников -->
     <div id="participantsContainer"></div>
-
-    <div class="sign-line">
-        <div class="sign-item">
-            <span>Подпись судьи</span><br><br> __________________________
-        </div>
-        <div class="sign-item">
-            <span>Подпись представителя команды</span><br><br> __________________________
-        </div>
-        <div class="sign-item">
-            <span>Расшифровка подписи</span><br><br> __________________________
-        </div>
-    </div>
-    <div class="print-footer">
-        Официальный чек-лист нарушений по дисциплине «Служебное двоеборье»<br>
-        Каждая отметка фиксирует факт нарушения. Для счётчиков — количество в поле «Кол-во».
-    </div>
 </div>
 
 <script>
-    // Данные из исходной панели: штрафы, стрельба
-    const PENALTY_PER_MISS_PM = 30;
-    const SAIGA_BONUS_PER_HIT = 10;
-
     const penaltiesCatalog = [
         { id: "falsestart", label: "Фальстарт", seconds: 5, type: "counter", max: 10 },
         { id: "gun_drop", label: "Падение оружия (оружие коснулось земли)", seconds: 20, type: "counter", max: 10 },
@@ -436,6 +357,7 @@
         });
     }
 
+    // Добавляем подписи и футер для КАЖДОГО участника
     function buildParticipantSection(participantNumber, defaultName) {
         const cloneMeta = createMetaClone();
         const section = document.createElement('div');
@@ -447,26 +369,13 @@
         header.innerHTML = `<h2>👤 Участник ${participantNumber}</h2>`;
         section.appendChild(header);
 
-        // Блок для ФИО и времени/стрельбы
         const fieldsDiv = document.createElement('div');
         fieldsDiv.className = 'field-row';
         fieldsDiv.innerHTML = `
-            <div class="field">
-                <label>ФИО участника</label>
-                <input type="text" class="participant-name-field" value="${defaultName}" placeholder="Фамилия И.О.">
-            </div>
-            <div class="field">
-                <label>⏱️ Чистое время бега (мм:сс.сс)</label>
-                <input type="text" class="raw-time-field" placeholder="например 4:25.30">
-            </div>
-            <div class="field">
-                <label>🔫 ПМ (промахи, 0-4)</label>
-                <input type="number" class="pm-misses" min="0" max="4" value="0" step="1">
-            </div>
-            <div class="field">
-                <label>🎯 САЙГА-12 (попадания, 0-4)</label>
-                <input type="number" class="saiga-hits" min="0" max="4" value="0" step="1">
-            </div>
+            <div class="field"><label>ФИО участника</label><input type="text" class="participant-name-field" value="${defaultName}" placeholder="Фамилия И.О."></div>
+            <div class="field"><label>⏱️ Чистое время бега (мм:сс.сс)</label><input type="text" class="raw-time-field" placeholder="например 4:25.30"></div>
+            <div class="field"><label>🔫 ПМ (промахи, 0-4)</label><input type="number" class="pm-misses" min="0" max="4" value="0" step="1"></div>
+            <div class="field"><label>🎯 САЙГА-12 (попадания, 0-4)</label><input type="number" class="saiga-hits" min="0" max="4" value="0" step="1"></div>
         `;
         section.appendChild(fieldsDiv);
 
@@ -499,6 +408,25 @@
         table.appendChild(tbody);
         section.appendChild(table);
 
+        // Блок подписей (для каждого участника)
+        const signBlock = document.createElement('div');
+        signBlock.className = 'sign-line';
+        signBlock.innerHTML = `
+            <div class="sign-item"><span>Подпись судьи</span><br><br> __________________________</div>
+            <div class="sign-item"><span>Подпись представителя команды</span><br><br> __________________________</div>
+            <div class="sign-item"><span>Расшифровка подписи</span><br><br> __________________________</div>
+        `;
+        section.appendChild(signBlock);
+
+        // Футер (для каждого участника)
+        const footerBlock = document.createElement('div');
+        footerBlock.className = 'print-footer';
+        footerBlock.innerHTML = `
+            Официальный чек-лист нарушений по дисциплине «Служебное двоеборье»<br>
+            Каждая отметка фиксирует факт нарушения. Для счётчиков — количество в поле «Кол-во».
+        `;
+        section.appendChild(footerBlock);
+
         return section;
     }
 
@@ -506,20 +434,18 @@
         const container = document.getElementById('participantsContainer');
         container.innerHTML = '';
         const defaultNames = ["Участник 1", "Участник 2", "Участник 3"];
-        for (let i = 1; i <= 3; i++) {
+        for (let i = 1; i <= defaultNames.length; i++) {
             const section = buildParticipantSection(i, defaultNames[i-1]);
             container.appendChild(section);
         }
         syncMetaToClones();
     }
 
-    // Обработка печати
     document.getElementById('printChecklistsBtn').addEventListener('click', () => {
         syncMetaToClones();
         window.print();
     });
 
-    // Синхронизация при изменении полей в основном блоке
     const mainInputs = document.querySelectorAll('#mainMetaBlock input, #mainMetaBlock textarea');
     mainInputs.forEach(inp => {
         inp.addEventListener('input', () => syncMetaToClones());
@@ -528,7 +454,6 @@
 
     buildAllParticipants();
 
-    // Стилизация плейсхолдеров
     const placeholders = document.querySelectorAll('#mainMetaBlock input, #mainMetaBlock textarea');
     placeholders.forEach(inp => {
         if (inp.value === "_________________________" || inp.value === "____.____.20__") {
