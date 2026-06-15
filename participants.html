@@ -192,7 +192,7 @@
             table {
                 width: 100%;
                 border-collapse: collapse;
-                min-width: 700px;
+                min-width: 800px;
             }
             th, td {
                 padding: 14px 12px;
@@ -283,7 +283,19 @@
             box-shadow: inset 0 0 0 1px rgba(30,58,95,0.2);
             font-size: 0.8rem;
         }
-        
+        .captain-badge {
+            display: inline-block;
+            background: #ffd966;
+            color: #7a5c00;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            margin-left: 6px;
+            vertical-align: middle;
+            letter-spacing: 0.5px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
         .phone-link {
             color: #1e3a5f;
             text-decoration: none;
@@ -368,94 +380,140 @@
                 <tr><th>ТБ (территориальный банк)</th><th>ФИО полностью</th><th>Должность</th><th>Роль / Статус</th><th>📞 Номер телефона</th></tr>
             </thead>
             <tbody id="tableBody"></tbody>
-         </table>
+        </table>
     </div>
-    <div class="footer">* Инкассация: фильтр по ролям (Водители / Триатлон). Охрана: фильтр «Все» или «Старший команды». 📞 Нажмите на номер телефона, чтобы позвонить.</div>
+    <div class="footer">* Инкассация: фильтры по роли (Водители / Триатлон) и по капитанам. Охрана: фильтры по статусу и капитанам. ⭐ Капитан команды помечен жетоном. 📞 Нажмите на номер телефона, чтобы позвонить.</div>
 </div>
 
 <script>
-    // ------------------------------------------------------------------
-    // ПОЛНЫЙ СПИСОК УЧАСТНИКОВ С НОМЕРАМИ ТЕЛЕФОНОВ
-    // ------------------------------------------------------------------
+    // ==================================================================
+    // ПОЛНЫЙ СПИСОК УЧАСТНИКОВ С НОМЕРАМИ ТЕЛЕФОНОВ И ПРИЗНАКОМ КАПИТАНА
+    // ==================================================================
     const baseParticipants = [
         // ---------- ИНКАССАЦИЯ (inkasso) ----------
-        { tb: "Поволжский банк", fio: "Гриднев Виктор Геннадьевич", position: "Дежурный инкассатор-водитель", role: "триатлон", category: "inkasso", phone: "8-902-004-85-11" },
-        { tb: "Поволжский банк", fio: "Сернов Александр Сергеевич", position: "Водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-902-128-52-49" },
-        { tb: "Поволжский банк", fio: "Полодичук Дмитрий Львович", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-903-478-39-95" },
-        { tb: "Северо-Западный банк", fio: "Шварак Руслан Николаевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-921-262-36-22" },
-        { tb: "Северо-Западный банк", fio: "Погребняк Антон Сергеевич", position: "Инкассатор", role: "триатлон", category: "inkasso", phone: "8-905-215-04-07" },
-        { tb: "Северо-Западный банк", fio: "Догунов Дмитрий Владимирович", position: "Водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-980-525-37-32" },
-        { tb: "Сибирский банк", fio: "Данилов Андрей Алексеевич", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-923-275-73-44" },
-        { tb: "Сибирский банк", fio: "Павлов Роман Владимирович", position: "Дежурный инкассатор-водитель", role: "триатлон", category: "inkasso", phone: "8-908-020-62-27" },
-        { tb: "Сибирский банк", fio: "Груздов Егор Александрович", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-913-892-25-92" },
-        { tb: "Дальневосточный банк", fio: "Козырев Кирилл Александрович", position: "Водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-914-194-99-08" },
-        { tb: "Дальневосточный банк", fio: "Шепелев Артём Александрович", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-999-166-08-26" },
-        { tb: "Дальневосточный банк", fio: "Фёдоров Юрий Александрович", position: "Инкассатор", role: "триатлон", category: "inkasso", phone: "8-904-623-56-23" },
-        { tb: "Среднерусский банк", fio: "Карпухин Алексей Сергеевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-952-120-00-04" },
-        { tb: "Среднерусский банк", fio: "Большунов Владислав Григорьевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-953-282-42-19" },
-        { tb: "Среднерусский банк", fio: "Воронин Антон Николаевич", position: "Водитель-инкассатор", role: "водитель", category: "inkasso", phone: "89506903541" },
-        { tb: "Волго-Вятский банк", fio: "Поярков Евгений Александрович", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-917-653-10-42" },
-        { tb: "Волго-Вятский банк", fio: "Соколов Александр Сергеевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-912-364-74-08" },
-        { tb: "Волго-Вятский банк", fio: "Михайлов Иван Владимирович", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-987-083-68-28" },
-        { tb: "ПЦП МРД ЦУНДО", fio: "Лобанов Евгений Юрьевич", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-977-885-49-15" },
-        { tb: "ПЦП МРД ЦУНДО", fio: "Сомкин Григорий Николаевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-926-164-48-05" },
-        { tb: "ПЦП МРД ЦУНДО", fio: "Алексеев Данила Алексеевич", position: "Инкассатор", role: "триатлон", category: "inkasso", phone: "8-901-382-92-44" },
-        { tb: "Центрально-Черноземный банк", fio: "Васильев Александр Леонидович", position: "Водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-904-283-81-60" },
-        { tb: "Центрально-Черноземный банк", fio: "Давыдюк Ярослав Владимирович", position: "Водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-919-167-18-40" },
-        { tb: "Центрально-Черноземный банк", fio: "Папин Александр Николаевич", position: "Инкассатор", role: "триатлон", category: "inkasso", phone: "8-920-243-43-61" },
-        { tb: "Юго-Западный банк", fio: "Болдырев Владимир Александрович", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-988-833-90-81" },
-        { tb: "Юго-Западный банк", fio: "Кочиев Матвей Аслангиреевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-912-123-45-68" },
-        { tb: "Юго-Западный банк", fio: "Емельяненко Вячеслав Вячеславович", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-900-010-02-03" },
-        { tb: "Байкальский банк", fio: "Горбунов Виталий Андреевич", position: "Водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-950-085-46-66" },
-        { tb: "Байкальский банк", fio: "Коновалов Александр Андреевич", position: "Водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-929-473-33-74" },
-        { tb: "Байкальский банк", fio: "Веселков Артем Владимирович", position: "Инкассатор", role: "триатлон", category: "inkasso", phone: "8-904-141-76-66" },
-        { tb: "Уральский банк", fio: "Кудрявцев Максим Николаевич", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-932-314-35-56" },
-        { tb: "Уральский банк", fio: "Москвин Станислав Сергеевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-999-565-04-67" },
-        { tb: "Уральский банк", fio: "Марамыгин Марк Юрьевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-905-850-19-85" },
+        // Поволжский банк (капитан - Гриднев Виктор)
+        { tb: "Поволжский банк", fio: "Гриднев Виктор Геннадьевич", position: "Дежурный инкассатор-водитель", role: "триатлон", category: "inkasso", phone: "8-902-004-85-11", isCaptain: true },
+        { tb: "Поволжский банк", fio: "Сернов Александр Сергеевич", position: "Водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-902-128-52-49", isCaptain: false },
+        { tb: "Поволжский банк", fio: "Полодичук Дмитрий Львович", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-903-478-39-95", isCaptain: false },
+        
+        // Северо-Западный банк (капитан - Шварак Руслан)
+        { tb: "Северо-Западный банк", fio: "Шварак Руслан Николаевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-921-262-36-22", isCaptain: true },
+        { tb: "Северо-Западный банк", fio: "Погребняк Антон Сергеевич", position: "Инкассатор", role: "триатлон", category: "inkasso", phone: "8-905-215-04-07", isCaptain: false },
+        { tb: "Северо-Западный банк", fio: "Догунов Дмитрий Владимирович", position: "Водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-980-525-37-32", isCaptain: false },
+        
+        // Сибирский банк (капитан - Павлов Роман)
+        { tb: "Сибирский банк", fio: "Данилов Андрей Алексеевич", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-923-275-73-44", isCaptain: false },
+        { tb: "Сибирский банк", fio: "Павлов Роман Владимирович", position: "Дежурный инкассатор-водитель", role: "триатлон", category: "inkasso", phone: "8-908-020-62-27", isCaptain: true },
+        { tb: "Сибирский банк", fio: "Груздов Егор Александрович", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-913-892-25-92", isCaptain: false },
+        
+        // Дальневосточный банк (капитан - Фёдоров Юрий)
+        { tb: "Дальневосточный банк", fio: "Козырев Кирилл Александрович", position: "Водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-914-194-99-08", isCaptain: false },
+        { tb: "Дальневосточный банк", fio: "Шепелев Артём Александрович", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-999-166-08-26", isCaptain: false },
+        { tb: "Дальневосточный банк", fio: "Фёдоров Юрий Александрович", position: "Инкассатор", role: "триатлон", category: "inkasso", phone: "8-904-623-56-23", isCaptain: true },
+        
+        // Среднерусский банк (капитан - Карпухин Алексей)
+        { tb: "Среднерусский банк", fio: "Карпухин Алексей Сергеевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-952-120-00-04", isCaptain: true },
+        { tb: "Среднерусский банк", fio: "Большунов Владислав Григорьевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-953-282-42-19", isCaptain: false },
+        { tb: "Среднерусский банк", fio: "Воронин Антон Николаевич", position: "Водитель-инкассатор", role: "водитель", category: "inkasso", phone: "89506903541", isCaptain: false },
+        
+        // Волго-Вятский банк (капитан - Михайлов Иван)
+        { tb: "Волго-Вятский банк", fio: "Поярков Евгений Александрович", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-917-653-10-42", isCaptain: false },
+        { tb: "Волго-Вятский банк", fio: "Соколов Александр Сергеевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-912-364-74-08", isCaptain: false },
+        { tb: "Волго-Вятский банк", fio: "Михайлов Иван Владимирович", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-987-083-68-28", isCaptain: true },
+        
+        // ПЦП МРД ЦУНДО (капитан - Лобанов Евгений)
+        { tb: "ПЦП МРД ЦУНДО", fio: "Лобанов Евгений Юрьевич", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-977-885-49-15", isCaptain: true },
+        { tb: "ПЦП МРД ЦУНДО", fio: "Сомкин Григорий Николаевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-926-164-48-05", isCaptain: false },
+        { tb: "ПЦП МРД ЦУНДО", fio: "Алексеев Данила Алексеевич", position: "Инкассатор", role: "триатлон", category: "inkasso", phone: "8-901-382-92-44", isCaptain: false },
+        
+        // Центрально-Черноземный банк (капитан - Папин Александр)
+        { tb: "Центрально-Черноземный банк", fio: "Васильев Александр Леонидович", position: "Водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-904-283-81-60", isCaptain: false },
+        { tb: "Центрально-Черноземный банк", fio: "Давыдюк Ярослав Владимирович", position: "Водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-919-167-18-40", isCaptain: false },
+        { tb: "Центрально-Черноземный банк", fio: "Папин Александр Николаевич", position: "Инкассатор", role: "триатлон", category: "inkasso", phone: "8-920-243-43-61", isCaptain: true },
+        
+        // Юго-Западный банк (капитан - Кочиев Матвей)
+        { tb: "Юго-Западный банк", fio: "Болдырев Владимир Александрович", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-988-833-90-81", isCaptain: false },
+        { tb: "Юго-Западный банк", fio: "Кочиев Матвей Аслангиреевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-912-123-45-68", isCaptain: true },
+        { tb: "Юго-Западный банк", fio: "Емельяненко Вячеслав Вячеславович", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-900-010-02-03", isCaptain: false },
+        
+        // Байкальский банк (капитан - Горбунов Виталий)
+        { tb: "Байкальский банк", fio: "Горбунов Виталий Андреевич", position: "Водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-950-085-46-66", isCaptain: true },
+        { tb: "Байкальский банк", fio: "Коновалов Александр Андреевич", position: "Водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-929-473-33-74", isCaptain: false },
+        { tb: "Байкальский банк", fio: "Веселков Артем Владимирович", position: "Инкассатор", role: "триатлон", category: "inkasso", phone: "8-904-141-76-66", isCaptain: false },
+        
+        // Уральский банк (капитан - Марамыгин Марк)
+        { tb: "Уральский банк", fio: "Кудрявцев Максим Николаевич", position: "Старший водитель-инкассатор", role: "водитель", category: "inkasso", phone: "8-932-314-35-56", isCaptain: false },
+        { tb: "Уральский банк", fio: "Москвин Станислав Сергеевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-999-565-04-67", isCaptain: false },
+        { tb: "Уральский банк", fio: "Марамыгин Марк Юрьевич", position: "Старший водитель-инкассатор", role: "триатлон", category: "inkasso", phone: "8-905-850-19-85", isCaptain: true },
 
         // ---------- ОХРАНА (ohrana) ----------
-        { tb: "Байкальский банк", fio: "Жулаев Сергей  Александрович", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "8-904-144-73-53" },
-        { tb: "Байкальский банк", fio: "Какора Анатолий  Сергеевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "8-929-434-36-69" },
-        { tb: "Байкальский банк", fio: "Ширко Иван Александрович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "8-904-147-97-30" },
-        { tb: "Поволжский банк", fio: "Щербина Алексей Юрьевич", position: "Охранник", role: "security_chief", category: "ohrana", phone: "8-917-103-03-96" },
-        { tb: "Поволжский банк", fio: "Шевыряев Евгений Викторович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "8-927-906-50-90" },
-        { tb: "Поволжский банк", fio: "Юнгов Владимир Сергеевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "8-927-015-03-91" },
-        { tb: "Северо-Западный банк", fio: "Щеголихин Александр Николаевич", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "8-902-504-96-79" },
-        { tb: "Северо-Западный банк", fio: "Ольховский Станислав Иванович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "8-952-210-03-85" },
-        { tb: "Северо-Западный банк", fio: "Котлобаев Рамиль  Камильевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "8-952-218-38-95" },
-        { tb: "Сибирский банк", fio: "Чубченко Виктор Константинович", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "8-953-775-55-67" },
-        { tb: "Сибирский банк", fio: "Шавкин Дамир Дмитриевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "8-930-666-32-93" },
-        { tb: "Сибирский банк", fio: "Савинов Андрей Викторович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "8-908-204-89-77" },
-        { tb: "Среднерусский банк", fio: "Стукалов  Александр Александрович", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "8-916-873-95-13" },
-        { tb: "Среднерусский банк", fio: "Мухин Алексей Николаевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+74957890123" },
-        { tb: "Среднерусский банк", fio: "Елисеев Антон Сергеевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+74958901234" },
-        { tb: "Уральский банк", fio: "Ямгурчин Радик Равилевич", position: "Старший охранник", role: "Охранник", category: "ohrana", phone: "+73431234567" },
-        { tb: "Уральский банк", fio: "Гумеров Ильфат Зуфарович", position: "Охранник", role: "security_chief", category: "ohrana", phone: "+73439012345" },
-        { tb: "Уральский банк", fio: "Лагушин Виталий Юрьевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+73431234567" },
-        { tb: "Центрально-Черноземный банк", fio: "Валюженич Виктор Владиславович", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "+74732345678" },
-        { tb: "Центрально-Черноземный банк", fio: "Горяйнов Александр Михайлович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+74733456789" },
-        { tb: "Центрально-Черноземный банк", fio: "Кондратов Игорь Сергеевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+74734567890" },
-        { tb: "Юго-Западный банк", fio: "Соколенко Александр Витальевич", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "+78635678901" },
-        { tb: "Юго-Западный банк", fio: "Загрядский Максим Владимирович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+78636789012" },
-        { tb: "Юго-Западный банк", fio: "Шамсиев Артур Агаевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+78637890123" },
-        { tb: "Волго-Вятский банк", fio: "Баженов Владимир Вадимович", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "+78318901234" },
-        { tb: "Волго-Вятский банк", fio: "Мурзыев Арсен Адисович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+78319012345" },
-        { tb: "Волго-Вятский банк", fio: "Сафиуллов Ильдар Рафаэлевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+78310123456" },
-        { tb: "ЦОО ЦА и МБ", fio: "Новичихин Александр Иванович", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "+74951234567" },
-        { tb: "ЦОО ЦА и МБ", fio: "Дитятьев Дмитрий Алексеевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+74952345678" },
-        { tb: "ЦОО ЦА и МБ", fio: "Сергиенко Павел Геннадьевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+74953456789" },
-        { tb: "Дальневосточный банк", fio: "Степанов Андрей Сергеевич", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "+79144567890" },
-        { tb: "Дальневосточный банк", fio: "Нестеров Владимир Владимирович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+79145678901" },
-        { tb: "Дальневосточный банк", fio: "Гончаров Дмитрий Александрович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+79146789012" },
-        { tb: "СТБ", fio: "Борщ Владимир Александрович", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "+74957890123" },
-        { tb: "СТБ", fio: "Ракинцев Александр Александрович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+74958901234" },
-        { tb: "СТБ", fio: "Туралиев Вячеслав Гайлискарович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+74959012345" },
+        // Байкальский банк (капитан - Жулаев Сергей)
+        { tb: "Байкальский банк", fio: "Жулаев Сергей Александрович", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "8-904-144-73-53", isCaptain: true },
+        { tb: "Байкальский банк", fio: "Какора Анатолий Сергеевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "8-929-434-36-69", isCaptain: false },
+        { tb: "Байкальский банк", fio: "Ширко Иван Александрович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "8-904-147-97-30", isCaptain: false },
+        
+        // Поволжский банк (капитан - Щербина Алексей)
+        { tb: "Поволжский банк", fio: "Щербина Алексей Юрьевич", position: "Охранник", role: "security_chief", category: "ohrana", phone: "8-917-103-03-96", isCaptain: true },
+        { tb: "Поволжский банк", fio: "Шевыряев Евгений Викторович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "8-927-906-50-90", isCaptain: false },
+        { tb: "Поволжский банк", fio: "Юнгов Владимир Сергеевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "8-927-015-03-91", isCaptain: false },
+        
+        // Северо-Западный банк (капитан - Щеголихин Александр)
+        { tb: "Северо-Западный банк", fio: "Щеголихин Александр Николаевич", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "8-902-504-96-79", isCaptain: true },
+        { tb: "Северо-Западный банк", fio: "Ольховский Станислав Иванович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "8-952-210-03-85", isCaptain: false },
+        { tb: "Северо-Западный банк", fio: "Котлобаев Рамиль Камильевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "8-952-218-38-95", isCaptain: false },
+        
+        // Сибирский банк (капитан - Чубченко Виктор)
+        { tb: "Сибирский банк", fio: "Чубченко Виктор Константинович", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "8-953-775-55-67", isCaptain: true },
+        { tb: "Сибирский банк", fio: "Шавкин Дамир Дмитриевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "8-930-666-32-93", isCaptain: false },
+        { tb: "Сибирский банк", fio: "Савинов Андрей Викторович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "8-908-204-89-77", isCaptain: false },
+        
+        // Среднерусский банк (капитан - Стукалов Александр)
+        { tb: "Среднерусский банк", fio: "Стукалов Александр Александрович", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "8-916-873-95-13", isCaptain: true },
+        { tb: "Среднерусский банк", fio: "Мухин Алексей Николаевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+74957890123", isCaptain: false },
+        { tb: "Среднерусский банк", fio: "Елисеев Антон Сергеевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+74958901234", isCaptain: false },
+        
+        // Уральский банк (капитан - Гумеров Ильфат)
+        { tb: "Уральский банк", fio: "Ямгурчин Радик Равилевич", position: "Старший охранник", role: "Охранник", category: "ohrana", phone: "+73431234567", isCaptain: false },
+        { tb: "Уральский банк", fio: "Гумеров Ильфат Зуфарович", position: "Охранник", role: "security_chief", category: "ohrana", phone: "+73439012345", isCaptain: true },
+        { tb: "Уральский банк", fio: "Лагушин Виталий Юрьевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+73431234567", isCaptain: false },
+        
+        // Центрально-Черноземный банк (капитан - Валюженич Виктор)
+        { tb: "Центрально-Черноземный банк", fio: "Валюженич Виктор Владиславович", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "+74732345678", isCaptain: true },
+        { tb: "Центрально-Черноземный банк", fio: "Горяйнов Александр Михайлович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+74733456789", isCaptain: false },
+        { tb: "Центрально-Черноземный банк", fio: "Кондратов Игорь Сергеевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+74734567890", isCaptain: false },
+        
+        // Юго-Западный банк (капитан - Соколенко Александр)
+        { tb: "Юго-Западный банк", fio: "Соколенко Александр Витальевич", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "+78635678901", isCaptain: true },
+        { tb: "Юго-Западный банк", fio: "Загрядский Максим Владимирович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+78636789012", isCaptain: false },
+        { tb: "Юго-Западный банк", fio: "Шамсиев Артур Агаевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+78637890123", isCaptain: false },
+        
+        // Волго-Вятский банк (капитан - Баженов Владимир)
+        { tb: "Волго-Вятский банк", fio: "Баженов Владимир Вадимович", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "+78318901234", isCaptain: true },
+        { tb: "Волго-Вятский банк", fio: "Мурзыев Арсен Адисович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+78319012345", isCaptain: false },
+        { tb: "Волго-Вятский банк", fio: "Сафиуллов Ильдар Рафаэлевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+78310123456", isCaptain: false },
+        
+        // ЦОО ЦА и МБ (капитан - Новичихин Александр)
+        { tb: "ЦОО ЦА и МБ", fio: "Новичихин Александр Иванович", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "+74951234567", isCaptain: true },
+        { tb: "ЦОО ЦА и МБ", fio: "Дитятьев Дмитрий Алексеевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+74952345678", isCaptain: false },
+        { tb: "ЦОО ЦА и МБ", fio: "Сергиенко Павел Геннадьевич", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+74953456789", isCaptain: false },
+        
+        // Дальневосточный банк (капитан - Степанов Андрей)
+        { tb: "Дальневосточный банк", fio: "Степанов Андрей Сергеевич", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "+79144567890", isCaptain: true },
+        { tb: "Дальневосточный банк", fio: "Нестеров Владимир Владимирович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+79145678901", isCaptain: false },
+        { tb: "Дальневосточный банк", fio: "Гончаров Дмитрий Александрович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+79146789012", isCaptain: false },
+        
+        // СТБ (капитан - Борщ Владимир)
+        { tb: "СТБ", fio: "Борщ Владимир Александрович", position: "Старший охранник", role: "security_chief", category: "ohrana", phone: "+74957890123", isCaptain: true },
+        { tb: "СТБ", fio: "Ракинцев Александр Александрович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+74958901234", isCaptain: false },
+        { tb: "СТБ", fio: "Туралиев Вячеслав Гайлискарович", position: "Охранник", role: "Охранник", category: "ohrana", phone: "+74959012345", isCaptain: false },
     ];
 
     // Глобальное состояние
     let currentTab = "inkasso";
-    let currentInkassoFilter = "all";
-    let currentOhranaFilter = "all";
+    let currentInkassoFilter = "all";      // all, водитель, триатлон
+    let currentInkassoCaptainFilter = "all"; // all, captain, nonCaptain
+    let currentOhranaFilter = "all";        // all, chief
+    let currentOhranaCaptainFilter = "all";  // all, captain, nonCaptain
 
     const tbody = document.getElementById("tableBody");
     const statsInfo = document.getElementById("statsInfo");
@@ -471,42 +529,62 @@
             if (currentInkassoFilter !== "all") {
                 filtered = filtered.filter(p => p.role === currentInkassoFilter);
             }
+            if (currentInkassoCaptainFilter === "captain") {
+                filtered = filtered.filter(p => p.isCaptain === true);
+            } else if (currentInkassoCaptainFilter === "nonCaptain") {
+                filtered = filtered.filter(p => p.isCaptain !== true);
+            }
         } 
         else if (currentTab === "ohrana") {
             if (currentOhranaFilter === "chief") {
                 filtered = filtered.filter(p => p.role === "security_chief");
             }
+            if (currentOhranaCaptainFilter === "captain") {
+                filtered = filtered.filter(p => p.isCaptain === true);
+            } else if (currentOhranaCaptainFilter === "nonCaptain") {
+                filtered = filtered.filter(p => p.isCaptain !== true);
+            }
         }
         return filtered;
     }
 
-    // Отображение роли в ячейке таблицы (HTML)
+    // Отображение роли в ячейке таблицы (HTML) с бейджем капитана
     function getRoleDisplay(participant) {
+        let roleHtml = "";
         if (participant.category === "inkasso") {
             if (participant.role === "водитель") {
-                return '<span class="role-badge driver">🚐 Водитель</span>';
+                roleHtml = '<span class="role-badge driver">🚐 Водитель</span>';
             } else if (participant.role === "триатлон") {
-                return '<span class="role-badge triathlon">🏃‍♂️ Триатлон</span>';
+                roleHtml = '<span class="role-badge triathlon">🏃‍♂️ Триатлон</span>';
+            } else {
+                roleHtml = '<span class="role-badge">Участник</span>';
             }
-            return '<span class="role-badge">Участник</span>';
         } else {
             if (participant.role === "security_chief") {
-                return '<span class="role-badge security-lead">⭐ Старший команды</span>';
+                roleHtml = '<span class="role-badge security-lead">⭐ Старший команды</span>';
+            } else {
+                roleHtml = '<span class="role-badge">🛡️ Сотрудник охраны</span>';
             }
-            return '<span class="role-badge">🛡️ Сотрудник охраны</span>';
         }
+        if (participant.isCaptain) {
+            roleHtml += ' <span class="captain-badge">👑 КАПИТАН</span>';
+        }
+        return roleHtml;
     }
     
     // Получить текстовое представление роли для Excel (без HTML)
     function getRoleText(participant) {
+        let baseRole = "";
         if (participant.category === "inkasso") {
-            if (participant.role === "водитель") return "Водитель";
-            if (participant.role === "триатлон") return "Триатлон";
-            return "Участник инкассации";
+            if (participant.role === "водитель") baseRole = "Водитель";
+            else if (participant.role === "триатлон") baseRole = "Триатлон";
+            else baseRole = "Участник инкассации";
         } else {
-            if (participant.role === "security_chief") return "Старший команды";
-            return "Сотрудник охраны";
+            if (participant.role === "security_chief") baseRole = "Старший команды";
+            else baseRole = "Сотрудник охраны";
         }
+        if (participant.isCaptain) return baseRole + " (Капитан команды)";
+        return baseRole;
     }
 
     // Форматирование телефона для отображения
@@ -523,7 +601,7 @@
         return phone;
     }
 
-    // Рендер таблицы с адаптивными data-атрибутами
+    // Рендер таблицы
     function renderTable() {
         const filtered = getFilteredParticipants();
         tbody.innerHTML = "";
@@ -536,8 +614,8 @@
             const cell = row.insertCell(0);
             cell.colSpan = 5;
             let msg = currentTab === "inkasso" 
-                ? "⚠️ В категории «Инкассация» нет участников с выбранной ролью."
-                : "⚠️ В категории «Охрана» нет участников с выбранным фильтром.";
+                ? "⚠️ В категории «Инкассация» нет участников с выбранными фильтрами."
+                : "⚠️ В категории «Охрана» нет участников с выбранными фильтрами.";
             cell.textContent = msg;
             cell.style.textAlign = "center";
             cell.style.padding = "30px";
@@ -577,17 +655,23 @@
         });
     }
 
-    // Панель фильтров
+    // Панель фильтров (расширенная)
     function renderFiltersPanel() {
         if (!dynamicFiltersDiv) return;
         
         if (currentTab === "inkasso") {
             dynamicFiltersDiv.innerHTML = `
-                <div class="filter-group">
+                <div class="filter-group" style="margin-bottom: 12px;">
                     <div class="filter-label">🎯 Фильтр по роли:</div>
                     <button class="filter-btn ${currentInkassoFilter === 'all' ? 'active' : ''}" data-inkasso-filter="all">Все роли</button>
                     <button class="filter-btn ${currentInkassoFilter === 'водитель' ? 'active' : ''}" data-inkasso-filter="водитель">🚐 Водители</button>
                     <button class="filter-btn ${currentInkassoFilter === 'триатлон' ? 'active' : ''}" data-inkasso-filter="триатлон">🏃‍♂️ Триатлон</button>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-label">👑 Фильтр по капитану:</div>
+                    <button class="filter-btn ${currentInkassoCaptainFilter === 'all' ? 'active' : ''}" data-inkasso-captain="all">Все участники</button>
+                    <button class="filter-btn ${currentInkassoCaptainFilter === 'captain' ? 'active' : ''}" data-inkasso-captain="captain">⭐ Только капитаны</button>
+                    <button class="filter-btn ${currentInkassoCaptainFilter === 'nonCaptain' ? 'active' : ''}" data-inkasso-captain="nonCaptain">🙍 Без капитанов</button>
                 </div>
             `;
             document.querySelectorAll('[data-inkasso-filter]').forEach(btn => {
@@ -599,13 +683,28 @@
                     renderTable();
                 });
             });
+            document.querySelectorAll('[data-inkasso-captain]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const filterVal = btn.getAttribute('data-inkasso-captain');
+                    if (filterVal === currentInkassoCaptainFilter) return;
+                    currentInkassoCaptainFilter = filterVal;
+                    renderFiltersPanel();    
+                    renderTable();
+                });
+            });
         } 
         else if (currentTab === "ohrana") {
             dynamicFiltersDiv.innerHTML = `
-                <div class="filter-group">
+                <div class="filter-group" style="margin-bottom: 12px;">
                     <div class="filter-label">🎯 Показать:</div>
                     <button class="filter-btn ${currentOhranaFilter === 'all' ? 'active' : ''}" data-ohrana-filter="all">👥 Все</button>
                     <button class="filter-btn ${currentOhranaFilter === 'chief' ? 'active' : ''}" data-ohrana-filter="chief">⭐ Старший команды</button>
+                </div>
+                <div class="filter-group">
+                    <div class="filter-label">👑 Фильтр по капитану:</div>
+                    <button class="filter-btn ${currentOhranaCaptainFilter === 'all' ? 'active' : ''}" data-ohrana-captain="all">Все участники</button>
+                    <button class="filter-btn ${currentOhranaCaptainFilter === 'captain' ? 'active' : ''}" data-ohrana-captain="captain">⭐ Только капитаны</button>
+                    <button class="filter-btn ${currentOhranaCaptainFilter === 'nonCaptain' ? 'active' : ''}" data-ohrana-captain="nonCaptain">🙍 Без капитанов</button>
                 </div>
             `;
             document.querySelectorAll('[data-ohrana-filter]').forEach(btn => {
@@ -613,6 +712,15 @@
                     const filterVal = btn.getAttribute('data-ohrana-filter');
                     if (filterVal === currentOhranaFilter) return;
                     currentOhranaFilter = filterVal;
+                    renderFiltersPanel();
+                    renderTable();
+                });
+            });
+            document.querySelectorAll('[data-ohrana-captain]').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const filterVal = btn.getAttribute('data-ohrana-captain');
+                    if (filterVal === currentOhranaCaptainFilter) return;
+                    currentOhranaCaptainFilter = filterVal;
                     renderFiltersPanel();
                     renderTable();
                 });
@@ -637,20 +745,14 @@
         
         const wb = XLSX.utils.book_new();
         const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-        ws['!cols'] = [{ wch: 28 }, { wch: 32 }, { wch: 30 }, { wch: 22 }, { wch: 20 }];
+        ws['!cols'] = [{ wch: 28 }, { wch: 35 }, { wch: 30 }, { wch: 28 }, { wch: 20 }];
         
         XLSX.utils.book_append_sheet(wb, ws, "Участники");
         
         const now = new Date();
         const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
         let tabName = currentTab === "inkasso" ? "Инкассация" : "Охрана";
-        let filterSuffix = "";
-        if (currentTab === "inkasso" && currentInkassoFilter !== "all") {
-            filterSuffix = `_${currentInkassoFilter === "водитель" ? "Водители" : "Триатлон"}`;
-        } else if (currentTab === "ohrana" && currentOhranaFilter === "chief") {
-            filterSuffix = "_СтаршиеКоманды";
-        }
-        const filename = `Участники_${tabName}${filterSuffix}_${dateStr}.xlsx`;
+        const filename = `Участники_${tabName}_${dateStr}.xlsx`;
         XLSX.writeFile(wb, filename);
     }
     
@@ -658,10 +760,13 @@
         if (tabId === currentTab) return;
         currentTab = tabId;
         
+        // Сброс специфических фильтров при смене вкладки
         if (currentTab === "inkasso") {
             currentInkassoFilter = "all";
+            currentInkassoCaptainFilter = "all";
         } else if (currentTab === "ohrana") {
             currentOhranaFilter = "all";
+            currentOhranaCaptainFilter = "all";
         }
         
         tabButtons.forEach(btn => {
@@ -696,7 +801,9 @@
         initExportListener();
         currentTab = "inkasso";
         currentInkassoFilter = "all";
+        currentInkassoCaptainFilter = "all";
         currentOhranaFilter = "all";
+        currentOhranaCaptainFilter = "all";
         
         tabButtons.forEach(btn => {
             if (btn.getAttribute("data-tab") === currentTab) {
