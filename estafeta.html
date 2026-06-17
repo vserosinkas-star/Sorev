@@ -25,7 +25,7 @@
             margin: 0 auto;
         }
 
-        /* ===== ШАПКА (без золотой линии) ===== */
+        /* ===== НОВАЯ ШАПКА (стиль из lots) ===== */
         .header {
             background: linear-gradient(135deg, #1e3a5f, #0f2b44);
             color: white;
@@ -70,7 +70,15 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
 
-        /* ===== ОСТАЛЬНЫЕ СТИЛИ ===== */
+        .gold-accent {
+            height: 3px;
+            background: linear-gradient(90deg, #f5b042, #f5e2a0, #f5b042);
+            width: 70px;
+            border-radius: 2px;
+            margin: 12px auto 0;
+        }
+
+        /* ===== ОСТАЛЬНЫЕ СТИЛИ (оригинал estafeta) ===== */
         .judge-panel {
             background: white;
             border-radius: 28px;
@@ -302,7 +310,7 @@
     <div class="header">
         <button id="homeBtn" class="home-button">🏠 На главную</button>
         <h1>Эстафета</h1>
-        <!-- Золотая линия удалена -->
+        
     </div>
 
     <div class="judge-panel">
@@ -319,8 +327,19 @@
             </div>
             <div class="control-group">
                 <label>🏦 Территориальный банк</label>
-                <select id="teamSelect" disabled>
-                    <option value="">-- сначала выберите направление --</option>
+                <select id="teamSelect">
+                    <option value="">-- выбрать --</option>
+                    <option value="УБ">Уральский (УБ)</option>
+                    <option value="ДВБ">Дальневосточный (ДВБ)</option>
+                    <option value="ББ">Байкальский (ББ)</option>
+                    <option value="МРД">ПЦП МРД ЦУНДО (МРД)</option>
+                    <option value="ЦЧБ">Центрально-Черноземный (ЦЧБ)</option>
+                    <option value="ЮЗБ">Юго-Западный (ЮЗБ)</option>
+                    <option value="ПВБ">Поволжский (ПВБ)</option>
+                    <option value="СИБ">Сибирский (СИБ)</option>
+                    <option value="СРБ">Среднерусский (СРБ)</option>
+                    <option value="СЗБ">Северо-Западный (СЗБ)</option>
+                    <option value="ВВБ">Волго-Вятский (ВВБ)</option>
                 </select>
             </div>
             <button id="excelExportBtn" class="excel-btn">📊 Выгрузить в Excel</button>
@@ -353,15 +372,11 @@
     </div>
 
     <div class="results-table">
-        <h3>🏆 Общий зачёт (все команды)</h3>
+        <h3>🏆 Общий зачёт</h3>
         <table id="resultsTable">
-            <thead>
-                <tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr>
-            </thead>
-            <tbody id="resultsBody">
-                <tr><td colspan="6">Загрузка данных...</td></tr>
-            </tbody>
-        </table>
+            <thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
+            <tbody id="resultsBody"><tr><td colspan="6">Загрузка данных...</td></tr>
+        </tbody>
     </div>
 </div>
 
@@ -374,20 +389,11 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
-    // ================= НАСТРОЙКА КОМАНД И НАПРАВЛЕНИЙ (согласно заданию) =================
     const teamNames = {
         "УБ": "Уральский", "ДВБ": "Дальневосточный", "ББ": "Байкальский", "МРД": "ПЦП МРД ЦУНДО",
         "ЦЧБ": "Центрально-Черноземный", "ЮЗБ": "Юго-Западный", "ПВБ": "Поволжский",
         "СИБ": "Сибирский", "СРБ": "Среднерусский", "СЗБ": "Северо-Западный", "ВВБ": "Волго-Вятский"
     };
-    
-    // Жёсткое закрепление направления за кодом команды
-    const teamDirection = {
-        "ВВБ": 1, "ДВБ": 1, "ББ": 1, "ЮЗБ": 1, "СРБ": 1, "СИБ": 1,
-        "УБ": 2, "ЦЧБ": 2, "СЗБ": 2, "МРД": 2, "ПВБ": 2
-    };
-    
-    const allTeamCodes = Object.keys(teamNames).sort();
     
     const stages = [
         "Получение имущества", "Получение банковских ценностей", "Прокол шины", "Змейка",
@@ -424,7 +430,7 @@
     const PENALTY_PER_MISS_PM = 30;
     const SAIGA_BONUS_PER_HIT = 10;
     
-    // ================= ПОЛНАЯ БИБЛИОТЕКА ШТРАФОВ =================
+    // ================= ПОЛНАЯ БИБЛИОТЕКА ШТРАФОВ (из исходного файла) =================
     const penaltiesLibrary = [
         { id: "prop_door", category: "Получение имущества", desc: "1. Не закрыты двери/дверь СТС в «гараже»", sec: 30 },
         { id: "prop_sk", category: "Получение имущества", desc: "Инкассатор: СК не получен", sec: 20 },
@@ -456,7 +462,7 @@
         { id: "bank_bc", category: "Получение банковских ценностей", desc: "Оставление банковских ценностей без охраны", sec: 50 },
         { id: "bank_scan", category: "Получение банковских ценностей", desc: "Инкассатор не произвел сканирования/имитации с помощью ТСД/радиотерминала ярлыка мешка/ярлыков кассет УС/сейф-пакета (не направил на ярлык мешка/ярлыки кассет УС/сейф-пакет) ", sec: 20 },
         { id: "bank_ostav", category: "Получение банковских ценностей", desc: "Оставление документов (паспорт, доверенность и т.д.)", sec: 30 },
-        { id: "bank_nak", category: "Получение банковских ценностей", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 50 },
+        { id: "bank_nak", category: "Получение банковских ценностей", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 30 },
         { id: "bank_nak_dv", category: "Получение банковских ценностей", desc: "Не была закрыта дверь устройства накопителя до начала движения СТС", sec: 30 },
         { id: "bank_belt1", category: "Получение банковских ценностей", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
         { id: "puncture_belt", category: "Прокол шины", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
@@ -547,7 +553,7 @@
         { id: "fire_flag", category: "Пожар", desc: "Банковские ценности переносятся в СТС до команды работника МЧС «Потушено»/поднятия флага", sec: 30 },
         { id: "fire_vmeste", category: "Пожар", desc: "Водитель-инкассатор вместе с инкассатором переносит ценности в СТС", sec: 30 },
         { id: "fire_close_dver_ruk", category: "Пожар", desc: "Водитель-инкассатор закрыл руками дверь СТС инкассатору (заднюю правую)", sec: 30 },
-        { id: "fire_cen", category: "Пожар", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 50 },
+        { id: "fire_cen", category: "Пожар", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 30 },
         { id: "fire_nak", category: "Пожар", desc: "Не была закрыта дверь устройства накопителя после вложения банковских ценностей", sec: 30 },
         { id: "fire_sk_cell", category: "Пожар", desc: "Инкассатор: СК не установлен в специальную ячейку", sec: 20 },
         { id: "fire_belt1", category: "Пожар", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
@@ -558,7 +564,7 @@
         { id: "med_engine", category: "Медицина", desc: "Не выключен (не заглушен) двигатель спецавтомобиля", sec: 20 },
         { id: "med_tourniquet", category: "Медицина", desc: "Наложение турникета на несоответствующую область (бедро) (ниже обозначенного места ранения, на место ранения)", sec: 30 },
         { id: "med_time", category: "Медицина", desc: "Не обозначено время наложения турникета (бедро)", sec: 30 },
-        { id: "med_tourniquet_povtor", category: "Медицина", desc: "Неправильное наложение турникета ( на бедро), что вызвало повторное кровотечение, угрожающее жизни раненого (расслабление или соскальзывание)", sec: 50 },
+        { id: "med_tourniquet_povtor", category: "Медицина", desc: "Неправильное наложение турникета ( на бедро), что вызвало повторное кровотечение, угрожающее жизни раненого (расслабление или соскальзывание)", sec: 30 },
         { id: "med_ipp", category: "Медицина", desc: "Наложение ИПП на несоответствующую область (предплечья) (ниже обозначенного места ранения, на место ранения)", sec: 30 },
         { id: "med_ipp_razm", category: "Медицина", desc: "Не полностью размотан ИПП на поврежденной области (предплечья)", sec: 20 },
         { id: "med_ipp_povtor", category: "Медицина", desc: "Неправильное наложение ИПП (предплечье), что вызвало повторное кровотечение угрожающее жизни раненого (расслабление или соскальзывание)", sec: 30 },
@@ -753,64 +759,39 @@
             if (error) throw error;
         }).catch(err => console.error(err));
     }
-    
-    // ---------- ОБНОВЛЁННАЯ ТАБЛИЦА: ВСЕ 11 КОМАНД С ИХ НАПРАВЛЕНИЯМИ ----------
     async function loadAllResults() {
         try {
-            let { data, error } = await supabaseClient.from('estafeta_results').select('team_code, direction, raw_seconds, penalties');
+            let { data, error } = await supabaseClient.from('estafeta_results').select('direction, team_code, raw_seconds, penalties');
             if (error) throw error;
-            const dataMap = new Map();
-            for (let row of data) {
-                dataMap.set(row.team_code, row);
+            let rows = [];
+            for (let r of data) {
+                let raw = r.raw_seconds;
+                let penalty = getPenaltySum(r.penalties);
+                let total = raw !== null ? raw + penalty : null;
+                rows.push({ team: r.team_code, name: teamNames[r.team_code] || r.team_code, dir: r.direction, raw, penalty, total });
             }
-            const rows = [];
-            for (let code of allTeamCodes) {
-                const dbRow = dataMap.get(code);
-                const dir = teamDirection[code]; // жёсткое направление
-                const raw = dbRow?.raw_seconds ?? null;
-                const penaltiesObj = dbRow?.penalties ?? {};
-                const penaltySum = getPenaltySum(penaltiesObj);
-                const total = (raw !== null) ? raw + penaltySum : null;
-                rows.push({
-                    team: code,
-                    name: teamNames[code],
-                    dir: dir,
-                    raw: raw,
-                    penalty: penaltySum,
-                    total: total
-                });
-            }
-            // Сортировка: сначала с итогом, потом null
             rows.sort((a,b) => {
                 if (a.total === null && b.total === null) return 0;
                 if (a.total === null) return 1;
                 if (b.total === null) return -1;
                 return a.total - b.total;
             });
-            const tbody = document.getElementById('resultsBody');
+            let tbody = document.getElementById('resultsBody');
             tbody.innerHTML = '';
             let rank = 1;
             for (let r of rows) {
-                const tr = document.createElement('tr');
+                let tr = document.createElement('tr');
                 if (r.total !== null && rank === 1) tr.classList.add('rank-1');
-                const place = (r.total !== null) ? rank++ : '—';
-                tr.innerHTML = `
-                    <td>${place}</td>
-                    <td><strong>${r.name}</strong> (${r.team})</td>
-                    <td>${r.dir}</td>
-                    <td>${r.raw !== null ? formatTime(r.raw) : '—'}</td>
-                    <td>${r.penalty}</td>
-                    <td>${r.total !== null ? formatTime(r.total) : '—'}</td>
-                `;
+                tr.innerHTML = `<td>${r.total !== null ? rank++ : '—'}</td><td><strong>${r.name}</strong> (${r.team})</td><td>${r.dir}</td><td>${r.raw !== null ? formatTime(r.raw) : '—'}</td><td>${r.penalty}</td><td>${r.total !== null ? formatTime(r.total) : '—'}</td>`;
                 tbody.appendChild(tr);
             }
+            if (rows.length === 0) tbody.innerHTML = '<tr><td colspan="6">Нет данных. Внесите результаты.</td></tr>';
         } catch (err) {
             console.error(err);
             document.getElementById('resultsBody').innerHTML = `<tr><td colspan="6">Ошибка загрузки: ${err.message}</td></tr>`;
         }
     }
     
-    // ---------- ОСНОВНАЯ ЛОГИКА РАБОТЫ СО ШТРАФАМИ (полностью из исходного файла) ----------
     async function refreshCurrentTeamData() {
         if (!currentDirection || !currentTeam) {
             document.getElementById('rawTimeDisplay').innerText = '—';
@@ -875,6 +856,7 @@
         updateSummaryFromTemp();
     }
     
+    // ОТРИСОВКА ШТРАФОВ (полная версия)
     function renderPenalties() {
         if (!currentDirection || !currentTeam) {
             document.getElementById('penaltiesContainer').innerHTML = '<div style="grid-column:1/-1; text-align:center;">⚠️ Выберите направление и банк</div>';
@@ -1195,27 +1177,6 @@
         });
     }
     
-    // ---------- ФИЛЬТРАЦИЯ СПИСКА БАНКОВ ПО НАПРАВЛЕНИЮ ----------
-    function updateTeamSelectByDirection() {
-        const dirSelect = document.getElementById('directionSelect');
-        const teamSelect = document.getElementById('teamSelect');
-        const selectedDir = dirSelect.value ? parseInt(dirSelect.value) : null;
-        teamSelect.innerHTML = '<option value="">-- выбрать --</option>';
-        if (!selectedDir) {
-            teamSelect.disabled = true;
-            return;
-        }
-        teamSelect.disabled = false;
-        for (let code of allTeamCodes) {
-            if (teamDirection[code] === selectedDir) {
-                const option = document.createElement('option');
-                option.value = code;
-                option.textContent = `${teamNames[code]} (${code})`;
-                teamSelect.appendChild(option);
-            }
-        }
-    }
-    
     async function onSelectionChange() {
         currentDirection = document.getElementById('directionSelect').value ? parseInt(document.getElementById('directionSelect').value) : null;
         currentTeam = document.getElementById('teamSelect').value || null;
@@ -1285,13 +1246,9 @@
             console.error(err);
             statusDiv.innerHTML = `<span class="status-error">❌ Ошибка: ${err.message}. Данные будут только локально.</span>`;
         }
-        updateTeamSelectByDirection();
         await loadAllResults();
         renderStageButtons();
-        document.getElementById('directionSelect').addEventListener('change', () => {
-            updateTeamSelectByDirection();
-            onSelectionChange();
-        });
+        document.getElementById('directionSelect').addEventListener('change', onSelectionChange);
         document.getElementById('teamSelect').addEventListener('change', onSelectionChange);
         document.getElementById('saveStageBtn').addEventListener('click', saveStage);
         document.getElementById('resetStageBtn').addEventListener('click', resetTemp);
