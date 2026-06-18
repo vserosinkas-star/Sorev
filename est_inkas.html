@@ -608,6 +608,7 @@
             { id: "us_not_kas", category: "Обслуживание УС", desc: "Кассеты не установлены в соответствии с маркировкой слотов (при этом реджект кассета не установлена в свой слот)", sec: 30 },
             { id: "us_no_check", category: "Обслуживание УС", desc: "Старший бригады не проверил правильность установки кассет в УС инкассатором", sec: 30 },
             { id: "us_helper_pack", category: "Обслуживание УС", desc: "Старший бригады оказывает помощь инкассатору в укладке кассет УС в сумку-баул", sec: 30 },
+            // === ИЗМЕНЕНИЕ 1: штраф us_code_not_set стал счётчиком (sec:30) ===
             { id: "us_code_not_set", category: "Обслуживание УС", desc: "Инкассатор не сбил код замка и не закрыл сейф УС", sec: 30 },
             { id: "us_left_property", category: "Обслуживание УС", desc: "Оставление имущества (ключ от УС/кассета(ы)/сумка-баул/сейф-пакет)", sec: 30 },
             { id: "us_senior_first_seat", category: "Обслуживание УС", desc: "Первым сел в СТС старший бригады", sec: 30 },
@@ -615,6 +616,8 @@
             { id: "us_nakop_load", category: "Обслуживание УС", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 50 },
             { id: "us_nakop_door", category: "Обслуживание УС", desc: "Не была закрыта дверь устройства накопителя", sec: 30 },
             { id: "us_broken_key", category: "Обслуживание УС", desc: "Инкассатор при обслуживании УС сломал/погнул/потерял ключ от УС", sec: 30 },
+            // === ИЗМЕНЕНИЕ 2: новый штраф "Повреждение модуля УС" ===
+            { id: "us_module_damage", category: "Обслуживание УС", desc: "Повреждение модуля УС в процессе устранения замятий (поломка роликов, фиксаторов, загиб направляющих, повреждение пластика)", sec: 50 },
             { id: "us_belt1", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
             
             // Стрельба
@@ -715,10 +718,11 @@
         const PENALTY_PER_MISS_PM = 30;
         const SAIGA_BONUS_PER_HIT = 10;
         
+        // === ИЗМЕНЕНИЕ: добавили us_code_not_set и us_module_damage в список счётчиков ===
         const counterPenaltyIds = [
             'puncture_helper', 'us_cassette_dropped', 'us_jam_search', 'us_jam_bad_fix',
             'us_not_kas', 'us_left_property', 'fire_bad_sk', 'obsh_svyaz', 'obsh_ivr',
-            'obsh_tsd', 'obsh_gun', 'obsh_sts'
+            'obsh_tsd', 'obsh_gun', 'obsh_sts', 'us_code_not_set', 'us_module_damage'
         ];
         
         const greenHighlightIds = [
