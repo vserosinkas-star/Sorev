@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Чек-листы судьи — Эстафета</title>
+    <title>Чек-листы судьи — Эстафета (без футера)</title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -181,7 +181,7 @@
                 background: white;
                 padding: 0.1in;
                 margin: 0;
-                font-size: 7pt;
+                font-size: 9.5pt !important;  /* +2pt относительно исходного 7.5pt */
             }
             .toolbar, .print-btn, .info-note, .meta-fields { display: none; }
             .stage-meta {
@@ -190,9 +190,9 @@
                 border: 1px solid #cca;
                 border-radius: 20px;
                 padding: 6px 10px;
-                margin-bottom: 15px;
+                margin-bottom: 10px;
                 flex-wrap: wrap;
-                gap: 8px;
+                gap: 6px;
                 align-items: center;
             }
             .stage-meta .meta-field {
@@ -202,15 +202,16 @@
                 min-width: auto;
             }
             .stage-meta .meta-field label {
-                font-size: 6pt;
+                font-size: 7.5pt !important;  /* +2pt */
                 margin-bottom: 0;
             }
             .stage-meta .meta-field input, .stage-meta .meta-field select {
-                font-size: 6pt;
+                font-size: 7.5pt !important;  /* +2pt */
                 padding: 2px 4px;
                 width: auto;
                 min-width: 50px;
             }
+
             .stage-section {
                 page-break-before: always;
                 break-before: page;
@@ -221,15 +222,57 @@
                 margin-bottom: 0;
             }
             .stage-section:first-child { page-break-before: avoid; }
-            input[type="checkbox"] { transform: scale(0.8); border: 1px solid black; }
-            .counter-input { border: 1px solid #000; background: none; padding: 2px; width: 40px; font-size: 7pt; }
-            .stage-header { background: #eef2ff; padding: 6px 10px; }
-            .stage-header h2 { font-size: 1rem; }
-            .stage-header .stage-total { font-size: 0.7rem; padding: 2px 6px; }
-            .penalty-table th, .penalty-table td { padding: 3px 5px; }
-            .penalty-desc { font-size: 7pt; }
-            .penalty-seconds { font-size: 6pt; padding: 1px 4px; }
-            .sign-line { margin-top: 15px; padding-top: 10px; }
+
+            /* === УВЕЛИЧЕННЫЙ ШРИФТ === */
+            .check-col { display: none; }
+            .penalty-table th, .penalty-table td {
+                padding: 3px 6px !important;
+                font-size: 7.5pt !important;  /* +2pt */
+            }
+            .penalty-desc {
+                font-size: 7.5pt !important;  /* +2pt */
+                line-height: 1.25;
+            }
+            .penalty-seconds {
+                font-size: 7pt !important;  /* +2pt */
+                padding: 2px 6px;
+            }
+            .counter-input {
+                font-size: 7.5pt !important;  /* +2pt */
+                width: 32px;
+                padding: 2px 4px;
+                border: 1px solid #000;
+                background: none;
+            }
+            .stage-header {
+                padding: 6px 10px !important;
+                background: #eef2ff;
+            }
+            .stage-header h2 {
+                font-size: 1.2rem !important;  /* увеличен */
+            }
+            .stage-header .stage-total {
+                font-size: 0.75rem !important;
+                padding: 2px 8px;
+            }
+            .sign-line {
+                margin-top: 12px;
+                padding-top: 8px;
+                border-top: 1px dashed #666;
+                gap: 12px;
+            }
+            .sign-item {
+                font-size: 8pt !important;  /* +2pt */
+                min-width: 140px;
+            }
+            .sign-item span {
+                border-bottom: 1px dotted #333;
+            }
+            input[type="checkbox"] {
+                transform: scale(0.7);
+                border: 1px solid #000;
+                margin: 0;
+            }
         }
     </style>
 </head>
@@ -363,7 +406,6 @@
         { id: "us_not_kas", category: "Обслуживание УС", desc: "Кассеты не установлены в соответствии с маркировкой слотов (при этом реджект кассета не установлена в свой слот)", sec: 30, isCounter: true, maxCount: 10 },
         { id: "us_no_check", category: "Обслуживание УС", desc: "Старший бригады не проверил правильность установки кассет в УС инкассатором", sec: 30 },
         { id: "us_helper_pack", category: "Обслуживание УС", desc: "Старший бригады оказывает помощь инкассатору в укладке кассет УС в сумку-баул", sec: 30 },
-        // === ИЗМЕНЕНИЕ: us_code_not_set стал счётчиком ===
         { id: "us_code_not_set", category: "Обслуживание УС", desc: "Инкассатор не сбил код замка и не закрыл сейф УС", sec: 30, isCounter: true, maxCount: 10 },
         { id: "us_left_property", category: "Обслуживание УС", desc: "Оставление имущества (ключ от УС/кассета(ы)/сумка-баул/сейф-пакет)", sec: 30, isCounter: true, maxCount: 10 },
         { id: "us_senior_first_seat", category: "Обслуживание УС", desc: "Первым сел в СТС старший бригады", sec: 30 },
@@ -371,7 +413,6 @@
         { id: "us_nakop_load", category: "Обслуживание УС", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 50 },
         { id: "us_nakop_door", category: "Обслуживание УС", desc: "Не была закрыта дверь устройства накопителя", sec: 30 },
         { id: "us_broken_key", category: "Обслуживание УС", desc: "Инкассатор при обслуживании УС сломал/погнул/потерял ключ от УС ", sec: 30 },
-        // === ИЗМЕНЕНИЕ: добавлен новый штраф "Повреждение модуля УС" ===
         { id: "us_module_damage", category: "Обслуживание УС", desc: "Повреждение модуля УС в процессе устранения замятий (поломка роликов, фиксаторов, загиб направляющих, повреждение пластика)", sec: 50, isCounter: true, maxCount: 10 },
         { id: "us_belt1", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
         { id: "vsp_belt", category: "Обслуживание ВСП", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
@@ -548,7 +589,7 @@
             // Спецобработка для этапов с конусами и стрельбой
             if (stage === "Получение банковских ценностей") {
                 const row = document.createElement('tr');
-                row.innerHTML = `<td class="penalty-desc"><strong>Наезд на конусы (при заезде в бокс)</strong> (каждый конус = +5 сек)</td><td class="check-col">—</td><td class="counter-col"><input type="number" class="counter-input" min="0" max="20" value="0" step="1"><tr><td class="penalty-seconds">+5 сек/конус</span></td>`;
+                row.innerHTML = `<td class="penalty-desc"><strong>Наезд на конусы (при заезде в бокс)</strong> (каждый конус = +5 сек)</td><td class="check-col">—</td><td class="counter-col"><input type="number" class="counter-input" min="0" max="20" value="0" step="1"></td><td><span class="penalty-seconds">+5 сек/конус</span></td>`;
                 tbody.appendChild(row);
             }
             if (stage === "Змейка") {
