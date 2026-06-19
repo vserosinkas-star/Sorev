@@ -86,13 +86,20 @@
             margin-top: 16px;
             flex-wrap: wrap;
         }
-        /* кнопка загрузки */
+        /* кнопки загрузки и очистки */
         .btn-upload {
             background: #2e7d32;
             color: white;
         }
         .btn-upload:hover {
             background: #388e3c;
+        }
+        .btn-clear {
+            background: #b71c1c;
+            color: white;
+        }
+        .btn-clear:hover {
+            background: #c62828;
         }
 
         /* ===== карточки для разделов ===== */
@@ -285,6 +292,7 @@
             <button onclick="downloadWord()" class="btn-participants" style="background:#4CAF50; color:white;">⬇ Скачать протокол (Word)</button>
             <button onclick="document.getElementById('word-upload').click()" class="btn-participants btn-upload">📂 Загрузить из Word</button>
             <input type="file" id="word-upload" accept=".doc,.docx" style="display:none" onchange="handleFileUpload(event)">
+            <button onclick="resetTables()" class="btn-participants btn-clear">🗑 Очистить</button>
         </div>
     </div>
 
@@ -507,7 +515,6 @@
         const file = event.target.files[0];
         if (!file) return;
 
-        // Проверяем расширение
         const ext = file.name.split('.').pop().toLowerCase();
         if (ext !== 'docx' && ext !== 'doc') {
             showToast('Пожалуйста, выберите файл .docx или .doc', 'error');
@@ -517,11 +524,9 @@
         const reader = new FileReader();
         reader.onload = function(e) {
             const arrayBuffer = e.target.result;
-            // Используем mammoth для конвертации .docx в HTML
             mammoth.convertToHtml({ arrayBuffer: arrayBuffer })
                 .then(result => {
                     const html = result.value;
-                    // Создаём временный элемент для парсинга таблиц
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = html;
                     const tables = tempDiv.querySelectorAll('table');
@@ -530,7 +535,6 @@
                         return;
                     }
 
-                    // Очищаем текущие таблицы (кроме заголовков)
                     const tbodyIds = [
                         'tbody-ink-individual',
                         'tbody-ink-team',
@@ -538,36 +542,26 @@
                         'tbody-security-team'
                     ];
 
-                    // Для каждой таблицы из документа извлекаем строки (без заголовка)
-                    // и заполняем соответствующий tbody
                     for (let i = 0; i < Math.min(tables.length, 4); i++) {
                         const docTable = tables[i];
                         const rows = docTable.querySelectorAll('tr');
-                        // Пропускаем первую строку (заголовок)
                         const dataRows = Array.from(rows).slice(1);
                         const tbody = document.getElementById(tbodyIds[i]);
                         if (!tbody) continue;
 
-                        // Очищаем tbody
                         tbody.innerHTML = '';
-
-                        // Для каждой строки из документа создаём строку в нашем tbody
                         dataRows.forEach(row => {
                             const cells = row.querySelectorAll('td');
                             if (cells.length === 0) return;
                             const tr = document.createElement('tr');
-                            // Копируем классы и содержимое ячеек
                             cells.forEach(cell => {
                                 const td = document.createElement('td');
-                                // Сохраняем класс, если есть
                                 if (cell.className) td.className = cell.className;
-                                // Копируем стиль text-align если есть
                                 if (cell.style.textAlign) td.style.textAlign = cell.style.textAlign;
                                 td.innerHTML = cell.innerHTML;
                                 tr.appendChild(td);
                             });
-                            // Если количество ячеек меньше, чем нужно, добавим пустые
-                            const neededCols = (i === 0 || i === 2) ? 4 : 3; // личные 4, командные 3
+                            const neededCols = (i === 0 || i === 2) ? 4 : 3;
                             while (tr.children.length < neededCols) {
                                 const td = document.createElement('td');
                                 tr.appendChild(td);
@@ -575,7 +569,6 @@
                             tbody.appendChild(tr);
                         });
                     }
-
                     showToast('Данные успешно загружены из документа!', 'success');
                 })
                 .catch(err => {
@@ -584,13 +577,50 @@
                 });
         };
         reader.readAsArrayBuffer(file);
-        // Сбросить input, чтобы можно было загрузить тот же файл повторно
         event.target.value = '';
     }
 
-    // Если mammoth не загрузился (например, при offline)
-    if (typeof mammoth === 'undefined') {
-        console.warn('Mammoth.js не загружен. Проверьте подключение CDN.');
+    // ===== Очистка таблиц =====
+    function resetTables() {
+        // Конфигурация: [id tbody, количество строк, класс для ячейки "Место", количество колонок]
+        const configs = [
+            { tbodyId: 'tbody-ink-individual', rows: 3, placeClass: 'col-place', cols: 4 },
+            { tbodyId: 'tbody-ink-team', rows: 11, placeClass: 'place-number', cols: 3 },
+            { tbodyId: 'tbody-security-individual', rows: 3, placeClass: 'col-place', cols: 4 },
+            { tbodyId: 'tbody-security-team', rows: 12, placeClass: 'place-number', cols: 3 }
+        ];
+
+        configs.forEach(cfg => {
+            const tbody = document.getElementById(cfg.tbodyId);
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            for (let i = 1; i <= cfg.rows; i++) {
+                const tr = document.createElement('tr');
+                for (let j = 0; j < cfg.cols; j++) {
+                    const td = document.createElement('td');
+                    // Для первой колонки (место) добавляем класс и номер
+                    if (j === 0) {
+                        td.className = cfg.placeClass;
+                        td.textContent = i;
+                        // Для командных таблиц (3 колонки) и личных (4 колонки) номер места ставим
+                    } else {
+                        // остальные ячейки пустые
+                        td.textContent = '';
+                        // если это последняя колонка (результат) — можно выровнять по центру
+                        if (j === cfg.cols - 1 && cfg.cols === 3) {
+                            td.style.textAlign = 'center';
+                        }
+                        if (j === cfg.cols - 1 && cfg.cols === 4) {
+                            td.className = 'col-result';
+                        }
+                    }
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            }
+        });
+
+        showToast('Таблицы очищены', 'success');
     }
 </script>
 
