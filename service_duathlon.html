@@ -164,7 +164,7 @@
             🏠 На главную
         </a>
         <h1>🏃‍♂️🎯 СЛУЖЕБНОЕ ДВОЕБОРЬЕ</h1>
-        <p>Дистанция 1280 м • ПМ (+30 сек/промах) • Сайга-12 (–10 сек/попадание)</p>
+        <p>Дистанция 1280 м • Сайга-12 (–10 сек/попадание)</p>
     </div>
     
     <div id="statusMessage" class="info-message">Подключение</div>
@@ -203,7 +203,6 @@
                 <div class="control-group"><label>ФИО участника</label><input type="text" id="participantName" placeholder="ФИО"></div>
                 <div class="control-group"><label>⏱️ Чистое время бега (мм:сс.сс)</label><input type="text" id="rawTimeInput" placeholder="4:25.30"></div>
                 <div class="double-row">
-                    <div class="control-group"><label>🔫 ПМ (промахи, 0-4)</label><input type="number" id="missesPM" min="0" max="4" value="0"></div>
                     <div class="control-group"><label>🎯 САЙГА-12 (попадания, 0-4)</label><input type="number" id="hitsSaiga" min="0" max="4" value="0"></div>
                 </div>
                 <div id="penaltiesContainer" class="penalties-grid"></div>
@@ -213,7 +212,6 @@
                 </div>
                 <div class="summary-bar">
                     <span>⚖️ Штрафы (ошибки): <strong id="penaltySum">0</strong> сек</span>
-                    <span>🏃 Промахи ПМ: <strong id="missesPenalty">0</strong> сек</span>
                     <span>⭐ Бонус Сайга: <strong id="saigaBonus">0</strong> сек</span>
                     <span>⏱️ ЧИСТОЕ время: <strong id="rawTimeDisplay">—</strong></span>
                     <span>🏆 ИТОГОВОЕ: <strong id="totalTimeDisplay">—</strong></span>
@@ -245,7 +243,6 @@
     } else { console.error('Supabase SDK не загружен'); document.getElementById('statusMessage').innerHTML = '❌ Ошибка: Supabase SDK не загружен.'; return; }
 
     // ---------- Константы ----------
-    const PENALTY_PER_MISS_PM = 30;
     const SAIGA_BONUS_PER_HIT = 10;
     const penaltiesCatalog = [
         { id: "falsestart", label: "Фальстарт", seconds: 5, type: "counter", max: 10 },
@@ -274,7 +271,7 @@
     };
 
     let currentTeam = null, currentParticipant = 1, unsavedChanges = false;
-    let currentAthlete = { name:"", rawSeconds:null, missesPM:0, hitsSaiga:0, penalties:{} };
+    let currentAthlete = { name:"", rawSeconds:null, hitsSaiga:0, penalties:{} };
     let allData = {};
 
     // DOM
@@ -282,7 +279,6 @@
     const participantCard = document.getElementById('participantCard');
     const nameInput = document.getElementById('participantName');
     const rawTimeInput = document.getElementById('rawTimeInput');
-    const missesPM = document.getElementById('missesPM');
     const hitsSaiga = document.getElementById('hitsSaiga');
     const penaltiesContainer = document.getElementById('penaltiesContainer');
     const globalErrorDiv = document.getElementById('globalError');
@@ -312,7 +308,6 @@
     function computeTotal(a){
         if (a.rawSeconds === null) return null;
         let total = a.rawSeconds;
-        total += (a.missesPM || 0) * PENALTY_PER_MISS_PM;
         total -= (a.hitsSaiga || 0) * SAIGA_BONUS_PER_HIT;
         total += getPenaltySum(a.penalties || {});
         return Math.max(0, total);
@@ -323,7 +318,7 @@
         const penaltiesJson = { ...ath.penalties };
         const { error } = await supabase.from(TABLE_NAME).upsert({
             team_code: team, participant_number: part, participant_name: ath.name||"",
-            raw_seconds: ath.rawSeconds, misses: ath.missesPM||0, penalties: penaltiesJson,
+            raw_seconds: ath.rawSeconds, hits_saiga: ath.hitsSaiga || 0, penalties: penaltiesJson,
             total_seconds: total, updated_at: new Date().toISOString()
         }, { onConflict: 'team_code, participant_number' });
         if(error){ showError(`Сохранение: ${error.message}`); return false; }
@@ -344,12 +339,12 @@
                 newCache[team][part] = {
                     name: row.participant_name || "",
                     rawSeconds: row.raw_seconds,
-                    missesPM: row.misses || 0,
-                    hitsSaiga: (row.penalties && row.penalties.hitsSaiga) ? row.penalties.hitsSaiga : 0,
+                    hitsSaiga: row.hits_saiga || 0,
                     penalties: row.penalties || {}
                 };
                 if (newCache[team][part].penalties && typeof newCache[team][part].penalties === 'object') {
                     delete newCache[team][part].penalties.hitsSaiga;
+                    delete newCache[team][part].penalties.missesPM;
                     delete newCache[team][part].penalties.grenadeMiss;
                     delete newCache[team][part].penalties.extraPenalties;
                 }
@@ -357,7 +352,7 @@
             for(let team of teamCodes){
                 if(!newCache[team]) newCache[team]={};
                 for(let i=1;i<=3;i++){
-                    if(!newCache[team][i]) newCache[team][i] = { name:"", rawSeconds:null, missesPM:0, hitsSaiga:0, penalties:{} };
+                    if(!newCache[team][i]) newCache[team][i] = { name:"", rawSeconds:null, hitsSaiga:0, penalties:{} };
                     if(defaultNames[team] && defaultNames[team][i-1] && !newCache[team][i].name) newCache[team][i].name = defaultNames[team][i-1];
                     for (let p of penaltiesCatalog) {
                         if (newCache[team][i].penalties[p.id] === undefined) {
@@ -470,14 +465,11 @@
 
     function updateSummaryAndBadge(){
         const penaltiesSum = getPenaltySum(currentAthlete.penalties);
-        const missesVal = currentAthlete.missesPM || 0;
-        const missesPenalty = missesVal * PENALTY_PER_MISS_PM;
         const saigaBonus = (currentAthlete.hitsSaiga || 0) * SAIGA_BONUS_PER_HIT;
         const raw = currentAthlete.rawSeconds;
         let total = null;
-        if (raw !== null) total = raw + missesPenalty + penaltiesSum - saigaBonus;
+        if (raw !== null) total = raw + penaltiesSum - saigaBonus;
         document.getElementById('penaltySum').innerText = penaltiesSum;
-        document.getElementById('missesPenalty').innerText = missesPenalty;
         document.getElementById('saigaBonus').innerText = `-${saigaBonus}`;
         document.getElementById('rawTimeDisplay').innerText = raw !== null ? formatTime(raw) : '—';
         document.getElementById('totalTimeDisplay').innerHTML = total !== null ? `${total.toFixed(2)} сек (${formatTime(total)})` : '—';
@@ -506,7 +498,6 @@
         }
         nameInput.value = currentAthlete.name || "";
         rawTimeInput.value = currentAthlete.rawSeconds !== null ? formatTime(currentAthlete.rawSeconds) : "";
-        missesPM.value = currentAthlete.missesPM || 0;
         hitsSaiga.value = currentAthlete.hitsSaiga || 0;
         renderPenalties();
         unsavedChanges = false;
@@ -519,14 +510,11 @@
         const rawStr = rawTimeInput.value.trim();
         let rawSec = rawStr === "" ? null : parseTime(rawStr);
         if (rawStr !== "" && rawSec === null) { alert("Неверный формат времени"); return false; }
-        let misses = parseInt(missesPM.value) || 0;
-        if (misses < 0 || misses > 4) { alert("Промахи ПМ от 0 до 4"); return false; }
         let hits = parseInt(hitsSaiga.value) || 0;
         if (hits < 0 || hits > 4) { alert("Попадания Сайги от 0 до 4"); return false; }
         const athleteToSave = {
             name: name,
             rawSeconds: rawSec,
-            missesPM: misses,
             hitsSaiga: hits,
             penalties: { ...currentAthlete.penalties }
         };
@@ -545,7 +533,7 @@
     async function resetCurrentAthlete(){
         if (!currentTeam) return;
         if (!confirm(`Сбросить данные участника №${currentParticipant}?`)) return;
-        let empty = { name: "", rawSeconds: null, missesPM: 0, hitsSaiga: 0, penalties: {} };
+        let empty = { name: "", rawSeconds: null, hitsSaiga: 0, penalties: {} };
         for (let p of penaltiesCatalog) {
             empty.penalties[p.id] = (p.type === 'counter') ? 0 : false;
         }
@@ -572,7 +560,7 @@
         if (!currentTeam) { alert("Выберите команду"); return; }
         if (!confirm(`Сбросить ВСЕХ участников команды ${currentTeam}?`)) return;
         for (let i = 1; i <= 3; i++) {
-            let empty = { name: "", rawSeconds: null, missesPM: 0, hitsSaiga: 0, penalties: {} };
+            let empty = { name: "", rawSeconds: null, hitsSaiga: 0, penalties: {} };
             for (let p of penaltiesCatalog) {
                 empty.penalties[p.id] = (p.type === 'counter') ? 0 : false;
             }
@@ -602,7 +590,7 @@
             allData[currentTeam] = {};
             for (let i = 1; i <= 3; i++) {
                 let defName = (defaultNames[currentTeam] && defaultNames[currentTeam][i-1]) ? defaultNames[currentTeam][i-1] : "";
-                let empty = { name: defName, rawSeconds: null, missesPM: 0, hitsSaiga: 0, penalties: {} };
+                let empty = { name: defName, rawSeconds: null, hitsSaiga: 0, penalties: {} };
                 for (let p of penaltiesCatalog) empty.penalties[p.id] = (p.type === 'counter') ? 0 : false;
                 allData[currentTeam][i] = empty;
             }
@@ -636,9 +624,6 @@
 
     function buildPenaltyDescriptionList(athlete) {
         const list = [];
-        if (athlete.missesPM > 0) {
-            list.push({ desc: `Промахи из ПМ (${athlete.missesPM} шт.)`, sec: athlete.missesPM * PENALTY_PER_MISS_PM });
-        }
         if (athlete.hitsSaiga > 0) {
             list.push({ desc: `Попадания из Сайги-12 (${athlete.hitsSaiga} шт.)`, sec: -athlete.hitsSaiga * SAIGA_BONUS_PER_HIT });
         }
@@ -668,7 +653,7 @@
         let hasTeamTotal = false;
         const athletesData = [];
         for (let i = 1; i <= 3; i++) {
-            const ath = members[i] || { name: `Участник ${i}`, rawSeconds: null, missesPM: 0, hitsSaiga: 0, penalties: {} };
+            const ath = members[i] || { name: `Участник ${i}`, rawSeconds: null, hitsSaiga: 0, penalties: {} };
             const total = computeTotal(ath);
             if (total !== null) {
                 teamTotal += total;
@@ -678,7 +663,6 @@
                 number: i,
                 name: ath.name || `Участник ${i}`,
                 raw: ath.rawSeconds,
-                misses: ath.missesPM || 0,
                 hits: ath.hitsSaiga || 0,
                 penaltiesList: buildPenaltyDescriptionList(ath),
                 total: total
@@ -698,7 +682,6 @@
             printHtml += `<div style="margin-bottom: 20px; border-left: 4px solid #1e3a5f; padding-left: 12px;">
                 <h4>👤 ${ath.name}</h4>
                 <div><strong>Чистое время бега:</strong> ${ath.raw !== null ? formatTimeShort(ath.raw) : '—'}</div>
-                <div><strong>Промахи ПМ:</strong> ${ath.misses} (штраф +${ath.misses * PENALTY_PER_MISS_PM} сек)</div>
                 <div><strong>Попадания Сайги:</strong> ${ath.hits} (бонус –${ath.hits * SAIGA_BONUS_PER_HIT} сек)</div>`;
             if (ath.penaltiesList.length > 0) {
                 printHtml += `<div><strong>Штрафы за ошибки:</strong></div><ul>`;
@@ -739,13 +722,12 @@
     document.getElementById('excelExportBtn').addEventListener('click', exportToExcel);
     document.getElementById('printReportBtn').addEventListener('click', printReport);
     
-    const liveFields = [nameInput, rawTimeInput, missesPM, hitsSaiga];
+    const liveFields = [nameInput, rawTimeInput, hitsSaiga];
     liveFields.forEach(field => {
         field.addEventListener('input', () => {
             if (!currentTeam) return;
             currentAthlete.name = nameInput.value.trim();
             currentAthlete.rawSeconds = parseTime(rawTimeInput.value);
-            currentAthlete.missesPM = parseInt(missesPM.value) || 0;
             currentAthlete.hitsSaiga = parseInt(hitsSaiga.value) || 0;
             unsavedChanges = true;
             updateSummaryAndBadge();
