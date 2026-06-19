@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Протокол — практическая стрельба</title>
+    <!-- Подключаем mammoth.js для чтения .docx -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js" defer></script>
     <style>
         /* ===== общие стили (как в index.html) ===== */
         * {
@@ -70,6 +72,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             border: none;
             font-size: 0.9rem;
+            cursor: pointer;
         }
         .btn-participants:hover {
             background: #ffb83b;
@@ -82,6 +85,14 @@
             justify-content: center;
             margin-top: 16px;
             flex-wrap: wrap;
+        }
+        /* кнопка загрузки */
+        .btn-upload {
+            background: #2e7d32;
+            color: white;
+        }
+        .btn-upload:hover {
+            background: #388e3c;
         }
 
         /* ===== карточки для разделов ===== */
@@ -222,6 +233,33 @@
             .section-card { box-shadow: none; border: 1px solid #ccc; }
             th { background: #eef2f7 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
+
+        /* уведомление */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e3a5f;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-weight: 500;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            opacity: 0;
+            transition: opacity 0.4s;
+            pointer-events: none;
+            z-index: 999;
+        }
+        .toast.show {
+            opacity: 1;
+        }
+        .toast.error {
+            background: #c62828;
+        }
+        .toast.success {
+            background: #2e7d32;
+        }
     </style>
 </head>
 <body>
@@ -244,17 +282,20 @@
             <a href="index.html" class="btn-participants">🏠 На главную</a>
             <a href="full_results.html" class="btn-participants">📊 Полные итоги</a>
             <a href="practical_shooting.html" class="btn-participants">🎯 Практическая стрельба</a>
+            <button onclick="downloadWord()" class="btn-participants" style="background:#4CAF50; color:white;">⬇ Скачать протокол (Word)</button>
+            <button onclick="document.getElementById('word-upload').click()" class="btn-participants btn-upload">📂 Загрузить из Word</button>
+            <input type="file" id="word-upload" accept=".doc,.docx" style="display:none" onchange="handleFileUpload(event)">
         </div>
     </div>
 
     <!-- ===== ОСНОВНОЙ БЛОК: ПРОТОКОЛ ===== -->
-    <div style="margin-bottom: 20px;">
+    <div id="protocol-content" style="margin-bottom: 20px;">
         <h2 style="font-size: 1.6rem; color: #0f2b44; margin-bottom: 4px;">Итоговый протокол</h2>
         <p style="color: #475569; font-size: 1rem;">Соревнования по практической стрельбе — личное и командное первенство</p>
     </div>
 
     <!-- ============ ИНКАССАЦИЯ ============ -->
-    <div class="section-card">
+    <div class="section-card" id="section-ink">
         <div class="section-title">
             🚛 Инкассация
             <span class="sub">— личное и командное первенство</span>
@@ -263,7 +304,7 @@
         <!-- Личное первенство -->
         <div class="subsection-title">Личное первенство</div>
         <div class="table-wrap">
-            <table>
+            <table id="table-ink-individual">
                 <thead>
                     <tr>
                         <th class="col-place">Место</th>
@@ -272,7 +313,7 @@
                         <th class="col-result">Результат</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tbody-ink-individual">
                     <tr><td class="col-place">1</td><td></td><td></td><td class="col-result"></td></tr>
                     <tr><td class="col-place">2</td><td></td><td></td><td class="col-result"></td></tr>
                     <tr><td class="col-place">3</td><td></td><td></td><td class="col-result"></td></tr>
@@ -283,7 +324,7 @@
         <!-- Командное первенство -->
         <div class="subsection-title">Командное первенство</div>
         <div class="table-wrap">
-            <table>
+            <table id="table-ink-team">
                 <thead>
                     <tr>
                         <th style="width:12%; text-align:center;">Место</th>
@@ -291,7 +332,7 @@
                         <th style="width:30%; text-align:center;">Результат (сумма мест)</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tbody-ink-team">
                     <tr><td class="place-number">1</td><td></td><td style="text-align:center;"></td></tr>
                     <tr><td class="place-number">2</td><td></td><td style="text-align:center;"></td></tr>
                     <tr><td class="place-number">3</td><td></td><td style="text-align:center;"></td></tr>
@@ -309,7 +350,7 @@
     </div>
 
     <!-- ============ ОХРАНА ============ -->
-    <div class="section-card">
+    <div class="section-card" id="section-security">
         <div class="section-title">
             🛡️ Охрана
             <span class="sub">— личное и командное первенство</span>
@@ -318,7 +359,7 @@
         <!-- Личное первенство -->
         <div class="subsection-title">Личное первенство</div>
         <div class="table-wrap">
-            <table>
+            <table id="table-security-individual">
                 <thead>
                     <tr>
                         <th class="col-place">Место</th>
@@ -327,7 +368,7 @@
                         <th class="col-result">Результат</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tbody-security-individual">
                     <tr><td class="col-place">1</td><td></td><td></td><td class="col-result"></td></tr>
                     <tr><td class="col-place">2</td><td></td><td></td><td class="col-result"></td></tr>
                     <tr><td class="col-place">3</td><td></td><td></td><td class="col-result"></td></tr>
@@ -338,7 +379,7 @@
         <!-- Командное первенство -->
         <div class="subsection-title">Командное первенство</div>
         <div class="table-wrap">
-            <table>
+            <table id="table-security-team">
                 <thead>
                     <tr>
                         <th style="width:12%; text-align:center;">Место</th>
@@ -346,7 +387,7 @@
                         <th style="width:30%; text-align:center;">Результат (сумма мест)</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tbody-security-team">
                     <tr><td class="place-number">1</td><td></td><td style="text-align:center;"></td></tr>
                     <tr><td class="place-number">2</td><td></td><td style="text-align:center;"></td></tr>
                     <tr><td class="place-number">3</td><td></td><td style="text-align:center;"></td></tr>
@@ -365,7 +406,7 @@
     </div>
 
     <!-- ===== ПОДПИСЬ ===== -->
-    <div class="signature">
+    <div class="signature" id="signature-block">
         <div>
             <span class="judge">Главный судья по практической стрельбе А.В. Ермолаев</span>
         </div>
@@ -380,5 +421,178 @@
     </div>
 
 </div>
+
+<!-- Toast уведомление -->
+<div id="toast" class="toast"></div>
+
+<script>
+    // ===== Скачивание Word =====
+    function downloadWord() {
+        const protocolTitle = document.querySelector('#protocol-content').outerHTML;
+        const sectionInk = document.querySelector('#section-ink').outerHTML;
+        const sectionSecurity = document.querySelector('#section-security').outerHTML;
+        const signature = document.querySelector('#signature-block').outerHTML;
+        const footerNote = document.querySelector('.container > div:last-child')?.outerHTML || '';
+
+        const wordHTML = `
+        <!DOCTYPE html>
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' 
+              xmlns:w='urn:schemas-microsoft-com:office:word' 
+              xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+            <meta charset="UTF-8">
+            <title>Протокол практическая стрельба</title>
+            <!--[if gte mso 9]>
+            <xml>
+                <w:WordDocument>
+                    <w:View>Print</w:View>
+                    <w:Zoom>100</w:Zoom>
+                </w:WordDocument>
+            </xml>
+            <![endif]-->
+            <style>
+                body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px 40px; background: white; color: #1e293b; }
+                .section-title { font-size: 22pt; font-weight: 600; color: #0f2b44; border-bottom: 3px solid #f5a623; padding-bottom: 8px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+                .section-title .sub { font-size: 14pt; font-weight: 400; color: #475569; }
+                .subsection-title { font-size: 16pt; font-weight: 500; color: #1e3a5f; margin: 20px 0 12px 0; padding-left: 12px; border-left: 5px solid #f5a623; }
+                table { width: 100%; border-collapse: collapse; font-size: 11pt; margin-bottom: 12px; }
+                th { background: #eef2f7; color: #1e3a5f; font-weight: 600; padding: 8px; border: 1px solid #b0c4de; text-align: left; }
+                td { padding: 8px; border: 1px solid #b0c4de; vertical-align: middle; }
+                .col-place { text-align: center; font-weight: 500; }
+                .col-result { text-align: center; }
+                .place-number { text-align: center; font-weight: 500; }
+                .signature { margin-top: 30px; padding-top: 16px; border-top: 2px solid #1e3a5f; display: flex; justify-content: space-between; font-size: 12pt; }
+                .judge { font-weight: 500; }
+                .date-line { display: inline-block; min-width: 140px; border-bottom: 2px solid #1e3a5f; padding: 0 6px; margin-left: 6px; }
+                .table-wrap { margin-bottom: 6px; }
+                .container { max-width: 100%; }
+                .protocol-meta { font-size: 14pt; color: #0f2b44; margin-bottom: 4px; font-weight: 600; }
+                .protocol-sub { color: #475569; font-size: 11pt; margin-bottom: 16px; }
+                .footer-note { margin-top: 20px; font-size: 10pt; color: #94a3b8; text-align: right; border-top: 1px dashed #d4dee8; padding-top: 12px; }
+                .section-title .emoji, .section-title span[style] { display: none; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                ${protocolTitle}
+                ${sectionInk}
+                ${sectionSecurity}
+                ${signature}
+                ${footerNote}
+            </div>
+        </body>
+        </html>
+        `;
+
+        const blob = new Blob([wordHTML], { type: 'application/msword;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'Протокол_практическая_стрельба.doc';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+    }
+
+    // ===== Загрузка из Word =====
+    function showToast(message, type = 'info') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.className = 'toast ' + type;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Проверяем расширение
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (ext !== 'docx' && ext !== 'doc') {
+            showToast('Пожалуйста, выберите файл .docx или .doc', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const arrayBuffer = e.target.result;
+            // Используем mammoth для конвертации .docx в HTML
+            mammoth.convertToHtml({ arrayBuffer: arrayBuffer })
+                .then(result => {
+                    const html = result.value;
+                    // Создаём временный элемент для парсинга таблиц
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = html;
+                    const tables = tempDiv.querySelectorAll('table');
+                    if (tables.length < 4) {
+                        showToast('В документе не найдено 4 таблиц. Проверьте структуру.', 'error');
+                        return;
+                    }
+
+                    // Очищаем текущие таблицы (кроме заголовков)
+                    const tbodyIds = [
+                        'tbody-ink-individual',
+                        'tbody-ink-team',
+                        'tbody-security-individual',
+                        'tbody-security-team'
+                    ];
+
+                    // Для каждой таблицы из документа извлекаем строки (без заголовка)
+                    // и заполняем соответствующий tbody
+                    for (let i = 0; i < Math.min(tables.length, 4); i++) {
+                        const docTable = tables[i];
+                        const rows = docTable.querySelectorAll('tr');
+                        // Пропускаем первую строку (заголовок)
+                        const dataRows = Array.from(rows).slice(1);
+                        const tbody = document.getElementById(tbodyIds[i]);
+                        if (!tbody) continue;
+
+                        // Очищаем tbody
+                        tbody.innerHTML = '';
+
+                        // Для каждой строки из документа создаём строку в нашем tbody
+                        dataRows.forEach(row => {
+                            const cells = row.querySelectorAll('td');
+                            if (cells.length === 0) return;
+                            const tr = document.createElement('tr');
+                            // Копируем классы и содержимое ячеек
+                            cells.forEach(cell => {
+                                const td = document.createElement('td');
+                                // Сохраняем класс, если есть
+                                if (cell.className) td.className = cell.className;
+                                // Копируем стиль text-align если есть
+                                if (cell.style.textAlign) td.style.textAlign = cell.style.textAlign;
+                                td.innerHTML = cell.innerHTML;
+                                tr.appendChild(td);
+                            });
+                            // Если количество ячеек меньше, чем нужно, добавим пустые
+                            const neededCols = (i === 0 || i === 2) ? 4 : 3; // личные 4, командные 3
+                            while (tr.children.length < neededCols) {
+                                const td = document.createElement('td');
+                                tr.appendChild(td);
+                            }
+                            tbody.appendChild(tr);
+                        });
+                    }
+
+                    showToast('Данные успешно загружены из документа!', 'success');
+                })
+                .catch(err => {
+                    console.error(err);
+                    showToast('Ошибка при чтении файла: ' + err.message, 'error');
+                });
+        };
+        reader.readAsArrayBuffer(file);
+        // Сбросить input, чтобы можно было загрузить тот же файл повторно
+        event.target.value = '';
+    }
+
+    // Если mammoth не загрузился (например, при offline)
+    if (typeof mammoth === 'undefined') {
+        console.warn('Mammoth.js не загружен. Проверьте подключение CDN.');
+    }
+</script>
+
 </body>
 </html>
