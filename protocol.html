@@ -9,17 +9,17 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
-        body { background: #f0f4f8; padding: 20px; }
+        body { background: #f0f4f8; padding: 24px 20px; }
         .container { max-width: 1400px; margin: 0 auto; }
         .header {
             background: linear-gradient(135deg, #1e3a5f 0%, #0f2b44 100%);
-            color: white; padding: 30px 20px; border-radius: 32px;
-            margin-bottom: 30px; text-align: center;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            color: white; padding: 28px 20px; border-radius: 32px;
+            margin-bottom: 32px; text-align: center;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
             position: relative;
         }
         .home-button {
-            position: absolute; top: 24px; left: 28px;
+            position: absolute; top: 20px; left: 28px;
             background: rgba(255,255,240,0.2); backdrop-filter: blur(4px);
             padding: 8px 18px; border-radius: 40px;
             text-decoration: none; color: white;
@@ -33,7 +33,7 @@
         .title-wrapper { display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 8px; }
         .title-logo { height: 60px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); border-radius: 12px; background: rgba(255,255,255,0.1); padding: 4px 8px; transition: transform 0.2s; }
         .title-logo:hover { transform: scale(1.02); }
-        .header h1 { font-size: 1.8rem; line-height: 1.2; }
+        .header h1 { font-size: 1.8rem; margin-bottom: 8px; }
         .header p { opacity: 0.9; font-size: 1rem; }
         .btn-participants {
             display: inline-block; background: #f5a623; color: #1e3a5f;
@@ -50,28 +50,33 @@
         .btn-clear:hover { background: #c62828; }
         .btn-save { background: #1e3a8a; color: white; }
         .btn-save:hover { background: #1e40af; }
-        .section-card { background: white; border-radius: 28px; padding: 24px 24px 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 32px; }
-        .section-title { font-size: 1.8rem; font-weight: 600; color: #0f2b44; border-bottom: 3px solid #f5a623; padding-bottom: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-        .section-title .sub { font-size: 1.1rem; font-weight: 400; color: #475569; margin-left: 6px; }
+        .section-card {
+            background: white;
+            border-radius: 28px;
+            padding: 24px 20px;
+            margin-bottom: 32px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+        }
+        .section-title { font-size: 1.6rem; margin-bottom: 20px; color: #0f2b44; border-left: 6px solid #dc2626; padding-left: 18px; }
+        .section-title .sub { font-size: 1.1rem; font-weight: 400; color: #475569; }
         .subsection-title { font-size: 1.3rem; font-weight: 500; color: #1e3a5f; margin: 24px 0 14px 0; padding-left: 14px; border-left: 5px solid #f5a623; }
-        .table-wrap { overflow-x: auto; border-radius: 16px; border: 1px solid #e2e8f0; background: #fafcff; margin-bottom: 6px; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; min-width: 600px; }
-        th { background: #eef2f7; color: #1e3a5f; font-weight: 600; padding: 14px 12px; border-bottom: 2px solid #cbd5e1; text-align: left; white-space: nowrap; }
-        td { padding: 13px 12px; border-bottom: 1px solid #e9edf2; color: #1e293b; vertical-align: middle; }
+        .table-wrapper { overflow-x: auto; border-radius: 16px; border: 1px solid #e2e8f0; background: #fafcff; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 600px; }
+        th { background: #f8fafc; font-weight: 700; color: #1e293b; padding: 12px 8px; border-bottom: 1px solid #e2e8f0; text-align: center; }
+        td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; color: #1e293b; vertical-align: middle; }
         td[contenteditable="true"]:focus { outline: 2px solid #f5a623; background: #fffde7; }
         tr:last-child td { border-bottom: none; }
-        .col-place { width: 10%; text-align: center; font-weight: 500; }
-        .col-name { width: 28%; }
-        .col-bank { width: 35%; }
-        .col-result { width: 27%; text-align: center; }
-        .place-number { font-weight: 500; color: #1e3a5f; text-align: center; }
-        .place-1 { background: rgba(232, 184, 122, 0.15); border-left: 4px solid #e8b87a; }
-        .place-1 td:first-child { font-weight: 800; color: #b8860b; }
-        .place-2 { background: rgba(192, 192, 192, 0.10); border-left: 4px solid #c0c0c0; }
-        .place-2 td:first-child { font-weight: 700; color: #6c7a89; }
-        .place-3 { background: rgba(205, 127, 50, 0.10); border-left: 4px solid #cd7f32; }
-        .place-3 td:first-child { font-weight: 700; color: #a0522d; }
-        .medal-icon { margin-right: 4px; }
+        .col-place { width: 10%; text-align: center; font-weight: 600; }
+        .col-name { width: 28%; text-align: left; }
+        .col-bank { width: 35%; text-align: left; }
+        .col-result { width: 27%; text-align: left; }
+        .place-number { font-weight: 600; color: #1e3a5f; text-align: center; }
+        .rank-1 { background-color: #ffd966 !important; font-weight: bold; }
+        .rank-2 { background-color: #e0e0e0 !important; font-weight: bold; }
+        .rank-3 { background-color: #f7d9b5 !important; font-weight: bold; }
+        .medal-icon { font-size: 1.2rem; margin-right: 4px; display: inline-block; vertical-align: middle; }
+        .place-number { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
+        .subnote { margin-top: 16px; font-size: 0.75rem; color: #64748b; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 12px; }
         .signature { margin-top: 40px; padding-top: 20px; border-top: 2px solid #e2e8f0; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; font-size: 1rem; color: #1e293b; }
         .signature .judge { font-weight: 500; }
         .signature .date-line { display: inline-block; min-width: 140px; border-bottom: 2px solid #1e3a5f; padding: 0 6px; margin-left: 6px; }
@@ -79,13 +84,72 @@
         .status-badge.ok { background: #dcfce7; color: #166534; }
         .status-badge.error { background: #fee2e2; color: #991b1b; }
         .status-badge.loading { background: #fed7aa; color: #9b4a0c; }
-        @media (max-width: 700px) { .header h1 { font-size: 1.4rem; } .title-logo { height: 40px; } .section-title { font-size: 1.4rem; } .subsection-title { font-size: 1.1rem; } table { font-size: 0.85rem; min-width: 480px; } th, td { padding: 10px 8px; } .button-group { gap: 12px; } .signature { flex-direction: column; align-items: flex-start; gap: 12px; } }
-        @media print { body { background: #fff; padding: 0.3in; } .header { background: #1e3a5f !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; } .btn-participants { display: none; } .section-card { box-shadow: none; border: 1px solid #ccc; } th { background: #eef2f7 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
-        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e3a5f; color: white; padding: 14px 28px; border-radius: 40px; font-weight: 500; box-shadow: 0 6px 20px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.4s; pointer-events: none; z-index: 999; }
-        .toast.show { opacity: 1; }
-        .toast.error { background: #c62828; }
-        .toast.success { background: #2e7d32; }
-        .row-count { font-size: 0.85rem; color: #6b7280; margin-top: 8px; text-align: right; }
+        .row-count { font-size: 0.75rem; color: #64748b; margin-top: 12px; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 12px; }
+        @media (max-width: 700px) {
+            .header h1 { font-size: 1.4rem; }
+            .title-logo { height: 40px; }
+            .section-title { font-size: 1.3rem; }
+            .subsection-title { font-size: 1.1rem; }
+            table { font-size: 0.8rem; min-width: 480px; }
+            th, td { padding: 8px 4px; }
+            .button-group { gap: 12px; }
+            .signature { flex-direction: column; align-items: flex-start; gap: 12px; }
+        }
+        @media print {
+            body { background: #fff; padding: 0.3in; }
+            .header { background: #1e3a5f !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .btn-participants { display: none; }
+            .section-card { box-shadow: none; border: 1px solid #ccc; }
+            th { background: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .rank-1, .rank-2, .rank-3 { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1e3a5f;
+            color: white;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 1rem;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 200px;
+            justify-content: center;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.success {
+            background: #2e7d32;
+        }
+        .toast.success i {
+            color: #a5d6a7;
+        }
+        .toast.error {
+            background: #c62828;
+        }
+        .toast.error i {
+            color: #ef9a9a;
+        }
+        .toast.info {
+            background: #1e3a5f;
+        }
+        .toast.info i {
+            color: #90caf9;
+        }
+        .toast i {
+            font-size: 1.2rem;
+        }
     </style>
 </head>
 <body>
@@ -125,7 +189,7 @@
             <span class="sub">— личное и командное первенство</span>
         </div>
         <div class="subsection-title">Личное первенство</div>
-        <div class="table-wrap">
+        <div class="table-wrapper">
             <table id="table-ink-individual">
                 <thead>
                     <tr><th class="col-place">Место</th><th class="col-name">Ф.И.О.</th><th class="col-bank">Территориальный банк</th><th class="col-result">Результат</th></tr>
@@ -134,11 +198,12 @@
             </table>
         </div>
         <div class="row-count" id="count-ink-individual">Записей: 0</div>
+        
         <div class="subsection-title">Командное первенство</div>
-        <div class="table-wrap">
+        <div class="table-wrapper">
             <table id="table-ink-team">
                 <thead>
-                    <tr><th style="width:12%; text-align:center;">Место</th><th style="width:58%;">Территориальный банк</th><th style="width:30%; text-align:center;">Результат (сумма мест)</th></tr>
+                    <tr><th style="width:12%; text-align:center;">Место</th><th style="width:58%; text-align:left;">Территориальный банк</th><th style="width:30%; text-align:left;">Результат (сумма мест)</th></tr>
                 </thead>
                 <tbody id="tbody-ink-team"></tbody>
             </table>
@@ -153,7 +218,7 @@
             <span class="sub">— личное и командное первенство</span>
         </div>
         <div class="subsection-title">Личное первенство</div>
-        <div class="table-wrap">
+        <div class="table-wrapper">
             <table id="table-security-individual">
                 <thead>
                     <tr><th class="col-place">Место</th><th class="col-name">Ф.И.О.</th><th class="col-bank">Территориальный банк</th><th class="col-result">Результат</th></tr>
@@ -162,11 +227,12 @@
             </table>
         </div>
         <div class="row-count" id="count-security-individual">Записей: 0</div>
+        
         <div class="subsection-title">Командное первенство</div>
-        <div class="table-wrap">
+        <div class="table-wrapper">
             <table id="table-security-team">
                 <thead>
-                    <tr><th style="width:12%; text-align:center;">Место</th><th style="width:58%;">Территориальный банк</th><th style="width:30%; text-align:center;">Результат (сумма мест)</th></tr>
+                    <tr><th style="width:12%; text-align:center;">Место</th><th style="width:58%; text-align:left;">Территориальный банк</th><th style="width:30%; text-align:left;">Результат (сумма мест)</th></tr>
                 </thead>
                 <tbody id="tbody-security-team"></tbody>
             </table>
@@ -179,13 +245,17 @@
         <div><span>«<span class="date-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>»</span><span style="margin-left: 4px;">июня 2026 года</span></div>
     </div>
 
-    <div style="margin-top: 24px; font-size: 0.85rem; color: #94a3b8; text-align: right; border-top: 1px dashed #d4dee8; padding-top: 16px;">
+    <div class="subnote" style="text-align: right; margin-top: 16px;">
         Протокол официальный · данные синхронизированы с базой
     </div>
 
 </div>
 
-<div id="toast" class="toast"></div>
+<!-- TOAST -->
+<div id="toast" class="toast">
+    <i class="fas fa-check-circle"></i>
+    <span id="toastMessage">Данные сохранены</span>
+</div>
 
 <script>
     // ========== SUPABASE ==========
@@ -214,9 +284,9 @@
                 if (!match) return;
                 const placeNum = parseInt(match[0], 10);
                 let iconHtml = '';
-                if (placeNum === 1) iconHtml = '<i class="fas fa-medal medal-icon" style="color: #FFD700;"></i>';
-                else if (placeNum === 2) iconHtml = '<i class="fas fa-medal medal-icon" style="color: #C0C0C0;"></i>';
-                else if (placeNum === 3) iconHtml = '<i class="fas fa-medal medal-icon" style="color: #CD7F32;"></i>';
+                if (placeNum === 1) iconHtml = '<span class="medal-icon">🥇</span>';
+                else if (placeNum === 2) iconHtml = '<span class="medal-icon">🥈</span>';
+                else if (placeNum === 3) iconHtml = '<span class="medal-icon">🥉</span>';
                 firstCell.innerHTML = iconHtml ? iconHtml + ' ' + placeNum : placeNum;
             });
         });
@@ -227,14 +297,14 @@
             const tbody = document.getElementById(cfg.tbodyId);
             if (!tbody) return;
             tbody.querySelectorAll('tr').forEach(row => {
-                row.classList.remove('place-1', 'place-2', 'place-3');
+                row.classList.remove('rank-1', 'rank-2', 'rank-3');
                 const firstCell = row.querySelector('td:first-child');
                 if (!firstCell) return;
                 const text = firstCell.textContent.trim();
                 const match = text.match(/\d+/);
                 if (!match) return;
                 const placeNum = parseInt(match[0], 10);
-                if (placeNum >= 1 && placeNum <= 3) row.classList.add('place-' + placeNum);
+                if (placeNum >= 1 && placeNum <= 3) row.classList.add('rank-' + placeNum);
             });
         });
     }
@@ -305,7 +375,7 @@
                         const isIndividual = cfg.type === 'individual';
                         const cols = isIndividual ? 4 : 3;
                         const tr = document.createElement('tr');
-                        if (i <= 3) tr.classList.add('place-' + i);
+                        if (i <= 3) tr.classList.add('rank-' + i);
                         for (let j = 0; j < cols; j++) {
                             const td = document.createElement('td');
                             td.contentEditable = (j > 0);
@@ -315,8 +385,8 @@
                                 td.textContent = i;
                             } else {
                                 td.textContent = '';
-                                if (j === cols - 1 && cols === 3) td.style.textAlign = 'center';
-                                if (j === cols - 1 && cols === 4) td.className = 'col-result';
+                                if (!isIndividual && j === 2) td.style.textAlign = 'left';
+                                if (isIndividual && j === 3) td.className = 'col-result';
                             }
                             tr.appendChild(td);
                         }
@@ -329,6 +399,7 @@
                     const isIndividual = cfg.type === 'individual';
                     const cols = isIndividual ? 4 : 3;
                     const tr = document.createElement('tr');
+                    if (row.place <= 3) tr.classList.add('rank-' + row.place);
                     for (let i = 0; i < cols; i++) {
                         const td = document.createElement('td');
                         td.contentEditable = (i > 0);
@@ -339,7 +410,13 @@
                         } else if (i === 1) {
                             td.textContent = row.name || '';
                         } else if (i === 2) {
-                            td.textContent = row.bank || '';
+                            if (isIndividual) {
+                                td.textContent = row.bank || '';
+                                td.className = 'col-bank';
+                            } else {
+                                td.textContent = row.result || '';
+                                td.style.textAlign = 'left';
+                            }
                         } else if (i === 3) {
                             td.className = 'col-result';
                             td.textContent = row.result || '';
@@ -360,7 +437,7 @@
         }
     }
 
-    // ========== БЫСТРОЕ СОХРАНЕНИЕ (только измененные данные) ==========
+    // ========== СОХРАНЕНИЕ ==========
     async function saveAllDataToSupabase() {
         console.log('⏳ Сохранение...');
         const statusDiv = document.getElementById('connectionStatus');
@@ -402,7 +479,6 @@
 
             console.log(`📊 Собрано ${allRows.length} строк`);
 
-            // Удаляем старые
             const groups = [
                 { category: 'inkas', type: 'individual' },
                 { category: 'inkas', type: 'team' },
@@ -410,7 +486,6 @@
                 { category: 'security', type: 'team' }
             ];
 
-            // Параллельное удаление
             await Promise.all(groups.map(g => 
                 supabaseClient
                     .from('shooting_results')
@@ -419,7 +494,6 @@
                     .eq('type', g.type)
             ));
 
-            // Вставляем новые одной операцией
             if (allRows.length > 0) {
                 const { error } = await supabaseClient
                     .from('shooting_results')
@@ -433,11 +507,11 @@
         } catch (err) {
             console.error('❌ Ошибка:', err);
             statusDiv.innerHTML = '<span class="status-badge error">❌ Ошибка</span>';
-            showToast('Ошибка: ' + err.message, 'error');
+            showToast('❌ Ошибка: ' + err.message, 'error');
         }
     }
 
-    // ========== БЫСТРАЯ ЗАГРУЗКА ИЗ WORD ==========
+    // ========== ЗАГРУЗКА ИЗ WORD ==========
     function handleFileUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -464,7 +538,6 @@
 
                 const tbodyIds = ['tbody-ink-individual', 'tbody-ink-team', 'tbody-security-individual', 'tbody-security-team'];
                 
-                // Заполняем таблицы напрямую (быстрее)
                 for (let i = 0; i < 4; i++) {
                     const docTable = tables[i];
                     const rows = docTable.querySelectorAll('tr');
@@ -503,10 +576,7 @@
                 }
 
                 refreshTableAppearance();
-                
-                // Сохраняем в БД
                 await saveAllDataToSupabase();
-                showToast('✅ Загружено из Word', 'success');
                 
             } catch (err) {
                 console.error(err);
@@ -536,7 +606,6 @@
                     .eq('type', g.type)
             ));
 
-            // Очищаем UI
             tableConfigs.forEach(cfg => {
                 const tbody = document.getElementById(cfg.tbodyId);
                 if (!tbody) return;
@@ -545,7 +614,7 @@
                 const cols = isIndividual ? 4 : 3;
                 for (let i = 1; i <= cfg.maxRows; i++) {
                     const tr = document.createElement('tr');
-                    if (i <= 3) tr.classList.add('place-' + i);
+                    if (i <= 3) tr.classList.add('rank-' + i);
                     for (let j = 0; j < cols; j++) {
                         const td = document.createElement('td');
                         td.contentEditable = (j > 0);
@@ -555,8 +624,8 @@
                             td.textContent = i;
                         } else {
                             td.textContent = '';
-                            if (j === cols - 1 && cols === 3) td.style.textAlign = 'center';
-                            if (j === cols - 1 && cols === 4) td.className = 'col-result';
+                            if (!isIndividual && j === 2) td.style.textAlign = 'left';
+                            if (isIndividual && j === 3) td.className = 'col-result';
                         }
                         tr.appendChild(td);
                     }
@@ -590,18 +659,23 @@
         <!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
         <style>
             body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px 40px; }
-            .section-title { font-size: 22pt; font-weight: 600; color: #0f2b44; border-bottom: 3px solid #f5a623; padding-bottom: 8px; margin-bottom: 16px; }
+            .section-title { font-size: 22pt; font-weight: 600; color: #0f2b44; border-left: 6px solid #dc2626; padding-left: 18px; }
             .section-title .sub { font-size: 14pt; font-weight: 400; color: #475569; }
             .subsection-title { font-size: 16pt; font-weight: 500; color: #1e3a5f; margin: 20px 0 12px 0; padding-left: 12px; border-left: 5px solid #f5a623; }
             table { width: 100%; border-collapse: collapse; font-size: 11pt; margin-bottom: 12px; }
-            th { background: #eef2f7; color: #1e3a5f; font-weight: 600; padding: 8px; border: 1px solid #b0c4de; text-align: left; }
-            td { padding: 8px; border: 1px solid #b0c4de; vertical-align: middle; }
+            th { background: #f8fafc; font-weight: 700; color: #1e293b; padding: 8px; border: 1px solid #e2e8f0; text-align: center; }
+            td { padding: 8px; border: 1px solid #e2e8f0; vertical-align: middle; text-align: center; }
             .col-place { text-align: center; font-weight: 500; }
-            .col-result { text-align: center; }
+            .col-result { text-align: left; }
             .place-number { text-align: center; font-weight: 500; }
+            .rank-1 { background-color: #ffd966 !important; font-weight: bold; }
+            .rank-2 { background-color: #e0e0e0 !important; font-weight: bold; }
+            .rank-3 { background-color: #f7d9b5 !important; font-weight: bold; }
             .signature { margin-top: 30px; padding-top: 16px; border-top: 2px solid #1e3a5f; display: flex; justify-content: space-between; font-size: 12pt; }
             .judge { font-weight: 500; }
             .date-line { display: inline-block; min-width: 140px; border-bottom: 2px solid #1e3a5f; padding: 0 6px; margin-left: 6px; }
+            .subnote { margin-top: 16px; font-size: 0.75rem; color: #64748b; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 12px; }
+            .row-count { font-size: 0.75rem; color: #64748b; margin-top: 12px; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 12px; }
         </style>
         </head>
         <body>
@@ -628,10 +702,25 @@
     // ========== TOAST ==========
     function showToast(message, type = 'info') {
         const toast = document.getElementById('toast');
-        toast.textContent = message;
+        const toastMessage = document.getElementById('toastMessage');
+        const icon = toast.querySelector('i');
+        
+        if (type === 'success') {
+            icon.className = 'fas fa-check-circle';
+        } else if (type === 'error') {
+            icon.className = 'fas fa-exclamation-circle';
+        } else if (type === 'info') {
+            icon.className = 'fas fa-info-circle';
+        }
+        
+        toastMessage.textContent = message;
         toast.className = 'toast ' + type;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 3000);
+        
+        setTimeout(() => toast.classList.add('show'), 50);
+        clearTimeout(toast._hideTimeout);
+        toast._hideTimeout = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
     }
 
     // ========== ИНИЦИАЛИЗАЦИЯ ==========
