@@ -71,7 +71,7 @@
         <button class="tab-btn" data-tab="ohrana">🛡️ ОХРАНА</button>
     </div>
 
-    <!-- ИНКАССАЦИЯ (без изменений) -->
+    <!-- ИНКАССАЦИЯ -->
     <div id="inkasso-pane" class="tab-pane active-pane">
         <div style="text-align: right;"><button id="refreshInkassoBtn" class="refresh-btn">🔄 Обновить данные</button></div>
         <div class="section"><h2>🏆 Командное первенство — сумма мест по 4 видам</h2><div class="table-wrapper" id="team-standings-inkasso"><div class="loading-placeholder"><div class="spinner"></div> Загрузка...</div></div><div class="subnote">* При равных значениях суммы мест - приоритетом является результат испытаний по дисциплине "Огневая подготовка".</div></div>
@@ -82,7 +82,7 @@
         <div class="section"><h2>🚔🤝 Командная эстафета (охрана + инкассация)</h2><div class="table-wrapper" id="common-estafeta-inkasso"><div class="loading-placeholder"><div class="spinner"></div> Загрузка...</div></div><div class="subnote">* Командная эстафета: 5 человек (3 охраны + 2 инкассации).</div></div>
     </div>
 
-    <!-- ОХРАНА (исправлено с именами участников) -->
+    <!-- ОХРАНА -->
     <div id="ohrana-pane" class="tab-pane">
         <div style="text-align: right;"><button id="refreshOhranaBtn" class="refresh-btn">🔄 Обновить данные</button></div>
         <div class="section"><h2>🏆 Командное первенство (охрана) — по 3 видам</h2><div class="table-wrapper" id="team-standings-ohrana"><div class="loading-placeholder"><div class="spinner"></div> Загрузка...</div></div><div class="subnote">Командный зачёт по 3 видам: практическая стрельба, эстафета охраны (3 чел), служебное двоеборье (3 чел).</div></div>
@@ -100,8 +100,24 @@
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        let cache = { inkasso: null, ohrana: null };
+        let cache = { inkasso: null, ohrana: null, shootingInkasso: null, shootingOhrana: null };
         let ohranaLoaded = false;
+
+        // Маппинг названий команд
+        const shootingTeamMap = {
+            "Уральский": "УБ",
+            "Дальневосточный": "ДВБ",
+            "Байкальский": "ББ",
+            "Московский": "МРД",
+            "Центрально-Черноземный": "ЦЧБ",
+            "Юго-Западный": "ЮЗБ",
+            "Поволжский": "ПВБ",
+            "Сибирский": "СИБ",
+            "Среднерусский": "СРБ",
+            "Северо-Западный": "СЗБ",
+            "Волго-Вятский": "ВВБ",
+            "Ставропольский": "СТБ"
+        };
 
         function formatTime(sec) {
             if (sec === null || isNaN(sec) || sec === undefined) return "—";
@@ -203,15 +219,149 @@
             return (baseTeamNames[code] || code) + ` (${code})`;
         }
 
-        const shootingIndividual = [
-            { place:1, team:"Среднерусский", name:"Артемкин Николай Николаевич", result:"02:48,45" },
-            { place:2, team:"Сибирский", name:"(участник)", result:"02:51,44" },
-            { place:3, team:"МРД ЦУНДО", name:"(участник)", result:"02:54,76" }
-        ];
-        const shootingTeamMap = { "Среднерусский":"СРБ","Сибирский":"СИБ","МРД ЦУНДО":"МРД" };
         const staticCommonEstafeta = { "УБ":688.00, "ББ":822.00, "МРД":824.04, "ДВБ":845.00, "СРБ":780.0, "СИБ":810.0, "ПВБ":900.0, "ЦЧБ":860.0, "СЗБ":830.0, "ЮЗБ":870.0, "ВВБ":880.0, "СТБ":890.0 };
 
-        // === РЕНДЕРИНГ ИНКАССАЦИИ (без изменений) ===
+        // === ФУНКЦИИ ДЛЯ ЗАГРУЗКИ ДАННЫХ СТРЕЛЬБЫ ИЗ SUPABASE ===
+        async function fetchShootingData(category) {
+            try {
+                const { data, error } = await supabase
+                    .from('shooting_results')
+                    .select('*')
+                    .eq('category', category)
+                    .order('place', { ascending: true });
+                if (error) throw error;
+                return data || [];
+            } catch(e) {
+                console.error(`Ошибка загрузки стрельбы (${category}):`, e);
+                return [];
+            }
+        }
+
+        async function loadShootingData() {
+            try {
+                const [inkassoData, ohranaData] = await Promise.all([
+                    fetchShootingData('inkas'),
+                    fetchShootingData('security')
+                ]);
+                cache.shootingInkasso = inkassoData;
+                cache.shootingOhrana = ohranaData;
+            } catch(e) {
+                console.error('Ошибка загрузки данных стрельбы:', e);
+            }
+        }
+
+        // ===== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ КОМАНДНЫХ МЕСТ ПО СТРЕЛЬБЕ (ТОЛЬКО type === 'team') =====
+        function getShootingPlacesInkasso() {
+            const places = {};
+            for (let code of teamCodes) places[code] = 12;
+            
+            const data = cache.shootingInkasso || [];
+            // БЕРЁМ ТОЛЬКО КОМАНДНЫЕ ЗАПИСИ (type === 'team')
+            const teamData = data.filter(row => row.type === 'team' && row.name && row.name.trim() !== '');
+            
+            console.log('Командные записи по стрельбе (inkas):', teamData);
+            
+            for (let row of teamData) {
+                let code = null;
+                const teamName = row.name || '';
+                
+                // Ищем код команды по названию
+                for (let [name, codeVal] of Object.entries(shootingTeamMap)) {
+                    if (teamName.includes(name) || name.includes(teamName)) {
+                        code = codeVal;
+                        break;
+                    }
+                }
+                
+                // Дополнительный маппинг для точных совпадений
+                if (!code) {
+                    const exactMap = {
+                        "Сибирский": "СИБ",
+                        "Волго-Вятский": "ВВБ",
+                        "Уральский": "УБ",
+                        "Дальневосточный": "ДВБ",
+                        "Байкальский": "ББ",
+                        "Московский": "МРД",
+                        "Центрально-Черноземный": "ЦЧБ",
+                        "Юго-Западный": "ЮЗБ",
+                        "Поволжский": "ПВБ",
+                        "Среднерусский": "СРБ",
+                        "Северо-Западный": "СЗБ",
+                        "Ставропольский": "СТБ"
+                    };
+                    if (exactMap[teamName]) code = exactMap[teamName];
+                }
+                
+                if (code && places[code] !== undefined) {
+                    const place = parseInt(row.place) || 12;
+                    if (place < places[code]) places[code] = place;
+                }
+            }
+            console.log('Итоговые места по стрельбе (inkas):', places);
+            return places;
+        }
+
+        // === ФУНКЦИИ ДЛЯ ЛИЧНОГО ПЕРВЕНСТВА (только type === 'individual') ===
+        function renderShootingInkasso() {
+            const container = document.getElementById('individual-shooting-inkasso');
+            if (!container) return;
+            const data = cache.shootingInkasso || [];
+            // Только личные записи (type === 'individual')
+            const validData = data.filter(row => 
+                row.type === 'individual' && 
+                row.name && row.name.trim() !== '' && 
+                row.result && row.result.trim() !== ''
+            );
+            if (!validData.length) {
+                container.innerHTML = '<div class="loading-placeholder">Нет данных для личного первенства (инкассация)</div>';
+                return;
+            }
+            const headers = ['Место', 'Команда', 'ФИО', 'Результат'];
+            const rows = validData.map(row => {
+                const place = parseInt(row.place) || 0;
+                const teamName = row.bank && row.bank.trim() !== '' ? row.bank : row.name;
+                return {
+                    cells: [
+                        { html: formatPlaceWithMedal(place) },
+                        { text: teamName },
+                        { text: row.name || '—' },
+                        { text: row.result || '—' }
+                    ]
+                };
+            });
+            renderTopTable('individual-shooting-inkasso', headers, rows, 10);
+        }
+
+        function renderShootingOhrana() {
+            const container = document.getElementById('individual-shooting-ohrana');
+            if (!container) return;
+            const data = cache.shootingOhrana || [];
+            const validData = data.filter(row => 
+                row.type === 'individual' && 
+                row.name && row.name.trim() !== '' && 
+                row.result && row.result.trim() !== ''
+            );
+            if (!validData.length) {
+                container.innerHTML = '<div class="loading-placeholder">Нет данных для личного первенства (охрана)</div>';
+                return;
+            }
+            const headers = ['Место', 'Команда', 'ФИО', 'Результат'];
+            const rows = validData.map(row => {
+                const place = parseInt(row.place) || 0;
+                const teamName = row.bank && row.bank.trim() !== '' ? row.bank : row.name;
+                return {
+                    cells: [
+                        { html: formatPlaceWithMedal(place) },
+                        { text: teamName },
+                        { text: row.name || '—' },
+                        { text: row.result || '—' }
+                    ]
+                };
+            });
+            renderTopTable('individual-shooting-ohrana', headers, rows, 10);
+        }
+
+        // === РЕНДЕРИНГ ИНКАССАЦИИ ===
         function renderTeamStandingsInkasso(estData, triData, drvData) {
             try {
                 const estMap = new Map();
@@ -247,8 +397,8 @@
                 let drvList = teamCodes.map(c=>({code:c, total:drvBest.get(c)||null})).sort((a,b)=> (a.total===null)-(b.total===null) || (a.total??Infinity)-(b.total??Infinity));
                 let drvPlaces = {}, rd=1; for(let item of drvList) drvPlaces[item.code] = item.total!==null ? rd++ : 12;
                 
-                let shootPlaces = {}; for(let c of teamCodes) shootPlaces[c]=12;
-                for(let p of shootingIndividual) { let code = shootingTeamMap[p.team]; if(code && p.place < shootPlaces[code]) shootPlaces[code]=p.place; }
+                // === ИСПРАВЛЕНО: используем командные места из shooting_results (type === 'team') ===
+                let shootPlaces = getShootingPlacesInkasso();
                 
                 let standings = [];
                 for(let code of teamCodes) {
@@ -349,13 +499,6 @@
             } catch(e) { showError('driving-inkasso', e.message); }
         }
 
-        function renderIndividualShootingInkasso() {
-            let rows = shootingIndividual.map(p => ({ cells: [
-                { html: formatPlaceWithMedal(p.place) }, { text: p.team }, { text: p.name }, { text: p.result }
-            ] }));
-            renderTopTable('individual-shooting-inkasso', ['Место','Команда','ФИО','Результат'], rows, 3);
-        }
-
         function renderCommonEstafetaInkasso() {
             let items = [];
             for(let code of teamCodes) {
@@ -397,12 +540,11 @@
             renderEstafetaInkasso(estData);
             renderTriathlonInkasso(triData);
             renderDrivingInkasso(drvData);
-            renderIndividualShootingInkasso();
+            renderShootingInkasso();
             renderCommonEstafetaInkasso();
         }
 
-        // === ОХРАНА (исправлено с именами участников) ===
-        // Функция извлечения данных из JSON penalties для эстафеты охраны
+        // === ОХРАНА ===
         function parseSecurityEstafeta(row) {
             try {
                 const penalties = typeof row.penalties === 'string' ? JSON.parse(row.penalties) : row.penalties;
@@ -411,8 +553,6 @@
                 const member2 = members["2"] || {};
                 const member3 = members["3"] || {};
                 const teamRawSeconds = penalties?.team_raw_seconds || null;
-                const teamBonusFlag = penalties?.team_bonus_flag || false;
-                // Итоговое время: если есть total_seconds, используем его, иначе team_raw_seconds (если есть)
                 let total = row.total_seconds;
                 if (total === null && teamRawSeconds !== null) total = teamRawSeconds;
                 return {
@@ -420,14 +560,9 @@
                     member1_name: member1.name || '—',
                     member2_name: member2.name || '—',
                     member3_name: member3.name || '—',
-                    member1_raw: member1.rawSeconds || null,
-                    member2_raw: member2.rawSeconds || null,
-                    member3_raw: member3.rawSeconds || null,
-                    total_seconds: total,
-                    team_raw_seconds: teamRawSeconds
+                    total_seconds: total
                 };
             } catch(e) {
-                console.warn('Ошибка парсинга penalties для эстафеты охраны', e);
                 return {
                     team_code: row.team_code,
                     member1_name: '—',
@@ -455,7 +590,6 @@
                         total: parsed.total_seconds
                     });
                 }
-                // Сортировка: сначала те, у кого есть total, по возрастанию
                 items.sort((a,b)=> (a.total===null)-(b.total===null) || (a.total??Infinity)-(b.total??Infinity));
                 let rows = items.slice(0,3).map((item, idx) => ({ cells: [
                     { html: formatPlaceWithMedal(idx+1) },
@@ -475,7 +609,6 @@
                     renderTopTable('duathlon-ohrana', ['Место','Команда','Участник 1','Время 1','Участник 2','Время 2','Участник 3','Время 3','Сумма команды'], [], 3);
                     return;
                 }
-                // Группируем по team_code, сортируем по participant_number
                 let teamsMap = new Map();
                 for(let row of data) {
                     let code = row.team_code === "ЦА" ? "МРД" : row.team_code;
@@ -484,7 +617,6 @@
                 }
                 let teamResults = [];
                 for(let [code, members] of teamsMap.entries()) {
-                    // Сортируем по participant_number
                     members.sort((a,b)=> (a.participant_number||0) - (b.participant_number||0));
                     let p1 = members[0];
                     let p2 = members[1];
@@ -519,10 +651,6 @@
             } catch(e) { showError('duathlon-ohrana', e.message); }
         }
 
-        function renderIndividualShootingOhrana() {
-            renderIndividualShootingInkasso();
-        }
-
         function renderCommonEstafetaOhrana() {
             let items = [];
             for(let code of teamCodes) {
@@ -536,8 +664,7 @@
             renderTopTable('common-estafeta-ohrana', ['Место','Команда','Итоговое время'], rows, 3);
         }
 
-        // Командное первенство охраны (обновлено с учётом СТБ и правильных мест)
-        // TODO: эти данные должны вычисляться из реальных результатов, пока оставим статику
+        // Командное первенство охраны (пока статика)
         const securityStandings = [
             { code:"ДВБ", est:1, duathlon:12, shoot:2, total:15 }, { code:"ББ", est:12, duathlon:1, shoot:9, total:22 },
             { code:"УБ", est:12, duathlon:2, shoot:10, total:24 }, { code:"СРБ", est:12, duathlon:1, shoot:2, total:25 },
@@ -579,7 +706,7 @@
             renderTeamStandingsOhrana();
             renderEstafetaOhrana(estData);
             renderDuathlonOhrana(duelData);
-            renderIndividualShootingOhrana();
+            renderShootingOhrana();
             renderCommonEstafetaOhrana();
         }
 
@@ -614,8 +741,15 @@
         document.getElementById('refreshInkassoBtn').addEventListener('click', () => loadInkasso(true));
         document.getElementById('refreshOhranaBtn').addEventListener('click', () => loadOhrana(true));
 
-        loadInkasso(false);
-        initTabs();
+        // Инициализация
+        async function init() {
+            await loadShootingData();
+            await loadInkasso(false);
+            await loadOhrana(false);
+            ohranaLoaded = true;
+            initTabs();
+        }
+        init();
 
         // === ЭКСПОРТ В PPTX ===
         document.getElementById('exportPptxBtn').addEventListener('click', async function() {
