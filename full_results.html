@@ -100,21 +100,6 @@
         "СТБ":"СТБ"
     };
 
-    function getTeamDisplayNameInkasso(code) {
-        if (code === "МРД") return "ПЦП МРД ЦУНДО";
-        return baseTeamNames[code];
-    }
-    function getTeamDisplayNameOhrana(code) {
-        if (code === "МРД") return "ЦОО ЦА и МБ";
-        return baseTeamNames[code];
-    }
-    function getTeamFullInkasso(code) {
-        return `${getTeamDisplayNameInkasso(code)} (${code})`;
-    }
-    function getTeamFullOhrana(code) {
-        return `${getTeamDisplayNameOhrana(code)} (${code})`;
-    }
-
     // Маппинг названий команд для стрельбы
     const shootingTeamMap = {
         "Уральский": "УБ",
@@ -130,6 +115,24 @@
         "Волго-Вятский": "ВВБ",
         "СТБ": "СТБ"
     };
+
+    function getTeamDisplayNameInkasso(code) {
+        if (code === "МРД") return "ПЦП МРД ЦУНДО";
+        return baseTeamNames[code];
+    }
+    function getTeamDisplayNameOhrana(code) {
+        if (code === "МРД") return "ЦОО ЦА и МБ";
+        return baseTeamNames[code];
+    }
+    function getTeamFullInkasso(code) {
+        return `${getTeamDisplayNameInkasso(code)} (${code})`;
+    }
+    function getTeamFullOhrana(code) {
+        return `${getTeamDisplayNameOhrana(code)} (${code})`;
+    }
+
+    // Кеш для данных стрельбы
+    let shootingDataCache = { inkasso: null, ohrana: null };
 
     // ===== ПОЛНАЯ БИБЛИОТЕКА ШТРАФОВ (из estafeta) =====
     const penaltiesLibrary = [
@@ -325,7 +328,7 @@
     const PENALTY_PER_MISS_PM = 30;
     const SAIGA_BONUS_PER_HIT = 10;
 
-    // ===== НОВАЯ ТОЧНАЯ ФУНКЦИЯ ПОДСЧЁТА ШТРАФОВ =====
+    // ===== ФУНКЦИЯ ПОДСЧЁТА ШТРАФОВ =====
     function calculatePenaltySeconds(penaltiesJson) {
         if (!penaltiesJson) return 0;
         let penaltiesObj;
@@ -352,7 +355,6 @@
                 }
             }
         }
-        // Специальные обработчики для стрельбы
         const pmMisses = penaltiesObj[SHOOT_PM_MISS_ID] || 0;
         const saigaHits = penaltiesObj[SHOOT_SAIGA_HITS_ID] || 0;
         sum += pmMisses * PENALTY_PER_MISS_PM;
@@ -362,6 +364,152 @@
 
     // Статические данные для общей эстафеты
     const staticCommonEstafeta = { "УБ": 688.00, "ББ": 822.00, "МРД": 824.04, "ДВБ": 845.00 };
+    
+    // ===== ФУНКЦИИ ДЛЯ ЗАГРУЗКИ ДАННЫХ СТРЕЛЬБЫ ИЗ SUPABASE =====
+    async function fetchShootingData(category) {
+        try {
+            const { data, error } = await supabase
+                .from('shooting_results')
+                .select('*')
+                .eq('category', category)
+                .order('place', { ascending: true });
+            if (error) throw error;
+            return data || [];
+        } catch(e) {
+            console.error(`Ошибка загрузки стрельбы (${category}):`, e);
+            return [];
+        }
+    }
+
+    async function loadShootingData() {
+        try {
+            const [inkassoData, ohranaData] = await Promise.all([
+                fetchShootingData('inkas'),
+                fetchShootingData('security')
+            ]);
+            shootingDataCache.inkasso = inkassoData;
+            shootingDataCache.ohrana = ohranaData;
+        } catch(e) {
+            console.error('Ошибка загрузки данных стрельбы:', e);
+        }
+    }
+
+    // ===== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ КОМАНДНЫХ МЕСТ ПО СТРЕЛЬБЕ (ТОЛЬКО type === 'team') =====
+    function getShootingPlacesInkasso() {
+        const places = {};
+        for (let code of teamCodesInkasso) places[code] = 12;
+        
+        const data = shootingDataCache.inkasso || [];
+        // Берём только командные записи (type === 'team')
+        const teamData = data.filter(row => row.type === 'team' && row.name && row.name.trim() !== '');
+        
+        console.log('Командные записи по стрельбе (inkas):', teamData);
+        
+        for (let row of teamData) {
+            let code = null;
+            const teamName = row.name || '';
+            
+            // Ищем код команды по названию
+            for (let [name, codeVal] of Object.entries(shootingTeamMap)) {
+                if (teamName.includes(name) || name.includes(teamName)) {
+                    code = codeVal;
+                    break;
+                }
+            }
+            
+            // Дополнительный маппинг для точных совпадений
+            if (!code) {
+                const exactMap = {
+                    "Сибирский": "СИБ",
+                    "Волго-Вятский": "ВВБ",
+                    "Уральский": "УБ",
+                    "Дальневосточный": "ДВБ",
+                    "Байкальский": "ББ",
+                    "Московский": "МРД",
+                    "Центрально-Черноземный": "ЦЧБ",
+                    "Юго-Западный": "ЮЗБ",
+                    "Поволжский": "ПВБ",
+                    "Среднерусский": "СРБ",
+                    "Северо-Западный": "СЗБ",
+                    "СТБ": "СТБ"
+                };
+                if (exactMap[teamName]) code = exactMap[teamName];
+            }
+            
+            if (code && places[code] !== undefined) {
+                const place = parseInt(row.place) || 12;
+                if (place < places[code]) places[code] = place;
+            }
+        }
+        console.log('Итоговые места по стрельбе (inkas):', places);
+        return places;
+    }
+
+    // ===== ФУНКЦИИ ДЛЯ ЛИЧНОГО ПЕРВЕНСТВА (только type === 'individual') =====
+    function renderIndividualInkasso() {
+        const container = document.getElementById('individual-pistol');
+        if (!container) return;
+        const data = shootingDataCache.inkasso || [];
+        // Только личные записи (type === 'individual')
+        const validData = data.filter(row => 
+            row.type === 'individual' && 
+            row.name && row.name.trim() !== '' && 
+            row.result && row.result.trim() !== ''
+        );
+        if (!validData.length) {
+            container.innerHTML = '<div class="loading">Нет данных для личного первенства (инкассация)</div>';
+            return;
+        }
+        const headers = ['Место', 'Команда', 'ФИО', 'Результат'];
+        const rows = validData.map(row => {
+            const place = parseInt(row.place) || 0;
+            const rowClass = getPlaceRowClass(place);
+            const placeHtml = place <= 3 ? formatPlaceWithMedal(place).outerHTML : String(place);
+            const teamName = row.bank && row.bank.trim() !== '' ? row.bank : row.name;
+            return {
+                className: rowClass,
+                cells: [
+                    { html: placeHtml },
+                    { text: teamName },
+                    { text: row.name || '—' },
+                    { text: row.result || '—' }
+                ]
+            };
+        });
+        renderTable('individual-pistol', headers, rows);
+    }
+
+    function renderIndividualOhrana() {
+        const container = document.getElementById('individual-pistol-ohrana');
+        if (!container) return;
+        const data = shootingDataCache.ohrana || [];
+        const validData = data.filter(row => 
+            row.type === 'individual' && 
+            row.name && row.name.trim() !== '' && 
+            row.result && row.result.trim() !== ''
+        );
+        if (!validData.length) {
+            container.innerHTML = '<div class="loading">Нет данных для личного первенства (охрана)</div>';
+            return;
+        }
+        const headers = ['Место', 'Команда', 'ФИО', 'Результат'];
+        const rows = validData.map(row => {
+            const place = parseInt(row.place) || 0;
+            const rowClass = getPlaceRowClass(place);
+            const placeHtml = place <= 3 ? formatPlaceWithMedal(place).outerHTML : String(place);
+            const teamName = row.bank && row.bank.trim() !== '' ? row.bank : row.name;
+            return {
+                className: rowClass,
+                cells: [
+                    { html: placeHtml },
+                    { text: teamName },
+                    { text: row.name || '—' },
+                    { text: row.result || '—' }
+                ]
+            };
+        });
+        renderTable('individual-pistol-ohrana', headers, rows);
+    }
 
     function formatTime(sec) {
         if (sec === null || isNaN(sec)) return "—";
@@ -421,181 +569,18 @@
         container.appendChild(table);
     }
 
-    // ========== ФУНКЦИИ ДЛЯ ЗАГРУЗКИ ДАННЫХ СТРЕЛЬБЫ ИЗ SUPABASE ==========
-    async function fetchShootingData(category, type) {
-        const { data, error } = await supabase
-            .from('shooting_results')
-            .select('*')
-            .eq('category', category)
-            .eq('type', type)
-            .order('place', { ascending: true });
-        if (error) {
-            console.error('Ошибка загрузки данных стрельбы:', error);
-            return [];
-        }
-        return data || [];
-    }
-
-    async function renderShootingInkasso() {
-        const container = document.getElementById('individual-pistol');
-        container.innerHTML = '<div class="loading">Загрузка...</div>';
-        try {
-            const data = await fetchShootingData('inkas', 'individual');
-            
-            // Фильтруем только записи с именем и результатом
-            const validData = data.filter(row => row.name && row.name.trim() !== '' && row.result && row.result.trim() !== '');
-            
-            if (!validData.length) {
-                container.innerHTML = '<div class="loading">Нет данных для личного первенства (инкассация)</div>';
-                return;
-            }
-            
-            const headers = ['Место', 'Команда', 'ФИО', 'Результат'];
-            const rows = validData.map(row => {
-                const place = parseInt(row.place) || 0;
-                const rowClass = getPlaceRowClass(place);
-                const placeHtml = place <= 3 ? formatPlaceWithMedal(place).outerHTML : String(place);
-                // Определяем название команды: если bank заполнен, используем его, иначе name
-                const teamName = row.bank && row.bank.trim() !== '' ? row.bank : row.name;
-                return {
-                    className: rowClass,
-                    cells: [
-                        { html: placeHtml },
-                        { text: teamName },
-                        { text: row.name || '—' },
-                        { text: row.result || '—' }
-                    ]
-                };
-            });
-            renderTable('individual-pistol', headers, rows);
-        } catch(e) {
-            console.error(e);
-            container.innerHTML = '<div class="loading">Ошибка загрузки данных стрельбы</div>';
-        }
-    }
-
-    async function renderShootingOhrana() {
-        const container = document.getElementById('individual-pistol-ohrana');
-        container.innerHTML = '<div class="loading">Загрузка...</div>';
-        try {
-            const data = await fetchShootingData('security', 'individual');
-            
-            // Фильтруем только записи с именем и результатом
-            const validData = data.filter(row => row.name && row.name.trim() !== '' && row.result && row.result.trim() !== '');
-            
-            if (!validData.length) {
-                container.innerHTML = '<div class="loading">Нет данных для личного первенства (охрана)</div>';
-                return;
-            }
-            
-            const headers = ['Место', 'Команда', 'ФИО', 'Результат'];
-            const rows = validData.map(row => {
-                const place = parseInt(row.place) || 0;
-                const rowClass = getPlaceRowClass(place);
-                const placeHtml = place <= 3 ? formatPlaceWithMedal(place).outerHTML : String(place);
-                // Определяем название команды: если bank заполнен, используем его, иначе name
-                const teamName = row.bank && row.bank.trim() !== '' ? row.bank : row.name;
-                return {
-                    className: rowClass,
-                    cells: [
-                        { html: placeHtml },
-                        { text: teamName },
-                        { text: row.name || '—' },
-                        { text: row.result || '—' }
-                    ]
-                };
-            });
-            renderTable('individual-pistol-ohrana', headers, rows);
-        } catch(e) {
-            console.error(e);
-            container.innerHTML = '<div class="loading">Ошибка загрузки данных стрельбы</div>';
-        }
-    }
-
-    // Функция для получения мест по стрельбе для командного зачета (инкассация)
-    async function getShootingPlacesInkasso() {
-        const places = {};
-        for (let code of teamCodesInkasso) places[code] = 12;
-        try {
-            const data = await fetchShootingData('inkas', 'individual');
-            const validData = data.filter(row => row.name && row.name.trim() !== '' && row.result && row.result.trim() !== '');
-            for (let row of validData) {
-                // Ищем код команды по названию банка
-                let code = null;
-                const bankName = row.bank || '';
-                // Прямой маппинг
-                for (let [name, codeVal] of Object.entries(shootingTeamMap)) {
-                    if (bankName.includes(name) || name.includes(bankName)) {
-                        code = codeVal;
-                        break;
-                    }
-                }
-                // Если не нашли по банку, пробуем по имени участника
-                if (!code && row.name) {
-                    for (let [name, codeVal] of Object.entries(shootingTeamMap)) {
-                        if (row.name.includes(name) || name.includes(row.name)) {
-                            code = codeVal;
-                            break;
-                        }
-                    }
-                }
-                if (code && places[code] !== undefined) {
-                    const place = parseInt(row.place) || 12;
-                    if (place < places[code]) places[code] = place;
-                }
-            }
-        } catch(e) {
-            console.error('Ошибка получения мест стрельбы:', e);
-        }
-        return places;
-    }
-
-    // Функция для получения мест по стрельбе для командного зачета (охрана)
-    async function getShootingPlacesOhrana() {
-        const places = {};
-        for (let code of teamCodesOhrana) places[code] = 12;
-        try {
-            const data = await fetchShootingData('security', 'individual');
-            const validData = data.filter(row => row.name && row.name.trim() !== '' && row.result && row.result.trim() !== '');
-            for (let row of validData) {
-                let code = null;
-                const bankName = row.bank || '';
-                for (let [name, codeVal] of Object.entries(shootingTeamMap)) {
-                    if (bankName.includes(name) || name.includes(bankName)) {
-                        code = codeVal;
-                        break;
-                    }
-                }
-                if (!code && row.name) {
-                    for (let [name, codeVal] of Object.entries(shootingTeamMap)) {
-                        if (row.name.includes(name) || name.includes(row.name)) {
-                            code = codeVal;
-                            break;
-                        }
-                    }
-                }
-                if (code && places[code] !== undefined) {
-                    const place = parseInt(row.place) || 12;
-                    if (place < places[code]) places[code] = place;
-                }
-            }
-        } catch(e) {
-            console.error('Ошибка получения мест стрельбы:', e);
-        }
-        return places;
-    }
-
-    // ========== ИНКАССАЦИЯ (с исправленным расчётом штрафов) ==========
+    // ========== ИНКАССАЦИЯ ==========
     async function renderTeamStandingsInkasso() {
         const container = document.getElementById('team-standings-inkasso');
         container.innerHTML = '<div class="loading">Загрузка...</div>';
         try {
-            const [estPlaces, triPlaces, drvPlaces, shootPlaces] = await Promise.all([
+            const [estPlaces, triPlaces, drvPlaces] = await Promise.all([
                 fetchEstafetaPlaces(),
                 fetchTriathlonPlaces(),
-                fetchDrivingPlaces(),
-                getShootingPlacesInkasso()
+                fetchDrivingPlaces()
             ]);
+            // Используем командные места из shooting_results (type === 'team')
+            const shootPlaces = getShootingPlacesInkasso();
             const standings = [];
             for (let code of teamCodesInkasso) {
                 const est = estPlaces[code] || 12;
@@ -895,7 +880,6 @@
 
     // ========== ОХРАНА ==========
     function renderSecurityTeamStandings() {
-        // Используем данные из shooting_results для стрельбы
         const securityStandings = [
             { code:"ДВБ", est:1, duathlon:12, shoot:2, total:15 },
             { code:"ББ", est:12, duathlon:1, shoot:9, total:22 },
@@ -1139,7 +1123,7 @@
             renderDetailedEstafeta(),
             renderTriathlon(),
             renderDriving(),
-            renderShootingInkasso(),
+            renderIndividualInkasso(),
             renderTeamEstafetaCommonInkasso()
         ]);
     }
@@ -1149,7 +1133,7 @@
         await renderSecurityEstafeta();
         await renderServiceDuathlon();
         renderTeamEstafetaCommonOhrana();
-        await renderShootingOhrana();
+        renderIndividualOhrana();
     }
 
     function initTabs() {
@@ -1177,9 +1161,16 @@
     document.getElementById('refreshInkassoBtn').addEventListener('click', refreshInkasso);
     document.getElementById('refreshOhranaBtn').addEventListener('click', refreshOhrana);
     document.getElementById('exportExcelBtn').addEventListener('click', exportToExcel);
-    refreshInkasso();
-    refreshOhrana();
-    initTabs();
+
+    // Инициализация
+    async function init() {
+        await loadShootingData();
+        await refreshInkasso();
+        await refreshOhrana();
+        initTabs();
+    }
+    init();
+
 })();
 </script>
 </body>
