@@ -6,6 +6,8 @@
     <title>Протокол — практическая стрельба</title>
     <!-- Подключаем mammoth.js для чтения .docx -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js" defer></script>
+    <!-- Font Awesome для иконок медалей -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         /* ===== общие стили (как в index.html) ===== */
         * {
@@ -86,7 +88,6 @@
             margin-top: 16px;
             flex-wrap: wrap;
         }
-        /* кнопки загрузки и очистки */
         .btn-upload {
             background: #2e7d32;
             color: white;
@@ -141,7 +142,7 @@
             border-left: 5px solid #f5a623;
         }
 
-        /* ===== таблицы (стиль под общий дизайн) ===== */
+        /* ===== таблицы ===== */
         .table-wrap {
             overflow-x: auto;
             border-radius: 16px;
@@ -193,9 +194,44 @@
             color: #1e3a5f;
             text-align: center;
         }
-        .empty-cell {
-            color: #94a3b8;
-            font-weight: 300;
+
+        /* ===== ВЫДЕЛЕНИЕ ПРИЗОВЫХ МЕСТ (как в nagradka.html) ===== */
+        .row-highlight {
+            background: rgba(232, 184, 122, 0.05);
+            border-left: 4px solid #e8b87a;
+        }
+        .row-highlight td:first-child {
+            font-weight: 700;
+            color: #1e3a5f;
+        }
+        .place-1 {
+            background: rgba(232, 184, 122, 0.15);
+            border-left: 4px solid #e8b87a;
+        }
+        .place-1 td:first-child {
+            font-weight: 800;
+            color: #b8860b;
+        }
+        .place-2 {
+            background: rgba(192, 192, 192, 0.10);
+            border-left: 4px solid #c0c0c0;
+        }
+        .place-2 td:first-child {
+            font-weight: 700;
+            color: #6c7a89;
+        }
+        .place-3 {
+            background: rgba(205, 127, 50, 0.10);
+            border-left: 4px solid #cd7f32;
+        }
+        .place-3 td:first-child {
+            font-weight: 700;
+            color: #a0522d;
+        }
+
+        /* стиль для иконок медалей */
+        .medal-icon {
+            margin-right: 4px;
         }
 
         /* ===== подпись ===== */
@@ -272,7 +308,7 @@
 <body>
 <div class="container">
 
-    <!-- ===== ШАПКА (как в index.html) ===== -->
+    <!-- ===== ШАПКА ===== -->
     <div class="header">
         <div class="title-wrapper">
             <img src="https://raw.githubusercontent.com/vserosinkas-star/Sorev/main/sheet.png" 
@@ -280,7 +316,9 @@
                  class="title-logo"
                  loading="lazy"
                  onerror="this.style.display='none'">
-            <h1>XVI Всероссийские соревнования по многоборью</h1>
+            <h1>ИТОГОВЫЙ ПРОТОКОЛ
+соревнований по практической стрельбе XVI Всероссийских соревнований по многоборью среди работников подразделений инкассации и охраны ПАО Сбербанк 2026 года
+</h1>
         </div>
         <p>Среди работников подразделений инкассации и охраны ПАО Сбербанк</p>
         <p style="font-size: 0.85rem; margin-top: 8px;">Нижний Тагил, 24–25 июня 2026</p>
@@ -322,9 +360,9 @@
                     </tr>
                 </thead>
                 <tbody id="tbody-ink-individual">
-                    <tr><td class="col-place">1</td><td></td><td></td><td class="col-result"></td></tr>
-                    <tr><td class="col-place">2</td><td></td><td></td><td class="col-result"></td></tr>
-                    <tr><td class="col-place">3</td><td></td><td></td><td class="col-result"></td></tr>
+                    <tr class="place-1"><td class="col-place">1</td><td></td><td></td><td class="col-result"></td></tr>
+                    <tr class="place-2"><td class="col-place">2</td><td></td><td></td><td class="col-result"></td></tr>
+                    <tr class="place-3"><td class="col-place">3</td><td></td><td></td><td class="col-result"></td></tr>
                 </tbody>
             </table>
         </div>
@@ -341,9 +379,9 @@
                     </tr>
                 </thead>
                 <tbody id="tbody-ink-team">
-                    <tr><td class="place-number">1</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">2</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">3</td><td></td><td style="text-align:center;"></td></tr>
+                    <tr class="place-1"><td class="place-number">1</td><td></td><td style="text-align:center;"></td></tr>
+                    <tr class="place-2"><td class="place-number">2</td><td></td><td style="text-align:center;"></td></tr>
+                    <tr class="place-3"><td class="place-number">3</td><td></td><td style="text-align:center;"></td></tr>
                     <tr><td class="place-number">4</td><td></td><td style="text-align:center;"></td></tr>
                     <tr><td class="place-number">5</td><td></td><td style="text-align:center;"></td></tr>
                     <tr><td class="place-number">6</td><td></td><td style="text-align:center;"></td></tr>
@@ -377,9 +415,9 @@
                     </tr>
                 </thead>
                 <tbody id="tbody-security-individual">
-                    <tr><td class="col-place">1</td><td></td><td></td><td class="col-result"></td></tr>
-                    <tr><td class="col-place">2</td><td></td><td></td><td class="col-result"></td></tr>
-                    <tr><td class="col-place">3</td><td></td><td></td><td class="col-result"></td></tr>
+                    <tr class="place-1"><td class="col-place">1</td><td></td><td></td><td class="col-result"></td></tr>
+                    <tr class="place-2"><td class="col-place">2</td><td></td><td></td><td class="col-result"></td></tr>
+                    <tr class="place-3"><td class="col-place">3</td><td></td><td></td><td class="col-result"></td></tr>
                 </tbody>
             </table>
         </div>
@@ -396,9 +434,9 @@
                     </tr>
                 </thead>
                 <tbody id="tbody-security-team">
-                    <tr><td class="place-number">1</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">2</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">3</td><td></td><td style="text-align:center;"></td></tr>
+                    <tr class="place-1"><td class="place-number">1</td><td></td><td style="text-align:center;"></td></tr>
+                    <tr class="place-2"><td class="place-number">2</td><td></td><td style="text-align:center;"></td></tr>
+                    <tr class="place-3"><td class="place-number">3</td><td></td><td style="text-align:center;"></td></tr>
                     <tr><td class="place-number">4</td><td></td><td style="text-align:center;"></td></tr>
                     <tr><td class="place-number">5</td><td></td><td style="text-align:center;"></td></tr>
                     <tr><td class="place-number">6</td><td></td><td style="text-align:center;"></td></tr>
@@ -434,6 +472,81 @@
 <div id="toast" class="toast"></div>
 
 <script>
+    // ===== Функция для добавления иконок медалей =====
+    function updateMedalIcons() {
+        // Определяем список tbody, которые нужно обработать
+        const tbodyIds = [
+            'tbody-ink-individual',
+            'tbody-ink-team',
+            'tbody-security-individual',
+            'tbody-security-team'
+        ];
+
+        tbodyIds.forEach(id => {
+            const tbody = document.getElementById(id);
+            if (!tbody) return;
+            const rows = tbody.querySelectorAll('tr');
+            rows.forEach(row => {
+                const firstCell = row.querySelector('td:first-child');
+                if (!firstCell) return;
+                // Получаем текст ячейки (может содержать иконки, поэтому берём только цифры)
+                const text = firstCell.textContent.trim();
+                const match = text.match(/\d+/);
+                if (!match) return;
+                const placeNum = parseInt(match[0], 10);
+                // Определяем иконку и цвет
+                let iconHtml = '';
+                if (placeNum === 1) {
+                    iconHtml = '<i class="fas fa-medal medal-icon" style="color: #FFD700;"></i>';
+                } else if (placeNum === 2) {
+                    iconHtml = '<i class="fas fa-medal medal-icon" style="color: #C0C0C0;"></i>';
+                } else if (placeNum === 3) {
+                    iconHtml = '<i class="fas fa-medal medal-icon" style="color: #CD7F32;"></i>';
+                }
+                // Если это призовое место, вставляем иконку + цифру, иначе только цифру
+                if (iconHtml) {
+                    firstCell.innerHTML = iconHtml + ' ' + placeNum;
+                } else {
+                    // Если не призовое, оставляем только число (очищаем от лишнего)
+                    firstCell.innerHTML = placeNum;
+                }
+            });
+        });
+    }
+
+    // ===== Применение классов выделения =====
+    function applyAllHighlights() {
+        const tbodyIds = [
+            'tbody-ink-individual',
+            'tbody-ink-team',
+            'tbody-security-individual',
+            'tbody-security-team'
+        ];
+        tbodyIds.forEach(id => {
+            const tbody = document.getElementById(id);
+            if (!tbody) return;
+            const rows = tbody.querySelectorAll('tr');
+            rows.forEach(row => {
+                row.classList.remove('place-1', 'place-2', 'place-3', 'row-highlight');
+                const firstCell = row.querySelector('td:first-child');
+                if (!firstCell) return;
+                const text = firstCell.textContent.trim();
+                const match = text.match(/\d+/);
+                if (!match) return;
+                const placeNum = parseInt(match[0], 10);
+                if (placeNum >= 1 && placeNum <= 3) {
+                    row.classList.add('place-' + placeNum);
+                }
+            });
+        });
+    }
+
+    // Общая функция обновления внешнего вида таблиц
+    function refreshTableAppearance() {
+        applyAllHighlights();
+        updateMedalIcons();
+    }
+
     // ===== Скачивание Word =====
     function downloadWord() {
         const protocolTitle = document.querySelector('#protocol-content').outerHTML;
@@ -478,6 +591,10 @@
                 .protocol-sub { color: #475569; font-size: 11pt; margin-bottom: 16px; }
                 .footer-note { margin-top: 20px; font-size: 10pt; color: #94a3b8; text-align: right; border-top: 1px dashed #d4dee8; padding-top: 12px; }
                 .section-title .emoji, .section-title span[style] { display: none; }
+                .place-1 td:first-child { font-weight: 800; color: #b8860b; }
+                .place-2 td:first-child { font-weight: 700; color: #6c7a89; }
+                .place-3 td:first-child { font-weight: 700; color: #a0522d; }
+                .medal-icon { margin-right: 4px; }
             </style>
         </head>
         <body>
@@ -569,6 +686,8 @@
                             tbody.appendChild(tr);
                         });
                     }
+                    // Обновляем внешний вид
+                    refreshTableAppearance();
                     showToast('Данные успешно загружены из документа!', 'success');
                 })
                 .catch(err => {
@@ -582,7 +701,6 @@
 
     // ===== Очистка таблиц =====
     function resetTables() {
-        // Конфигурация: [id tbody, количество строк, класс для ячейки "Место", количество колонок]
         const configs = [
             { tbodyId: 'tbody-ink-individual', rows: 3, placeClass: 'col-place', cols: 4 },
             { tbodyId: 'tbody-ink-team', rows: 11, placeClass: 'place-number', cols: 3 },
@@ -596,17 +714,17 @@
             tbody.innerHTML = '';
             for (let i = 1; i <= cfg.rows; i++) {
                 const tr = document.createElement('tr');
+                // Добавляем класс для первых трёх мест
+                if (i <= 3) {
+                    tr.classList.add('place-' + i);
+                }
                 for (let j = 0; j < cfg.cols; j++) {
                     const td = document.createElement('td');
-                    // Для первой колонки (место) добавляем класс и номер
                     if (j === 0) {
                         td.className = cfg.placeClass;
                         td.textContent = i;
-                        // Для командных таблиц (3 колонки) и личных (4 колонки) номер места ставим
                     } else {
-                        // остальные ячейки пустые
                         td.textContent = '';
-                        // если это последняя колонка (результат) — можно выровнять по центру
                         if (j === cfg.cols - 1 && cfg.cols === 3) {
                             td.style.textAlign = 'center';
                         }
@@ -619,9 +737,15 @@
                 tbody.appendChild(tr);
             }
         });
-
+        // Обновляем внешний вид (иконки и выделение)
+        refreshTableAppearance();
         showToast('Таблицы очищены', 'success');
     }
+
+    // ===== Инициализация =====
+    document.addEventListener('DOMContentLoaded', function() {
+        refreshTableAppearance();
+    });
 </script>
 
 </body>
