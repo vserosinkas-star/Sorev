@@ -71,7 +71,7 @@
         <div class="section"><h2>🚔 Командная эстафета (охрана + инкассация)</h2><div class="table-wrapper" id="team-estafeta-common"><div class="loading">Загрузка...</div></div></div>
     </div>
 
-    <!-- Вкладка ОХРАНА -->
+    <!-- Вкладка ОХРАНА (с динамическим командным первенством) -->
     <div id="ohrana-pane" class="tab-pane">
         <div style="text-align: right;"><button id="refreshOhranaBtn" class="refresh-btn">🔄 Обновить данные охраны</button></div>
         <div class="section"><h2>🛡️ Командное первенство (охрана)</h2><div class="table-wrapper" id="team-standings-ohrana"><div class="loading">Загрузка...</div></div><div class="subnote">* При равных значениях суммы мест - приоритетом является результат испытаний по дисциплине "Огневая подготовка".</div></div>
@@ -131,7 +131,7 @@
         return `${getTeamDisplayNameOhrana(code)} (${code})`;
     }
 
-    // Кеш для данных стрельбы
+    // Кеш для данных
     let shootingDataCache = { inkasso: null, ohrana: null };
 
     // ===== ПОЛНАЯ БИБЛИОТЕКА ШТРАФОВ (из estafeta) =====
@@ -395,15 +395,17 @@
     }
 
     // ===== ФУНКЦИЯ ДЛЯ ПОЛУЧЕНИЯ КОМАНДНЫХ МЕСТ ПО СТРЕЛЬБЕ (ТОЛЬКО type === 'team') =====
-    function getShootingPlacesInkasso() {
+    function getShootingPlaces(category, teamCodesList) {
         const places = {};
-        for (let code of teamCodesInkasso) places[code] = 12;
+        for (let code of teamCodesList) places[code] = 12;
         
-        const data = shootingDataCache.inkasso || [];
+        const data = category === 'inkas' ? shootingDataCache.inkasso : shootingDataCache.ohrana;
+        if (!data) return places;
+        
         // Берём только командные записи (type === 'team')
         const teamData = data.filter(row => row.type === 'team' && row.name && row.name.trim() !== '');
         
-        console.log('Командные записи по стрельбе (inkas):', teamData);
+        console.log(`Командные записи по стрельбе (${category}):`, teamData);
         
         for (let row of teamData) {
             let code = null;
@@ -441,7 +443,7 @@
                 if (place < places[code]) places[code] = place;
             }
         }
-        console.log('Итоговые места по стрельбе (inkas):', places);
+        console.log(`Итоговые места по стрельбе (${category}):`, places);
         return places;
     }
 
@@ -450,7 +452,6 @@
         const container = document.getElementById('individual-pistol');
         if (!container) return;
         const data = shootingDataCache.inkasso || [];
-        // Только личные записи (type === 'individual')
         const validData = data.filter(row => 
             row.type === 'individual' && 
             row.name && row.name.trim() !== '' && 
@@ -569,6 +570,79 @@
         container.appendChild(table);
     }
 
+    // ========== ФУНКЦИИ ДЛЯ ПОЛУЧЕНИЯ МЕСТ ПО ВИДАМ (ОХРАНА) ==========
+    
+    // Места по эстафете охраны
+    function getSecurityEstafetaPlaces(data) {
+        const places = {};
+        for (let code of teamCodesOhrana) places[code] = 12;
+        
+        if (!data || data.length === 0) return places;
+        
+        const items = [];
+        for (let row of data) {
+            let total = null;
+            try {
+                const penalties = typeof row.penalties === 'string' ? JSON.parse(row.penalties) : row.penalties;
+                if (penalties && typeof penalties === 'object' && 'team_raw_seconds' in penalties && penalties.team_raw_seconds !== null) {
+                    total = penalties.team_raw_seconds;
+                }
+                if (total === null && row.total_seconds !== null) {
+                    total = row.total_seconds;
+                }
+            } catch(e) {}
+            if (total !== null) {
+                items.push({ code: row.team_code, total });
+            }
+        }
+        
+        items.sort((a,b) => a.total - b.total);
+        let r = 1;
+        for (let item of items) {
+            if (places[item.code] !== undefined) {
+                places[item.code] = r++;
+            }
+        }
+        return places;
+    }
+
+    // Места по служебному двоеборью охраны
+    function getDuathlonPlaces(data) {
+        const places = {};
+        for (let code of teamCodesOhrana) places[code] = 12;
+        
+        if (!data || data.length === 0) return places;
+        
+        const teamsMap = new Map();
+        for (let row of data) {
+            let code = row.team_code === "ЦА" ? "МРД" : row.team_code;
+            if (!teamsMap.has(code)) teamsMap.set(code, []);
+            teamsMap.get(code).push(row);
+        }
+        
+        const items = [];
+        for (let [code, members] of teamsMap.entries()) {
+            let total = null;
+            for (let m of members) {
+                if (m.total_seconds !== null) {
+                    total = total === null ? m.total_seconds : total + m.total_seconds;
+                }
+            }
+            if (total !== null) {
+                items.push({ code, total });
+            }
+        }
+        
+        items.sort((a,b) => a.total - b.total);
+        let r = 1;
+        for (let item of items) {
+            if (places[item.code] !== undefined) {
+                places[item.code] = r++;
+            }
+        }
+        return places;
+    }
+
     // ========== ИНКАССАЦИЯ ==========
     async function renderTeamStandingsInkasso() {
         const container = document.getElementById('team-standings-inkasso');
@@ -579,8 +653,7 @@
                 fetchTriathlonPlaces(),
                 fetchDrivingPlaces()
             ]);
-            // Используем командные места из shooting_results (type === 'team')
-            const shootPlaces = getShootingPlacesInkasso();
+            const shootPlaces = getShootingPlaces('inkas', teamCodesInkasso);
             const standings = [];
             for (let code of teamCodesInkasso) {
                 const est = estPlaces[code] || 12;
@@ -878,42 +951,63 @@
         renderTable('team-estafeta-common', ['Место','Команда','Итоговое время'], rows);
     }
 
-    // ========== ОХРАНА ==========
-    function renderSecurityTeamStandings() {
-        const securityStandings = [
-            { code:"ДВБ", est:1, duathlon:12, shoot:2, total:15 },
-            { code:"ББ", est:12, duathlon:1, shoot:9, total:22 },
-            { code:"УБ", est:12, duathlon:2, shoot:10, total:24 },
-            { code:"СРБ", est:12, duathlon:1, shoot:2, total:25 },
-            { code:"СЗБ", est:12, duathlon:1, shoot:3, total:27 },
-            { code:"ЦЧБ", est:12, duathlon:1, shoot:4, total:28 },
-            { code:"СИБ", est:12, duathlon:1, shoot:5, total:29 },
-            { code:"ПВБ", est:12, duathlon:1, shoot:6, total:30 },
-            { code:"ЮЗБ", est:12, duathlon:1, shoot:7, total:31 },
-            { code:"ВВБ", est:12, duathlon:1, shoot:8, total:32 },
-            { code:"МРД", est:12, duathlon:1, shoot:11, total:36 },
-            { code:"СТБ", est:12, duathlon:12, shoot:12, total:36 }
-        ].sort((a,b) => a.total - b.total);
-        const headers = ['Итоговое место','Команда','Эстафета (охрана)','Служебное двоеборье','Практическая стрельба','Сумма мест'];
-        const rows = [];
-        let rank = 1;
-        for (let s of securityStandings) {
-            const rowClass = getPlaceRowClass(rank);
-            const placeHtml = rank <= 3 ? formatPlaceWithMedal(rank).outerHTML : String(rank);
-            rows.push({
-                className: rowClass,
-                cells: [
-                    { html: placeHtml },
-                    { text: getTeamFullOhrana(s.code) },
-                    { html: `${s.est}${s.est === 12 ? '<span class="plus-place">+</span>' : ''}` },
-                    { html: `${s.duathlon}${s.duathlon === 12 ? '<span class="plus-place">+</span>' : ''}` },
-                    { html: `${s.shoot}${s.shoot === 12 ? '<span class="plus-place">+</span>' : ''}` },
-                    { html: `<strong>${s.total}</strong>` }
-                ]
-            });
-            rank++;
+    // ========== ОХРАНА (С ДИНАМИЧЕСКИМ РАСЧЁТОМ) ==========
+    
+    async function renderTeamStandingsOhrana() {
+        const container = document.getElementById('team-standings-ohrana');
+        container.innerHTML = '<div class="loading">Загрузка...</div>';
+        try {
+            // Загружаем данные из БД
+            const [estRes, duelRes] = await Promise.all([
+                supabase.from('security_estafeta_results').select('team_code, penalties, total_seconds'),
+                supabase.from('service_duathlon_results').select('team_code, participant_number, participant_name, total_seconds')
+            ]);
+            
+            if (estRes.error) throw new Error(`security_estafeta_results: ${estRes.error.message}`);
+            if (duelRes.error) throw new Error(`service_duathlon_results: ${duelRes.error.message}`);
+            
+            // Получаем места по каждому виду
+            const estPlaces = getSecurityEstafetaPlaces(estRes.data);
+            const duelPlaces = getDuathlonPlaces(duelRes.data);
+            const shootPlaces = getShootingPlaces('security', teamCodesOhrana);
+            
+            // Формируем итоговый зачёт
+            const standings = [];
+            for (let code of teamCodesOhrana) {
+                const est = estPlaces[code] || 12;
+                const duel = duelPlaces[code] || 12;
+                const shoot = shootPlaces[code] || 12;
+                const total = est + duel + shoot;
+                standings.push({ code, est, duel, shoot, total });
+            }
+            
+            // Сортировка: по сумме мест, при равенстве - по стрельбе
+            standings.sort((a,b) => a.total !== b.total ? a.total - b.total : a.shoot - b.shoot);
+            
+            const headers = ['Итоговое место', 'Команда', 'Эстафета (охрана)', 'Служебное двоеборье', 'Практическая стрельба', 'Сумма мест'];
+            const rows = [];
+            let rank = 1;
+            for (let s of standings) {
+                const placeDisplay = rank <= 3 ? formatPlaceWithMedal(rank).outerHTML : String(rank);
+                const rowClass = getPlaceRowClass(rank);
+                rows.push({
+                    className: rowClass,
+                    cells: [
+                        { html: placeDisplay },
+                        { text: getTeamFullOhrana(s.code) },
+                        { html: `${s.est}${s.est === 12 ? '<span class="plus-place">+</span>' : ''}` },
+                        { html: `${s.duel}${s.duel === 12 ? '<span class="plus-place">+</span>' : ''}` },
+                        { html: `${s.shoot}${s.shoot === 12 ? '<span class="plus-place">+</span>' : ''}` },
+                        { html: `<strong>${s.total}</strong>` }
+                    ]
+                });
+                rank++;
+            }
+            renderTable('team-standings-ohrana', headers, rows);
+        } catch(e) {
+            console.error(e);
+            container.innerHTML = '<div class="loading">Ошибка загрузки данных</div>';
         }
-        renderTable('team-standings-ohrana', headers, rows);
     }
 
     async function renderSecurityEstafeta() {
@@ -1129,7 +1223,7 @@
     }
 
     async function refreshOhrana() {
-        renderSecurityTeamStandings();
+        await renderTeamStandingsOhrana();
         await renderSecurityEstafeta();
         await renderServiceDuathlon();
         renderTeamEstafetaCommonOhrana();
