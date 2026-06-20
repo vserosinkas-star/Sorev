@@ -524,12 +524,13 @@
         updateMedalIcons();
     }
 
-    // ========== КОНФИГУРАЦИЯ ТАБЛИЦ (русские названия) ==========
+    // ========== КОНФИГУРАЦИЯ ТАБЛИЦ (исправлено: category и type) ==========
+    // Для отображения в UI мы используем русские названия, но в БД храним английские.
     const tableConfigs = [
-        { tbodyId: 'tbody-ink-individual', category: 'Инкассация', type: 'Личное' },
-        { tbodyId: 'tbody-ink-team', category: 'Инкассация', type: 'Командное' },
-        { tbodyId: 'tbody-security-individual', category: 'Охрана', type: 'Личное' },
-        { tbodyId: 'tbody-security-team', category: 'Охрана', type: 'Командное' }
+        { tbodyId: 'tbody-ink-individual', category: 'inkas', type: 'individual', displayType: 'Личное' },
+        { tbodyId: 'tbody-ink-team', category: 'inkas', type: 'team', displayType: 'Командное' },
+        { tbodyId: 'tbody-security-individual', category: 'security', type: 'individual', displayType: 'Личное' },
+        { tbodyId: 'tbody-security-team', category: 'security', type: 'team', displayType: 'Командное' }
     ];
 
     // ========== ЗАГРУЗКА ИЗ SUPABASE ==========
@@ -562,7 +563,7 @@
                 if (!tbody) return;
                 tbody.innerHTML = '';
                 rows.forEach(row => {
-                    const isIndividual = cfg.type === 'Личное';
+                    const isIndividual = cfg.type === 'individual';
                     const cols = isIndividual ? 4 : 3;
                     const tr = document.createElement('tr');
                     for (let i = 0; i < cols; i++) {
@@ -589,7 +590,7 @@
             refreshTableAppearance();
             statusDiv.innerHTML = '<span class="status-badge ok">✅ Данные загружены из Supabase</span>';
         } catch (err) {
-            console.error('Ошибка загрузки из Supabase:', err);
+            console.error('Ошибка загрузки:', err);
             statusDiv.innerHTML = '<span class="status-badge error">❌ Ошибка подключения к БД</span>';
             showToast('Не удалось загрузить данные: ' + err.message, 'error');
         }
@@ -597,10 +598,12 @@
 
     // ========== СОХРАНЕНИЕ В SUPABASE ==========
     async function saveAllDataToSupabase() {
+        console.log('⏳ Начинаем сохранение...');
         const statusDiv = document.getElementById('connectionStatus');
         statusDiv.innerHTML = '<span class="status-badge loading">⏳ Сохранение...</span>';
         try {
             // Собираем данные из всех таблиц
+            console.log('📊 Сбор данных из таблиц...');
             const allRows = [];
             tableConfigs.forEach(cfg => {
                 const tbody = document.getElementById(cfg.tbodyId);
@@ -613,7 +616,7 @@
                     const placeMatch = placeText.match(/\d+/);
                     if (!placeMatch) return;
                     const place = parseInt(placeMatch[0], 10);
-                    const isIndividual = cfg.type === 'Личное';
+                    const isIndividual = cfg.type === 'individual';
                     let name = '', bank = '', result = '';
                     if (isIndividual) {
                         name = cells[1]?.textContent.trim() || '';
@@ -625,8 +628,8 @@
                         result = cells[2]?.textContent.trim() || '';
                     }
                     allRows.push({
-                        category: cfg.category,
-                        type: cfg.type,
+                        category: cfg.category,      // 'inkas' или 'security'
+                        type: cfg.type,              // 'individual' или 'team'
                         place: place,
                         name: name,
                         bank: bank,
@@ -634,15 +637,18 @@
                     });
                 });
             });
+            console.log(`✅ Собрано ${allRows.length} строк для вставки.`);
 
-            // Удаляем старые записи по группам
+            // Удаляем старые записи по группам (используем английские значения)
             const groups = [
-                { category: 'Инкассация', type: 'Личное' },
-                { category: 'Инкассация', type: 'Командное' },
-                { category: 'Охрана', type: 'Личное' },
-                { category: 'Охрана', type: 'Командное' }
+                { category: 'inkas', type: 'individual' },
+                { category: 'inkas', type: 'team' },
+                { category: 'security', type: 'individual' },
+                { category: 'security', type: 'team' }
             ];
+            console.log('🗑️ Удаление старых данных...');
             for (let g of groups) {
+                console.log(`  Удаляем ${g.category}_${g.type}...`);
                 const { error: delError } = await supabaseClient
                     .from('shooting_results')
                     .delete()
@@ -650,21 +656,34 @@
                     .eq('type', g.type);
                 if (delError) {
                     console.warn(`Ошибка удаления для ${g.category}_${g.type}:`, delError);
+                    if (delError.code === '401' || delError.code === '403' || delError.message.includes('permission')) {
+                        throw new Error(`Недостаточно прав для удаления: ${delError.message}`);
+                    }
                 }
             }
+            console.log('✅ Удаление завершено.');
 
             // Вставляем новые
             if (allRows.length > 0) {
+                console.log('📤 Вставка новых данных...');
                 const { error: insError } = await supabaseClient
                     .from('shooting_results')
                     .insert(allRows);
-                if (insError) throw insError;
+                if (insError) {
+                    if (insError.code === '401' || insError.code === '403' || insError.message.includes('permission')) {
+                        throw new Error(`Недостаточно прав для вставки: ${insError.message}`);
+                    }
+                    throw insError;
+                }
+                console.log('✅ Вставка завершена.');
+            } else {
+                console.log('⚠️ Нет данных для вставки.');
             }
 
             showToast('✅ Все данные сохранены в Supabase', 'success');
             statusDiv.innerHTML = '<span class="status-badge ok">✅ Данные сохранены</span>';
         } catch (err) {
-            console.error('Ошибка сохранения:', err);
+            console.error('❌ Ошибка сохранения:', err);
             statusDiv.innerHTML = '<span class="status-badge error">❌ Ошибка сохранения</span>';
             showToast('❌ Ошибка сохранения: ' + err.message, 'error');
         }
@@ -676,10 +695,10 @@
 
         try {
             const groups = [
-                { category: 'Инкассация', type: 'Личное' },
-                { category: 'Инкассация', type: 'Командное' },
-                { category: 'Охрана', type: 'Личное' },
-                { category: 'Охрана', type: 'Командное' }
+                { category: 'inkas', type: 'individual' },
+                { category: 'inkas', type: 'team' },
+                { category: 'security', type: 'individual' },
+                { category: 'security', type: 'team' }
             ];
             for (let g of groups) {
                 const { error: delError } = await supabaseClient
@@ -687,12 +706,10 @@
                     .delete()
                     .eq('category', g.category)
                     .eq('type', g.type);
-                if (delError) {
-                    console.warn(`Ошибка удаления для ${g.category}_${g.type}:`, delError);
-                }
+                if (delError) console.warn(`Ошибка удаления для ${g.category}_${g.type}:`, delError);
             }
 
-            // Очищаем UI
+            // Очищаем UI (создаём пустые строки с номерами мест)
             const configs = [
                 { tbodyId: 'tbody-ink-individual', rows: 3, placeClass: 'col-place', cols: 4 },
                 { tbodyId: 'tbody-ink-team', rows: 11, placeClass: 'place-number', cols: 3 },
