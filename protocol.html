@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Протокол — практическая стрельба</title>
-    <!-- Подключаем mammoth.js для чтения .docx -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js" defer></script>
-    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- Font Awesome для иконок медалей -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
@@ -349,9 +346,7 @@
 <div class="container">
 
     <div class="header">
-        <a href="index.html" class="home-button">
-            🏠 На главную
-        </a>
+        <a href="index.html" class="home-button">🏠 На главную</a>
         <div class="title-wrapper">
             <img src="https://raw.githubusercontent.com/vserosinkas-star/Sorev/main/sheet.png" 
                  alt="Эмблема соревнований" 
@@ -529,13 +524,12 @@
         updateMedalIcons();
     }
 
-    // ========== КОНФИГУРАЦИЯ ТАБЛИЦ ==========
-    // Теперь используем 'category' вместо 'discipline'
+    // ========== КОНФИГУРАЦИЯ ТАБЛИЦ (русские названия) ==========
     const tableConfigs = [
-        { tbodyId: 'tbody-ink-individual', category: 'ink', type: 'individual' },
-        { tbodyId: 'tbody-ink-team', category: 'ink', type: 'team' },
-        { tbodyId: 'tbody-security-individual', category: 'security', type: 'individual' },
-        { tbodyId: 'tbody-security-team', category: 'security', type: 'team' }
+        { tbodyId: 'tbody-ink-individual', category: 'Инкассация', type: 'Личное' },
+        { tbodyId: 'tbody-ink-team', category: 'Инкассация', type: 'Командное' },
+        { tbodyId: 'tbody-security-individual', category: 'Охрана', type: 'Личное' },
+        { tbodyId: 'tbody-security-team', category: 'Охрана', type: 'Командное' }
     ];
 
     // ========== ЗАГРУЗКА ИЗ SUPABASE ==========
@@ -568,7 +562,7 @@
                 if (!tbody) return;
                 tbody.innerHTML = '';
                 rows.forEach(row => {
-                    const isIndividual = cfg.type === 'individual';
+                    const isIndividual = cfg.type === 'Личное';
                     const cols = isIndividual ? 4 : 3;
                     const tr = document.createElement('tr');
                     for (let i = 0; i < cols; i++) {
@@ -619,7 +613,7 @@
                     const placeMatch = placeText.match(/\d+/);
                     if (!placeMatch) return;
                     const place = parseInt(placeMatch[0], 10);
-                    const isIndividual = cfg.type === 'individual';
+                    const isIndividual = cfg.type === 'Личное';
                     let name = '', bank = '', result = '';
                     if (isIndividual) {
                         name = cells[1]?.textContent.trim() || '';
@@ -641,12 +635,12 @@
                 });
             });
 
-            // Удаляем старые записи по группам (используем category)
+            // Удаляем старые записи по группам
             const groups = [
-                { category: 'ink', type: 'individual' },
-                { category: 'ink', type: 'team' },
-                { category: 'security', type: 'individual' },
-                { category: 'security', type: 'team' }
+                { category: 'Инкассация', type: 'Личное' },
+                { category: 'Инкассация', type: 'Командное' },
+                { category: 'Охрана', type: 'Личное' },
+                { category: 'Охрана', type: 'Командное' }
             ];
             for (let g of groups) {
                 const { error: delError } = await supabaseClient
@@ -682,10 +676,10 @@
 
         try {
             const groups = [
-                { category: 'ink', type: 'individual' },
-                { category: 'ink', type: 'team' },
-                { category: 'security', type: 'individual' },
-                { category: 'security', type: 'team' }
+                { category: 'Инкассация', type: 'Личное' },
+                { category: 'Инкассация', type: 'Командное' },
+                { category: 'Охрана', type: 'Личное' },
+                { category: 'Охрана', type: 'Командное' }
             ];
             for (let g of groups) {
                 const { error: delError } = await supabaseClient
