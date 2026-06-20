@@ -6,10 +6,11 @@
     <title>Протокол — практическая стрельба</title>
     <!-- Подключаем mammoth.js для чтения .docx -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js" defer></script>
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Font Awesome для иконок медалей -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* ===== общие стили (как в index.html) ===== */
         * {
             margin: 0;
             padding: 0;
@@ -34,7 +35,6 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             position: relative;
         }
-        /* ===== КНОПКА НА ГЛАВНУЮ (как в lots.html) ===== */
         .home-button {
             position: absolute;
             top: 24px;
@@ -58,7 +58,6 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
-        /* адаптив для мобильных */
         @media (max-width: 780px) {
             .home-button {
                 position: static;
@@ -67,7 +66,6 @@
                 width: fit-content;
             }
         }
-        /* остальные стили */
         .title-wrapper {
             display: flex;
             align-items: center;
@@ -136,8 +134,13 @@
         .btn-clear:hover {
             background: #c62828;
         }
-
-        /* ===== карточки для разделов ===== */
+        .btn-save {
+            background: #1e3a8a;
+            color: white;
+        }
+        .btn-save:hover {
+            background: #1e40af;
+        }
         .section-card {
             background: white;
             border-radius: 28px;
@@ -175,8 +178,6 @@
             padding-left: 14px;
             border-left: 5px solid #f5a623;
         }
-
-        /* ===== таблицы ===== */
         .table-wrap {
             overflow-x: auto;
             border-radius: 16px;
@@ -205,6 +206,10 @@
             color: #1e293b;
             vertical-align: middle;
         }
+        td[contenteditable="true"]:focus {
+            outline: 2px solid #f5a623;
+            background: #fffde7;
+        }
         tr:last-child td {
             border-bottom: none;
         }
@@ -228,8 +233,6 @@
             color: #1e3a5f;
             text-align: center;
         }
-
-        /* ===== ВЫДЕЛЕНИЕ ПРИЗОВЫХ МЕСТ ===== */
         .place-1 {
             background: rgba(232, 184, 122, 0.15);
             border-left: 4px solid #e8b87a;
@@ -254,13 +257,9 @@
             font-weight: 700;
             color: #a0522d;
         }
-
-        /* стиль для иконок медалей */
         .medal-icon {
             margin-right: 4px;
         }
-
-        /* ===== подпись ===== */
         .signature {
             margin-top: 40px;
             padding-top: 20px;
@@ -282,8 +281,26 @@
             padding: 0 6px;
             margin-left: 6px;
         }
-
-        /* ===== адаптив ===== */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .status-badge.ok {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .status-badge.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .status-badge.loading {
+            background: #fed7aa;
+            color: #9b4a0c;
+        }
         @media (max-width: 700px) {
             .header h1 { font-size: 1.4rem; }
             .title-logo { height: 40px; }
@@ -294,7 +311,6 @@
             .button-group { gap: 12px; }
             .signature { flex-direction: column; align-items: flex-start; gap: 12px; }
         }
-
         @media print {
             body { background: #fff; padding: 0.3in; }
             .header { background: #1e3a5f !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -302,8 +318,6 @@
             .section-card { box-shadow: none; border: 1px solid #ccc; }
             th { background: #eef2f7 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
-
-        /* уведомление */
         .toast {
             position: fixed;
             bottom: 30px;
@@ -334,13 +348,10 @@
 <body>
 <div class="container">
 
-    <!-- ===== ШАПКА ===== -->
     <div class="header">
-        <!-- КНОПКА НА ГЛАВНУЮ (как в lots.html) -->
         <a href="index.html" class="home-button">
             🏠 На главную
         </a>
-
         <div class="title-wrapper">
             <img src="https://raw.githubusercontent.com/vserosinkas-star/Sorev/main/sheet.png" 
                  alt="Эмблема соревнований" 
@@ -352,24 +363,26 @@
         <p>Среди работников подразделений инкассации и охраны ПАО Сбербанк</p>
         <p style="font-size: 0.85rem; margin-top: 8px;">Нижний Тагил, 24–25 июня 2026</p>
 
+        <div id="connectionStatus" style="margin-top: 12px;">
+            <span class="status-badge loading">⏳ Проверка подключения...</span>
+        </div>
+
         <div class="button-group">
             <a href="full_results.html" class="btn-participants">📊 Полные итоги</a>
-            <!-- Кнопка "Практическая стрельба" удалена по требованию -->
             <button onclick="downloadWord()" class="btn-participants" style="background:#4CAF50; color:white;">⬇ Скачать протокол (Word)</button>
             <button onclick="document.getElementById('word-upload').click()" class="btn-participants btn-upload">📂 Загрузить из Word</button>
             <input type="file" id="word-upload" accept=".doc,.docx" style="display:none" onchange="handleFileUpload(event)">
+            <button onclick="saveAllDataToSupabase()" class="btn-participants btn-save">💾 Сохранить в БД</button>
             <button onclick="resetTables()" class="btn-participants btn-clear">🗑 Очистить</button>
         </div>
     </div>
 
-    <!-- ============ ИНКАССАЦИЯ ============ -->
+    <!-- ИНКАССАЦИЯ -->
     <div class="section-card" id="section-ink">
         <div class="section-title">
             🚛 Инкассация
             <span class="sub">— личное и командное первенство</span>
         </div>
-
-        <!-- Личное первенство -->
         <div class="subsection-title">Личное первенство</div>
         <div class="table-wrap">
             <table id="table-ink-individual">
@@ -381,15 +394,9 @@
                         <th class="col-result">Результат</th>
                     </tr>
                 </thead>
-                <tbody id="tbody-ink-individual">
-                    <tr class="place-1"><td class="col-place">1</td><td></td><td></td><td class="col-result"></td></tr>
-                    <tr class="place-2"><td class="col-place">2</td><td></td><td></td><td class="col-result"></td></tr>
-                    <tr class="place-3"><td class="col-place">3</td><td></td><td></td><td class="col-result"></td></tr>
-                </tbody>
+                <tbody id="tbody-ink-individual"></tbody>
             </table>
         </div>
-
-        <!-- Командное первенство -->
         <div class="subsection-title">Командное первенство</div>
         <div class="table-wrap">
             <table id="table-ink-team">
@@ -400,31 +407,17 @@
                         <th style="width:30%; text-align:center;">Результат (сумма мест)</th>
                     </tr>
                 </thead>
-                <tbody id="tbody-ink-team">
-                    <tr class="place-1"><td class="place-number">1</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr class="place-2"><td class="place-number">2</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr class="place-3"><td class="place-number">3</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">4</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">5</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">6</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">7</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">8</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">9</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">10</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">11</td><td></td><td style="text-align:center;"></td></tr>
-                </tbody>
+                <tbody id="tbody-ink-team"></tbody>
             </table>
         </div>
     </div>
 
-    <!-- ============ ОХРАНА ============ -->
+    <!-- ОХРАНА -->
     <div class="section-card" id="section-security">
         <div class="section-title">
             🛡️ Охрана
             <span class="sub">— личное и командное первенство</span>
         </div>
-
-        <!-- Личное первенство -->
         <div class="subsection-title">Личное первенство</div>
         <div class="table-wrap">
             <table id="table-security-individual">
@@ -436,15 +429,9 @@
                         <th class="col-result">Результат</th>
                     </tr>
                 </thead>
-                <tbody id="tbody-security-individual">
-                    <tr class="place-1"><td class="col-place">1</td><td></td><td></td><td class="col-result"></td></tr>
-                    <tr class="place-2"><td class="col-place">2</td><td></td><td></td><td class="col-result"></td></tr>
-                    <tr class="place-3"><td class="col-place">3</td><td></td><td></td><td class="col-result"></td></tr>
-                </tbody>
+                <tbody id="tbody-security-individual"></tbody>
             </table>
         </div>
-
-        <!-- Командное первенство -->
         <div class="subsection-title">Командное первенство</div>
         <div class="table-wrap">
             <table id="table-security-team">
@@ -455,25 +442,11 @@
                         <th style="width:30%; text-align:center;">Результат (сумма мест)</th>
                     </tr>
                 </thead>
-                <tbody id="tbody-security-team">
-                    <tr class="place-1"><td class="place-number">1</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr class="place-2"><td class="place-number">2</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr class="place-3"><td class="place-number">3</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">4</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">5</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">6</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">7</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">8</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">9</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">10</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">11</td><td></td><td style="text-align:center;"></td></tr>
-                    <tr><td class="place-number">12</td><td></td><td style="text-align:center;"></td></tr>
-                </tbody>
+                <tbody id="tbody-security-team"></tbody>
             </table>
         </div>
     </div>
 
-    <!-- ===== ПОДПИСЬ ===== -->
     <div class="signature" id="signature-block">
         <div>
             <span class="judge">Главный судья по практической стрельбе А.В. Ермолаев</span>
@@ -485,16 +458,20 @@
     </div>
 
     <div style="margin-top: 24px; font-size: 0.85rem; color: #94a3b8; text-align: right; border-top: 1px dashed #d4dee8; padding-top: 16px;">
-        Протокол официальный · места для заполнения
+        Протокол официальный · данные синхронизированы с базой
     </div>
 
 </div>
 
-<!-- Toast уведомление -->
 <div id="toast" class="toast"></div>
 
 <script>
-    // ===== Функция для добавления иконок медалей =====
+    // ========== SUPABASE ==========
+    const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
     function updateMedalIcons() {
         const tbodyIds = [
             'tbody-ink-individual',
@@ -502,7 +479,6 @@
             'tbody-security-individual',
             'tbody-security-team'
         ];
-
         tbodyIds.forEach(id => {
             const tbody = document.getElementById(id);
             if (!tbody) return;
@@ -515,18 +491,11 @@
                 if (!match) return;
                 const placeNum = parseInt(match[0], 10);
                 let iconHtml = '';
-                if (placeNum === 1) {
-                    iconHtml = '<i class="fas fa-medal medal-icon" style="color: #FFD700;"></i>';
-                } else if (placeNum === 2) {
-                    iconHtml = '<i class="fas fa-medal medal-icon" style="color: #C0C0C0;"></i>';
-                } else if (placeNum === 3) {
-                    iconHtml = '<i class="fas fa-medal medal-icon" style="color: #CD7F32;"></i>';
-                }
-                if (iconHtml) {
-                    firstCell.innerHTML = iconHtml + ' ' + placeNum;
-                } else {
-                    firstCell.innerHTML = placeNum;
-                }
+                if (placeNum === 1) iconHtml = '<i class="fas fa-medal medal-icon" style="color: #FFD700;"></i>';
+                else if (placeNum === 2) iconHtml = '<i class="fas fa-medal medal-icon" style="color: #C0C0C0;"></i>';
+                else if (placeNum === 3) iconHtml = '<i class="fas fa-medal medal-icon" style="color: #CD7F32;"></i>';
+                if (iconHtml) firstCell.innerHTML = iconHtml + ' ' + placeNum;
+                else firstCell.innerHTML = placeNum;
             });
         });
     }
@@ -543,16 +512,14 @@
             if (!tbody) return;
             const rows = tbody.querySelectorAll('tr');
             rows.forEach(row => {
-                row.classList.remove('place-1', 'place-2', 'place-3', 'row-highlight');
+                row.classList.remove('place-1', 'place-2', 'place-3');
                 const firstCell = row.querySelector('td:first-child');
                 if (!firstCell) return;
                 const text = firstCell.textContent.trim();
                 const match = text.match(/\d+/);
                 if (!match) return;
                 const placeNum = parseInt(match[0], 10);
-                if (placeNum >= 1 && placeNum <= 3) {
-                    row.classList.add('place-' + placeNum);
-                }
+                if (placeNum >= 1 && placeNum <= 3) row.classList.add('place-' + placeNum);
             });
         });
     }
@@ -562,9 +529,295 @@
         updateMedalIcons();
     }
 
-    // ===== Скачивание Word =====
+    // ========== КОНФИГУРАЦИЯ ТАБЛИЦ ==========
+    // Теперь используем 'category' вместо 'discipline'
+    const tableConfigs = [
+        { tbodyId: 'tbody-ink-individual', category: 'ink', type: 'individual' },
+        { tbodyId: 'tbody-ink-team', category: 'ink', type: 'team' },
+        { tbodyId: 'tbody-security-individual', category: 'security', type: 'individual' },
+        { tbodyId: 'tbody-security-team', category: 'security', type: 'team' }
+    ];
+
+    // ========== ЗАГРУЗКА ИЗ SUPABASE ==========
+    async function loadDataFromSupabase() {
+        const statusDiv = document.getElementById('connectionStatus');
+        statusDiv.innerHTML = '<span class="status-badge loading">⏳ Загрузка данных...</span>';
+        try {
+            const { data, error } = await supabaseClient
+                .from('shooting_results')
+                .select('*')
+                .order('place', { ascending: true });
+            if (error) throw error;
+
+            tableConfigs.forEach(cfg => {
+                const tbody = document.getElementById(cfg.tbodyId);
+                if (tbody) tbody.innerHTML = '';
+            });
+
+            const groups = {};
+            data.forEach(row => {
+                const key = row.category + '_' + row.type;
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(row);
+            });
+
+            tableConfigs.forEach(cfg => {
+                const key = cfg.category + '_' + cfg.type;
+                const rows = groups[key] || [];
+                const tbody = document.getElementById(cfg.tbodyId);
+                if (!tbody) return;
+                tbody.innerHTML = '';
+                rows.forEach(row => {
+                    const isIndividual = cfg.type === 'individual';
+                    const cols = isIndividual ? 4 : 3;
+                    const tr = document.createElement('tr');
+                    for (let i = 0; i < cols; i++) {
+                        const td = document.createElement('td');
+                        td.contentEditable = (i > 0);
+                        if (i === 0) {
+                            td.className = isIndividual ? 'col-place' : 'place-number';
+                            td.contentEditable = false;
+                            td.textContent = row.place;
+                        } else if (i === 1) {
+                            td.textContent = row.name || '';
+                        } else if (i === 2) {
+                            td.textContent = row.bank || '';
+                        } else if (i === 3) {
+                            td.className = 'col-result';
+                            td.textContent = row.result || '';
+                        }
+                        tr.appendChild(td);
+                    }
+                    tbody.appendChild(tr);
+                });
+            });
+
+            refreshTableAppearance();
+            statusDiv.innerHTML = '<span class="status-badge ok">✅ Данные загружены из Supabase</span>';
+        } catch (err) {
+            console.error('Ошибка загрузки из Supabase:', err);
+            statusDiv.innerHTML = '<span class="status-badge error">❌ Ошибка подключения к БД</span>';
+            showToast('Не удалось загрузить данные: ' + err.message, 'error');
+        }
+    }
+
+    // ========== СОХРАНЕНИЕ В SUPABASE ==========
+    async function saveAllDataToSupabase() {
+        const statusDiv = document.getElementById('connectionStatus');
+        statusDiv.innerHTML = '<span class="status-badge loading">⏳ Сохранение...</span>';
+        try {
+            // Собираем данные из всех таблиц
+            const allRows = [];
+            tableConfigs.forEach(cfg => {
+                const tbody = document.getElementById(cfg.tbodyId);
+                if (!tbody) return;
+                const rows = tbody.querySelectorAll('tr');
+                rows.forEach(tr => {
+                    const cells = tr.querySelectorAll('td');
+                    if (cells.length === 0) return;
+                    const placeText = cells[0].textContent.trim();
+                    const placeMatch = placeText.match(/\d+/);
+                    if (!placeMatch) return;
+                    const place = parseInt(placeMatch[0], 10);
+                    const isIndividual = cfg.type === 'individual';
+                    let name = '', bank = '', result = '';
+                    if (isIndividual) {
+                        name = cells[1]?.textContent.trim() || '';
+                        bank = cells[2]?.textContent.trim() || '';
+                        result = cells[3]?.textContent.trim() || '';
+                    } else {
+                        name = cells[1]?.textContent.trim() || '';
+                        bank = '';
+                        result = cells[2]?.textContent.trim() || '';
+                    }
+                    allRows.push({
+                        category: cfg.category,
+                        type: cfg.type,
+                        place: place,
+                        name: name,
+                        bank: bank,
+                        result: result
+                    });
+                });
+            });
+
+            // Удаляем старые записи по группам (используем category)
+            const groups = [
+                { category: 'ink', type: 'individual' },
+                { category: 'ink', type: 'team' },
+                { category: 'security', type: 'individual' },
+                { category: 'security', type: 'team' }
+            ];
+            for (let g of groups) {
+                const { error: delError } = await supabaseClient
+                    .from('shooting_results')
+                    .delete()
+                    .eq('category', g.category)
+                    .eq('type', g.type);
+                if (delError) {
+                    console.warn(`Ошибка удаления для ${g.category}_${g.type}:`, delError);
+                }
+            }
+
+            // Вставляем новые
+            if (allRows.length > 0) {
+                const { error: insError } = await supabaseClient
+                    .from('shooting_results')
+                    .insert(allRows);
+                if (insError) throw insError;
+            }
+
+            showToast('✅ Все данные сохранены в Supabase', 'success');
+            statusDiv.innerHTML = '<span class="status-badge ok">✅ Данные сохранены</span>';
+        } catch (err) {
+            console.error('Ошибка сохранения:', err);
+            statusDiv.innerHTML = '<span class="status-badge error">❌ Ошибка сохранения</span>';
+            showToast('❌ Ошибка сохранения: ' + err.message, 'error');
+        }
+    }
+
+    // ========== ОЧИСТКА ==========
+    async function resetTables() {
+        if (!confirm('Вы уверены, что хотите очистить все данные протокола? Это действие необратимо.')) return;
+
+        try {
+            const groups = [
+                { category: 'ink', type: 'individual' },
+                { category: 'ink', type: 'team' },
+                { category: 'security', type: 'individual' },
+                { category: 'security', type: 'team' }
+            ];
+            for (let g of groups) {
+                const { error: delError } = await supabaseClient
+                    .from('shooting_results')
+                    .delete()
+                    .eq('category', g.category)
+                    .eq('type', g.type);
+                if (delError) {
+                    console.warn(`Ошибка удаления для ${g.category}_${g.type}:`, delError);
+                }
+            }
+
+            // Очищаем UI
+            const configs = [
+                { tbodyId: 'tbody-ink-individual', rows: 3, placeClass: 'col-place', cols: 4 },
+                { tbodyId: 'tbody-ink-team', rows: 11, placeClass: 'place-number', cols: 3 },
+                { tbodyId: 'tbody-security-individual', rows: 3, placeClass: 'col-place', cols: 4 },
+                { tbodyId: 'tbody-security-team', rows: 12, placeClass: 'place-number', cols: 3 }
+            ];
+
+            configs.forEach(cfg => {
+                const tbody = document.getElementById(cfg.tbodyId);
+                if (!tbody) return;
+                tbody.innerHTML = '';
+                for (let i = 1; i <= cfg.rows; i++) {
+                    const tr = document.createElement('tr');
+                    if (i <= 3) tr.classList.add('place-' + i);
+                    for (let j = 0; j < cfg.cols; j++) {
+                        const td = document.createElement('td');
+                        td.contentEditable = (j > 0);
+                        if (j === 0) {
+                            td.className = cfg.placeClass;
+                            td.contentEditable = false;
+                            td.textContent = i;
+                        } else {
+                            td.textContent = '';
+                            if (j === cfg.cols - 1 && cfg.cols === 3) td.style.textAlign = 'center';
+                            if (j === cfg.cols - 1 && cfg.cols === 4) td.className = 'col-result';
+                        }
+                        tr.appendChild(td);
+                    }
+                    tbody.appendChild(tr);
+                }
+            });
+
+            refreshTableAppearance();
+            showToast('🗑️ Все данные очищены', 'success');
+            document.getElementById('connectionStatus').innerHTML = '<span class="status-badge ok">✅ Данные очищены</span>';
+        } catch (err) {
+            console.error(err);
+            showToast('Ошибка очистки: ' + err.message, 'error');
+        }
+    }
+
+    // ========== ЗАГРУЗКА ИЗ WORD ==========
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (ext !== 'docx' && ext !== 'doc') {
+            showToast('Пожалуйста, выберите файл .docx или .doc', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            const arrayBuffer = e.target.result;
+            try {
+                const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+                const html = result.value;
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = html;
+                const tables = tempDiv.querySelectorAll('table');
+                if (tables.length < 4) {
+                    showToast('В документе не найдено 4 таблиц. Проверьте структуру.', 'error');
+                    return;
+                }
+
+                const tbodyIds = [
+                    'tbody-ink-individual',
+                    'tbody-ink-team',
+                    'tbody-security-individual',
+                    'tbody-security-team'
+                ];
+
+                for (let i = 0; i < Math.min(tables.length, 4); i++) {
+                    const docTable = tables[i];
+                    const rows = docTable.querySelectorAll('tr');
+                    const dataRows = Array.from(rows).slice(1);
+                    const tbody = document.getElementById(tbodyIds[i]);
+                    if (!tbody) continue;
+
+                    tbody.innerHTML = '';
+                    dataRows.forEach(row => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length === 0) return;
+                        const tr = document.createElement('tr');
+                        cells.forEach((cell, idx) => {
+                            const td = document.createElement('td');
+                            td.contentEditable = (idx > 0);
+                            if (cell.className) td.className = cell.className;
+                            if (cell.style.textAlign) td.style.textAlign = cell.style.textAlign;
+                            td.innerHTML = cell.innerHTML;
+                            tr.appendChild(td);
+                        });
+                        const neededCols = (i === 0 || i === 2) ? 4 : 3;
+                        while (tr.children.length < neededCols) {
+                            const td = document.createElement('td');
+                            td.contentEditable = true;
+                            tr.appendChild(td);
+                        }
+                        const firstTd = tr.querySelector('td:first-child');
+                        if (firstTd) firstTd.contentEditable = false;
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                refreshTableAppearance();
+                await saveAllDataToSupabase();
+                showToast('Данные успешно загружены из документа и сохранены!', 'success');
+            } catch (err) {
+                console.error(err);
+                showToast('Ошибка при обработке файла: ' + err.message, 'error');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+        event.target.value = '';
+    }
+
+    // ========== СКАЧИВАНИЕ WORD ==========
     function downloadWord() {
-        // Заголовок для Word создаём отдельно, так как на странице его нет
         const protocolTitleHtml = `
             <h2 style="font-size: 22pt; color: #0f2b44; margin-bottom: 4px;">Итоговый протокол</h2>
             <p style="color: #475569; font-size: 14pt;">Соревнования по практической стрельбе — личное и командное первенство</p>
@@ -636,7 +889,7 @@
         URL.revokeObjectURL(link.href);
     }
 
-    // ===== Загрузка из Word =====
+    // ========== TOAST ==========
     function showToast(message, type = 'info') {
         const toast = document.getElementById('toast');
         toast.textContent = message;
@@ -645,120 +898,9 @@
         setTimeout(() => toast.classList.remove('show'), 4000);
     }
 
-    function handleFileUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        const ext = file.name.split('.').pop().toLowerCase();
-        if (ext !== 'docx' && ext !== 'doc') {
-            showToast('Пожалуйста, выберите файл .docx или .doc', 'error');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const arrayBuffer = e.target.result;
-            mammoth.convertToHtml({ arrayBuffer: arrayBuffer })
-                .then(result => {
-                    const html = result.value;
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = html;
-                    const tables = tempDiv.querySelectorAll('table');
-                    if (tables.length < 4) {
-                        showToast('В документе не найдено 4 таблиц. Проверьте структуру.', 'error');
-                        return;
-                    }
-
-                    const tbodyIds = [
-                        'tbody-ink-individual',
-                        'tbody-ink-team',
-                        'tbody-security-individual',
-                        'tbody-security-team'
-                    ];
-
-                    for (let i = 0; i < Math.min(tables.length, 4); i++) {
-                        const docTable = tables[i];
-                        const rows = docTable.querySelectorAll('tr');
-                        const dataRows = Array.from(rows).slice(1);
-                        const tbody = document.getElementById(tbodyIds[i]);
-                        if (!tbody) continue;
-
-                        tbody.innerHTML = '';
-                        dataRows.forEach(row => {
-                            const cells = row.querySelectorAll('td');
-                            if (cells.length === 0) return;
-                            const tr = document.createElement('tr');
-                            cells.forEach(cell => {
-                                const td = document.createElement('td');
-                                if (cell.className) td.className = cell.className;
-                                if (cell.style.textAlign) td.style.textAlign = cell.style.textAlign;
-                                td.innerHTML = cell.innerHTML;
-                                tr.appendChild(td);
-                            });
-                            const neededCols = (i === 0 || i === 2) ? 4 : 3;
-                            while (tr.children.length < neededCols) {
-                                const td = document.createElement('td');
-                                tr.appendChild(td);
-                            }
-                            tbody.appendChild(tr);
-                        });
-                    }
-                    refreshTableAppearance();
-                    showToast('Данные успешно загружены из документа!', 'success');
-                })
-                .catch(err => {
-                    console.error(err);
-                    showToast('Ошибка при чтении файла: ' + err.message, 'error');
-                });
-        };
-        reader.readAsArrayBuffer(file);
-        event.target.value = '';
-    }
-
-    // ===== Очистка таблиц =====
-    function resetTables() {
-        const configs = [
-            { tbodyId: 'tbody-ink-individual', rows: 3, placeClass: 'col-place', cols: 4 },
-            { tbodyId: 'tbody-ink-team', rows: 11, placeClass: 'place-number', cols: 3 },
-            { tbodyId: 'tbody-security-individual', rows: 3, placeClass: 'col-place', cols: 4 },
-            { tbodyId: 'tbody-security-team', rows: 12, placeClass: 'place-number', cols: 3 }
-        ];
-
-        configs.forEach(cfg => {
-            const tbody = document.getElementById(cfg.tbodyId);
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            for (let i = 1; i <= cfg.rows; i++) {
-                const tr = document.createElement('tr');
-                if (i <= 3) {
-                    tr.classList.add('place-' + i);
-                }
-                for (let j = 0; j < cfg.cols; j++) {
-                    const td = document.createElement('td');
-                    if (j === 0) {
-                        td.className = cfg.placeClass;
-                        td.textContent = i;
-                    } else {
-                        td.textContent = '';
-                        if (j === cfg.cols - 1 && cfg.cols === 3) {
-                            td.style.textAlign = 'center';
-                        }
-                        if (j === cfg.cols - 1 && cfg.cols === 4) {
-                            td.className = 'col-result';
-                        }
-                    }
-                    tr.appendChild(td);
-                }
-                tbody.appendChild(tr);
-            }
-        });
-        refreshTableAppearance();
-        showToast('Таблицы очищены', 'success');
-    }
-
-    // ===== Инициализация =====
-    document.addEventListener('DOMContentLoaded', function() {
-        refreshTableAppearance();
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    document.addEventListener('DOMContentLoaded', async function() {
+        await loadDataFromSupabase();
     });
 </script>
 
