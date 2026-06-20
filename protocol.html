@@ -34,6 +34,40 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             position: relative;
         }
+        /* ===== КНОПКА НА ГЛАВНУЮ (как в lots.html) ===== */
+        .home-button {
+            position: absolute;
+            top: 24px;
+            left: 28px;
+            background: rgba(255,255,240,0.2);
+            backdrop-filter: blur(4px);
+            padding: 8px 18px;
+            border-radius: 40px;
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,200,0.3);
+        }
+        .home-button:hover {
+            background: rgba(255,255,240,0.35);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+        /* адаптив для мобильных */
+        @media (max-width: 780px) {
+            .home-button {
+                position: static;
+                display: inline-flex;
+                margin-bottom: 16px;
+                width: fit-content;
+            }
+        }
+        /* остальные стили */
         .title-wrapper {
             display: flex;
             align-items: center;
@@ -302,6 +336,11 @@
 
     <!-- ===== ШАПКА ===== -->
     <div class="header">
+        <!-- КНОПКА НА ГЛАВНУЮ (как в lots.html) -->
+        <a href="index.html" class="home-button">
+            🏠 На главную
+        </a>
+
         <div class="title-wrapper">
             <img src="https://raw.githubusercontent.com/vserosinkas-star/Sorev/main/sheet.png" 
                  alt="Эмблема соревнований" 
@@ -314,9 +353,8 @@
         <p style="font-size: 0.85rem; margin-top: 8px;">Нижний Тагил, 24–25 июня 2026</p>
 
         <div class="button-group">
-            <a href="index.html" class="btn-participants">🏠 На главную</a>
             <a href="full_results.html" class="btn-participants">📊 Полные итоги</a>
-            <a href="practical_shooting.html" class="btn-participants">🎯 Практическая стрельба</a>
+            <!-- Кнопка "Практическая стрельба" удалена по требованию -->
             <button onclick="downloadWord()" class="btn-participants" style="background:#4CAF50; color:white;">⬇ Скачать протокол (Word)</button>
             <button onclick="document.getElementById('word-upload').click()" class="btn-participants btn-upload">📂 Загрузить из Word</button>
             <input type="file" id="word-upload" accept=".doc,.docx" style="display:none" onchange="handleFileUpload(event)">
