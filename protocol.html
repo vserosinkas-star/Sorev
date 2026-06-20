@@ -8,339 +8,83 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        /* Стили остаются без изменений */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: system-ui, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-        }
-        body {
-            background: #f0f4f8;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f0f4f8; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
         .header {
             background: linear-gradient(135deg, #1e3a5f 0%, #0f2b44 100%);
-            color: white;
-            padding: 30px 20px;
-            border-radius: 32px;
-            margin-bottom: 30px;
-            text-align: center;
+            color: white; padding: 30px 20px; border-radius: 32px;
+            margin-bottom: 30px; text-align: center;
             box-shadow: 0 8px 20px rgba(0,0,0,0.15);
             position: relative;
         }
         .home-button {
-            position: absolute;
-            top: 24px;
-            left: 28px;
-            background: rgba(255,255,240,0.2);
-            backdrop-filter: blur(4px);
-            padding: 8px 18px;
-            border-radius: 40px;
-            text-decoration: none;
-            color: white;
-            font-weight: 600;
-            font-size: 0.9rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+            position: absolute; top: 24px; left: 28px;
+            background: rgba(255,255,240,0.2); backdrop-filter: blur(4px);
+            padding: 8px 18px; border-radius: 40px;
+            text-decoration: none; color: white;
+            font-weight: 600; font-size: 0.9rem;
+            display: inline-flex; align-items: center; gap: 8px;
             transition: all 0.2s;
             border: 1px solid rgba(255,255,200,0.3);
         }
-        .home-button:hover {
-            background: rgba(255,255,240,0.35);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        }
-        @media (max-width: 780px) {
-            .home-button {
-                position: static;
-                display: inline-flex;
-                margin-bottom: 16px;
-                width: fit-content;
-            }
-        }
-        .title-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-bottom: 8px;
-        }
-        .title-logo {
-            height: 60px;
-            width: auto;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
-            border-radius: 12px;
-            background: rgba(255,255,255,0.1);
-            padding: 4px 8px;
-            transition: transform 0.2s;
-        }
-        .title-logo:hover {
-            transform: scale(1.02);
-        }
-        .header h1 {
-            font-size: 1.8rem;
-            line-height: 1.2;
-        }
-        .header p {
-            opacity: 0.9;
-            font-size: 1rem;
-        }
+        .home-button:hover { background: rgba(255,255,240,0.35); transform: translateY(-2px); }
+        @media (max-width: 780px) { .home-button { position: static; display: inline-flex; margin-bottom: 16px; width: fit-content; } }
+        .title-wrapper { display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 8px; }
+        .title-logo { height: 60px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); border-radius: 12px; background: rgba(255,255,255,0.1); padding: 4px 8px; transition: transform 0.2s; }
+        .title-logo:hover { transform: scale(1.02); }
+        .header h1 { font-size: 1.8rem; line-height: 1.2; }
+        .header p { opacity: 0.9; font-size: 1rem; }
         .btn-participants {
-            display: inline-block;
-            background: #f5a623;
-            color: #1e3a5f;
-            text-decoration: none;
-            padding: 10px 28px;
-            border-radius: 40px;
-            font-weight: bold;
-            transition: all 0.2s;
+            display: inline-block; background: #f5a623; color: #1e3a5f;
+            text-decoration: none; padding: 10px 28px; border-radius: 40px;
+            font-weight: bold; transition: all 0.2s;
             box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            border: none;
-            font-size: 0.9rem;
-            cursor: pointer;
+            border: none; font-size: 0.9rem; cursor: pointer;
         }
-        .btn-participants:hover {
-            background: #ffb83b;
-            transform: scale(1.02);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-        }
-        .button-group {
-            display: flex;
-            gap: 16px;
-            justify-content: center;
-            margin-top: 16px;
-            flex-wrap: wrap;
-        }
-        .btn-upload {
-            background: #2e7d32;
-            color: white;
-        }
-        .btn-upload:hover {
-            background: #388e3c;
-        }
-        .btn-clear {
-            background: #b71c1c;
-            color: white;
-        }
-        .btn-clear:hover {
-            background: #c62828;
-        }
-        .btn-save {
-            background: #1e3a8a;
-            color: white;
-        }
-        .btn-save:hover {
-            background: #1e40af;
-        }
-        .section-card {
-            background: white;
-            border-radius: 28px;
-            padding: 24px 24px 28px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            margin-bottom: 32px;
-            transition: box-shadow 0.2s;
-        }
-        .section-card:hover {
-            box-shadow: 0 12px 24px rgba(0,0,0,0.10);
-        }
-        .section-title {
-            font-size: 1.8rem;
-            font-weight: 600;
-            color: #0f2b44;
-            border-bottom: 3px solid #f5a623;
-            padding-bottom: 12px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .section-title .sub {
-            font-size: 1.1rem;
-            font-weight: 400;
-            color: #475569;
-            margin-left: 6px;
-        }
-        .subsection-title {
-            font-size: 1.3rem;
-            font-weight: 500;
-            color: #1e3a5f;
-            margin: 24px 0 14px 0;
-            padding-left: 14px;
-            border-left: 5px solid #f5a623;
-        }
-        .table-wrap {
-            overflow-x: auto;
-            border-radius: 16px;
-            border: 1px solid #e2e8f0;
-            background: #fafcff;
-            margin-bottom: 6px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.95rem;
-            min-width: 600px;
-        }
-        th {
-            background: #eef2f7;
-            color: #1e3a5f;
-            font-weight: 600;
-            padding: 14px 12px;
-            border-bottom: 2px solid #cbd5e1;
-            text-align: left;
-            white-space: nowrap;
-        }
-        td {
-            padding: 13px 12px;
-            border-bottom: 1px solid #e9edf2;
-            color: #1e293b;
-            vertical-align: middle;
-        }
-        td[contenteditable="true"]:focus {
-            outline: 2px solid #f5a623;
-            background: #fffde7;
-        }
-        tr:last-child td {
-            border-bottom: none;
-        }
-        .col-place {
-            width: 10%;
-            text-align: center;
-            font-weight: 500;
-        }
-        .col-name {
-            width: 28%;
-        }
-        .col-bank {
-            width: 35%;
-        }
-        .col-result {
-            width: 27%;
-            text-align: center;
-        }
-        .place-number {
-            font-weight: 500;
-            color: #1e3a5f;
-            text-align: center;
-        }
-        .place-1 {
-            background: rgba(232, 184, 122, 0.15);
-            border-left: 4px solid #e8b87a;
-        }
-        .place-1 td:first-child {
-            font-weight: 800;
-            color: #b8860b;
-        }
-        .place-2 {
-            background: rgba(192, 192, 192, 0.10);
-            border-left: 4px solid #c0c0c0;
-        }
-        .place-2 td:first-child {
-            font-weight: 700;
-            color: #6c7a89;
-        }
-        .place-3 {
-            background: rgba(205, 127, 50, 0.10);
-            border-left: 4px solid #cd7f32;
-        }
-        .place-3 td:first-child {
-            font-weight: 700;
-            color: #a0522d;
-        }
-        .medal-icon {
-            margin-right: 4px;
-        }
-        .signature {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 2px solid #e2e8f0;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: flex-end;
-            font-size: 1rem;
-            color: #1e293b;
-        }
-        .signature .judge {
-            font-weight: 500;
-        }
-        .signature .date-line {
-            display: inline-block;
-            min-width: 140px;
-            border-bottom: 2px solid #1e3a5f;
-            padding: 0 6px;
-            margin-left: 6px;
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 4px 14px;
-            border-radius: 30px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            margin-top: 8px;
-        }
-        .status-badge.ok {
-            background: #dcfce7;
-            color: #166534;
-        }
-        .status-badge.error {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        .status-badge.loading {
-            background: #fed7aa;
-            color: #9b4a0c;
-        }
-        @media (max-width: 700px) {
-            .header h1 { font-size: 1.4rem; }
-            .title-logo { height: 40px; }
-            .section-title { font-size: 1.4rem; }
-            .subsection-title { font-size: 1.1rem; }
-            table { font-size: 0.85rem; min-width: 480px; }
-            th, td { padding: 10px 8px; }
-            .button-group { gap: 12px; }
-            .signature { flex-direction: column; align-items: flex-start; gap: 12px; }
-        }
-        @media print {
-            body { background: #fff; padding: 0.3in; }
-            .header { background: #1e3a5f !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .btn-participants { display: none; }
-            .section-card { box-shadow: none; border: 1px solid #ccc; }
-            th { background: #eef2f7 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-        }
-        .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1e3a5f;
-            color: white;
-            padding: 14px 28px;
-            border-radius: 40px;
-            font-weight: 500;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-            opacity: 0;
-            transition: opacity 0.4s;
-            pointer-events: none;
-            z-index: 999;
-        }
-        .toast.show {
-            opacity: 1;
-        }
-        .toast.error {
-            background: #c62828;
-        }
-        .toast.success {
-            background: #2e7d32;
-        }
+        .btn-participants:hover { background: #ffb83b; transform: scale(1.02); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+        .button-group { display: flex; gap: 16px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+        .btn-upload { background: #2e7d32; color: white; }
+        .btn-upload:hover { background: #388e3c; }
+        .btn-clear { background: #b71c1c; color: white; }
+        .btn-clear:hover { background: #c62828; }
+        .btn-save { background: #1e3a8a; color: white; }
+        .btn-save:hover { background: #1e40af; }
+        .section-card { background: white; border-radius: 28px; padding: 24px 24px 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); margin-bottom: 32px; }
+        .section-title { font-size: 1.8rem; font-weight: 600; color: #0f2b44; border-bottom: 3px solid #f5a623; padding-bottom: 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .section-title .sub { font-size: 1.1rem; font-weight: 400; color: #475569; margin-left: 6px; }
+        .subsection-title { font-size: 1.3rem; font-weight: 500; color: #1e3a5f; margin: 24px 0 14px 0; padding-left: 14px; border-left: 5px solid #f5a623; }
+        .table-wrap { overflow-x: auto; border-radius: 16px; border: 1px solid #e2e8f0; background: #fafcff; margin-bottom: 6px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; min-width: 600px; }
+        th { background: #eef2f7; color: #1e3a5f; font-weight: 600; padding: 14px 12px; border-bottom: 2px solid #cbd5e1; text-align: left; white-space: nowrap; }
+        td { padding: 13px 12px; border-bottom: 1px solid #e9edf2; color: #1e293b; vertical-align: middle; }
+        td[contenteditable="true"]:focus { outline: 2px solid #f5a623; background: #fffde7; }
+        tr:last-child td { border-bottom: none; }
+        .col-place { width: 10%; text-align: center; font-weight: 500; }
+        .col-name { width: 28%; }
+        .col-bank { width: 35%; }
+        .col-result { width: 27%; text-align: center; }
+        .place-number { font-weight: 500; color: #1e3a5f; text-align: center; }
+        .place-1 { background: rgba(232, 184, 122, 0.15); border-left: 4px solid #e8b87a; }
+        .place-1 td:first-child { font-weight: 800; color: #b8860b; }
+        .place-2 { background: rgba(192, 192, 192, 0.10); border-left: 4px solid #c0c0c0; }
+        .place-2 td:first-child { font-weight: 700; color: #6c7a89; }
+        .place-3 { background: rgba(205, 127, 50, 0.10); border-left: 4px solid #cd7f32; }
+        .place-3 td:first-child { font-weight: 700; color: #a0522d; }
+        .medal-icon { margin-right: 4px; }
+        .signature { margin-top: 40px; padding-top: 20px; border-top: 2px solid #e2e8f0; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; font-size: 1rem; color: #1e293b; }
+        .signature .judge { font-weight: 500; }
+        .signature .date-line { display: inline-block; min-width: 140px; border-bottom: 2px solid #1e3a5f; padding: 0 6px; margin-left: 6px; }
+        .status-badge { display: inline-block; padding: 4px 14px; border-radius: 30px; font-size: 0.8rem; font-weight: 600; margin-top: 8px; }
+        .status-badge.ok { background: #dcfce7; color: #166534; }
+        .status-badge.error { background: #fee2e2; color: #991b1b; }
+        .status-badge.loading { background: #fed7aa; color: #9b4a0c; }
+        @media (max-width: 700px) { .header h1 { font-size: 1.4rem; } .title-logo { height: 40px; } .section-title { font-size: 1.4rem; } .subsection-title { font-size: 1.1rem; } table { font-size: 0.85rem; min-width: 480px; } th, td { padding: 10px 8px; } .button-group { gap: 12px; } .signature { flex-direction: column; align-items: flex-start; gap: 12px; } }
+        @media print { body { background: #fff; padding: 0.3in; } .header { background: #1e3a5f !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; } .btn-participants { display: none; } .section-card { box-shadow: none; border: 1px solid #ccc; } th { background: #eef2f7 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+        .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: #1e3a5f; color: white; padding: 14px 28px; border-radius: 40px; font-weight: 500; box-shadow: 0 6px 20px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.4s; pointer-events: none; z-index: 999; }
+        .toast.show { opacity: 1; }
+        .toast.error { background: #c62828; }
+        .toast.success { background: #2e7d32; }
     </style>
 </head>
 <body>
@@ -383,12 +127,7 @@
         <div class="table-wrap">
             <table id="table-ink-individual">
                 <thead>
-                    <tr>
-                        <th class="col-place">Место</th>
-                        <th class="col-name">Ф.И.О.</th>
-                        <th class="col-bank">Территориальный банк</th>
-                        <th class="col-result">Результат</th>
-                    </tr>
+                    <tr><th class="col-place">Место</th><th class="col-name">Ф.И.О.</th><th class="col-bank">Территориальный банк</th><th class="col-result">Результат</th></tr>
                 </thead>
                 <tbody id="tbody-ink-individual"></tbody>
             </table>
@@ -397,11 +136,7 @@
         <div class="table-wrap">
             <table id="table-ink-team">
                 <thead>
-                    <tr>
-                        <th style="width:12%; text-align:center;">Место</th>
-                        <th style="width:58%;">Территориальный банк</th>
-                        <th style="width:30%; text-align:center;">Результат (сумма мест)</th>
-                    </tr>
+                    <tr><th style="width:12%; text-align:center;">Место</th><th style="width:58%;">Территориальный банк</th><th style="width:30%; text-align:center;">Результат (сумма мест)</th></tr>
                 </thead>
                 <tbody id="tbody-ink-team"></tbody>
             </table>
@@ -418,12 +153,7 @@
         <div class="table-wrap">
             <table id="table-security-individual">
                 <thead>
-                    <tr>
-                        <th class="col-place">Место</th>
-                        <th class="col-name">Ф.И.О.</th>
-                        <th class="col-bank">Территориальный банк</th>
-                        <th class="col-result">Результат</th>
-                    </tr>
+                    <tr><th class="col-place">Место</th><th class="col-name">Ф.И.О.</th><th class="col-bank">Территориальный банк</th><th class="col-result">Результат</th></tr>
                 </thead>
                 <tbody id="tbody-security-individual"></tbody>
             </table>
@@ -432,11 +162,7 @@
         <div class="table-wrap">
             <table id="table-security-team">
                 <thead>
-                    <tr>
-                        <th style="width:12%; text-align:center;">Место</th>
-                        <th style="width:58%;">Территориальный банк</th>
-                        <th style="width:30%; text-align:center;">Результат (сумма мест)</th>
-                    </tr>
+                    <tr><th style="width:12%; text-align:center;">Место</th><th style="width:58%;">Территориальный банк</th><th style="width:30%; text-align:center;">Результат (сумма мест)</th></tr>
                 </thead>
                 <tbody id="tbody-security-team"></tbody>
             </table>
@@ -444,13 +170,8 @@
     </div>
 
     <div class="signature" id="signature-block">
-        <div>
-            <span class="judge">Главный судья по практической стрельбе А.В. Ермолаев</span>
-        </div>
-        <div>
-            <span>«<span class="date-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>»</span>
-            <span style="margin-left: 4px;">июня 2026 года</span>
-        </div>
+        <div><span class="judge">Главный судья по практической стрельбе А.В. Ермолаев</span></div>
+        <div><span>«<span class="date-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>»</span><span style="margin-left: 4px;">июня 2026 года</span></div>
     </div>
 
     <div style="margin-top: 24px; font-size: 0.85rem; color: #94a3b8; text-align: right; border-top: 1px dashed #d4dee8; padding-top: 16px;">
@@ -467,19 +188,12 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+    // ========== ОБНОВЛЕНИЕ МЕДАЛЕЙ И ПОДСВЕТКИ ==========
     function updateMedalIcons() {
-        const tbodyIds = [
-            'tbody-ink-individual',
-            'tbody-ink-team',
-            'tbody-security-individual',
-            'tbody-security-team'
-        ];
-        tbodyIds.forEach(id => {
+        ['tbody-ink-individual', 'tbody-ink-team', 'tbody-security-individual', 'tbody-security-team'].forEach(id => {
             const tbody = document.getElementById(id);
             if (!tbody) return;
-            const rows = tbody.querySelectorAll('tr');
-            rows.forEach(row => {
+            tbody.querySelectorAll('tr').forEach(row => {
                 const firstCell = row.querySelector('td:first-child');
                 if (!firstCell) return;
                 const text = firstCell.textContent.trim();
@@ -490,24 +204,16 @@
                 if (placeNum === 1) iconHtml = '<i class="fas fa-medal medal-icon" style="color: #FFD700;"></i>';
                 else if (placeNum === 2) iconHtml = '<i class="fas fa-medal medal-icon" style="color: #C0C0C0;"></i>';
                 else if (placeNum === 3) iconHtml = '<i class="fas fa-medal medal-icon" style="color: #CD7F32;"></i>';
-                if (iconHtml) firstCell.innerHTML = iconHtml + ' ' + placeNum;
-                else firstCell.innerHTML = placeNum;
+                firstCell.innerHTML = iconHtml ? iconHtml + ' ' + placeNum : placeNum;
             });
         });
     }
 
     function applyAllHighlights() {
-        const tbodyIds = [
-            'tbody-ink-individual',
-            'tbody-ink-team',
-            'tbody-security-individual',
-            'tbody-security-team'
-        ];
-        tbodyIds.forEach(id => {
+        ['tbody-ink-individual', 'tbody-ink-team', 'tbody-security-individual', 'tbody-security-team'].forEach(id => {
             const tbody = document.getElementById(id);
             if (!tbody) return;
-            const rows = tbody.querySelectorAll('tr');
-            rows.forEach(row => {
+            tbody.querySelectorAll('tr').forEach(row => {
                 row.classList.remove('place-1', 'place-2', 'place-3');
                 const firstCell = row.querySelector('td:first-child');
                 if (!firstCell) return;
@@ -525,19 +231,19 @@
         updateMedalIcons();
     }
 
-    // ========== КОНФИГУРАЦИЯ ТАБЛИЦ ==========
+    // ========== КОНФИГУРАЦИЯ ==========
     const tableConfigs = [
-        { tbodyId: 'tbody-ink-individual', category: 'inkas', type: 'individual', label: 'Инкассация — личное' },
-        { tbodyId: 'tbody-ink-team', category: 'inkas', type: 'team', label: 'Инкассация — командное' },
-        { tbodyId: 'tbody-security-individual', category: 'security', type: 'individual', label: 'Охрана — личное' },
-        { tbodyId: 'tbody-security-team', category: 'security', type: 'team', label: 'Охрана — командное' }
+        { tbodyId: 'tbody-ink-individual', category: 'inkas', type: 'individual' },
+        { tbodyId: 'tbody-ink-team', category: 'inkas', type: 'team' },
+        { tbodyId: 'tbody-security-individual', category: 'security', type: 'individual' },
+        { tbodyId: 'tbody-security-team', category: 'security', type: 'team' }
     ];
 
-    // ========== ЗАГРУЗКА ИЗ SUPABASE (ОБНОВЛЕННАЯ) ==========
+    // ========== ЗАГРУЗКА ==========
     async function loadDataFromSupabase() {
         const statusDiv = document.getElementById('connectionStatus');
         statusDiv.innerHTML = '<span class="status-badge loading">⏳ Загрузка данных...</span>';
-        console.log('🔄 Начинаем загрузку данных из Supabase...');
+        console.log('🔄 Загрузка данных...');
 
         try {
             const { data, error } = await supabaseClient
@@ -547,7 +253,7 @@
 
             if (error) throw error;
 
-            console.log(`✅ Получено ${data.length} записей из Supabase`);
+            console.log(`✅ Получено ${data.length} записей`);
 
             // Очищаем все таблицы
             tableConfigs.forEach(cfg => {
@@ -555,7 +261,7 @@
                 if (tbody) tbody.innerHTML = '';
             });
 
-            // Группируем данные по category + type
+            // Группируем
             const groups = {};
             data.forEach(row => {
                 const key = row.category + '_' + row.type;
@@ -563,20 +269,23 @@
                 groups[key].push(row);
             });
 
-            // Заполняем таблицы
+            // Заполняем
             tableConfigs.forEach(cfg => {
                 const key = cfg.category + '_' + cfg.type;
                 const rows = groups[key] || [];
                 const tbody = document.getElementById(cfg.tbodyId);
-                if (!tbody) return;
+                if (!tbody) {
+                    console.error(`❌ TBody не найден: ${cfg.tbodyId}`);
+                    return;
+                }
 
-                console.log(`📊 ${cfg.label}: найдено ${rows.length} записей`);
+                console.log(`📊 ${cfg.category}/${cfg.type}: ${rows.length} записей`);
 
-                tbody.innerHTML = '';
                 rows.forEach(row => {
                     const isIndividual = cfg.type === 'individual';
                     const cols = isIndividual ? 4 : 3;
                     const tr = document.createElement('tr');
+                    
                     for (let i = 0; i < cols; i++) {
                         const td = document.createElement('td');
                         td.contentEditable = (i > 0);
@@ -600,28 +309,26 @@
 
             refreshTableAppearance();
             statusDiv.innerHTML = '<span class="status-badge ok">✅ Данные загружены из Supabase</span>';
-            console.log('✅ Загрузка завершена успешно');
+            console.log('✅ Загрузка завершена');
         } catch (err) {
-            console.error('❌ Ошибка загрузки:', err);
-            statusDiv.innerHTML = `<span class="status-badge error">❌ Ошибка: ${err.message || 'Неизвестная ошибка'}</span>`;
-            showToast('Не удалось загрузить данные: ' + err.message, 'error');
+            console.error('❌ Ошибка:', err);
+            statusDiv.innerHTML = `<span class="status-badge error">❌ ${err.message || 'Ошибка'}</span>`;
+            showToast('Ошибка: ' + err.message, 'error');
         }
     }
 
-    // ========== СОХРАНЕНИЕ В SUPABASE (ОБНОВЛЕННОЕ) ==========
+    // ========== СОХРАНЕНИЕ ==========
     async function saveAllDataToSupabase() {
-        console.log('⏳ Начинаем сохранение...');
+        console.log('⏳ Сохранение...');
         const statusDiv = document.getElementById('connectionStatus');
         statusDiv.innerHTML = '<span class="status-badge loading">⏳ Сохранение...</span>';
+
         try {
-            // Собираем данные
-            console.log('📊 Сбор данных из таблиц...');
             const allRows = [];
             tableConfigs.forEach(cfg => {
                 const tbody = document.getElementById(cfg.tbodyId);
                 if (!tbody) return;
-                const rows = tbody.querySelectorAll('tr');
-                rows.forEach(tr => {
+                tbody.querySelectorAll('tr').forEach(tr => {
                     const cells = tr.querySelectorAll('td');
                     if (cells.length === 0) return;
                     const placeText = cells[0].textContent.trim();
@@ -649,9 +356,10 @@
                     });
                 });
             });
-            console.log(`✅ Собрано ${allRows.length} строк для сохранения.`);
 
-            // Сначала удаляем все старые записи для этих категорий и типов
+            console.log(`📊 Собрано ${allRows.length} строк`);
+
+            // Удаляем старые
             const groups = [
                 { category: 'inkas', type: 'individual' },
                 { category: 'inkas', type: 'team' },
@@ -659,53 +367,35 @@
                 { category: 'security', type: 'team' }
             ];
 
-            console.log('🗑️ Удаление старых данных...');
             for (let g of groups) {
-                console.log(`  Удаляем ${g.category}_${g.type}...`);
-                const { error: delError } = await supabaseClient
+                await supabaseClient
                     .from('shooting_results')
                     .delete()
                     .eq('category', g.category)
                     .eq('type', g.type);
-                if (delError) {
-                    console.warn(`Ошибка удаления для ${g.category}_${g.type}:`, delError);
-                    if (delError.code === '401' || delError.code === '403' || delError.message.includes('permission')) {
-                        throw new Error(`Недостаточно прав для удаления: ${delError.message}`);
-                    }
-                }
             }
-            console.log('✅ Удаление завершено.');
 
-            // Вставляем новые данные
+            // Вставляем новые
             if (allRows.length > 0) {
-                console.log('📤 Вставка новых данных...');
-                const { error: insError } = await supabaseClient
+                const { error } = await supabaseClient
                     .from('shooting_results')
                     .insert(allRows);
-                if (insError) {
-                    if (insError.code === '401' || insError.code === '403' || insError.message.includes('permission')) {
-                        throw new Error(`Недостаточно прав для вставки: ${insError.message}`);
-                    }
-                    throw insError;
-                }
-                console.log('✅ Вставка завершена.');
-            } else {
-                console.log('⚠️ Нет данных для вставки.');
+                if (error) throw error;
             }
 
-            showToast('✅ Все данные сохранены в Supabase', 'success');
-            statusDiv.innerHTML = '<span class="status-badge ok">✅ Данные сохранены</span>';
+            showToast('✅ Данные сохранены', 'success');
+            statusDiv.innerHTML = '<span class="status-badge ok">✅ Сохранено</span>';
+            await loadDataFromSupabase();
         } catch (err) {
-            console.error('❌ Ошибка сохранения:', err);
-            statusDiv.innerHTML = '<span class="status-badge error">❌ Ошибка сохранения</span>';
-            showToast('❌ Ошибка сохранения: ' + err.message, 'error');
+            console.error('❌ Ошибка:', err);
+            statusDiv.innerHTML = '<span class="status-badge error">❌ Ошибка</span>';
+            showToast('Ошибка: ' + err.message, 'error');
         }
     }
 
     // ========== ОЧИСТКА ==========
     async function resetTables() {
-        if (!confirm('Вы уверены, что хотите очистить все данные протокола? Это действие необратимо.')) return;
-
+        if (!confirm('Очистить все данные?')) return;
         try {
             const groups = [
                 { category: 'inkas', type: 'individual' },
@@ -714,12 +404,11 @@
                 { category: 'security', type: 'team' }
             ];
             for (let g of groups) {
-                const { error: delError } = await supabaseClient
+                await supabaseClient
                     .from('shooting_results')
                     .delete()
                     .eq('category', g.category)
                     .eq('type', g.type);
-                if (delError) console.warn(`Ошибка удаления для ${g.category}_${g.type}:`, delError);
             }
 
             // Очищаем UI
@@ -756,11 +445,11 @@
             });
 
             refreshTableAppearance();
-            showToast('🗑️ Все данные очищены', 'success');
-            document.getElementById('connectionStatus').innerHTML = '<span class="status-badge ok">✅ Данные очищены</span>';
+            showToast('🗑️ Данные очищены', 'success');
+            document.getElementById('connectionStatus').innerHTML = '<span class="status-badge ok">✅ Очищено</span>';
         } catch (err) {
             console.error(err);
-            showToast('Ошибка очистки: ' + err.message, 'error');
+            showToast('Ошибка: ' + err.message, 'error');
         }
     }
 
@@ -768,41 +457,31 @@
     function handleFileUpload(event) {
         const file = event.target.files[0];
         if (!file) return;
-
         const ext = file.name.split('.').pop().toLowerCase();
         if (ext !== 'docx' && ext !== 'doc') {
-            showToast('Пожалуйста, выберите файл .docx или .doc', 'error');
+            showToast('Выберите .docx или .doc', 'error');
             return;
         }
 
         const reader = new FileReader();
         reader.onload = async function(e) {
-            const arrayBuffer = e.target.result;
             try {
-                const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
-                const html = result.value;
+                const result = await mammoth.convertToHtml({ arrayBuffer: e.target.result });
                 const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = html;
+                tempDiv.innerHTML = result.value;
                 const tables = tempDiv.querySelectorAll('table');
                 if (tables.length < 4) {
-                    showToast('В документе не найдено 4 таблиц. Проверьте структуру.', 'error');
+                    showToast('Нужно 4 таблицы', 'error');
                     return;
                 }
 
-                const tbodyIds = [
-                    'tbody-ink-individual',
-                    'tbody-ink-team',
-                    'tbody-security-individual',
-                    'tbody-security-team'
-                ];
-
-                for (let i = 0; i < Math.min(tables.length, 4); i++) {
+                const tbodyIds = ['tbody-ink-individual', 'tbody-ink-team', 'tbody-security-individual', 'tbody-security-team'];
+                for (let i = 0; i < 4; i++) {
                     const docTable = tables[i];
                     const rows = docTable.querySelectorAll('tr');
                     const dataRows = Array.from(rows).slice(1);
                     const tbody = document.getElementById(tbodyIds[i]);
                     if (!tbody) continue;
-
                     tbody.innerHTML = '';
                     dataRows.forEach(row => {
                         const cells = row.querySelectorAll('td');
@@ -811,9 +490,8 @@
                         cells.forEach((cell, idx) => {
                             const td = document.createElement('td');
                             td.contentEditable = (idx > 0);
-                            if (cell.className) td.className = cell.className;
-                            if (cell.style.textAlign) td.style.textAlign = cell.style.textAlign;
                             td.innerHTML = cell.innerHTML;
+                            if (idx === 0) td.contentEditable = false;
                             tr.appendChild(td);
                         });
                         const neededCols = (i === 0 || i === 2) ? 4 : 3;
@@ -822,18 +500,16 @@
                             td.contentEditable = true;
                             tr.appendChild(td);
                         }
-                        const firstTd = tr.querySelector('td:first-child');
-                        if (firstTd) firstTd.contentEditable = false;
                         tbody.appendChild(tr);
                     });
                 }
 
                 refreshTableAppearance();
                 await saveAllDataToSupabase();
-                showToast('Данные успешно загружены из документа и сохранены!', 'success');
+                showToast('✅ Загружено из Word', 'success');
             } catch (err) {
                 console.error(err);
-                showToast('Ошибка при обработке файла: ' + err.message, 'error');
+                showToast('Ошибка: ' + err.message, 'error');
             }
         };
         reader.readAsArrayBuffer(file);
@@ -851,45 +527,25 @@
         const signature = document.querySelector('#signature-block').outerHTML;
         const footerNote = document.querySelector('.container > div:last-child')?.outerHTML || '';
 
-        const wordHTML = `
-        <!DOCTYPE html>
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' 
-              xmlns:w='urn:schemas-microsoft-com:office:word' 
-              xmlns='http://www.w3.org/TR/REC-html40'>
-        <head>
-            <meta charset="UTF-8">
-            <title>Протокол практическая стрельба</title>
-            <!--[if gte mso 9]>
-            <xml>
-                <w:WordDocument>
-                    <w:View>Print</w:View>
-                    <w:Zoom>100</w:Zoom>
-                </w:WordDocument>
-            </xml>
-            <![endif]-->
-            <style>
-                body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px 40px; background: white; color: #1e293b; }
-                .section-title { font-size: 22pt; font-weight: 600; color: #0f2b44; border-bottom: 3px solid #f5a623; padding-bottom: 8px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
-                .section-title .sub { font-size: 14pt; font-weight: 400; color: #475569; }
-                .subsection-title { font-size: 16pt; font-weight: 500; color: #1e3a5f; margin: 20px 0 12px 0; padding-left: 12px; border-left: 5px solid #f5a623; }
-                table { width: 100%; border-collapse: collapse; font-size: 11pt; margin-bottom: 12px; }
-                th { background: #eef2f7; color: #1e3a5f; font-weight: 600; padding: 8px; border: 1px solid #b0c4de; text-align: left; }
-                td { padding: 8px; border: 1px solid #b0c4de; vertical-align: middle; }
-                .col-place { text-align: center; font-weight: 500; }
-                .col-result { text-align: center; }
-                .place-number { text-align: center; font-weight: 500; }
-                .signature { margin-top: 30px; padding-top: 16px; border-top: 2px solid #1e3a5f; display: flex; justify-content: space-between; font-size: 12pt; }
-                .judge { font-weight: 500; }
-                .date-line { display: inline-block; min-width: 140px; border-bottom: 2px solid #1e3a5f; padding: 0 6px; margin-left: 6px; }
-                .table-wrap { margin-bottom: 6px; }
-                .container { max-width: 100%; }
-                .footer-note { margin-top: 20px; font-size: 10pt; color: #94a3b8; text-align: right; border-top: 1px dashed #d4dee8; padding-top: 12px; }
-                .section-title .emoji, .section-title span[style] { display: none; }
-                .place-1 td:first-child { font-weight: 800; color: #b8860b; }
-                .place-2 td:first-child { font-weight: 700; color: #6c7a89; }
-                .place-3 td:first-child { font-weight: 700; color: #a0522d; }
-                .medal-icon { margin-right: 4px; }
-            </style>
+        const wordHTML = `<!DOCTYPE html>
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head><meta charset="UTF-8"><title>Протокол</title>
+        <!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
+        <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px 40px; }
+            .section-title { font-size: 22pt; font-weight: 600; color: #0f2b44; border-bottom: 3px solid #f5a623; padding-bottom: 8px; margin-bottom: 16px; }
+            .section-title .sub { font-size: 14pt; font-weight: 400; color: #475569; }
+            .subsection-title { font-size: 16pt; font-weight: 500; color: #1e3a5f; margin: 20px 0 12px 0; padding-left: 12px; border-left: 5px solid #f5a623; }
+            table { width: 100%; border-collapse: collapse; font-size: 11pt; margin-bottom: 12px; }
+            th { background: #eef2f7; color: #1e3a5f; font-weight: 600; padding: 8px; border: 1px solid #b0c4de; text-align: left; }
+            td { padding: 8px; border: 1px solid #b0c4de; vertical-align: middle; }
+            .col-place { text-align: center; font-weight: 500; }
+            .col-result { text-align: center; }
+            .place-number { text-align: center; font-weight: 500; }
+            .signature { margin-top: 30px; padding-top: 16px; border-top: 2px solid #1e3a5f; display: flex; justify-content: space-between; font-size: 12pt; }
+            .judge { font-weight: 500; }
+            .date-line { display: inline-block; min-width: 140px; border-bottom: 2px solid #1e3a5f; padding: 0 6px; margin-left: 6px; }
+        </style>
         </head>
         <body>
             <div class="container">
@@ -900,8 +556,7 @@
                 ${footerNote}
             </div>
         </body>
-        </html>
-        `;
+        </html>`;
 
         const blob = new Blob([wordHTML], { type: 'application/msword;charset=utf-8' });
         const link = document.createElement('a');
