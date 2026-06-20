@@ -195,15 +195,7 @@
             text-align: center;
         }
 
-        /* ===== ВЫДЕЛЕНИЕ ПРИЗОВЫХ МЕСТ (как в nagradka.html) ===== */
-        .row-highlight {
-            background: rgba(232, 184, 122, 0.05);
-            border-left: 4px solid #e8b87a;
-        }
-        .row-highlight td:first-child {
-            font-weight: 700;
-            color: #1e3a5f;
-        }
+        /* ===== ВЫДЕЛЕНИЕ ПРИЗОВЫХ МЕСТ ===== */
         .place-1 {
             background: rgba(232, 184, 122, 0.15);
             border-left: 4px solid #e8b87a;
@@ -316,7 +308,7 @@
                  class="title-logo"
                  loading="lazy"
                  onerror="this.style.display='none'">
-            <h1>Итоговый протокол соревнований по практической стрельбе</h1>
+            <h1>XVI Всероссийские соревнования по многоборью</h1>
         </div>
         <p>Среди работников подразделений инкассации и охраны ПАО Сбербанк</p>
         <p style="font-size: 0.85rem; margin-top: 8px;">Нижний Тагил, 24–25 июня 2026</p>
@@ -331,8 +323,6 @@
             <button onclick="resetTables()" class="btn-participants btn-clear">🗑 Очистить</button>
         </div>
     </div>
-
-   
 
     <!-- ============ ИНКАССАЦИЯ ============ -->
     <div class="section-card" id="section-ink">
@@ -468,7 +458,6 @@
 <script>
     // ===== Функция для добавления иконок медалей =====
     function updateMedalIcons() {
-        // Определяем список tbody, которые нужно обработать
         const tbodyIds = [
             'tbody-ink-individual',
             'tbody-ink-team',
@@ -483,12 +472,10 @@
             rows.forEach(row => {
                 const firstCell = row.querySelector('td:first-child');
                 if (!firstCell) return;
-                // Получаем текст ячейки (может содержать иконки, поэтому берём только цифры)
                 const text = firstCell.textContent.trim();
                 const match = text.match(/\d+/);
                 if (!match) return;
                 const placeNum = parseInt(match[0], 10);
-                // Определяем иконку и цвет
                 let iconHtml = '';
                 if (placeNum === 1) {
                     iconHtml = '<i class="fas fa-medal medal-icon" style="color: #FFD700;"></i>';
@@ -497,18 +484,15 @@
                 } else if (placeNum === 3) {
                     iconHtml = '<i class="fas fa-medal medal-icon" style="color: #CD7F32;"></i>';
                 }
-                // Если это призовое место, вставляем иконку + цифру, иначе только цифру
                 if (iconHtml) {
                     firstCell.innerHTML = iconHtml + ' ' + placeNum;
                 } else {
-                    // Если не призовое, оставляем только число (очищаем от лишнего)
                     firstCell.innerHTML = placeNum;
                 }
             });
         });
     }
 
-    // ===== Применение классов выделения =====
     function applyAllHighlights() {
         const tbodyIds = [
             'tbody-ink-individual',
@@ -535,7 +519,6 @@
         });
     }
 
-    // Общая функция обновления внешнего вида таблиц
     function refreshTableAppearance() {
         applyAllHighlights();
         updateMedalIcons();
@@ -543,7 +526,11 @@
 
     // ===== Скачивание Word =====
     function downloadWord() {
-        const protocolTitle = document.querySelector('#protocol-content').outerHTML;
+        // Заголовок для Word создаём отдельно, так как на странице его нет
+        const protocolTitleHtml = `
+            <h2 style="font-size: 22pt; color: #0f2b44; margin-bottom: 4px;">Итоговый протокол</h2>
+            <p style="color: #475569; font-size: 14pt;">Соревнования по практической стрельбе — личное и командное первенство</p>
+        `;
         const sectionInk = document.querySelector('#section-ink').outerHTML;
         const sectionSecurity = document.querySelector('#section-security').outerHTML;
         const signature = document.querySelector('#signature-block').outerHTML;
@@ -581,8 +568,6 @@
                 .date-line { display: inline-block; min-width: 140px; border-bottom: 2px solid #1e3a5f; padding: 0 6px; margin-left: 6px; }
                 .table-wrap { margin-bottom: 6px; }
                 .container { max-width: 100%; }
-                .protocol-meta { font-size: 14pt; color: #0f2b44; margin-bottom: 4px; font-weight: 600; }
-                .protocol-sub { color: #475569; font-size: 11pt; margin-bottom: 16px; }
                 .footer-note { margin-top: 20px; font-size: 10pt; color: #94a3b8; text-align: right; border-top: 1px dashed #d4dee8; padding-top: 12px; }
                 .section-title .emoji, .section-title span[style] { display: none; }
                 .place-1 td:first-child { font-weight: 800; color: #b8860b; }
@@ -593,7 +578,7 @@
         </head>
         <body>
             <div class="container">
-                ${protocolTitle}
+                ${protocolTitleHtml}
                 ${sectionInk}
                 ${sectionSecurity}
                 ${signature}
@@ -680,7 +665,6 @@
                             tbody.appendChild(tr);
                         });
                     }
-                    // Обновляем внешний вид
                     refreshTableAppearance();
                     showToast('Данные успешно загружены из документа!', 'success');
                 })
@@ -708,7 +692,6 @@
             tbody.innerHTML = '';
             for (let i = 1; i <= cfg.rows; i++) {
                 const tr = document.createElement('tr');
-                // Добавляем класс для первых трёх мест
                 if (i <= 3) {
                     tr.classList.add('place-' + i);
                 }
@@ -731,7 +714,6 @@
                 tbody.appendChild(tr);
             }
         });
-        // Обновляем внешний вид (иконки и выделение)
         refreshTableAppearance();
         showToast('Таблицы очищены', 'success');
     }
