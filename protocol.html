@@ -2,128 +2,367 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>Протокол — практическая стрельба</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
-        body { background: #f0f4f8; padding: 24px 20px; }
-        .container { max-width: 1400px; margin: 0 auto; }
+        /* Общие сбросы и переменные */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #f0f4f8;
+            padding: 16px 12px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2px;
+        }
+
+        /* Шапка */
         .header {
             background: linear-gradient(135deg, #1e3a5f 0%, #0f2b44 100%);
-            color: white; padding: 28px 20px; border-radius: 32px;
-            margin-bottom: 32px; text-align: center;
-            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+            color: white;
+            padding: 20px 16px;
+            border-radius: 24px;
+            margin-bottom: 24px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
             position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         .home-button {
-            position: absolute; top: 20px; left: 28px;
-            background: rgba(255,255,240,0.2); backdrop-filter: blur(4px);
-            padding: 8px 18px; border-radius: 40px;
-            text-decoration: none; color: white;
-            font-weight: 600; font-size: 0.9rem;
-            display: inline-flex; align-items: center; gap: 8px;
-            transition: all 0.2s;
-            border: 1px solid rgba(255,255,200,0.3);
+            background: rgba(255, 255, 240, 0.15);
+            backdrop-filter: blur(4px);
+            padding: 6px 14px;
+            border-radius: 40px;
+            text-decoration: none;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid rgba(255, 255, 200, 0.25);
+            transition: 0.2s;
+            margin-bottom: 12px;
+            align-self: flex-start;
         }
-        .home-button:hover { background: rgba(255,255,240,0.35); transform: translateY(-2px); }
-        @media (max-width: 780px) { .home-button { position: static; display: inline-flex; margin-bottom: 16px; width: fit-content; } }
-        .title-wrapper { display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap; margin-bottom: 8px; }
-        .title-logo { height: 60px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2)); border-radius: 12px; background: rgba(255,255,255,0.1); padding: 4px 8px; transition: transform 0.2s; }
-        .title-logo:hover { transform: scale(1.02); }
-        .header h1 { font-size: 1.8rem; margin-bottom: 8px; }
-        .header p { opacity: 0.9; font-size: 1rem; }
-        .btn-participants {
-            display: inline-block; background: #f5a623; color: #1e3a5f;
-            text-decoration: none; padding: 10px 28px; border-radius: 40px;
-            font-weight: bold; transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            border: none; font-size: 0.9rem; cursor: pointer;
+        .home-button:hover {
+            background: rgba(255, 255, 240, 0.3);
+            transform: translateY(-2px);
         }
-        .btn-participants:hover { background: #ffb83b; transform: scale(1.02); box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
-        .button-group { display: flex; gap: 16px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
-        .btn-upload { background: #2e7d32; color: white; }
-        .btn-upload:hover { background: #388e3c; }
-        .btn-clear { background: #b71c1c; color: white; }
-        .btn-clear:hover { background: #c62828; }
-        .btn-save { background: #1e3a8a; color: white; }
-        .btn-save:hover { background: #1e40af; }
+        .title-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+        .title-logo {
+            height: 44px;
+            width: auto;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2px 6px;
+        }
+        .header h1 {
+            font-size: 1.3rem;
+            line-height: 1.3;
+            margin-bottom: 4px;
+        }
+        .header p {
+            opacity: 0.9;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+        .header p:last-of-type {
+            margin-bottom: 0;
+        }
+
+        /* Кнопки */
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 14px;
+            width: 100%;
+        }
+        .button-group .btn-participants {
+            flex: 1 1 auto;
+            min-width: 120px;
+            padding: 8px 14px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: #f5a623;
+            color: #1e3a5f;
+        }
+        .button-group .btn-participants:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+        .btn-upload {
+            background: #2e7d32 !important;
+            color: white !important;
+        }
+        .btn-upload:hover {
+            background: #388e3c !important;
+        }
+        .btn-save {
+            background: #1e3a8a !important;
+            color: white !important;
+        }
+        .btn-save:hover {
+            background: #1e40af !important;
+        }
+        .btn-clear {
+            background: #b71c1c !important;
+            color: white !important;
+        }
+        .btn-clear:hover {
+            background: #c62828 !important;
+        }
+
+        /* Карточки секций */
         .section-card {
             background: white;
-            border-radius: 28px;
-            padding: 24px 20px;
-            margin-bottom: 32px;
-            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+            border-radius: 24px;
+            padding: 18px 14px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
         }
-        .section-title { font-size: 1.6rem; margin-bottom: 20px; color: #0f2b44; border-left: 6px solid #dc2626; padding-left: 18px; }
-        .section-title .sub { font-size: 1.1rem; font-weight: 400; color: #475569; }
-        .subsection-title { font-size: 1.3rem; font-weight: 500; color: #1e3a5f; margin: 24px 0 14px 0; padding-left: 14px; border-left: 5px solid #f5a623; }
-        .table-wrapper { overflow-x: auto; border-radius: 16px; border: 1px solid #e2e8f0; background: #fafcff; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 600px; }
-        th { background: #f8fafc; font-weight: 700; color: #1e293b; padding: 12px 8px; border-bottom: 1px solid #e2e8f0; text-align: center; }
-        td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; color: #1e293b; vertical-align: middle; }
-        td[contenteditable="true"]:focus { outline: 2px solid #f5a623; background: #fffde7; }
-        tr:last-child td { border-bottom: none; }
-        .col-place { width: 10%; text-align: center; font-weight: 600; }
-        .col-name { width: 28%; text-align: left; }
-        .col-bank { width: 35%; text-align: left; }
-        .col-result { width: 27%; text-align: left; }
-        .place-number { font-weight: 600; color: #1e3a5f; text-align: center; }
-        .rank-1 { background-color: #ffd966 !important; font-weight: bold; }
-        .rank-2 { background-color: #e0e0e0 !important; font-weight: bold; }
-        .rank-3 { background-color: #f7d9b5 !important; font-weight: bold; }
-        .medal-icon { font-size: 1.2rem; margin-right: 4px; display: inline-block; vertical-align: middle; }
-        .place-number { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
-        .subnote { margin-top: 16px; font-size: 0.75rem; color: #64748b; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 12px; }
-        .signature { margin-top: 40px; padding-top: 20px; border-top: 2px solid #e2e8f0; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; font-size: 1rem; color: #1e293b; }
-        .signature .judge { font-weight: 500; }
-        .signature .date-line { display: inline-block; min-width: 140px; border-bottom: 2px solid #1e3a5f; padding: 0 6px; margin-left: 6px; }
-        .status-badge { display: inline-block; padding: 4px 14px; border-radius: 30px; font-size: 0.8rem; font-weight: 600; margin-top: 8px; }
-        .status-badge.ok { background: #dcfce7; color: #166534; }
-        .status-badge.error { background: #fee2e2; color: #991b1b; }
-        .status-badge.loading { background: #fed7aa; color: #9b4a0c; }
-        .row-count { font-size: 0.75rem; color: #64748b; margin-top: 12px; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 12px; }
-        @media (max-width: 700px) {
-            .header h1 { font-size: 1.4rem; }
-            .title-logo { height: 40px; }
-            .section-title { font-size: 1.3rem; }
-            .subsection-title { font-size: 1.1rem; }
-            table { font-size: 0.8rem; min-width: 480px; }
-            th, td { padding: 8px 4px; }
-            .button-group { gap: 12px; }
-            .signature { flex-direction: column; align-items: flex-start; gap: 12px; }
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #0f2b44;
+            border-left: 5px solid #dc2626;
+            padding-left: 14px;
+            margin-bottom: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 4px 10px;
         }
-        @media print {
-            body { background: #fff; padding: 0.3in; }
-            .header { background: #1e3a5f !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .btn-participants { display: none; }
-            .section-card { box-shadow: none; border: 1px solid #ccc; }
-            th { background: #f8fafc !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .rank-1, .rank-2, .rank-3 { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .section-title .sub {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #475569;
         }
+        .subsection-title {
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: #1e3a5f;
+            margin: 18px 0 10px 0;
+            padding-left: 12px;
+            border-left: 4px solid #f5a623;
+        }
+
+        /* Таблицы — адаптив */
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: 14px;
+            border: 1px solid #e2e8f0;
+            background: #fafcff;
+            -webkit-overflow-scrolling: touch;
+            margin: 0 -2px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+            min-width: 360px;
+        }
+        th {
+            background: #f8fafc;
+            font-weight: 700;
+            color: #1e293b;
+            padding: 10px 6px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: center;
+            font-size: 0.72rem;
+            white-space: nowrap;
+        }
+        td {
+            padding: 10px 6px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+            color: #1e293b;
+            vertical-align: middle;
+            word-break: break-word;
+        }
+        td[contenteditable="true"]:focus {
+            outline: 2px solid #f5a623;
+            background: #fffde7;
+        }
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Колонки */
+        .col-place {
+            width: 14%;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+        .col-name {
+            width: 32%;
+            text-align: left;
+            font-weight: 500;
+        }
+        .col-bank {
+            width: 32%;
+            text-align: left;
+            font-size: 0.7rem;
+        }
+        .col-result {
+            width: 22%;
+            text-align: left;
+            font-weight: 500;
+        }
+        .place-number {
+            font-weight: 600;
+            color: #1e3a5f;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        /* Медали и ранги */
+        .rank-1 {
+            background-color: #ffd966 !important;
+            font-weight: bold;
+        }
+        .rank-2 {
+            background-color: #e0e0e0 !important;
+            font-weight: bold;
+        }
+        .rank-3 {
+            background-color: #f7d9b5 !important;
+            font-weight: bold;
+        }
+        .medal-icon {
+            font-size: 1rem;
+            margin-right: 3px;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        .place-number {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-weight: 700;
+        }
+
+        /* Счетчики и подписи */
+        .row-count {
+            font-size: 0.7rem;
+            color: #64748b;
+            margin-top: 10px;
+            text-align: right;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 10px;
+        }
+        .subnote {
+            margin-top: 14px;
+            font-size: 0.7rem;
+            color: #64748b;
+            text-align: right;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 10px;
+        }
+
+        /* Подпись */
+        .signature {
+            margin-top: 28px;
+            padding-top: 16px;
+            border-top: 2px solid #e2e8f0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: flex-end;
+            font-size: 0.85rem;
+            color: #1e293b;
+            gap: 12px;
+        }
+        .signature .judge {
+            font-weight: 500;
+        }
+        .signature .date-line {
+            display: inline-block;
+            min-width: 100px;
+            border-bottom: 2px solid #1e3a5f;
+            padding: 0 4px;
+            margin-left: 4px;
+        }
+
+        /* Статус */
+        .status-badge {
+            display: inline-block;
+            padding: 3px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-top: 6px;
+        }
+        .status-badge.ok {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .status-badge.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .status-badge.loading {
+            background: #fed7aa;
+            color: #9b4a0c;
+        }
+
+        /* Toast */
         .toast {
             position: fixed;
-            bottom: 30px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%) translateY(100px);
             background: #1e3a5f;
             color: white;
-            padding: 16px 32px;
+            padding: 14px 24px;
             border-radius: 12px;
             font-weight: 500;
-            font-size: 1rem;
-            box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+            font-size: 0.9rem;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
             opacity: 0;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
             pointer-events: none;
             z-index: 999;
             display: flex;
             align-items: center;
-            gap: 12px;
-            min-width: 200px;
+            gap: 10px;
+            min-width: 160px;
             justify-content: center;
+            max-width: 90vw;
         }
         .toast.show {
             opacity: 1;
@@ -148,232 +387,611 @@
             color: #90caf9;
         }
         .toast i {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
+        }
+
+        /* Адаптивные правки для мобильных */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px 6px;
+            }
+            .header {
+                padding: 16px 12px;
+                border-radius: 18px;
+            }
+            .header h1 {
+                font-size: 1.1rem;
+            }
+            .title-logo {
+                height: 36px;
+            }
+            .button-group .btn-participants {
+                font-size: 0.7rem;
+                padding: 6px 12px;
+                min-width: 90px;
+            }
+            .section-card {
+                padding: 14px 8px;
+                border-radius: 18px;
+            }
+            .section-title {
+                font-size: 1.1rem;
+                padding-left: 10px;
+            }
+            .subsection-title {
+                font-size: 0.95rem;
+                padding-left: 10px;
+            }
+            table {
+                font-size: 0.7rem;
+                min-width: 280px;
+            }
+            th {
+                font-size: 0.65rem;
+                padding: 8px 4px;
+            }
+            td {
+                padding: 8px 4px;
+            }
+            .col-name {
+                font-size: 0.7rem;
+            }
+            .col-bank {
+                font-size: 0.65rem;
+            }
+            .col-result {
+                font-size: 0.7rem;
+            }
+            .medal-icon {
+                font-size: 0.85rem;
+            }
+            .signature {
+                font-size: 0.75rem;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .signature .date-line {
+                min-width: 80px;
+            }
+            .toast {
+                font-size: 0.8rem;
+                padding: 12px 18px;
+                min-width: 140px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .header h1 {
+                font-size: 0.95rem;
+            }
+            .title-logo {
+                height: 30px;
+            }
+            .button-group .btn-participants {
+                font-size: 0.65rem;
+                padding: 5px 10px;
+                min-width: 70px;
+            }
+            table {
+                font-size: 0.6rem;
+                min-width: 220px;
+            }
+            th,
+            td {
+                padding: 6px 3px;
+            }
+            .col-place,
+            .place-number {
+                font-size: 0.65rem;
+            }
+            .col-name {
+                font-size: 0.6rem;
+            }
+            .col-bank {
+                font-size: 0.55rem;
+            }
+            .col-result {
+                font-size: 0.6rem;
+            }
+            .section-title {
+                font-size: 0.95rem;
+            }
+            .subsection-title {
+                font-size: 0.85rem;
+            }
+            .medal-icon {
+                font-size: 0.7rem;
+            }
+        }
+
+        @media print {
+            body {
+                background: #fff;
+                padding: 0.2in;
+            }
+            .header {
+                background: #1e3a5f !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .btn-participants {
+                display: none !important;
+            }
+            .section-card {
+                box-shadow: none;
+                border: 1px solid #ccc;
+            }
+            th {
+                background: #f8fafc !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .rank-1,
+            .rank-2,
+            .rank-3 {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
         }
     </style>
 </head>
 <body>
-<div class="container">
+    <div class="container">
 
-    <div class="header">
-        <a href="index.html" class="home-button">🏠 На главную</a>
-        <div class="title-wrapper">
-            <img src="https://raw.githubusercontent.com/vserosinkas-star/Sorev/main/sheet.png" 
-                 alt="Эмблема соревнований" 
-                 class="title-logo"
-                 loading="lazy"
-                 onerror="this.style.display='none'">
-            <h1>Итоговый протокол соревнований<br>по практической стрельбе</h1>
-        </div>
-        <p>Среди работников подразделений инкассации и охраны ПАО Сбербанк</p>
-        <p style="font-size: 0.85rem; margin-top: 8px;">Нижний Тагил, 24–25 июня 2026</p>
+        <div class="header">
+            <a href="index.html" class="home-button">🏠 На главную</a>
+            <div class="title-wrapper">
+                <img src="https://raw.githubusercontent.com/vserosinkas-star/Sorev/main/sheet.png"
+                     alt="Эмблема соревнований"
+                     class="title-logo"
+                     loading="lazy"
+                     onerror="this.style.display='none'">
+                <h1>Итоговый протокол<br>практическая стрельба</h1>
+            </div>
+            <p>Среди работников инкассации и охраны ПАО Сбербанк</p>
+            <p style="font-size: 0.75rem; margin-top: 4px;">Нижний Тагил, 24–25 июня 2026</p>
 
-        <div id="connectionStatus" style="margin-top: 12px;">
-            <span class="status-badge loading">⏳ Проверка подключения...</span>
+            <div id="connectionStatus" style="margin-top: 10px;">
+                <span class="status-badge loading">⏳ Проверка...</span>
+            </div>
+
+            <div class="button-group">
+                <a href="full_results.html" class="btn-participants">📊 Итоги</a>
+                <button onclick="downloadWord()" class="btn-participants" style="background:#4CAF50; color:white;">⬇ Word</button>
+                <button onclick="document.getElementById('word-upload').click()" class="btn-participants btn-upload">📂 Загрузить</button>
+                <input type="file" id="word-upload" accept=".doc,.docx" style="display:none" onchange="handleFileUpload(event)">
+                <button onclick="saveAllDataToSupabase()" class="btn-participants btn-save">💾 Сохранить</button>
+                <button onclick="resetTables()" class="btn-participants btn-clear">🗑 Очистить</button>
+            </div>
         </div>
 
-        <div class="button-group">
-            <a href="full_results.html" class="btn-participants">📊 Полные итоги</a>
-            <button onclick="downloadWord()" class="btn-participants" style="background:#4CAF50; color:white;">⬇ Скачать протокол (Word)</button>
-            <button onclick="document.getElementById('word-upload').click()" class="btn-participants btn-upload">📂 Загрузить из Word</button>
-            <input type="file" id="word-upload" accept=".doc,.docx" style="display:none" onchange="handleFileUpload(event)">
-            <button onclick="saveAllDataToSupabase()" class="btn-participants btn-save">💾 Сохранить в БД</button>
-            <button onclick="resetTables()" class="btn-participants btn-clear">🗑 Очистить</button>
+        <!-- ИНКАССАЦИЯ -->
+        <div class="section-card" id="section-ink">
+            <div class="section-title">
+                🚛 Инкассация
+                <span class="sub">— личное и командное</span>
+            </div>
+            <div class="subsection-title">Личное первенство</div>
+            <div class="table-wrapper">
+                <table id="table-ink-individual">
+                    <thead>
+                        <tr><th class="col-place">Место</th><th class="col-name">Ф.И.О.</th><th class="col-bank">Территориальный банк</th><th class="col-result">Результат</th></tr>
+                    </thead>
+                    <tbody id="tbody-ink-individual"></tbody>
+                </table>
+            </div>
+            <div class="row-count" id="count-ink-individual">Записей: 0</div>
+
+            <div class="subsection-title">Командное первенство</div>
+            <div class="table-wrapper">
+                <table id="table-ink-team">
+                    <thead>
+                        <tr><th style="width:14%; text-align:center;">Место</th><th style="width:54%; text-align:left;">Территориальный банк</th><th style="width:32%; text-align:left;">Результат (сумма мест)</th></tr>
+                    </thead>
+                    <tbody id="tbody-ink-team"></tbody>
+                </table>
+            </div>
+            <div class="row-count" id="count-ink-team">Записей: 0</div>
         </div>
+
+        <!-- ОХРАНА -->
+        <div class="section-card" id="section-security">
+            <div class="section-title">
+                🛡️ Охрана
+                <span class="sub">— личное и командное</span>
+            </div>
+            <div class="subsection-title">Личное первенство</div>
+            <div class="table-wrapper">
+                <table id="table-security-individual">
+                    <thead>
+                        <tr><th class="col-place">Место</th><th class="col-name">Ф.И.О.</th><th class="col-bank">Территориальный банк</th><th class="col-result">Результат</th></tr>
+                    </thead>
+                    <tbody id="tbody-security-individual"></tbody>
+                </table>
+            </div>
+            <div class="row-count" id="count-security-individual">Записей: 0</div>
+
+            <div class="subsection-title">Командное первенство</div>
+            <div class="table-wrapper">
+                <table id="table-security-team">
+                    <thead>
+                        <tr><th style="width:14%; text-align:center;">Место</th><th style="width:54%; text-align:left;">Территориальный банк</th><th style="width:32%; text-align:left;">Результат (сумма мест)</th></tr>
+                    </thead>
+                    <tbody id="tbody-security-team"></tbody>
+                </table>
+            </div>
+            <div class="row-count" id="count-security-team">Записей: 0</div>
+        </div>
+
+        <div class="signature" id="signature-block">
+            <div><span class="judge">Главный судья А.В. Ермолаев</span></div>
+            <div><span>«<span class="date-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>»</span><span style="margin-left: 4px;">июня 2026</span></div>
+        </div>
+
+        <div class="subnote" style="text-align: right; margin-top: 12px;">
+            Протокол официальный · данные синхронизированы
+        </div>
+
     </div>
 
-    <!-- ИНКАССАЦИЯ -->
-    <div class="section-card" id="section-ink">
-        <div class="section-title">
-            🚛 Инкассация
-            <span class="sub">— личное и командное первенство</span>
-        </div>
-        <div class="subsection-title">Личное первенство</div>
-        <div class="table-wrapper">
-            <table id="table-ink-individual">
-                <thead>
-                    <tr><th class="col-place">Место</th><th class="col-name">Ф.И.О.</th><th class="col-bank">Территориальный банк</th><th class="col-result">Результат</th></tr>
-                </thead>
-                <tbody id="tbody-ink-individual"></tbody>
-            </table>
-        </div>
-        <div class="row-count" id="count-ink-individual">Записей: 0</div>
-        
-        <div class="subsection-title">Командное первенство</div>
-        <div class="table-wrapper">
-            <table id="table-ink-team">
-                <thead>
-                    <tr><th style="width:12%; text-align:center;">Место</th><th style="width:58%; text-align:left;">Территориальный банк</th><th style="width:30%; text-align:left;">Результат (сумма мест)</th></tr>
-                </thead>
-                <tbody id="tbody-ink-team"></tbody>
-            </table>
-        </div>
-        <div class="row-count" id="count-ink-team">Записей: 0</div>
+    <!-- TOAST -->
+    <div id="toast" class="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMessage">Готово</span>
     </div>
 
-    <!-- ОХРАНА -->
-    <div class="section-card" id="section-security">
-        <div class="section-title">
-            🛡️ Охрана
-            <span class="sub">— личное и командное первенство</span>
-        </div>
-        <div class="subsection-title">Личное первенство</div>
-        <div class="table-wrapper">
-            <table id="table-security-individual">
-                <thead>
-                    <tr><th class="col-place">Место</th><th class="col-name">Ф.И.О.</th><th class="col-bank">Территориальный банк</th><th class="col-result">Результат</th></tr>
-                </thead>
-                <tbody id="tbody-security-individual"></tbody>
-            </table>
-        </div>
-        <div class="row-count" id="count-security-individual">Записей: 0</div>
-        
-        <div class="subsection-title">Командное первенство</div>
-        <div class="table-wrapper">
-            <table id="table-security-team">
-                <thead>
-                    <tr><th style="width:12%; text-align:center;">Место</th><th style="width:58%; text-align:left;">Территориальный банк</th><th style="width:30%; text-align:left;">Результат (сумма мест)</th></tr>
-                </thead>
-                <tbody id="tbody-security-team"></tbody>
-            </table>
-        </div>
-        <div class="row-count" id="count-security-team">Записей: 0</div>
-    </div>
+    <script>
+        // ========== SUPABASE ==========
+        const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    <div class="signature" id="signature-block">
-        <div><span class="judge">Главный судья по практической стрельбе А.В. Ермолаев</span></div>
-        <div><span>«<span class="date-line">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>»</span><span style="margin-left: 4px;">июня 2026 года</span></div>
-    </div>
+        // ========== КОНФИГУРАЦИЯ ==========
+        const tableConfigs = [
+            { tbodyId: 'tbody-ink-individual', category: 'inkas', type: 'individual', maxRows: 3, countId: 'count-ink-individual' },
+            { tbodyId: 'tbody-ink-team', category: 'inkas', type: 'team', maxRows: 11, countId: 'count-ink-team' },
+            { tbodyId: 'tbody-security-individual', category: 'security', type: 'individual', maxRows: 3, countId: 'count-security-individual' },
+            { tbodyId: 'tbody-security-team', category: 'security', type: 'team', maxRows: 12, countId: 'count-security-team' }
+        ];
 
-    <div class="subnote" style="text-align: right; margin-top: 16px;">
-        Протокол официальный · данные синхронизированы с базой
-    </div>
-
-</div>
-
-<!-- TOAST -->
-<div id="toast" class="toast">
-    <i class="fas fa-check-circle"></i>
-    <span id="toastMessage">Данные сохранены</span>
-</div>
-
-<script>
-    // ========== SUPABASE ==========
-    const SUPABASE_URL = 'https://vwxgqnlxrcqqzdrlujjb.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // ========== КОНФИГУРАЦИЯ ==========
-    const tableConfigs = [
-        { tbodyId: 'tbody-ink-individual', category: 'inkas', type: 'individual', maxRows: 3, countId: 'count-ink-individual' },
-        { tbodyId: 'tbody-ink-team', category: 'inkas', type: 'team', maxRows: 11, countId: 'count-ink-team' },
-        { tbodyId: 'tbody-security-individual', category: 'security', type: 'individual', maxRows: 3, countId: 'count-security-individual' },
-        { tbodyId: 'tbody-security-team', category: 'security', type: 'team', maxRows: 12, countId: 'count-security-team' }
-    ];
-
-    // ========== ОБНОВЛЕНИЕ ==========
-    function updateMedalIcons() {
-        tableConfigs.forEach(cfg => {
-            const tbody = document.getElementById(cfg.tbodyId);
-            if (!tbody) return;
-            tbody.querySelectorAll('tr').forEach(row => {
-                const firstCell = row.querySelector('td:first-child');
-                if (!firstCell) return;
-                const text = firstCell.textContent.trim();
-                const match = text.match(/\d+/);
-                if (!match) return;
-                const placeNum = parseInt(match[0], 10);
-                let iconHtml = '';
-                if (placeNum === 1) iconHtml = '<span class="medal-icon">🥇</span>';
-                else if (placeNum === 2) iconHtml = '<span class="medal-icon">🥈</span>';
-                else if (placeNum === 3) iconHtml = '<span class="medal-icon">🥉</span>';
-                firstCell.innerHTML = iconHtml ? iconHtml + ' ' + placeNum : placeNum;
-            });
-        });
-    }
-
-    function applyAllHighlights() {
-        tableConfigs.forEach(cfg => {
-            const tbody = document.getElementById(cfg.tbodyId);
-            if (!tbody) return;
-            tbody.querySelectorAll('tr').forEach(row => {
-                row.classList.remove('rank-1', 'rank-2', 'rank-3');
-                const firstCell = row.querySelector('td:first-child');
-                if (!firstCell) return;
-                const text = firstCell.textContent.trim();
-                const match = text.match(/\d+/);
-                if (!match) return;
-                const placeNum = parseInt(match[0], 10);
-                if (placeNum >= 1 && placeNum <= 3) row.classList.add('rank-' + placeNum);
-            });
-        });
-    }
-
-    function updateRowCounts() {
-        tableConfigs.forEach(cfg => {
-            const tbody = document.getElementById(cfg.tbodyId);
-            const countEl = document.getElementById(cfg.countId);
-            if (tbody && countEl) {
-                const allRows = tbody.querySelectorAll('tr');
-                let filledCount = 0;
-                allRows.forEach(tr => {
-                    const cells = tr.querySelectorAll('td');
-                    for (let i = 1; i < cells.length; i++) {
-                        if (cells[i].textContent.trim()) {
-                            filledCount++;
-                            break;
-                        }
-                    }
-                });
-                countEl.textContent = `Записей: ${filledCount} из ${allRows.length}`;
-            }
-        });
-    }
-
-    function refreshTableAppearance() {
-        applyAllHighlights();
-        updateMedalIcons();
-        updateRowCounts();
-    }
-
-    // ========== ЗАГРУЗКА ==========
-    async function loadDataFromSupabase() {
-        const statusDiv = document.getElementById('connectionStatus');
-        statusDiv.innerHTML = '<span class="status-badge loading">⏳ Загрузка данных...</span>';
-        console.log('🔄 Загрузка данных...');
-
-        try {
-            const { data, error } = await supabaseClient
-                .from('shooting_results')
-                .select('*')
-                .order('place', { ascending: true });
-
-            if (error) throw error;
-
-            console.log(`✅ Получено ${data.length} записей`);
-
+        // ========== ОБНОВЛЕНИЕ ==========
+        function updateMedalIcons() {
             tableConfigs.forEach(cfg => {
-                const tbody = document.getElementById(cfg.tbodyId);
-                if (tbody) tbody.innerHTML = '';
-            });
-
-            const groups = {};
-            data.forEach(row => {
-                const key = row.category + '_' + row.type;
-                if (!groups[key]) groups[key] = [];
-                groups[key].push(row);
-            });
-
-            tableConfigs.forEach(cfg => {
-                const key = cfg.category + '_' + cfg.type;
-                const rows = groups[key] || [];
                 const tbody = document.getElementById(cfg.tbodyId);
                 if (!tbody) return;
+                tbody.querySelectorAll('tr').forEach(row => {
+                    const firstCell = row.querySelector('td:first-child');
+                    if (!firstCell) return;
+                    const text = firstCell.textContent.trim();
+                    const match = text.match(/\d+/);
+                    if (!match) return;
+                    const placeNum = parseInt(match[0], 10);
+                    let iconHtml = '';
+                    if (placeNum === 1) iconHtml = '<span class="medal-icon">🥇</span>';
+                    else if (placeNum === 2) iconHtml = '<span class="medal-icon">🥈</span>';
+                    else if (placeNum === 3) iconHtml = '<span class="medal-icon">🥉</span>';
+                    firstCell.innerHTML = iconHtml ? iconHtml + ' ' + placeNum : placeNum;
+                });
+            });
+        }
 
-                if (rows.length === 0) {
-                    for (let i = 1; i <= cfg.maxRows; i++) {
+        function applyAllHighlights() {
+            tableConfigs.forEach(cfg => {
+                const tbody = document.getElementById(cfg.tbodyId);
+                if (!tbody) return;
+                tbody.querySelectorAll('tr').forEach(row => {
+                    row.classList.remove('rank-1', 'rank-2', 'rank-3');
+                    const firstCell = row.querySelector('td:first-child');
+                    if (!firstCell) return;
+                    const text = firstCell.textContent.trim();
+                    const match = text.match(/\d+/);
+                    if (!match) return;
+                    const placeNum = parseInt(match[0], 10);
+                    if (placeNum >= 1 && placeNum <= 3) row.classList.add('rank-' + placeNum);
+                });
+            });
+        }
+
+        function updateRowCounts() {
+            tableConfigs.forEach(cfg => {
+                const tbody = document.getElementById(cfg.tbodyId);
+                const countEl = document.getElementById(cfg.countId);
+                if (tbody && countEl) {
+                    const allRows = tbody.querySelectorAll('tr');
+                    let filledCount = 0;
+                    allRows.forEach(tr => {
+                        const cells = tr.querySelectorAll('td');
+                        for (let i = 1; i < cells.length; i++) {
+                            if (cells[i].textContent.trim()) {
+                                filledCount++;
+                                break;
+                            }
+                        }
+                    });
+                    countEl.textContent = `Записей: ${filledCount} из ${allRows.length}`;
+                }
+            });
+        }
+
+        function refreshTableAppearance() {
+            applyAllHighlights();
+            updateMedalIcons();
+            updateRowCounts();
+        }
+
+        // ========== ЗАГРУЗКА ==========
+        async function loadDataFromSupabase() {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.innerHTML = '<span class="status-badge loading">⏳ Загрузка...</span>';
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('shooting_results')
+                    .select('*')
+                    .order('place', { ascending: true });
+
+                if (error) throw error;
+
+                tableConfigs.forEach(cfg => {
+                    const tbody = document.getElementById(cfg.tbodyId);
+                    if (tbody) tbody.innerHTML = '';
+                });
+
+                const groups = {};
+                data.forEach(row => {
+                    const key = row.category + '_' + row.type;
+                    if (!groups[key]) groups[key] = [];
+                    groups[key].push(row);
+                });
+
+                tableConfigs.forEach(cfg => {
+                    const key = cfg.category + '_' + cfg.type;
+                    const rows = groups[key] || [];
+                    const tbody = document.getElementById(cfg.tbodyId);
+                    if (!tbody) return;
+
+                    if (rows.length === 0) {
+                        for (let i = 1; i <= cfg.maxRows; i++) {
+                            const isIndividual = cfg.type === 'individual';
+                            const cols = isIndividual ? 4 : 3;
+                            const tr = document.createElement('tr');
+                            if (i <= 3) tr.classList.add('rank-' + i);
+                            for (let j = 0; j < cols; j++) {
+                                const td = document.createElement('td');
+                                td.contentEditable = (j > 0);
+                                if (j === 0) {
+                                    td.className = isIndividual ? 'col-place' : 'place-number';
+                                    td.contentEditable = false;
+                                    td.textContent = i;
+                                } else {
+                                    td.textContent = '';
+                                    if (!isIndividual && j === 2) td.style.textAlign = 'left';
+                                    if (isIndividual && j === 3) td.className = 'col-result';
+                                }
+                                tr.appendChild(td);
+                            }
+                            tbody.appendChild(tr);
+                        }
+                        return;
+                    }
+
+                    rows.forEach(row => {
                         const isIndividual = cfg.type === 'individual';
                         const cols = isIndividual ? 4 : 3;
+                        const tr = document.createElement('tr');
+                        if (row.place <= 3) tr.classList.add('rank-' + row.place);
+                        for (let i = 0; i < cols; i++) {
+                            const td = document.createElement('td');
+                            td.contentEditable = (i > 0);
+                            if (i === 0) {
+                                td.className = isIndividual ? 'col-place' : 'place-number';
+                                td.contentEditable = false;
+                                td.textContent = row.place;
+                            } else if (i === 1) {
+                                td.textContent = row.name || '';
+                            } else if (i === 2) {
+                                if (isIndividual) {
+                                    td.textContent = row.bank || '';
+                                    td.className = 'col-bank';
+                                } else {
+                                    td.textContent = row.result || '';
+                                    td.style.textAlign = 'left';
+                                }
+                            } else if (i === 3) {
+                                td.className = 'col-result';
+                                td.textContent = row.result || '';
+                            }
+                            tr.appendChild(td);
+                        }
+                        tbody.appendChild(tr);
+                    });
+                });
+
+                refreshTableAppearance();
+                statusDiv.innerHTML = '<span class="status-badge ok">✅ Данные загружены</span>';
+            } catch (err) {
+                console.error('❌ Ошибка:', err);
+                statusDiv.innerHTML = `<span class="status-badge error">❌ ${err.message || 'Ошибка'}</span>`;
+                showToast('Ошибка: ' + err.message, 'error');
+            }
+        }
+
+        // ========== СОХРАНЕНИЕ ==========
+        async function saveAllDataToSupabase() {
+            const statusDiv = document.getElementById('connectionStatus');
+            statusDiv.innerHTML = '<span class="status-badge loading">⏳ Сохранение...</span>';
+
+            try {
+                const allRows = [];
+                tableConfigs.forEach(cfg => {
+                    const tbody = document.getElementById(cfg.tbodyId);
+                    if (!tbody) return;
+                    tbody.querySelectorAll('tr').forEach(tr => {
+                        const cells = tr.querySelectorAll('td');
+                        if (cells.length === 0) return;
+                        const placeText = cells[0].textContent.trim();
+                        const placeMatch = placeText.match(/\d+/);
+                        if (!placeMatch) return;
+                        const place = parseInt(placeMatch[0], 10);
+                        const isIndividual = cfg.type === 'individual';
+                        let name = '',
+                            bank = '',
+                            result = '';
+                        if (isIndividual) {
+                            name = cells[1]?.textContent.trim() || '';
+                            bank = cells[2]?.textContent.trim() || '';
+                            result = cells[3]?.textContent.trim() || '';
+                        } else {
+                            name = cells[1]?.textContent.trim() || '';
+                            bank = '';
+                            result = cells[2]?.textContent.trim() || '';
+                        }
+                        allRows.push({
+                            category: cfg.category,
+                            type: cfg.type,
+                            place: place,
+                            name: name,
+                            bank: bank,
+                            result: result
+                        });
+                    });
+                });
+
+                const groups = [
+                    { category: 'inkas', type: 'individual' },
+                    { category: 'inkas', type: 'team' },
+                    { category: 'security', type: 'individual' },
+                    { category: 'security', type: 'team' }
+                ];
+
+                await Promise.all(groups.map(g =>
+                    supabaseClient
+                    .from('shooting_results')
+                    .delete()
+                    .eq('category', g.category)
+                    .eq('type', g.type)
+                ));
+
+                if (allRows.length > 0) {
+                    const { error } = await supabaseClient
+                        .from('shooting_results')
+                        .insert(allRows);
+                    if (error) throw error;
+                }
+
+                showToast('✅ Данные сохранены', 'success');
+                statusDiv.innerHTML = '<span class="status-badge ok">✅ Сохранено</span>';
+                await loadDataFromSupabase();
+            } catch (err) {
+                console.error('❌ Ошибка:', err);
+                statusDiv.innerHTML = '<span class="status-badge error">❌ Ошибка</span>';
+                showToast('❌ Ошибка: ' + err.message, 'error');
+            }
+        }
+
+        // ========== ЗАГРУЗКА ИЗ WORD ==========
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const ext = file.name.split('.').pop().toLowerCase();
+            if (ext !== 'docx' && ext !== 'doc') {
+                showToast('Выберите .docx или .doc', 'error');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    showToast('⏳ Обработка...', 'info');
+
+                    const result = await mammoth.convertToHtml({ arrayBuffer: e.target.result });
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = result.value;
+                    const tables = tempDiv.querySelectorAll('table');
+
+                    if (tables.length < 4) {
+                        showToast('Нужно 4 таблицы', 'error');
+                        return;
+                    }
+
+                    const tbodyIds = ['tbody-ink-individual', 'tbody-ink-team', 'tbody-security-individual', 'tbody-security-team'];
+
+                    for (let i = 0; i < 4; i++) {
+                        const docTable = tables[i];
+                        const rows = docTable.querySelectorAll('tr');
+                        const dataRows = Array.from(rows).slice(1);
+                        const tbody = document.getElementById(tbodyIds[i]);
+                        if (!tbody) continue;
+
+                        tbody.innerHTML = '';
+                        const isIndividual = (i === 0 || i === 2);
+                        const neededCols = isIndividual ? 4 : 3;
+
+                        dataRows.forEach((row, index) => {
+                            const cells = row.querySelectorAll('td');
+                            if (cells.length === 0) return;
+                            const tr = document.createElement('tr');
+
+                            for (let j = 0; j < neededCols; j++) {
+                                const td = document.createElement('td');
+                                td.contentEditable = (j > 0);
+
+                                if (j === 0) {
+                                    td.className = isIndividual ? 'col-place' : 'place-number';
+                                    td.contentEditable = false;
+                                    const placeText = cells[j]?.textContent.trim() || '';
+                                    const placeMatch = placeText.match(/\d+/);
+                                    td.textContent = placeMatch ? placeMatch[0] : (index + 1);
+                                } else if (j < cells.length) {
+                                    td.textContent = cells[j]?.textContent.trim() || '';
+                                } else {
+                                    td.textContent = '';
+                                }
+                                tr.appendChild(td);
+                            }
+                            tbody.appendChild(tr);
+                        });
+                    }
+
+                    refreshTableAppearance();
+                    await saveAllDataToSupabase();
+
+                } catch (err) {
+                    console.error(err);
+                    showToast('Ошибка: ' + err.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            event.target.value = '';
+        }
+
+        // ========== ОЧИСТКА ==========
+        async function resetTables() {
+            if (!confirm('Очистить все данные?')) return;
+            try {
+                const groups = [
+                    { category: 'inkas', type: 'individual' },
+                    { category: 'inkas', type: 'team' },
+                    { category: 'security', type: 'individual' },
+                    { category: 'security', type: 'team' }
+                ];
+
+                await Promise.all(groups.map(g =>
+                    supabaseClient
+                    .from('shooting_results')
+                    .delete()
+                    .eq('category', g.category)
+                    .eq('type', g.type)
+                ));
+
+                tableConfigs.forEach(cfg => {
+                    const tbody = document.getElementById(cfg.tbodyId);
+                    if (!tbody) return;
+                    tbody.innerHTML = '';
+                    const isIndividual = cfg.type === 'individual';
+                    const cols = isIndividual ? 4 : 3;
+                    for (let i = 1; i <= cfg.maxRows; i++) {
                         const tr = document.createElement('tr');
                         if (i <= 3) tr.classList.add('rank-' + i);
                         for (let j = 0; j < cols; j++) {
@@ -392,341 +1010,101 @@
                         }
                         tbody.appendChild(tr);
                     }
-                    return;
-                }
-
-                rows.forEach(row => {
-                    const isIndividual = cfg.type === 'individual';
-                    const cols = isIndividual ? 4 : 3;
-                    const tr = document.createElement('tr');
-                    if (row.place <= 3) tr.classList.add('rank-' + row.place);
-                    for (let i = 0; i < cols; i++) {
-                        const td = document.createElement('td');
-                        td.contentEditable = (i > 0);
-                        if (i === 0) {
-                            td.className = isIndividual ? 'col-place' : 'place-number';
-                            td.contentEditable = false;
-                            td.textContent = row.place;
-                        } else if (i === 1) {
-                            td.textContent = row.name || '';
-                        } else if (i === 2) {
-                            if (isIndividual) {
-                                td.textContent = row.bank || '';
-                                td.className = 'col-bank';
-                            } else {
-                                td.textContent = row.result || '';
-                                td.style.textAlign = 'left';
-                            }
-                        } else if (i === 3) {
-                            td.className = 'col-result';
-                            td.textContent = row.result || '';
-                        }
-                        tr.appendChild(td);
-                    }
-                    tbody.appendChild(tr);
                 });
-            });
-
-            refreshTableAppearance();
-            statusDiv.innerHTML = '<span class="status-badge ok">✅ Данные загружены из Supabase</span>';
-            console.log('✅ Загрузка завершена');
-        } catch (err) {
-            console.error('❌ Ошибка:', err);
-            statusDiv.innerHTML = `<span class="status-badge error">❌ ${err.message || 'Ошибка'}</span>`;
-            showToast('Ошибка: ' + err.message, 'error');
-        }
-    }
-
-    // ========== СОХРАНЕНИЕ ==========
-    async function saveAllDataToSupabase() {
-        console.log('⏳ Сохранение...');
-        const statusDiv = document.getElementById('connectionStatus');
-        statusDiv.innerHTML = '<span class="status-badge loading">⏳ Сохранение...</span>';
-
-        try {
-            const allRows = [];
-            tableConfigs.forEach(cfg => {
-                const tbody = document.getElementById(cfg.tbodyId);
-                if (!tbody) return;
-                tbody.querySelectorAll('tr').forEach(tr => {
-                    const cells = tr.querySelectorAll('td');
-                    if (cells.length === 0) return;
-                    const placeText = cells[0].textContent.trim();
-                    const placeMatch = placeText.match(/\d+/);
-                    if (!placeMatch) return;
-                    const place = parseInt(placeMatch[0], 10);
-                    const isIndividual = cfg.type === 'individual';
-                    let name = '', bank = '', result = '';
-                    if (isIndividual) {
-                        name = cells[1]?.textContent.trim() || '';
-                        bank = cells[2]?.textContent.trim() || '';
-                        result = cells[3]?.textContent.trim() || '';
-                    } else {
-                        name = cells[1]?.textContent.trim() || '';
-                        bank = '';
-                        result = cells[2]?.textContent.trim() || '';
-                    }
-                    allRows.push({
-                        category: cfg.category,
-                        type: cfg.type,
-                        place: place,
-                        name: name,
-                        bank: bank,
-                        result: result
-                    });
-                });
-            });
-
-            console.log(`📊 Собрано ${allRows.length} строк`);
-
-            const groups = [
-                { category: 'inkas', type: 'individual' },
-                { category: 'inkas', type: 'team' },
-                { category: 'security', type: 'individual' },
-                { category: 'security', type: 'team' }
-            ];
-
-            await Promise.all(groups.map(g => 
-                supabaseClient
-                    .from('shooting_results')
-                    .delete()
-                    .eq('category', g.category)
-                    .eq('type', g.type)
-            ));
-
-            if (allRows.length > 0) {
-                const { error } = await supabaseClient
-                    .from('shooting_results')
-                    .insert(allRows);
-                if (error) throw error;
-            }
-
-            showToast('✅ Данные сохранены', 'success');
-            statusDiv.innerHTML = '<span class="status-badge ok">✅ Сохранено</span>';
-            await loadDataFromSupabase();
-        } catch (err) {
-            console.error('❌ Ошибка:', err);
-            statusDiv.innerHTML = '<span class="status-badge error">❌ Ошибка</span>';
-            showToast('❌ Ошибка: ' + err.message, 'error');
-        }
-    }
-
-    // ========== ЗАГРУЗКА ИЗ WORD ==========
-    function handleFileUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const ext = file.name.split('.').pop().toLowerCase();
-        if (ext !== 'docx' && ext !== 'doc') {
-            showToast('Выберите .docx или .doc', 'error');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            try {
-                showToast('⏳ Обработка файла...', 'info');
-                
-                const result = await mammoth.convertToHtml({ arrayBuffer: e.target.result });
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = result.value;
-                const tables = tempDiv.querySelectorAll('table');
-                
-                if (tables.length < 4) {
-                    showToast('Нужно 4 таблицы', 'error');
-                    return;
-                }
-
-                const tbodyIds = ['tbody-ink-individual', 'tbody-ink-team', 'tbody-security-individual', 'tbody-security-team'];
-                
-                for (let i = 0; i < 4; i++) {
-                    const docTable = tables[i];
-                    const rows = docTable.querySelectorAll('tr');
-                    const dataRows = Array.from(rows).slice(1);
-                    const tbody = document.getElementById(tbodyIds[i]);
-                    if (!tbody) continue;
-                    
-                    tbody.innerHTML = '';
-                    const isIndividual = (i === 0 || i === 2);
-                    const neededCols = isIndividual ? 4 : 3;
-                    
-                    dataRows.forEach((row, index) => {
-                        const cells = row.querySelectorAll('td');
-                        if (cells.length === 0) return;
-                        const tr = document.createElement('tr');
-                        
-                        for (let j = 0; j < neededCols; j++) {
-                            const td = document.createElement('td');
-                            td.contentEditable = (j > 0);
-                            
-                            if (j === 0) {
-                                td.className = isIndividual ? 'col-place' : 'place-number';
-                                td.contentEditable = false;
-                                const placeText = cells[j]?.textContent.trim() || '';
-                                const placeMatch = placeText.match(/\d+/);
-                                td.textContent = placeMatch ? placeMatch[0] : (index + 1);
-                            } else if (j < cells.length) {
-                                td.textContent = cells[j]?.textContent.trim() || '';
-                            } else {
-                                td.textContent = '';
-                            }
-                            tr.appendChild(td);
-                        }
-                        tbody.appendChild(tr);
-                    });
-                }
 
                 refreshTableAppearance();
-                await saveAllDataToSupabase();
-                
+                showToast('🗑️ Данные очищены', 'success');
+                document.getElementById('connectionStatus').innerHTML = '<span class="status-badge ok">✅ Очищено</span>';
             } catch (err) {
                 console.error(err);
                 showToast('Ошибка: ' + err.message, 'error');
             }
-        };
-        reader.readAsArrayBuffer(file);
-        event.target.value = '';
-    }
-
-    // ========== ОЧИСТКА ==========
-    async function resetTables() {
-        if (!confirm('Очистить все данные?')) return;
-        try {
-            const groups = [
-                { category: 'inkas', type: 'individual' },
-                { category: 'inkas', type: 'team' },
-                { category: 'security', type: 'individual' },
-                { category: 'security', type: 'team' }
-            ];
-            
-            await Promise.all(groups.map(g => 
-                supabaseClient
-                    .from('shooting_results')
-                    .delete()
-                    .eq('category', g.category)
-                    .eq('type', g.type)
-            ));
-
-            tableConfigs.forEach(cfg => {
-                const tbody = document.getElementById(cfg.tbodyId);
-                if (!tbody) return;
-                tbody.innerHTML = '';
-                const isIndividual = cfg.type === 'individual';
-                const cols = isIndividual ? 4 : 3;
-                for (let i = 1; i <= cfg.maxRows; i++) {
-                    const tr = document.createElement('tr');
-                    if (i <= 3) tr.classList.add('rank-' + i);
-                    for (let j = 0; j < cols; j++) {
-                        const td = document.createElement('td');
-                        td.contentEditable = (j > 0);
-                        if (j === 0) {
-                            td.className = isIndividual ? 'col-place' : 'place-number';
-                            td.contentEditable = false;
-                            td.textContent = i;
-                        } else {
-                            td.textContent = '';
-                            if (!isIndividual && j === 2) td.style.textAlign = 'left';
-                            if (isIndividual && j === 3) td.className = 'col-result';
-                        }
-                        tr.appendChild(td);
-                    }
-                    tbody.appendChild(tr);
-                }
-            });
-
-            refreshTableAppearance();
-            showToast('🗑️ Данные очищены', 'success');
-            document.getElementById('connectionStatus').innerHTML = '<span class="status-badge ok">✅ Очищено</span>';
-        } catch (err) {
-            console.error(err);
-            showToast('Ошибка: ' + err.message, 'error');
         }
-    }
 
-    // ========== СКАЧИВАНИЕ WORD ==========
-    function downloadWord() {
-        const protocolTitleHtml = `
-            <h2 style="font-size: 22pt; color: #0f2b44; margin-bottom: 4px;">Итоговый протокол</h2>
-            <p style="color: #475569; font-size: 14pt;">Соревнования по практической стрельбе — личное и командное первенство</p>
-        `;
-        const sectionInk = document.querySelector('#section-ink').outerHTML;
-        const sectionSecurity = document.querySelector('#section-security').outerHTML;
-        const signature = document.querySelector('#signature-block').outerHTML;
-        const footerNote = document.querySelector('.container > div:last-child')?.outerHTML || '';
+        // ========== СКАЧИВАНИЕ WORD ==========
+        function downloadWord() {
+            const protocolTitleHtml = `
+                    <h2 style="font-size: 20pt; color: #0f2b44; margin-bottom: 4px;">Итоговый протокол</h2>
+                    <p style="color: #475569; font-size: 13pt;">Соревнования по практической стрельбе</p>
+                `;
+            const sectionInk = document.querySelector('#section-ink').outerHTML;
+            const sectionSecurity = document.querySelector('#section-security').outerHTML;
+            const signature = document.querySelector('#signature-block').outerHTML;
+            const footerNote = document.querySelector('.container > div:last-child')?.outerHTML || '';
 
-        const wordHTML = `<!DOCTYPE html>
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head><meta charset="UTF-8"><title>Протокол</title>
-        <!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom></w:WordDocument></xml><![endif]-->
-        <style>
-            body { font-family: 'Segoe UI', Arial, sans-serif; padding: 30px 40px; }
-            .section-title { font-size: 22pt; font-weight: 600; color: #0f2b44; border-left: 6px solid #dc2626; padding-left: 18px; }
-            .section-title .sub { font-size: 14pt; font-weight: 400; color: #475569; }
-            .subsection-title { font-size: 16pt; font-weight: 500; color: #1e3a5f; margin: 20px 0 12px 0; padding-left: 12px; border-left: 5px solid #f5a623; }
-            table { width: 100%; border-collapse: collapse; font-size: 11pt; margin-bottom: 12px; }
-            th { background: #f8fafc; font-weight: 700; color: #1e293b; padding: 8px; border: 1px solid #e2e8f0; text-align: center; }
-            td { padding: 8px; border: 1px solid #e2e8f0; vertical-align: middle; text-align: center; }
-            .col-place { text-align: center; font-weight: 500; }
-            .col-result { text-align: left; }
-            .place-number { text-align: center; font-weight: 500; }
-            .rank-1 { background-color: #ffd966 !important; font-weight: bold; }
-            .rank-2 { background-color: #e0e0e0 !important; font-weight: bold; }
-            .rank-3 { background-color: #f7d9b5 !important; font-weight: bold; }
-            .signature { margin-top: 30px; padding-top: 16px; border-top: 2px solid #1e3a5f; display: flex; justify-content: space-between; font-size: 12pt; }
-            .judge { font-weight: 500; }
-            .date-line { display: inline-block; min-width: 140px; border-bottom: 2px solid #1e3a5f; padding: 0 6px; margin-left: 6px; }
-            .subnote { margin-top: 16px; font-size: 0.75rem; color: #64748b; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 12px; }
-            .row-count { font-size: 0.75rem; color: #64748b; margin-top: 12px; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 12px; }
-        </style>
-        </head>
-        <body>
-            <div class="container">
-                ${protocolTitleHtml}
-                ${sectionInk}
-                ${sectionSecurity}
-                ${signature}
-                ${footerNote}
-            </div>
-        </body>
-        </html>`;
+            const wordHTML = `<!DOCTYPE html>
+                    <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                    <head><meta charset="UTF-8"><title>Протокол</title>
+                    <style>
+                        body { font-family: 'Segoe UI', Arial, sans-serif; padding: 20px 30px; }
+                        .section-title { font-size: 20pt; font-weight: 600; color: #0f2b44; border-left: 6px solid #dc2626; padding-left: 16px; }
+                        .section-title .sub { font-size: 13pt; font-weight: 400; color: #475569; }
+                        .subsection-title { font-size: 15pt; font-weight: 500; color: #1e3a5f; margin: 18px 0 10px 0; padding-left: 12px; border-left: 5px solid #f5a623; }
+                        table { width: 100%; border-collapse: collapse; font-size: 10pt; margin-bottom: 10px; }
+                        th { background: #f8fafc; font-weight: 700; color: #1e293b; padding: 6px; border: 1px solid #e2e8f0; text-align: center; }
+                        td { padding: 6px; border: 1px solid #e2e8f0; vertical-align: middle; text-align: center; }
+                        .col-place { text-align: center; font-weight: 500; }
+                        .col-result { text-align: left; }
+                        .place-number { text-align: center; font-weight: 500; }
+                        .rank-1 { background-color: #ffd966 !important; font-weight: bold; }
+                        .rank-2 { background-color: #e0e0e0 !important; font-weight: bold; }
+                        .rank-3 { background-color: #f7d9b5 !important; font-weight: bold; }
+                        .signature { margin-top: 28px; padding-top: 14px; border-top: 2px solid #1e3a5f; display: flex; justify-content: space-between; font-size: 11pt; }
+                        .judge { font-weight: 500; }
+                        .date-line { display: inline-block; min-width: 120px; border-bottom: 2px solid #1e3a5f; padding: 0 4px; margin-left: 4px; }
+                        .subnote { margin-top: 14px; font-size: 0.7rem; color: #64748b; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+                        .row-count { font-size: 0.7rem; color: #64748b; margin-top: 10px; text-align: right; border-top: 1px solid #e2e8f0; padding-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        ${protocolTitleHtml}
+        ${sectionInk}
+        ${sectionSecurity}
+        ${signature}
+        ${footerNote}
+    </div>
+</body>
+</html>`;
 
-        const blob = new Blob([wordHTML], { type: 'application/msword;charset=utf-8' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'Протокол_практическая_стрельба.doc';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-    }
+const blob = new Blob([wordHTML], { type: 'application/msword;charset=utf-8' });
+const link = document.createElement('a');
+link.href = URL.createObjectURL(blob);
+link.download = 'Протокол_практическая_стрельба.doc';
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
+URL.revokeObjectURL(link.href);
+}
 
-    // ========== TOAST ==========
-    function showToast(message, type = 'info') {
-        const toast = document.getElementById('toast');
-        const toastMessage = document.getElementById('toastMessage');
-        const icon = toast.querySelector('i');
-        
-        if (type === 'success') {
-            icon.className = 'fas fa-check-circle';
-        } else if (type === 'error') {
-            icon.className = 'fas fa-exclamation-circle';
-        } else if (type === 'info') {
-            icon.className = 'fas fa-info-circle';
-        }
-        
-        toastMessage.textContent = message;
-        toast.className = 'toast ' + type;
-        
-        setTimeout(() => toast.classList.add('show'), 50);
-        clearTimeout(toast._hideTimeout);
-        toast._hideTimeout = setTimeout(() => {
-            toast.classList.remove('show');
-        }, 3000);
-    }
+// ========== TOAST ==========
+function showToast(message, type = 'info') {
+const toast = document.getElementById('toast');
+const toastMessage = document.getElementById('toastMessage');
+const icon = toast.querySelector('i');
 
-    // ========== ИНИЦИАЛИЗАЦИЯ ==========
-    document.addEventListener('DOMContentLoaded', function() {
-        loadDataFromSupabase();
-    });
+if (type === 'success') {
+icon.className = 'fas fa-check-circle';
+} else if (type === 'error') {
+icon.className = 'fas fa-exclamation-circle';
+} else if (type === 'info') {
+icon.className = 'fas fa-info-circle';
+}
+
+toastMessage.textContent = message;
+toast.className = 'toast ' + type;
+
+setTimeout(() => toast.classList.add('show'), 50);
+clearTimeout(toast._hideTimeout);
+toast._hideTimeout = setTimeout(() => {
+toast.classList.remove('show');
+}, 3000);
+}
+
+// ========== ИНИЦИАЛИЗАЦИЯ ==========
+document.addEventListener('DOMContentLoaded', function() {
+loadDataFromSupabase();
+});
 </script>
 
 </body>
