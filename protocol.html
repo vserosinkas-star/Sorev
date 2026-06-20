@@ -85,6 +85,7 @@
         .toast.show { opacity: 1; }
         .toast.error { background: #c62828; }
         .toast.success { background: #2e7d32; }
+        .row-count { font-size: 0.85rem; color: #6b7280; margin-top: 8px; text-align: right; }
     </style>
 </head>
 <body>
@@ -132,6 +133,7 @@
                 <tbody id="tbody-ink-individual"></tbody>
             </table>
         </div>
+        <div class="row-count" id="count-ink-individual">Записей: 0</div>
         <div class="subsection-title">Командное первенство</div>
         <div class="table-wrap">
             <table id="table-ink-team">
@@ -141,6 +143,7 @@
                 <tbody id="tbody-ink-team"></tbody>
             </table>
         </div>
+        <div class="row-count" id="count-ink-team">Записей: 0</div>
     </div>
 
     <!-- ОХРАНА -->
@@ -158,6 +161,7 @@
                 <tbody id="tbody-security-individual"></tbody>
             </table>
         </div>
+        <div class="row-count" id="count-security-individual">Записей: 0</div>
         <div class="subsection-title">Командное первенство</div>
         <div class="table-wrap">
             <table id="table-security-team">
@@ -167,6 +171,7 @@
                 <tbody id="tbody-security-team"></tbody>
             </table>
         </div>
+        <div class="row-count" id="count-security-team">Записей: 0</div>
     </div>
 
     <div class="signature" id="signature-block">
@@ -188,10 +193,18 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ3eGdxbmx4cmNxcXpkcmx1ampiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzMzQ2ODQsImV4cCI6MjA5MDkxMDY4NH0.QlpoJyx4h1YG-2EZ9L8qCwW9-7Mkr0qksPeq29NvAVw';
     const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // ========== ОБНОВЛЕНИЕ МЕДАЛЕЙ И ПОДСВЕТКИ ==========
+    // ========== КОНФИГУРАЦИЯ ==========
+    const tableConfigs = [
+        { tbodyId: 'tbody-ink-individual', category: 'inkas', type: 'individual', maxRows: 3, countId: 'count-ink-individual' },
+        { tbodyId: 'tbody-ink-team', category: 'inkas', type: 'team', maxRows: 11, countId: 'count-ink-team' },
+        { tbodyId: 'tbody-security-individual', category: 'security', type: 'individual', maxRows: 3, countId: 'count-security-individual' },
+        { tbodyId: 'tbody-security-team', category: 'security', type: 'team', maxRows: 12, countId: 'count-security-team' }
+    ];
+
+    // ========== ОБНОВЛЕНИЕ ==========
     function updateMedalIcons() {
-        ['tbody-ink-individual', 'tbody-ink-team', 'tbody-security-individual', 'tbody-security-team'].forEach(id => {
-            const tbody = document.getElementById(id);
+        tableConfigs.forEach(cfg => {
+            const tbody = document.getElementById(cfg.tbodyId);
             if (!tbody) return;
             tbody.querySelectorAll('tr').forEach(row => {
                 const firstCell = row.querySelector('td:first-child');
@@ -210,8 +223,8 @@
     }
 
     function applyAllHighlights() {
-        ['tbody-ink-individual', 'tbody-ink-team', 'tbody-security-individual', 'tbody-security-team'].forEach(id => {
-            const tbody = document.getElementById(id);
+        tableConfigs.forEach(cfg => {
+            const tbody = document.getElementById(cfg.tbodyId);
             if (!tbody) return;
             tbody.querySelectorAll('tr').forEach(row => {
                 row.classList.remove('place-1', 'place-2', 'place-3');
@@ -226,18 +239,32 @@
         });
     }
 
+    function updateRowCounts() {
+        tableConfigs.forEach(cfg => {
+            const tbody = document.getElementById(cfg.tbodyId);
+            const countEl = document.getElementById(cfg.countId);
+            if (tbody && countEl) {
+                const allRows = tbody.querySelectorAll('tr');
+                let filledCount = 0;
+                allRows.forEach(tr => {
+                    const cells = tr.querySelectorAll('td');
+                    for (let i = 1; i < cells.length; i++) {
+                        if (cells[i].textContent.trim()) {
+                            filledCount++;
+                            break;
+                        }
+                    }
+                });
+                countEl.textContent = `Записей: ${filledCount} из ${allRows.length}`;
+            }
+        });
+    }
+
     function refreshTableAppearance() {
         applyAllHighlights();
         updateMedalIcons();
+        updateRowCounts();
     }
-
-    // ========== КОНФИГУРАЦИЯ ==========
-    const tableConfigs = [
-        { tbodyId: 'tbody-ink-individual', category: 'inkas', type: 'individual' },
-        { tbodyId: 'tbody-ink-team', category: 'inkas', type: 'team' },
-        { tbodyId: 'tbody-security-individual', category: 'security', type: 'individual' },
-        { tbodyId: 'tbody-security-team', category: 'security', type: 'team' }
-    ];
 
     // ========== ЗАГРУЗКА ==========
     async function loadDataFromSupabase() {
@@ -255,13 +282,11 @@
 
             console.log(`✅ Получено ${data.length} записей`);
 
-            // Очищаем все таблицы
             tableConfigs.forEach(cfg => {
                 const tbody = document.getElementById(cfg.tbodyId);
                 if (tbody) tbody.innerHTML = '';
             });
 
-            // Группируем
             const groups = {};
             data.forEach(row => {
                 const key = row.category + '_' + row.type;
@@ -269,23 +294,41 @@
                 groups[key].push(row);
             });
 
-            // Заполняем
             tableConfigs.forEach(cfg => {
                 const key = cfg.category + '_' + cfg.type;
                 const rows = groups[key] || [];
                 const tbody = document.getElementById(cfg.tbodyId);
-                if (!tbody) {
-                    console.error(`❌ TBody не найден: ${cfg.tbodyId}`);
+                if (!tbody) return;
+
+                if (rows.length === 0) {
+                    for (let i = 1; i <= cfg.maxRows; i++) {
+                        const isIndividual = cfg.type === 'individual';
+                        const cols = isIndividual ? 4 : 3;
+                        const tr = document.createElement('tr');
+                        if (i <= 3) tr.classList.add('place-' + i);
+                        for (let j = 0; j < cols; j++) {
+                            const td = document.createElement('td');
+                            td.contentEditable = (j > 0);
+                            if (j === 0) {
+                                td.className = isIndividual ? 'col-place' : 'place-number';
+                                td.contentEditable = false;
+                                td.textContent = i;
+                            } else {
+                                td.textContent = '';
+                                if (j === cols - 1 && cols === 3) td.style.textAlign = 'center';
+                                if (j === cols - 1 && cols === 4) td.className = 'col-result';
+                            }
+                            tr.appendChild(td);
+                        }
+                        tbody.appendChild(tr);
+                    }
                     return;
                 }
-
-                console.log(`📊 ${cfg.category}/${cfg.type}: ${rows.length} записей`);
 
                 rows.forEach(row => {
                     const isIndividual = cfg.type === 'individual';
                     const cols = isIndividual ? 4 : 3;
                     const tr = document.createElement('tr');
-                    
                     for (let i = 0; i < cols; i++) {
                         const td = document.createElement('td');
                         td.contentEditable = (i > 0);
@@ -317,7 +360,7 @@
         }
     }
 
-    // ========== СОХРАНЕНИЕ ==========
+    // ========== БЫСТРОЕ СОХРАНЕНИЕ (только измененные данные) ==========
     async function saveAllDataToSupabase() {
         console.log('⏳ Сохранение...');
         const statusDiv = document.getElementById('connectionStatus');
@@ -367,15 +410,16 @@
                 { category: 'security', type: 'team' }
             ];
 
-            for (let g of groups) {
-                await supabaseClient
+            // Параллельное удаление
+            await Promise.all(groups.map(g => 
+                supabaseClient
                     .from('shooting_results')
                     .delete()
                     .eq('category', g.category)
-                    .eq('type', g.type);
-            }
+                    .eq('type', g.type)
+            ));
 
-            // Вставляем новые
+            // Вставляем новые одной операцией
             if (allRows.length > 0) {
                 const { error } = await supabaseClient
                     .from('shooting_results')
@@ -393,6 +437,86 @@
         }
     }
 
+    // ========== БЫСТРАЯ ЗАГРУЗКА ИЗ WORD ==========
+    function handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const ext = file.name.split('.').pop().toLowerCase();
+        if (ext !== 'docx' && ext !== 'doc') {
+            showToast('Выберите .docx или .doc', 'error');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = async function(e) {
+            try {
+                showToast('⏳ Обработка файла...', 'info');
+                
+                const result = await mammoth.convertToHtml({ arrayBuffer: e.target.result });
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = result.value;
+                const tables = tempDiv.querySelectorAll('table');
+                
+                if (tables.length < 4) {
+                    showToast('Нужно 4 таблицы', 'error');
+                    return;
+                }
+
+                const tbodyIds = ['tbody-ink-individual', 'tbody-ink-team', 'tbody-security-individual', 'tbody-security-team'];
+                
+                // Заполняем таблицы напрямую (быстрее)
+                for (let i = 0; i < 4; i++) {
+                    const docTable = tables[i];
+                    const rows = docTable.querySelectorAll('tr');
+                    const dataRows = Array.from(rows).slice(1);
+                    const tbody = document.getElementById(tbodyIds[i]);
+                    if (!tbody) continue;
+                    
+                    tbody.innerHTML = '';
+                    const isIndividual = (i === 0 || i === 2);
+                    const neededCols = isIndividual ? 4 : 3;
+                    
+                    dataRows.forEach((row, index) => {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length === 0) return;
+                        const tr = document.createElement('tr');
+                        
+                        for (let j = 0; j < neededCols; j++) {
+                            const td = document.createElement('td');
+                            td.contentEditable = (j > 0);
+                            
+                            if (j === 0) {
+                                td.className = isIndividual ? 'col-place' : 'place-number';
+                                td.contentEditable = false;
+                                const placeText = cells[j]?.textContent.trim() || '';
+                                const placeMatch = placeText.match(/\d+/);
+                                td.textContent = placeMatch ? placeMatch[0] : (index + 1);
+                            } else if (j < cells.length) {
+                                td.textContent = cells[j]?.textContent.trim() || '';
+                            } else {
+                                td.textContent = '';
+                            }
+                            tr.appendChild(td);
+                        }
+                        tbody.appendChild(tr);
+                    });
+                }
+
+                refreshTableAppearance();
+                
+                // Сохраняем в БД
+                await saveAllDataToSupabase();
+                showToast('✅ Загружено из Word', 'success');
+                
+            } catch (err) {
+                console.error(err);
+                showToast('Ошибка: ' + err.message, 'error');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+        event.target.value = '';
+    }
+
     // ========== ОЧИСТКА ==========
     async function resetTables() {
         if (!confirm('Очистить все данные?')) return;
@@ -403,40 +527,36 @@
                 { category: 'security', type: 'individual' },
                 { category: 'security', type: 'team' }
             ];
-            for (let g of groups) {
-                await supabaseClient
+            
+            await Promise.all(groups.map(g => 
+                supabaseClient
                     .from('shooting_results')
                     .delete()
                     .eq('category', g.category)
-                    .eq('type', g.type);
-            }
+                    .eq('type', g.type)
+            ));
 
             // Очищаем UI
-            const configs = [
-                { tbodyId: 'tbody-ink-individual', rows: 3, placeClass: 'col-place', cols: 4 },
-                { tbodyId: 'tbody-ink-team', rows: 11, placeClass: 'place-number', cols: 3 },
-                { tbodyId: 'tbody-security-individual', rows: 3, placeClass: 'col-place', cols: 4 },
-                { tbodyId: 'tbody-security-team', rows: 12, placeClass: 'place-number', cols: 3 }
-            ];
-
-            configs.forEach(cfg => {
+            tableConfigs.forEach(cfg => {
                 const tbody = document.getElementById(cfg.tbodyId);
                 if (!tbody) return;
                 tbody.innerHTML = '';
-                for (let i = 1; i <= cfg.rows; i++) {
+                const isIndividual = cfg.type === 'individual';
+                const cols = isIndividual ? 4 : 3;
+                for (let i = 1; i <= cfg.maxRows; i++) {
                     const tr = document.createElement('tr');
                     if (i <= 3) tr.classList.add('place-' + i);
-                    for (let j = 0; j < cfg.cols; j++) {
+                    for (let j = 0; j < cols; j++) {
                         const td = document.createElement('td');
                         td.contentEditable = (j > 0);
                         if (j === 0) {
-                            td.className = cfg.placeClass;
+                            td.className = isIndividual ? 'col-place' : 'place-number';
                             td.contentEditable = false;
                             td.textContent = i;
                         } else {
                             td.textContent = '';
-                            if (j === cfg.cols - 1 && cfg.cols === 3) td.style.textAlign = 'center';
-                            if (j === cfg.cols - 1 && cfg.cols === 4) td.className = 'col-result';
+                            if (j === cols - 1 && cols === 3) td.style.textAlign = 'center';
+                            if (j === cols - 1 && cols === 4) td.className = 'col-result';
                         }
                         tr.appendChild(td);
                     }
@@ -451,69 +571,6 @@
             console.error(err);
             showToast('Ошибка: ' + err.message, 'error');
         }
-    }
-
-    // ========== ЗАГРУЗКА ИЗ WORD ==========
-    function handleFileUpload(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const ext = file.name.split('.').pop().toLowerCase();
-        if (ext !== 'docx' && ext !== 'doc') {
-            showToast('Выберите .docx или .doc', 'error');
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = async function(e) {
-            try {
-                const result = await mammoth.convertToHtml({ arrayBuffer: e.target.result });
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = result.value;
-                const tables = tempDiv.querySelectorAll('table');
-                if (tables.length < 4) {
-                    showToast('Нужно 4 таблицы', 'error');
-                    return;
-                }
-
-                const tbodyIds = ['tbody-ink-individual', 'tbody-ink-team', 'tbody-security-individual', 'tbody-security-team'];
-                for (let i = 0; i < 4; i++) {
-                    const docTable = tables[i];
-                    const rows = docTable.querySelectorAll('tr');
-                    const dataRows = Array.from(rows).slice(1);
-                    const tbody = document.getElementById(tbodyIds[i]);
-                    if (!tbody) continue;
-                    tbody.innerHTML = '';
-                    dataRows.forEach(row => {
-                        const cells = row.querySelectorAll('td');
-                        if (cells.length === 0) return;
-                        const tr = document.createElement('tr');
-                        cells.forEach((cell, idx) => {
-                            const td = document.createElement('td');
-                            td.contentEditable = (idx > 0);
-                            td.innerHTML = cell.innerHTML;
-                            if (idx === 0) td.contentEditable = false;
-                            tr.appendChild(td);
-                        });
-                        const neededCols = (i === 0 || i === 2) ? 4 : 3;
-                        while (tr.children.length < neededCols) {
-                            const td = document.createElement('td');
-                            td.contentEditable = true;
-                            tr.appendChild(td);
-                        }
-                        tbody.appendChild(tr);
-                    });
-                }
-
-                refreshTableAppearance();
-                await saveAllDataToSupabase();
-                showToast('✅ Загружено из Word', 'success');
-            } catch (err) {
-                console.error(err);
-                showToast('Ошибка: ' + err.message, 'error');
-            }
-        };
-        reader.readAsArrayBuffer(file);
-        event.target.value = '';
     }
 
     // ========== СКАЧИВАНИЕ WORD ==========
@@ -574,7 +631,7 @@
         toast.textContent = message;
         toast.className = 'toast ' + type;
         toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 4000);
+        setTimeout(() => toast.classList.remove('show'), 3000);
     }
 
     // ========== ИНИЦИАЛИЗАЦИЯ ==========
