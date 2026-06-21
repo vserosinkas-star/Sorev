@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>XVI Соревнования — максимальный шрифт</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: #0a0e14;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 16px 12px;
+        }
+
+        .presentation {
+            max-width: 1100px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        /* ===== СЛАЙД ===== */
+        .slide {
+            background: #111a22;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), 0 0 0 1px #2a3f50 inset;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .slide:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.8), 0 0 0 1px #c9a84c inset;
+        }
+
+        /* ===== ЗАГОЛОВОК СЛАЙДА ===== */
+        .slide-header {
+            padding: 20px 28px 16px 28px;
+            border-bottom: 3px solid #c9a84c;
+            background: linear-gradient(135deg, #0f1a24 0%, #1a2a3a 100%);
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px 16px;
+        }
+
+        .slide-header h2 {
+            color: #f0f3f7;
+            font-weight: 700;
+            font-size: 2.2rem;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            letter-spacing: -0.3px;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .slide-header h2 i {
+            color: #c9a84c;
+            font-size: 2.1rem;
+            width: 44px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .slide-header .badge-participants {
+            background: #1d2f3d;
+            color: #d4dce6;
+            font-size: 1.15rem;
+            font-weight: 600;
+            padding: 7px 24px;
+            border-radius: 40px;
+            border: 1px solid #c9a84c66;
+            white-space: nowrap;
+        }
+
+        .slide-header .badge-participants i {
+            color: #c9a84c;
+            margin-right: 8px;
+        }
+
+        .slide-header .badge-type {
+            background: #c9a84c22;
+            color: #c9a84c;
+            font-size: 1.05rem;
+            font-weight: 600;
+            padding: 6px 20px;
+            border-radius: 40px;
+            border: 1px solid #c9a84c55;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        /* ===== ТЕЛО СЛАЙДА ===== */
+        .slide-body {
+            padding: 24px 28px 30px 28px;
+            color: #d0d9e3;
+        }
+
+        .slide-body .info-line {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 32px;
+            margin-bottom: 18px;
+            font-weight: 500;
+            font-size: 1.35rem;
+            color: #b0c4d8;
+        }
+
+        .slide-body .info-line i {
+            color: #c9a84c;
+            width: 28px;
+        }
+
+        .slide-body .info-line .tag {
+            background: #1d2f3d;
+            padding: 0 20px;
+            border-radius: 30px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #c9a84c;
+            letter-spacing: 0.3px;
+            line-height: 30px;
+        }
+
+        /* ===== СЕТКА ЭТАПОВ ===== */
+        .stage-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 32px;
+            margin-top: 10px;
+        }
+
+        .stage-grid .sub-title {
+            font-weight: 700;
+            color: #c9a84c;
+            font-size: 1.35rem;
+            margin-top: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            grid-column: 1 / -1;
+            border-bottom: 1px dashed #2a3f50;
+            padding-bottom: 10px;
+        }
+
+        .stage-grid .sub-title i {
+            color: #c9a84c;
+            font-size: 1.25rem;
+        }
+
+        .stage-list {
+            list-style: none;
+            line-height: 2.1;
+        }
+
+        .stage-list li {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            margin-bottom: 6px;
+            font-size: 1.3rem;
+            color: #c8d4e0;
+        }
+
+        .stage-list li i {
+            color: #c9a84c;
+            width: 22px;
+            font-size: 1.0rem;
+            margin-top: 7px;
+            opacity: 0.8;
+            flex-shrink: 0;
+        }
+
+        /* ===== СОВМЕСТНАЯ ===== */
+        .joint-participants {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 24px;
+            margin: 10px 0 16px 0;
+        }
+
+        .joint-participants span {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #1a2a3a;
+            padding: 8px 24px;
+            border-radius: 30px;
+            border: 1px solid #2a3f50;
+            color: #d0d9e3;
+            font-size: 1.3rem;
+        }
+
+        .badge-joint {
+            background: #c9a84c;
+            color: #0f1a24;
+            font-size: 1.05rem;
+            font-weight: 700;
+            padding: 5px 20px;
+            border-radius: 40px;
+            margin-left: 10px;
+        }
+
+        /* ===== ИТОГОВЫЙ ЗАЧЁТ ===== */
+        .final-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 28px;
+        }
+
+        .final-card {
+            background: #0f1a24;
+            border-radius: 18px;
+            padding: 24px 28px 28px 28px;
+            border-left: 6px solid #c9a84c;
+            border: 1px solid #2a3f50;
+        }
+
+        .final-card h3 {
+            color: #f0f3f7;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-size: 1.6rem;
+        }
+
+        .final-card h3 i {
+            color: #c9a84c;
+        }
+
+        .final-card p {
+            margin-top: 14px;
+            color: #b0c4d8;
+            font-weight: 500;
+            font-size: 1.3rem;
+        }
+
+        .final-card ul {
+            list-style: none;
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 24px;
+        }
+
+        .final-card ul li {
+            color: #c8d4e0;
+            font-size: 1.3rem;
+        }
+
+        .final-card ul li i {
+            color: #c9a84c;
+            margin-right: 10px;
+        }
+
+        /* ===== ФУТЕР ===== */
+        .footer-note {
+            background: #0f1a24;
+            border-radius: 40px;
+            padding: 18px 32px;
+            margin-top: 14px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-weight: 500;
+            color: #b0c4d8;
+            border: 1px solid #2a3f50;
+            font-size: 1.3rem;
+        }
+
+        .footer-note i {
+            font-size: 1.9rem;
+            color: #c9a84c;
+            flex-shrink: 0;
+        }
+
+        /* ===== ГЛАВНЫЙ ЗАГОЛОВОК ===== */
+        .main-header {
+            background: linear-gradient(135deg, #0a121c 0%, #162635 100%);
+            border-radius: 18px;
+            padding: 30px 36px 26px 36px;
+            border-bottom: 5px solid #c9a84c;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .main-header h1 {
+            color: #f0f3f7;
+            font-weight: 700;
+            font-size: 2.8rem;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            flex-wrap: wrap;
+            letter-spacing: -0.5px;
+        }
+
+        .main-header h1 i {
+            color: #c9a84c;
+            font-size: 2.8rem;
+        }
+
+        .main-header .header-sub {
+            color: #9ab0c8;
+            font-size: 1.35rem;
+            font-weight: 400;
+            margin-top: 12px;
+            padding-left: 4px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 32px;
+        }
+
+        .main-header .header-sub i {
+            color: #c9a84c;
+            margin-right: 10px;
+        }
+
+        .main-header .date-place {
+            background: #1d2f3d;
+            padding: 8px 24px;
+            border-radius: 40px;
+            font-size: 1.25rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid #2a3f50;
+            color: #d0d9e3;
+        }
+
+        /* ========================================================= */
+        /* ===== АДАПТИВ ===== */
+        /* ========================================================= */
+
+        @media (max-width: 820px) {
+            body {
+                padding: 12px 8px;
+            }
+            .presentation {
+                gap: 20px;
+            }
+            .slide-header {
+                padding: 16px 20px 14px 20px;
+            }
+            .slide-header h2 {
+                font-size: 1.8rem;
+            }
+            .slide-header h2 i {
+                font-size: 1.7rem;
+                width: 38px;
+            }
+            .slide-header .badge-participants {
+                font-size: 1.0rem;
+                padding: 6px 18px;
+            }
+            .slide-header .badge-type {
+                font-size: 0.95rem;
+                padding: 5px 16px;
+            }
+            .slide-body {
+                padding: 18px 20px 22px 20px;
+            }
+            .slide-body .info-line {
+                font-size: 1.15rem;
+                gap: 8px 22px;
+            }
+            .stage-grid {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+            .stage-grid .sub-title {
+                font-size: 1.15rem;
+                margin-top: 10px;
+            }
+            .stage-list li {
+                font-size: 1.1rem;
+            }
+            .main-header {
+                padding: 22px 24px 20px 24px;
+            }
+            .main-header h1 {
+                font-size: 2.1rem;
+            }
+            .main-header h1 i {
+                font-size: 2.1rem;
+            }
+            .main-header .header-sub {
+                font-size: 1.15rem;
+            }
+            .main-header .date-place {
+                font-size: 1.05rem;
+                padding: 6px 18px;
+            }
+            .final-grid {
+                grid-template-columns: 1fr;
+                gap: 18px;
+            }
+            .final-card {
+                padding: 18px 22px 22px 22px;
+            }
+            .final-card h3 {
+                font-size: 1.4rem;
+            }
+            .final-card p {
+                font-size: 1.15rem;
+            }
+            .final-card ul li {
+                font-size: 1.15rem;
+            }
+            .footer-note {
+                font-size: 1.1rem;
+                padding: 16px 24px;
+            }
+            .joint-participants span {
+                font-size: 1.15rem;
+            }
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 8px 4px;
+            }
+            .presentation {
+                gap: 16px;
+            }
+
+            .main-header {
+                padding: 16px 14px 14px 14px;
+            }
+            .main-header h1 {
+                font-size: 1.6rem;
+                gap: 12px;
+            }
+            .main-header h1 i {
+                font-size: 1.6rem;
+            }
+            .main-header .header-sub {
+                font-size: 1.0rem;
+                flex-direction: column;
+                gap: 4px;
+                padding-left: 0;
+                margin-top: 6px;
+            }
+            .main-header .date-place {
+                font-size: 0.95rem;
+                padding: 4px 14px;
+                align-self: flex-start;
+            }
+
+            .slide-header {
+                padding: 12px 14px 10px 14px;
+                gap: 6px 10px;
+            }
+            .slide-header h2 {
+                font-size: 1.4rem;
+                gap: 10px;
+                min-width: unset;
+                width: 100%;
+            }
+            .slide-header h2 i {
+                font-size: 1.3rem;
+                width: 32px;
+            }
+            .slide-header .badge-participants {
+                font-size: 0.85rem;
+                padding: 4px 14px;
+                margin-left: 0;
+                width: auto;
+                order: 1;
+            }
+            .slide-header .badge-type {
+                font-size: 0.8rem;
+                padding: 3px 12px;
+                order: 2;
+            }
+
+            .slide-body {
+                padding: 14px 14px 18px 14px;
+            }
+            .slide-body .info-line {
+                font-size: 1.0rem;
+                gap: 4px 16px;
+                margin-bottom: 12px;
+            }
+            .slide-body .info-line .tag {
+                font-size: 0.85rem;
+                line-height: 24px;
+                padding: 0 14px;
+            }
+
+            .stage-grid {
+                gap: 2px;
+            }
+            .stage-grid .sub-title {
+                font-size: 1.0rem;
+                margin-top: 8px;
+                padding-bottom: 6px;
+            }
+            .stage-grid .sub-title i {
+                font-size: 0.95rem;
+            }
+            .stage-list li {
+                font-size: 0.98rem;
+                gap: 12px;
+                margin-bottom: 3px;
+                line-height: 1.8;
+            }
+            .stage-list li i {
+                width: 18px;
+                font-size: 0.8rem;
+                margin-top: 5px;
+            }
+
+            .joint-participants {
+                gap: 6px 14px;
+                margin: 6px 0 12px 0;
+            }
+            .joint-participants span {
+                font-size: 0.95rem;
+                padding: 4px 16px;
+            }
+            .badge-joint {
+                font-size: 0.8rem;
+                padding: 3px 14px;
+            }
+
+            .final-grid {
+                gap: 14px;
+            }
+            .final-card {
+                padding: 14px 16px 18px 16px;
+            }
+            .final-card h3 {
+                font-size: 1.15rem;
+            }
+            .final-card p {
+                font-size: 1.0rem;
+                margin-top: 8px;
+            }
+            .final-card ul {
+                gap: 6px 16px;
+                margin-top: 6px;
+            }
+            .final-card ul li {
+                font-size: 0.98rem;
+            }
+
+            .footer-note {
+                font-size: 0.95rem;
+                padding: 12px 18px;
+                gap: 14px;
+                border-radius: 30px;
+            }
+            .footer-note i {
+                font-size: 1.4rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .main-header h1 {
+                font-size: 1.3rem;
+            }
+            .slide-header h2 {
+                font-size: 1.2rem;
+            }
+            .slide-body .info-line {
+                font-size: 0.92rem;
+            }
+            .stage-list li {
+                font-size: 0.9rem;
+            }
+            .final-card ul li {
+                font-size: 0.9rem;
+            }
+            .joint-participants span {
+                font-size: 0.85rem;
+            }
+            .footer-note {
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="presentation">
+
+    <!-- ===== ГЛАВНЫЙ ЗАГОЛОВОК ===== -->
+    <div class="main-header">
+        <h1>
+            <i class="fas fa-shield-alt"></i>
+            XVI Всероссийские соревнования по многоборью
+        </h1>
+        <div class="header-sub">
+            <span><i class="fas fa-users"></i> Среди работников подразделений инкассации и охраны ПАО Сбербанк</span>
+            <span class="date-place"><i class="fas fa-calendar-alt"></i> Нижний Тагил, 24–25 июня 2026</span>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- ============= ИНКАССАЦИЯ ================================= -->
+    <!-- ========================================================= -->
+
+    <!-- 1. Эстафета (инкассация) -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2><i class="fas fa-route"></i> Эстафета</h2>
+            <span class="badge-participants"><i class="fas fa-user"></i> 2 участника</span>
+            <span class="badge-type"><i class="fas fa-truck"></i> Инкассация</span>
+        </div>
+        <div class="slide-body">
+            <div class="info-line">
+                <span><i class="fas fa-users"></i> Командный зачёт — <span class="tag">бригада 2 чел.</span></span>
+                <span><i class="fas fa-tasks"></i> «Маршрут инкассации»</span>
+            </div>
+            <div class="stage-grid">
+                <ul class="stage-list">
+                    <li><i class="fas fa-chevron-right"></i> Получение документов/имущества, выезд из гаража</li>
+                    <li><i class="fas fa-chevron-right"></i> Заезд в бокс, приём мешка, кассет УС, сейф-пакета</li>
+                    <li><i class="fas fa-chevron-right"></i> Прокол шины — замена колеса (демонстрация)</li>
+                    <li><i class="fas fa-chevron-right"></i> Змейка (сложные дорожные условия)</li>
+                    <li><i class="fas fa-chevron-right"></i> Обслуживание УС (открытие, устранение замятий, загрузка/выгрузка кассет)</li>
+                    <li><i class="fas fa-chevron-right"></i> Стрельба (поражение мишеней)</li>
+                </ul>
+                <ul class="stage-list">
+                    <li><i class="fas fa-chevron-right"></i> Пожар в спецавтомобиле — тушение огнетушителем + эвакуация ценностей</li>
+                    <li><i class="fas fa-chevron-right"></i> Медицина — наложение турникета и ИПП, транспортировка манекена</li>
+                    <li><i class="fas fa-chevron-right"></i> Инкассация клиента (сейф-пакет, сканирование, подпись)</li>
+                    <li><i class="fas fa-chevron-right"></i> Вооружённый преступник — таран манекена</li>
+                    <li><i class="fas fa-chevron-right"></i> Наручники — надевание на манекен</li>
+                    <li><i class="fas fa-chevron-right"></i> Финиш — въезд в бокс</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Командный триатлон (инкассация) -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2><i class="fas fa-dumbbell"></i> Командный триатлон</h2>
+            <span class="badge-participants"><i class="fas fa-user"></i> 2 участника</span>
+            <span class="badge-type"><i class="fas fa-truck"></i> Инкассация</span>
+        </div>
+        <div class="slide-body">
+            <div class="info-line">
+                <span><i class="fas fa-users"></i> Командный зачёт — <span class="tag">без водителя-инкассатора</span></span>
+            </div>
+            <div class="stage-grid">
+                <ul class="stage-list">
+                    <li><i class="fas fa-chevron-right"></i> Перенос сумки-баул с кассетами и мешков с мелочью в СТС</li>
+                    <li><i class="fas fa-chevron-right"></i> «Бум» — проход по бревну с сумкой</li>
+                    <li><i class="fas fa-chevron-right"></i> «Барьер» — перелезание</li>
+                    <li><i class="fas fa-chevron-right"></i> «Кантовка покрышки» + удары кувалдой</li>
+                    <li><i class="fas fa-chevron-right"></i> Стрельба из ПМ</li>
+                </ul>
+                <ul class="stage-list">
+                    <li><i class="fas fa-chevron-right"></i> «Горка»</li>
+                    <li><i class="fas fa-chevron-right"></i> «Препятствие» (последовательное преодоление)</li>
+                    <li><i class="fas fa-chevron-right"></i> «Покрышки» — выстроить 2 башни по 4 покрышки</li>
+                    <li><i class="fas fa-chevron-right"></i> «Скалодром»</li>
+                    <li><i class="fas fa-chevron-right"></i> «Медицина» — наложение турникета, транспортировка манекена на носилках до финиша</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Мастерство вождения (инкассация) -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2><i class="fas fa-car"></i> Мастерство вождения</h2>
+            <span class="badge-participants"><i class="fas fa-user"></i> 1 участник</span>
+            <span class="badge-type"><i class="fas fa-truck"></i> Инкассация</span>
+        </div>
+        <div class="slide-body">
+            <div class="info-line">
+                <span><i class="fas fa-user"></i> Личный зачёт — <span class="tag">водители-инкассаторы</span></span>
+            </div>
+            <div class="stage-grid">
+                <div>
+                    <div class="sub-title"><i class="fas fa-flag"></i> Фигурное вождение</div>
+                    <ul class="stage-list">
+                        <li><i class="fas fa-circle"></i> Круговое движение (передний/задний ход)</li>
+                        <li><i class="fas fa-circle"></i> Пеньки</li>
+                        <li><i class="fas fa-circle"></i> Мальтийский крест</li>
+                        <li><i class="fas fa-circle"></i> Заезд в бокс задним ходом</li>
+                        <li><i class="fas fa-circle"></i> Колея</li>
+                        <li><i class="fas fa-circle"></i> Габаритная змейка</li>
+                        <li><i class="fas fa-circle"></i> Разворот в ограниченном пространстве</li>
+                        <li><i class="fas fa-circle"></i> Туннельные ворота</li>
+                        <li><i class="fas fa-circle"></i> Параллельная парковка</li>
+                        <li><i class="fas fa-circle"></i> Качели (равновесие 5 сек)</li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="sub-title"><i class="fas fa-road"></i> Вождение в сложных условиях</div>
+                    <ul class="stage-list">
+                        <li><i class="fas fa-circle"></i> Восьмёрка</li>
+                        <li><i class="fas fa-circle"></i> Колейный мост</li>
+                        <li><i class="fas fa-circle"></i> Бочка</li>
+                        <li><i class="fas fa-circle"></i> Змейка</li>
+                        <li><i class="fas fa-circle"></i> Остановка на спуске</li>
+                        <li><i class="fas fa-circle"></i> Разворот в габаритах</li>
+                        <li><i class="fas fa-circle"></i> Объезд препятствия</li>
+                        <li><i class="fas fa-circle"></i> Квадрат</li>
+                        <li><i class="fas fa-circle"></i> Поворот на 90°</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Практическая стрельба (инкассация) -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2><i class="fas fa-crosshairs"></i> Практическая стрельба</h2>
+            <span class="badge-participants"><i class="fas fa-user"></i> 3 участника</span>
+            <span class="badge-type"><i class="fas fa-truck"></i> Инкассация</span>
+        </div>
+        <div class="slide-body">
+            <div class="info-line">
+                <span><i class="fas fa-user"></i> Личный + командный <span class="tag">зачёт</span></span>
+            </div>
+            <ul class="stage-list">
+                <li><i class="fas fa-gun"></i> Упражнения из пистолета, пистолета-пулемёта, автомата</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- ================ ОХРАНА ================================== -->
+    <!-- ========================================================= -->
+
+    <!-- 1. Эстафета (охрана) -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2><i class="fas fa-bolt"></i> Эстафета</h2>
+            <span class="badge-participants"><i class="fas fa-user"></i> 3 участника</span>
+            <span class="badge-type"><i class="fas fa-user-shield"></i> Охрана</span>
+        </div>
+        <div class="slide-body">
+            <div class="info-line">
+                <span><i class="fas fa-users"></i> Командный зачёт — <span class="tag">3 этапа</span></span>
+            </div>
+            <div class="stage-grid">
+                <div>
+                    <div class="sub-title"><i class="fas fa-flag"></i> Этап 1 — Полоса препятствий</div>
+                    <ul class="stage-list">
+                        <li><i class="fas fa-circle"></i> Бум</li>
+                        <li><i class="fas fa-circle"></i> Скалодром</li>
+                        <li><i class="fas fa-circle"></i> Разрушенная лестница</li>
+                        <li><i class="fas fa-circle"></i> Рукоход</li>
+                        <li><i class="fas fa-circle"></i> Проволочное заграждение</li>
+                        <li><i class="fas fa-circle"></i> Горка</li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="sub-title"><i class="fas fa-dumbbell"></i> Этап 2 — Силовые упражнения</div>
+                    <ul class="stage-list">
+                        <li><i class="fas fa-circle"></i> Удары кувалдой (силомер)</li>
+                        <li><i class="fas fa-circle"></i> Челночный бег 3×10 м</li>
+                        <li><i class="fas fa-circle"></i> Sit up с медболом (5 кг, 10 циклов)</li>
+                        <li><i class="fas fa-circle"></i> Подтягивание (минимум 8 раз, штраф +10 сек за каждый недовыполненный)</li>
+                        <li><i class="fas fa-circle"></i> Прыжки на тумбы</li>
+                        <li><i class="fas fa-circle"></i> Кантовка покрышки</li>
+                    </ul>
+                </div>
+                <div style="grid-column: 1 / -1;">
+                    <div class="sub-title"><i class="fas fa-fire-extinguisher"></i> Этап 3 — Противопожарная подготовка</div>
+                    <ul class="stage-list" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px 20px;">
+                        <li><i class="fas fa-circle"></i> Надевание БОП-1</li>
+                        <li><i class="fas fa-circle"></i> Лабиринт</li>
+                        <li><i class="fas fa-circle"></i> Покрышки с дымовой завесой (с самоспасателем)</li>
+                        <li><i class="fas fa-circle"></i> Разматывание пожарного рукава</li>
+                        <li><i class="fas fa-circle"></i> Тоннель</li>
+                        <li><i class="fas fa-circle"></i> Тушение очага возгорания</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Служебное двоеборье (охрана) -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2><i class="fas fa-person-running"></i> Служебное двоеборье</h2>
+            <span class="badge-participants"><i class="fas fa-user"></i> 3 участника</span>
+            <span class="badge-type"><i class="fas fa-user-shield"></i> Охрана</span>
+        </div>
+        <div class="slide-body">
+            <div class="info-line">
+                <span><i class="fas fa-user"></i> Личный + командный <span class="tag">зачёт</span></span>
+                <span><i class="fas fa-route"></i> 1280 м (2 круга по 640 м)</span>
+            </div>
+            <div class="stage-grid">
+                <div>
+                    <div class="sub-title"><i class="fas fa-bullseye"></i> 1 рубеж (ПМ)</div>
+                    <ul class="stage-list">
+                        <li><i class="fas fa-circle"></i> Стрельба из ПМ (4 выстрела, за промах — штрафной круг 50 м)</li>
+                        <li><i class="fas fa-circle"></i> Препятствие «Барьер»</li>
+                        <li><i class="fas fa-circle"></i> Метание гранаты в окно (3 попытки, непопадание — +10 сек)</li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="sub-title"><i class="fas fa-crosshairs"></i> 2 рубеж («Сайга»-12)</div>
+                    <ul class="stage-list">
+                        <li><i class="fas fa-circle"></i> Стрельба из «Сайги» по мишеням БПЛА (за попадание — минус 10 сек)</li>
+                        <li><i class="fas fa-circle"></i> Препятствия «Тоннель» и «Горка»</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Практическая стрельба (охрана) -->
+    <div class="slide">
+        <div class="slide-header">
+            <h2><i class="fas fa-crosshairs"></i> Практическая стрельба</h2>
+            <span class="badge-participants"><i class="fas fa-user"></i> 3 участника</span>
+            <span class="badge-type"><i class="fas fa-user-shield"></i> Охрана</span>
+        </div>
+        <div class="slide-body">
+            <div class="info-line">
+                <span><i class="fas fa-user"></i> Личный + командный <span class="tag">зачёт</span></span>
+            </div>
+            <ul class="stage-list">
+                <li><i class="fas fa-gun"></i> Аналогично инкассации — упражнения из пистолета, пистолета-пулемёта, автомата</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- =============== СОВМЕСТНАЯ =============================== -->
+    <!-- ========================================================= -->
+
+    <div class="slide">
+        <div class="slide-header">
+            <h2><i class="fas fa-people-arrows"></i> Командная эстафета</h2>
+            <span class="badge-participants"><i class="fas fa-user"></i> 2 инкассатора + 3 охранника</span>
+            <span class="badge-type"><i class="fas fa-handshake"></i> Совместная</span>
+        </div>
+        <div class="slide-body">
+            <div class="joint-participants">
+                <span><i class="fas fa-user-tie"></i> 2 инкассатора</span>
+                <span><i class="fas fa-user-shield"></i> 3 охранника</span>
+                <span><span class="badge-joint">инкассация + охрана</span></span>
+            </div>
+            <div class="stage-grid">
+                <ul class="stage-list">
+                    <li><i class="fas fa-chevron-right"></i> Буксировка СТС — передвижение за линию</li>
+                    <li><i class="fas fa-chevron-right"></i> Командное перемещение тяжести — бочка 200 л на платформе из досок и черенков</li>
+                    <li><i class="fas fa-chevron-right"></i> Барьер — перелезание</li>
+                    <li><i class="fas fa-chevron-right"></i> Горка</li>
+                </ul>
+                <ul class="stage-list">
+                    <li><i class="fas fa-chevron-right"></i> Покрышки — перенос 15 покрышек, построить 3 башни по 5 шт.</li>
+                    <li><i class="fas fa-chevron-right"></i> Скалодром</li>
+                    <li><i class="fas fa-chevron-right"></i> «Лыжи» — синхронное перемещение на доске</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- =============== ИТОГОВЫЙ ЗАЧЁТ ========================== -->
+    <!-- ========================================================= -->
+
+    <div class="slide">
+        <div class="slide-header">
+            <h2><i class="fas fa-trophy"></i> Итоговый зачёт</h2>
+        </div>
+        <div class="slide-body">
+            <div class="final-grid">
+                <div class="final-card">
+                    <h3><i class="fas fa-truck"></i> Инкассация</h3>
+                    <p><i class="fas fa-calculator"></i> Общекомандное место по сумме мест в <strong>4 дисциплинах</strong>:</p>
+                    <ul>
+                        <li><i class="fas fa-crosshairs"></i> стрельба</li>
+                        <li><i class="fas fa-car"></i> вождение</li>
+                        <li><i class="fas fa-route"></i> эстафета</li>
+                        <li><i class="fas fa-dumbbell"></i> триатлон</li>
+                    </ul>
+                </div>
+                <div class="final-card" style="border-left-color: #5a8aaa;">
+                    <h3><i class="fas fa-user-shield"></i> Охрана</h3>
+                    <p><i class="fas fa-calculator"></i> Общекомандное место по сумме мест в <strong>3 дисциплинах</strong>:</p>
+                    <ul>
+                        <li><i class="fas fa-crosshairs"></i> стрельба</li>
+                        <li><i class="fas fa-person-running"></i> двоеборье</li>
+                        <li><i class="fas fa-bolt"></i> эстафета</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-note">
+                <i class="fas fa-info-circle"></i>
+                <span>Все условия упражнений (дистанции, мишени, штрафы) могут уточняться на брифингах перед стартом.</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+<!-- /presentation -->
+
+</body>
+</html>
