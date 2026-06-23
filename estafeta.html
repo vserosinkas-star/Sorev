@@ -873,7 +873,7 @@
             let pmPenalty = pmMisses * PENALTY_PER_MISS_PM;
             let saigaBonus = saigaHits * SAIGA_BONUS_PER_HIT;
             let html = `
-                <div class="penalty-card"><div class="desc"><strong>🔫 ПМ (4 выстрела) — ПРОМАХИ (1 промах = +30 сек)</strong></div><div class="counter-control"><button class="pm-dec">−</button><span class="pm-count">${pmMisses}</span><button class="pm-inc">+</button></div><div style="font-size:0.75rem;">Штраф: +${pmPenalty} сек</div></div>
+                <div class="penalty-card"><div class="desc"><strong>🔫 ПМ (4 выстрела) — ПРОМАХИ (1 промах = +20 сек)</strong></div><div class="counter-control"><button class="pm-dec">−</button><span class="pm-count">${pmMisses}</span><button class="pm-inc">+</button></div><div style="font-size:0.75rem;">Штраф: +${pmPenalty} сек</div></div>
                 <div class="penalty-card"><div class="desc"><strong>🎯 САЙГА-12 (5 выстрелов) — ПОПАДАНИЯ (1 попадание = –10 сек)</strong></div><div class="counter-control"><button class="saiga-dec">−</button><span class="saiga-count">${saigaHits}</span><button class="saiga-inc">+</button></div><div style="font-size:0.75rem;">Бонус: –${saigaBonus} сек</div></div>
             `;
             let stagePen = penaltiesLibrary.filter(p => p.category === "Стрельба");
