@@ -366,6 +366,8 @@
         </div>
         <div class="summary-bar">
             <span><strong>⚖️ Штраф (сек):</strong> <span id="totalPenaltyDisplay">0</span> сек</span>
+            <!-- НОВЫЙ ЭЛЕМЕНТ: штраф по текущему этапу -->
+            <span><strong>📋 Штраф этапа:</strong> <span id="stagePenaltyDisplay">0</span> сек</span>
             <span><strong>⏱️ Чистое время:</strong> <span id="rawTimeDisplay">—</span></span>
             <span class="total-time"><strong>ИТОГО:</strong> <span id="totalTimeDisplay">—</span></span>
         </div>
@@ -801,6 +803,7 @@
         if (!currentDirection || !currentTeam) {
             document.getElementById('rawTimeDisplay').innerText = '—';
             document.getElementById('totalPenaltyDisplay').innerText = '0';
+            document.getElementById('stagePenaltyDisplay').innerText = '0';
             document.getElementById('totalTimeDisplay').innerText = '—';
             document.getElementById('rawTimeInput').value = '';
             document.getElementById('penaltiesContainer').innerHTML = '<div style="grid-column:1/-1; text-align:center;">⚠️ Выберите направление и банк</div>';
@@ -842,6 +845,7 @@
         } else {
             document.getElementById('rawTimeDisplay').innerText = '—';
             document.getElementById('totalPenaltyDisplay').innerText = '0';
+            document.getElementById('stagePenaltyDisplay').innerText = '0';
             document.getElementById('totalTimeDisplay').innerText = '—';
             document.getElementById('rawTimeInput').value = '';
             tempPenalties = {};
@@ -1065,6 +1069,9 @@
         }
         let totalDisplay = getPenaltySum(merged);
         document.getElementById('totalPenaltyDisplay').innerText = totalDisplay;
+        // Вычисляем штраф по текущему этапу (только tempPenalties)
+        let stageSum = getPenaltySum(tempPenalties);
+        document.getElementById('stagePenaltyDisplay').innerText = stageSum;
         let raw = data?.raw_seconds ?? null;
         let total = raw !== null ? raw + totalDisplay : null;
         document.getElementById('totalTimeDisplay').innerText = total !== null ? formatTime(total) : '—';
@@ -1190,6 +1197,7 @@
             document.getElementById('penaltiesContainer').innerHTML = '<div style="grid-column:1/-1; text-align:center;">⚠️ Выберите направление и банк</div>';
             document.getElementById('rawTimeDisplay').innerText = '—';
             document.getElementById('totalPenaltyDisplay').innerText = '0';
+            document.getElementById('stagePenaltyDisplay').innerText = '0';
             document.getElementById('totalTimeDisplay').innerText = '—';
         }
         let span = document.querySelector('#stageInfo span:first-child');
