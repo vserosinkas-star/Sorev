@@ -1136,39 +1136,130 @@
     
     function resetTemp() { refreshCurrentTeamData(); }
     
+    // ===== ИСПРАВЛЕННАЯ ФУНКЦИЯ ПЕЧАТИ =====
     async function printFullReport() {
-        if (!currentDirection || !currentTeam) { showToast('Сначала выберите направление и команду!'); return; }
+        if (!currentDirection || !currentTeam) {
+            showToast('Сначала выберите направление и команду!');
+            return;
+        }
         const data = await loadTeamData(currentDirection, currentTeam);
-        if (!data) { showToast('Нет сохранённых данных для этой команды.'); return; }
+        if (!data) {
+            showToast('Нет сохранённых данных для этой команды.');
+            return;
+        }
+
         const rawSec = data.raw_seconds;
         const penaltiesObj = data.penalties || {};
         const activePenalties = [];
+
         for (let [id, val] of Object.entries(penaltiesObj)) {
             if (val === true || (typeof val === 'number' && val > 0)) {
                 const penaltyInfo = penaltiesLibrary.find(p => p.id === id);
                 if (penaltyInfo) {
                     let count = (typeof val === 'number') ? val : 1;
-                    for (let i = 0; i < count; i++) activePenalties.push({ ...penaltyInfo });
+                    for (let i = 0; i < count; i++) {
+                        activePenalties.push({ ...penaltyInfo });
+                    }
                 }
             }
         }
+
         let pmMisses = penaltiesObj[SHOOT_PM_MISS_ID] || 0;
         let saigaHits = penaltiesObj[SHOOT_SAIGA_HITS_ID] || 0;
-        if (pmMisses > 0) activePenalties.push({ category: "Стрельба", desc: `Промахи из ПМ (${pmMisses} шт.)`, sec: pmMisses * PENALTY_PER_MISS_PM });
-        if (saigaHits > 0) activePenalties.push({ category: "Стрельба", desc: `Попадания из Сайги-12 (${saigaHits} шт.)`, sec: -saigaHits * SAIGA_BONUS_PER_HIT });
+        if (pmMisses > 0) {
+            activePenalties.push({
+                category: "Стрельба",
+                desc: `Промахи из ПМ (${pmMisses} шт.)`,
+                sec: pmMisses * PENALTY_PER_MISS_PM
+            });
+        }
+        if (saigaHits > 0) {
+            activePenalties.push({
+                category: "Стрельба",
+                desc: `Попадания из Сайги-12 (${saigaHits} шт.)`,
+                sec: -saigaHits * SAIGA_BONUS_PER_HIT
+            });
+        }
+
         const grouped = {};
-        for (let p of activePenalties) { if (!grouped[p.category]) grouped[p.category] = []; grouped[p.category].push(p); }
+        for (let p of activePenalties) {
+            if (!grouped[p.category]) grouped[p.category] = [];
+            grouped[p.category].push(p);
+        }
+
         const totalPenalty = getPenaltySum(penaltiesObj);
         const totalTime = (rawSec !== null && rawSec !== undefined) ? rawSec + totalPenalty : null;
         const teamFullName = teamNames[currentTeam] || currentTeam;
         const now = new Date().toLocaleString('ru-RU');
-        const printHtml = `<div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px;"><h1 style="text-align: center;">🏁 ОТЧЕТ О ПРОХОЖДЕНИИ ЭСТАФЕТЫ</h1><div style="text-align: center; margin-bottom: 24px;">Дата формирования: ${now}</div><div style="background: #f8fafc; padding: 16px; border-radius: 16px; margin-bottom: 24px;"><div><strong>Команда:</strong> ${teamFullName} (${currentTeam})</div><div><strong>Направление:</strong> ${currentDirection}</div><div><strong>Чистое время:</strong> ${rawSec !== null ? formatTime(rawSec) : '—'}</div><div><strong>Общий штраф:</strong> ${totalPenalty} секунд</div><div><strong>Итоговое время:</strong> ${totalTime !== null ? formatTime(totalTime) : '—'}</div></div><h3>📋 Перечень допущенных ошибок:</h3>${Object.keys(grouped).length === 0 ? '<p>✅ Штрафные нарушения отсутствуют.</p>' : Object.entries(grouped).map(([stageName, arr]) => `<div style="margin-bottom: 20px;"><h4>🎯 ${stageName}</h4><table style="width:100%; border-collapse: collapse;"><thead><tr style="background:#e2e8f0;"><th style="padding:8px; text-align:left;">Нарушение</th><th style="padding:8px;">Штраф (сек)</th></tr></thead><tbody>${arr.map(p => `<tr><td style="padding:8px;">${p.desc}</td><td style="padding:8px;">${p.sec >= 0 ? '+' : ''}${p.sec}</td></tr>`).join('')}</tbody></table></div>`).join('')}<div class="print-sign-line" style="margin-top: 48px; border-top: 1px dashed #aaa; padding-top: 24px;"><div style="display: flex; justify-content: space-between; flex-wrap: wrap;"><div><strong>Представитель команды:</strong> __________________</div><div><strong>Главный Судья (ФИО):</strong> __________________</div></div><div style="margin-top: 20px; text-align: right;"><strong>Дата:</strong> __________________</div><div style="margin-top: 20px; font-size: 10px; text-align: center;">Подпись представителя команды подтверждает согласие с результатами.</div></div></div>`;
+
+        const printHtml = `
+            <div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px;">
+                <h1 style="text-align: center;">🏁 ОТЧЕТ О ПРОХОЖДЕНИИ ЭСТАФЕТЫ</h1>
+                <div style="text-align: center; margin-bottom: 24px;">Дата формирования: ${now}</div>
+                <div style="background: #f8fafc; padding: 16px; border-radius: 16px; margin-bottom: 24px;">
+                    <div><strong>Команда:</strong> ${teamFullName} (${currentTeam})</div>
+                    <div><strong>Направление:</strong> ${currentDirection}</div>
+                    <div><strong>Чистое время:</strong> ${rawSec !== null ? formatTime(rawSec) : '—'}</div>
+                    <div><strong>Общий штраф:</strong> ${totalPenalty} секунд</div>
+                    <div><strong>Итоговое время:</strong> ${totalTime !== null ? formatTime(totalTime) : '—'}</div>
+                </div>
+                <h3>📋 Перечень допущенных ошибок:</h3>
+                ${Object.keys(grouped).length === 0
+                    ? '<p>✅ Штрафные нарушения отсутствуют.</p>'
+                    : Object.entries(grouped).map(([stageName, arr]) => `
+                        <div style="margin-bottom: 20px;">
+                            <h4>🎯 ${stageName}</h4>
+                            <table style="width:100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="background:#e2e8f0;">
+                                        <th style="padding:8px; text-align:left;">Нарушение</th>
+                                        <th style="padding:8px;">Штраф (сек)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${arr.map(p => `
+                                        <tr>
+                                            <td style="padding:8px;">${p.desc}</td>
+                                            <td style="padding:8px;">${p.sec >= 0 ? '+' : ''}${p.sec}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `).join('')}
+                <div class="print-sign-line" style="margin-top: 48px; border-top: 1px dashed #aaa; padding-top: 24px;">
+                    <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
+                        <div><strong>Представитель команды:</strong> __________________</div>
+                        <div><strong>Главный Судья (ФИО):</strong> __________________</div>
+                    </div>
+                    <div style="margin-top: 20px; text-align: right;"><strong>Дата:</strong> __________________</div>
+                    <div style="margin-top: 20px; font-size: 10px; text-align: center;">Подпись представителя команды подтверждает согласие с результатами.</div>
+                </div>
+            </div>
+        `;
+
         const container = document.getElementById('printReportContainer');
         container.innerHTML = printHtml;
         container.style.display = 'block';
+
+        // Очистка после завершения печати
+        const onAfterPrint = () => {
+            container.style.display = 'none';
+            container.innerHTML = '';
+            window.removeEventListener('afterprint', onAfterPrint);
+        };
+        window.addEventListener('afterprint', onAfterPrint);
+
+        // Защитный таймаут (для браузеров, где событие не срабатывает)
+        setTimeout(() => {
+            if (container.style.display !== 'none') {
+                container.style.display = 'none';
+                container.innerHTML = '';
+                window.removeEventListener('afterprint', onAfterPrint);
+            }
+        }, 5000);
+
         window.print();
-        container.style.display = 'none';
-        container.innerHTML = '';
     }
     
     function renderStageButtons() {
