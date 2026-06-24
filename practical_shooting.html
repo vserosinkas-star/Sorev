@@ -445,7 +445,7 @@
                 <div class="card-body" id="tbInkBody">—</div>
             </div>
             <div class="result-card">
-                <div class="card-header">🏢 Рейтинг ТБ (Охрана) - сумма мест (только одиночные Вр1-Вр6)</div>
+                <div class="card-header">🏢 Рейтинг ТБ (Охрана) - сумма мест (одиночные + Вгр1)</div>
                 <div class="card-body" id="tbSecBody">—</div>
             </div>
         </div>
@@ -608,6 +608,8 @@
             realSecParticipants.forEach((item, idx) => {
                 const times = Array(EXERCISES_COUNT).fill("");
                 for (let t = 0; t < INDIVIDUAL_COUNT; t++) times[t] = randomTime();
+                // Для охраны заполняем Вгр1 случайным значением (чтобы было с чем работать)
+                times[6] = randomTime();
                 participants.push({ id: Date.now() + idx + 1000 + Math.random(), name: item.name, tb: item.tb,
                     category: "Охрана", times: times });
             });
@@ -676,7 +678,7 @@
             select.addEventListener('change', (e) => {
                 const newTb = e.target.value;
                 if (isTbLimitExceeded(category, newTb, participants[rowIndex].id)) {
-                    alert(`Ошибка: в категории "${category}" от ТБ "${newTb}" уже есть 3 участника.`);
+                    alert(`Ошибка: в категории "${category}" от ТБ "${newTb}" уже 3 участника.`);
                     select.value = participants[rowIndex].tb || "";
                     return;
                 }
@@ -798,14 +800,16 @@
             let timeCells = [];
             for (let i = 5; i < row.cells.length; i++) timeCells.push(row.cells[i]);
             if (timeCells[6] && timeCells[7]) {
-                const input1 = timeCells[6].querySelector('input');
-                const input2 = timeCells[7].querySelector('input');
+                const input1 = timeCells[6].querySelector('input'); // Вгр1
+                const input2 = timeCells[7].querySelector('input'); // Вгр2
                 if (category === 'Охрана') {
-                    if (input1) { input1.readOnly = true;
-                        input1.style.backgroundColor = '#f1f5f9'; }
+                    // Вгр1 — редактируемый, Вгр2 — только для чтения
+                    if (input1) { input1.readOnly = false;
+                        input1.style.backgroundColor = 'white'; }
                     if (input2) { input2.readOnly = true;
                         input2.style.backgroundColor = '#f1f5f9'; }
                 } else {
+                    // Инкассация — оба редактируемые
                     if (input1) { input1.readOnly = false;
                         input1.style.backgroundColor = 'white'; }
                     if (input2) { input2.readOnly = false;
@@ -860,7 +864,8 @@
 
         function computeTeamRankings(category) {
             const tbList = (category === "Инкассация") ? TB_LIST_INK : TB_LIST_SEC;
-            const totalExercises = (category === "Инкассация") ? EXERCISES_COUNT : INDIVIDUAL_COUNT;
+            // Для охраны теперь учитываем 7 упражнений (Вр1-Вр6 + Вгр1)
+            const totalExercises = (category === "Инкассация") ? EXERCISES_COUNT : INDIVIDUAL_COUNT + 1;
             let placesByEx = [];
             for (let ex = 0; ex < totalExercises; ex++) {
                 let tbSums = tbList.map(tb => {
@@ -1142,10 +1147,10 @@
             lastTbInkRanking = inkTeams;
             renderTeamRanking('tbInkBody', inkTeams, 8);
 
-            // 5. Рейтинг ТБ Охрана (сумма мест по одиночным упражнениям)
+            // 5. Рейтинг ТБ Охрана (сумма мест по одиночным + Вгр1)
             let secTeams = computeTeamRankings("Охрана");
             lastTbSecRanking = secTeams;
-            renderTeamRanking('tbSecBody', secTeams, 6);
+            renderTeamRanking('tbSecBody', secTeams, INDIVIDUAL_COUNT + 1); // 7 упражнений
 
             updateBestShooter();
         }
@@ -1195,7 +1200,8 @@
                 memberRows +=
                     `<tr><td style="border:1px solid #000; padding:4px;">${idx+1}</td><td style="border:1px solid #000; padding:4px;">${escapeHtml(m.name)||'—'}</td><td style="border:1px solid #000; padding:4px;">${personal?.place||'—'}</td><td style="border:1px solid #000; padding:4px;">${totalTime.toFixed(2)}</td></tr>`;
             });
-            let totalEx = (category === "Инкассация") ? EXERCISES_COUNT : INDIVIDUAL_COUNT;
+            // Для охраны totalEx = 7 (Вр1-Вр6 + Вгр1), для инкассации = 8
+            const totalEx = (category === "Инкассация") ? EXERCISES_COUNT : INDIVIDUAL_COUNT + 1;
             let placesRows = '';
             for (let ex = 0; ex < totalEx; ex++) {
                 let label = (ex < INDIVIDUAL_COUNT) ? `Вр${ex+1}` : (ex === INDIVIDUAL_COUNT ? 'Вгр1' : 'Вгр2');
