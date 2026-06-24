@@ -270,6 +270,9 @@
             padding: 4px;
             margin-top: 30px;
         }
+        .results-table:first-of-type {
+            margin-top: 0;
+        }
         .results-table h3 {
             padding: 16px 12px 8px 12px;
             font-size: 1.1rem;
@@ -329,19 +332,6 @@
             font-weight: bold;
             margin-left: 12px;
             white-space: nowrap;
-        }
-
-        .two-tables {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-top: 30px;
-        }
-        .two-tables .results-table {
-            margin-top: 0;
-        }
-        .two-tables .results-table table {
-            min-width: 400px;
         }
 
         /* ПЕЧАТНАЯ ВЕРСИЯ — ОДИН ЛИСТ, БЕЗ РАЗРЫВОВ */
@@ -411,20 +401,17 @@
                 overflow: visible;
             }
 
-            .two-tables {
-                display: block !important;
-            }
-            .two-tables .results-table {
+            .results-table {
                 margin-top: 20px !important;
                 page-break-inside: avoid;
                 break-inside: avoid;
             }
-            .two-tables .results-table table {
+            .results-table table {
                 min-width: 100% !important;
                 font-size: 8pt !important;
             }
-            .two-tables .results-table th,
-            .two-tables .results-table td {
+            .results-table th,
+            .results-table td {
                 padding: 4px !important;
             }
         }
@@ -433,15 +420,6 @@
         }
 
         /* Мобильная адаптация */
-        @media (max-width: 950px) {
-            .two-tables {
-                grid-template-columns: 1fr;
-                gap: 16px;
-            }
-            .two-tables .results-table table {
-                min-width: 100%;
-            }
-        }
         @media (max-width: 700px) {
             body {
                 padding: 12px;
@@ -515,6 +493,9 @@
             }
             .results-table {
                 margin-top: 20px;
+            }
+            .results-table:first-of-type {
+                margin-top: 0;
             }
             th,
             td {
@@ -618,8 +599,8 @@
             </div>
         </div>
 
-        <!-- ДВЕ ТАБЛИЦЫ РЯДОМ: командный зачёт + личное первенство -->
-        <div class="two-tables">
+        <!-- КОНТЕЙНЕР ДЛЯ ДВУХ ТАБЛИЦ (последовательно) -->
+        <div id="tablesContainer">
             <!-- Командный зачёт -->
             <div class="results-table">
                 <h3>🏆 КОМАНДНЫЙ ЗАЧЁТ <span style="font-size:0.7rem;font-weight:400;opacity:0.7;">(сумма трёх участников)</span></h3>
@@ -1164,24 +1145,29 @@
 
             // --- Экспорт в Excel ---
             function exportToExcel() {
-                const container = document.querySelector('.two-tables');
+                const container = document.getElementById('tablesContainer');
                 const cloneContainer = container.cloneNode(true);
                 const now = new Date().toLocaleString('ru-RU');
-                const captionTeam = document.createElement('caption');
-                captionTeam.style.fontSize = '14px';
-                captionTeam.style.marginBottom = '8px';
-                captionTeam.style.fontWeight = 'bold';
-                captionTeam.innerText = `Служебное двоеборье — командный зачёт (${now})`;
-                const tableTeam = cloneContainer.querySelector('#resultsTable');
-                if (tableTeam) tableTeam.prepend(captionTeam);
 
-                const captionInd = document.createElement('caption');
-                captionInd.style.fontSize = '14px';
-                captionInd.style.marginBottom = '8px';
-                captionInd.style.fontWeight = 'bold';
-                captionInd.innerText = `Личное первенство (${now})`;
-                const tableInd = cloneContainer.querySelector('#individualTable');
-                if (tableInd) tableInd.prepend(captionInd);
+                // Добавляем подписи к таблицам
+                const tables = cloneContainer.querySelectorAll('.results-table');
+                if (tables.length >= 2) {
+                    const captionTeam = document.createElement('caption');
+                    captionTeam.style.fontSize = '14px';
+                    captionTeam.style.marginBottom = '8px';
+                    captionTeam.style.fontWeight = 'bold';
+                    captionTeam.innerText = `Служебное двоеборье — командный зачёт (${now})`;
+                    const tableTeam = tables[0].querySelector('table');
+                    if (tableTeam) tableTeam.prepend(captionTeam);
+
+                    const captionInd = document.createElement('caption');
+                    captionInd.style.fontSize = '14px';
+                    captionInd.style.marginBottom = '8px';
+                    captionInd.style.fontWeight = 'bold';
+                    captionInd.innerText = `Личное первенство (${now})`;
+                    const tableInd = tables[1].querySelector('table');
+                    if (tableInd) tableInd.prepend(captionInd);
+                }
 
                 const wb =
                     `<html><head><meta charset="UTF-8"><title>Служебное двоеборье результаты</title><style>th,td{border:1px solid #ccc;padding:6px;text-align:center;}table{border-collapse:collapse;width:100%;margin-bottom:20px;}.rank-1{background-color:#fef9c3;}.rank-2{background-color:#f0fdf4;}.rank-3{background-color:#fef2f2;}</style></head><body>${cloneContainer.innerHTML}</body></html>`;
