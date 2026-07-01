@@ -382,10 +382,10 @@
     </div>
 
     <div class="results-table">
-        <h3>🏆 Общий зачёт</h3>
+        <h3>🏆 Общий зачёт (по территориальным банкам)</h3>
         <table id="resultsTable">
-            <thead><tr><th>Место</th><th>Команда</th><th>Напр.</th><th>Чистое время</th><th>Штраф</th><th>Итог</th></tr></thead>
-            <tbody id="resultsBody"><tr><td colspan="6">Загрузка данных...</td></tr>
+            <thead><tr><th>Место</th><th>Команда</th><th>Общее чистое время</th><th>Общий штраф</th><th>Итог</th></tr></thead>
+            <tbody id="resultsBody"><tr><td colspan="5">Загрузка данных...</td></tr>
         </tbody>
     </div>
 </div>
@@ -772,22 +772,102 @@
         }).catch(err => console.error(err));
     }
     
-    // Новая функция для получения всех данных (для итогового протокола)
     async function fetchAllResults() {
         let { data, error } = await supabaseClient.from('estafeta_results').select('direction, team_code, raw_seconds, penalties');
         if (error) throw error;
         return data;
     }
     
+    // ===== НОВАЯ ФУНКЦИЯ ЗАГРУЗКИ С ГРУППИРОВКОЙ ПО КОМАНДАМ =====
     async function loadAllResults() {
         try {
             let data = await fetchAllResults();
-            let rows = [];
+            // Группируем по team_code
+            let teamMap = {};
             for (let r of data) {
-                let raw = r.raw_seconds;
-                let penalty = getPenaltySum(r.penalties);
-                let total = raw !== null ? raw + penalty : null;
-                rows.push({ team: r.team_code, name: teamNames[r.team_code] || r.team_code, dir: r.direction, raw, penalty, total });
+                let code = r.team_code;
+                if (!teamMap[code]) {
+                    teamMap[code] = { team: code, sumRaw: 0, sumPenalty: 0, hasRaw: false };
+                }
+                // Суммируем сырое время, если оно не null
+                if (r.raw_seconds !== null && r.raw_seconds !== undefined) {
+                    teamMap[code].sumRaw += r.raw_seconds;
+                    teamMap[code].hasRaw = true;
+                }
+                // Суммируем штраф
+                let pen = getPenaltySum(r.penalties);
+                teamMap[code].sumPenalty += pen;
+            }
+            // Формируем массив строк
+            let rows = [];
+            for (let code in teamMap) {
+                let t = teamMap[code];
+                let total = t.hasRaw ? t.sumRaw + t.sumPenalty : null;
+                rows.push({
+                    team: code,
+                    name: teamNames[code] || code,
+                    raw: t.hasRaw ? t.sumRaw : null,
+                    penalty: t.sumPenalty,
+                    total: total
+                });
+            }
+            // Сортировка по итоговому времени
+            rows.sort((a,b) => {
+                if (a.total === null && b.total === null) return 0;
+                if (a.total === null) return 1;
+                if (b.total === null) return -1;
+                return a.total - b.total;
+            });
+            
+            let tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = '';
+            let rank = 1;
+            for (let r of rows) {
+                let tr = document.createElement('tr');
+                if (r.total !== null && rank === 1) tr.classList.add('rank-1');
+                tr.innerHTML = `<td>${r.total !== null ? rank++ : '—'}</td><td><strong>${r.name}</strong> (${r.team})</td><td>${r.raw !== null ? formatTime(r.raw) : '—'}</td><td>${r.penalty}</td><td>${r.total !== null ? formatTime(r.total) : '—'}</td>`;
+                tbody.appendChild(tr);
+            }
+            if (rows.length === 0) tbody.innerHTML = '<tr><td colspan="5">Нет данных. Внесите результаты.</td></tr>';
+        } catch (err) {
+            console.error(err);
+            document.getElementById('resultsBody').innerHTML = `<tr><td colspan="5">Ошибка загрузки: ${err.message}</td></tr>`;
+        }
+    }
+    
+    // ===== ПЕЧАТЬ ИТОГОВОГО ПРОТОКОЛА С ГРУППИРОВКОЙ =====
+    async function printOverallReport() {
+        try {
+            const data = await fetchAllResults();
+            if (!data || data.length === 0) {
+                showToast('Нет данных для формирования протокола.');
+                return;
+            }
+            // Группируем
+            let teamMap = {};
+            for (let r of data) {
+                let code = r.team_code;
+                if (!teamMap[code]) {
+                    teamMap[code] = { team: code, sumRaw: 0, sumPenalty: 0, hasRaw: false };
+                }
+                if (r.raw_seconds !== null && r.raw_seconds !== undefined) {
+                    teamMap[code].sumRaw += r.raw_seconds;
+                    teamMap[code].hasRaw = true;
+                }
+                let pen = getPenaltySum(r.penalties);
+                teamMap[code].sumPenalty += pen;
+            }
+            let rows = [];
+            for (let code in teamMap) {
+                let t = teamMap[code];
+                let total = t.hasRaw ? t.sumRaw + t.sumPenalty : null;
+                rows.push({
+                    team: code,
+                    name: teamNames[code] || code,
+                    raw: t.hasRaw ? t.sumRaw : null,
+                    penalty: t.sumPenalty,
+                    total: total
+                });
             }
             rows.sort((a,b) => {
                 if (a.total === null && b.total === null) return 0;
@@ -795,22 +875,162 @@
                 if (b.total === null) return -1;
                 return a.total - b.total;
             });
-            let tbody = document.getElementById('resultsBody');
-            tbody.innerHTML = '';
+
+            const now = new Date().toLocaleString('ru-RU');
+            let tableRows = '';
             let rank = 1;
             for (let r of rows) {
-                let tr = document.createElement('tr');
-                if (r.total !== null && rank === 1) tr.classList.add('rank-1');
-                tr.innerHTML = `<td>${r.total !== null ? rank++ : '—'}</td><td><strong>${r.name}</strong> (${r.team})</td><td>${r.dir}</td><td>${r.raw !== null ? formatTime(r.raw) : '—'}</td><td>${r.penalty}</td><td>${r.total !== null ? formatTime(r.total) : '—'}</td>`;
-                tbody.appendChild(tr);
+                const place = r.total !== null ? rank++ : '—';
+                tableRows += `<tr>
+                    <td>${place}</td>
+                    <td><strong>${r.name}</strong> (${r.team})</td>
+                    <td>${r.raw !== null ? formatTime(r.raw) : '—'}</td>
+                    <td>${r.penalty}</td>
+                    <td><strong>${r.total !== null ? formatTime(r.total) : '—'}</strong></td>
+                </tr>`;
             }
-            if (rows.length === 0) tbody.innerHTML = '<tr><td colspan="6">Нет данных. Внесите результаты.</td></tr>';
+            if (tableRows === '') {
+                tableRows = `<tr><td colspan="5">Нет данных.</td></tr>`;
+            }
+
+            const printHtml = `
+                <div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1200px; margin: 0 auto; padding: 5mm 4mm;">
+                    <style>
+                        @page { size: A4 portrait; margin: 8mm 6mm; }
+                        .print-overall-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+                        .print-overall-table th, .print-overall-table td { border: 1px solid #555; padding: 3px 4px; text-align: center; }
+                        .print-overall-table th { background: #eef; font-weight: 600; }
+                        .print-report-area h1 { font-size: 14pt; margin: 0 0 3px; text-align: center; }
+                        .print-report-area h2 { font-size: 12pt; margin: 0 0 3px; text-align: center; color: #1e3a5f; }
+                        .print-subhead { text-align: center; font-size: 8.5pt; margin-bottom: 6px; color: #2c3e66; }
+                        .print-sign-line { margin-top: 16px; border-top: 1px dashed #aaa; padding-top: 10px; }
+                        .print-sign-line div { font-size: 9pt; }
+                        .print-footer { margin-top: 10px; font-size: 8pt; text-align: center; color: #6c757d; }
+                    </style>
+                    <h1>🏆 ИТОГОВЫЙ ПРОТОКОЛ</h1>
+                    <h2>Эстафета</h2>
+                    <div class="print-subhead">Дата формирования: ${now}</div>
+                    <table class="print-overall-table">
+                        <thead>
+                            <tr>
+                                <th>Место</th>
+                                <th>Команда</th>
+                                <th>Общее чистое время</th>
+                                <th>Общий штраф (сек)</th>
+                                <th>Итог</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                    <div class="print-sign-line">
+                        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+                            <div style="min-width: 150px;"><strong>Главный судья:</strong> __________________</div>
+                            <div style="min-width: 150px;"><strong>Секретарь:</strong> __________________</div>
+                        </div>
+                        <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
+                            <div><strong>Дата:</strong> __________________</div>
+                        </div>
+                        <div class="print-footer">Официальный протокол дисциплины "Эстафета"</div>
+                    </div>
+                </div>
+            `;
+
+            const container = document.getElementById('printReportContainer');
+            container.innerHTML = printHtml;
+            container.style.display = 'block';
+
+            const onAfterPrint = () => {
+                container.style.display = 'none';
+                container.innerHTML = '';
+                window.removeEventListener('afterprint', onAfterPrint);
+            };
+            window.addEventListener('afterprint', onAfterPrint);
+            setTimeout(() => {
+                if (container.style.display !== 'none') {
+                    container.style.display = 'none';
+                    container.innerHTML = '';
+                    window.removeEventListener('afterprint', onAfterPrint);
+                }
+            }, 5000);
+
+            window.print();
         } catch (err) {
             console.error(err);
-            document.getElementById('resultsBody').innerHTML = `<tr><td colspan="6">Ошибка загрузки: ${err.message}</td></tr>`;
+            showToast('Ошибка при формировании протокола: ' + err.message);
         }
     }
     
+    // ===== ЭКСПОРТ В EXCEL С ГРУППИРОВКОЙ =====
+    async function exportToExcel() {
+        try {
+            const data = await fetchAllResults();
+            let teamMap = {};
+            for (let r of data) {
+                let code = r.team_code;
+                if (!teamMap[code]) {
+                    teamMap[code] = { team: code, sumRaw: 0, sumPenalty: 0, hasRaw: false };
+                }
+                if (r.raw_seconds !== null && r.raw_seconds !== undefined) {
+                    teamMap[code].sumRaw += r.raw_seconds;
+                    teamMap[code].hasRaw = true;
+                }
+                let pen = getPenaltySum(r.penalties);
+                teamMap[code].sumPenalty += pen;
+            }
+            let rows = [];
+            for (let code in teamMap) {
+                let t = teamMap[code];
+                let total = t.hasRaw ? t.sumRaw + t.sumPenalty : null;
+                rows.push({
+                    Команда: `${teamNames[code] || code} (${code})`,
+                    "Общее чистое время": t.hasRaw ? formatTime(t.sumRaw) : "—",
+                    "Общий штраф (сек)": t.sumPenalty,
+                    "Итог": total !== null ? formatTime(total) : "—"
+                });
+            }
+            rows.sort((a,b) => {
+                const sumA = a["Итог"] === "—" ? Infinity : parseFloat(a["Итог"].split(':')[0])*60 + parseFloat(a["Итог"].split(':')[1]);
+                const sumB = b["Итог"] === "—" ? Infinity : parseFloat(b["Итог"].split(':')[0])*60 + parseFloat(b["Итог"].split(':')[1]);
+                return sumA - sumB;
+            });
+            const wsData = [["Место", ...Object.keys(rows[0] || {})]];
+            rows.forEach((row, idx) => {
+                const place = row["Итог"] !== "—" ? idx+1 : "—";
+                wsData.push([place, ...Object.values(row)]);
+            });
+            // Используем SheetJS для нормального экспорта
+            if (typeof XLSX !== 'undefined') {
+                const ws = XLSX.utils.aoa_to_sheet(wsData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Эстафета");
+                XLSX.writeFile(wb, `estafeta_results_${new Date().toISOString().slice(0,19)}.xlsx`);
+            } else {
+                // fallback на HTML-экспорт
+                let html = `<html><head><meta charset="UTF-8"><title>Результаты эстафеты</title><style>th,td{border:1px solid #ccc;padding:6px;text-align:center;}</style></head><body><table>`;
+                html += `<tr>${wsData[0].map(h => `<th>${h}</th>`).join('')}</tr>`;
+                for (let i=1; i<wsData.length; i++) {
+                    html += `<tr>${wsData[i].map(c => `<td>${c}</td>`).join('')}</tr>`;
+                }
+                html += '</table></body></html>';
+                const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                link.href = url;
+                link.download = 'estafeta_results.xls';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            }
+        } catch (err) {
+            console.error(err);
+            showToast('Ошибка экспорта: ' + err.message);
+        }
+    }
+    
+    // ---------- ОСТАЛЬНЫЕ ФУНКЦИИ (без изменений) ----------
     async function refreshCurrentTeamData() {
         if (!currentDirection || !currentTeam) {
             document.getElementById('rawTimeDisplay').innerText = '—';
@@ -877,7 +1097,6 @@
         updateSummaryFromTemp();
     }
     
-    // ОТРИСОВКА ШТРАФОВ (полная версия)
     function renderPenalties() {
         if (!currentDirection || !currentTeam) {
             document.getElementById('penaltiesContainer').innerHTML = '<div style="grid-column:1/-1; text-align:center;">⚠️ Выберите направление и банк</div>';
@@ -957,7 +1176,6 @@
         }
         document.getElementById('penaltiesContainer').innerHTML = html;
         
-        // Обработчики чекбоксов
         for (let p of stagePen) {
             if (counterPenaltyIds.includes(p.id)) continue;
             if (isBankStage && ['bank_cone_1','bank_cone_2','bank_cone_3','bank_cone_4'].includes(p.id)) continue;
@@ -966,7 +1184,6 @@
             let cb = document.getElementById(`chk_${p.id}`);
             if (cb) cb.onchange = (e) => { tempPenalties[e.target.dataset.id] = e.target.checked; hasUnsavedChanges = true; updateSummaryFromTemp(); updateBadge(); };
         }
-        // Обработчики счётчиков
         for (let p of stagePen.filter(p => counterPenaltyIds.includes(p.id))) {
             let dec = document.querySelector(`.counter-dec[data-id="${p.id}"]`);
             let inc = document.querySelector(`.counter-inc[data-id="${p.id}"]`);
@@ -989,7 +1206,6 @@
                 inc.onclick = () => update(1);
             }
         }
-        // Конусы банк
         if (isBankStage) {
             let dec = document.querySelector('.cones-dec'), inc = document.querySelector('.cones-inc'), span = document.querySelector('.cones-count');
             if (dec && inc && span) {
@@ -1009,7 +1225,6 @@
                 inc.onclick = () => update(parseInt(span.innerText) + 1);
             }
         }
-        // Конусы змейка
         if (isSnakeStage) {
             let dec = document.querySelector('.snake-cones-dec'), inc = document.querySelector('.snake-cones-inc'), span = document.querySelector('.snake-cones-count');
             if (dec && inc && span) {
@@ -1029,7 +1244,6 @@
                 inc.onclick = () => update(parseInt(span.innerText) + 1);
             }
         }
-        // Конусы преступник
         if (isPrestupnikStage) {
             let dec = document.querySelector('.prest-cones-dec'), inc = document.querySelector('.prest-cones-inc'), span = document.querySelector('.prest-cones-count');
             if (dec && inc && span) {
@@ -1146,7 +1360,7 @@
     
     function resetTemp() { refreshCurrentTeamData(); }
     
-    // ===== ПЕЧАТЬ ОТЧЁТА ПО ОДНОЙ КОМАНДЕ =====
+    // ===== ПЕЧАТЬ ОТЧЁТА ПО ОДНОЙ КОМАНДЕ (без изменений) =====
     async function printFullReport() {
         if (!currentDirection || !currentTeam) {
             showToast('Сначала выберите направление и команду!');
@@ -1269,128 +1483,6 @@
         window.print();
     }
     
-    // ===== ПЕЧАТЬ ИТОГОВОГО ПРОТОКОЛА (все команды) =====
-    async function printOverallReport() {
-        try {
-            const data = await fetchAllResults();
-            if (!data || data.length === 0) {
-                showToast('Нет данных для формирования протокола.');
-                return;
-            }
-
-            // Преобразуем данные
-            let rows = [];
-            for (let r of data) {
-                const raw = r.raw_seconds;
-                const penalty = getPenaltySum(r.penalties);
-                const total = raw !== null ? raw + penalty : null;
-                rows.push({
-                    team: r.team_code,
-                    name: teamNames[r.team_code] || r.team_code,
-                    dir: r.direction,
-                    raw,
-                    penalty,
-                    total
-                });
-            }
-
-            // Сортируем по итоговому времени
-            rows.sort((a,b) => {
-                if (a.total === null && b.total === null) return 0;
-                if (a.total === null) return 1;
-                if (b.total === null) return -1;
-                return a.total - b.total;
-            });
-
-            const now = new Date().toLocaleString('ru-RU');
-            let tableRows = '';
-            let rank = 1;
-            for (let r of rows) {
-                const place = r.total !== null ? rank++ : '—';
-                tableRows += `<tr>
-                    <td>${place}</td>
-                    <td><strong>${r.name}</strong> (${r.team})</td>
-                    <td>${r.dir}</td>
-                    <td>${r.raw !== null ? formatTime(r.raw) : '—'}</td>
-                    <td>${r.penalty}</td>
-                    <td><strong>${r.total !== null ? formatTime(r.total) : '—'}</strong></td>
-                </tr>`;
-            }
-
-            if (tableRows === '') {
-                tableRows = `<tr><td colspan="6">Нет данных.</td></tr>`;
-            }
-
-            const printHtml = `
-                <div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1200px; margin: 0 auto; padding: 5mm 4mm;">
-                    <style>
-                        @page { size: A4 portrait; margin: 8mm 6mm; }
-                        .print-overall-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
-                        .print-overall-table th, .print-overall-table td { border: 1px solid #555; padding: 3px 4px; text-align: center; }
-                        .print-overall-table th { background: #eef; font-weight: 600; }
-                        .print-report-area h1 { font-size: 14pt; margin: 0 0 3px; text-align: center; }
-                        .print-report-area h2 { font-size: 12pt; margin: 0 0 3px; text-align: center; color: #1e3a5f; }
-                        .print-subhead { text-align: center; font-size: 8.5pt; margin-bottom: 6px; color: #2c3e66; }
-                        .print-sign-line { margin-top: 16px; border-top: 1px dashed #aaa; padding-top: 10px; }
-                        .print-sign-line div { font-size: 9pt; }
-                        .print-footer { margin-top: 10px; font-size: 8pt; text-align: center; color: #6c757d; }
-                    </style>
-                    <h1>🏆 ИТОГОВЫЙ ПРОТОКОЛ</h1>
-                    <h2>Эстафета</h2>
-                    <div class="print-subhead">Дата формирования: ${now}</div>
-                    <table class="print-overall-table">
-                        <thead>
-                            <tr>
-                                <th>Место</th>
-                                <th>Команда</th>
-                                <th>Напр.</th>
-                                <th>Чистое время</th>
-                                <th>Штраф (сек)</th>
-                                <th>Итог</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${tableRows}
-                        </tbody>
-                    </table>
-                    <div class="print-sign-line">
-                        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
-                            <div style="min-width: 150px;"><strong>Главный судья:</strong> __________________</div>
-                            <div style="min-width: 150px;"><strong>Секретарь:</strong> __________________</div>
-                        </div>
-                        <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
-                            <div><strong>Дата:</strong> __________________</div>
-                        </div>
-                        <div class="print-footer">Официальный протокол дисциплины "Эстафета"</div>
-                    </div>
-                </div>
-            `;
-
-            const container = document.getElementById('printReportContainer');
-            container.innerHTML = printHtml;
-            container.style.display = 'block';
-
-            const onAfterPrint = () => {
-                container.style.display = 'none';
-                container.innerHTML = '';
-                window.removeEventListener('afterprint', onAfterPrint);
-            };
-            window.addEventListener('afterprint', onAfterPrint);
-            setTimeout(() => {
-                if (container.style.display !== 'none') {
-                    container.style.display = 'none';
-                    container.innerHTML = '';
-                    window.removeEventListener('afterprint', onAfterPrint);
-                }
-            }, 5000);
-
-            window.print();
-        } catch (err) {
-            console.error(err);
-            showToast('Ошибка при формировании протокола: ' + err.message);
-        }
-    }
-    
     function renderStageButtons() {
         const container = document.getElementById('stageButtonsContainer');
         let html = '';
@@ -1428,32 +1520,9 @@
         } else if (span) span.innerText = '✅ Выберите направление, банк и этап';
     }
     
-    function exportToExcel() {
-        const table = document.getElementById('resultsTable');
-        const cloneTable = table.cloneNode(true);
-        const now = new Date().toLocaleString('ru-RU');
-        const caption = document.createElement('caption');
-        caption.style.fontSize = '16px';
-        caption.style.marginBottom = '10px';
-        caption.style.fontWeight = 'bold';
-        caption.innerText = `Результаты эстафеты (сформировано: ${now})`;
-        cloneTable.prepend(caption);
-        const wb = `<html><head><meta charset="UTF-8"><title>Результаты эстафеты</title><style>th,td{border:1px solid #ccc;padding:6px;text-align:center;}table{border-collapse:collapse;width:100%;}.rank-1{background-color:#fef9c3;}</style></head><body>${cloneTable.outerHTML}</body></html>`;
-        const blob = new Blob([wb], { type: 'application/vnd.ms-excel' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.download = 'estafeta_results.xls';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    }
-    
     function goHome() { window.location.href = '/'; }
     
     function showToast(msg) {
-        let statusDiv = document.getElementById('connectionStatus');
         let toast = document.createElement('div');
         toast.style.position = 'fixed';
         toast.style.bottom = '20px';
