@@ -117,12 +117,16 @@
         @media print {
             .judge-panel, .results-table, .stage-buttons, .penalties-grid, .summary-bar, .unsaved-badge,
             #printTriathlonReportBtn, #exportExcelBtn, #printOverallReportBtn, .time-row button, .participant-card button, .header, .flex-between, .home-button { display: none !important; }
-            .print-report-area { display: block !important; margin: 0; padding: 20px; font-size: 12pt; }
-            .print-sign-line { margin-top: 40px; border-top: 1px dashed #aaa; padding-top: 20px; }
-            .print-footer { margin-top: 30px; font-size: 9pt; text-align: center; }
+            .print-report-area { display: block !important; margin: 0; padding: 5mm; font-size: 9pt; }
+            .print-sign-line { margin-top: 20px; border-top: 1px dashed #aaa; padding-top: 10px; }
+            .print-footer { margin-top: 15px; font-size: 8pt; text-align: center; }
             .print-overall-table { width: 100%; border-collapse: collapse; }
-            .print-overall-table th, .print-overall-table td { border: 1px solid #aaa; padding: 6px; text-align: center; }
+            .print-overall-table th, .print-overall-table td { border: 1px solid #888; padding: 3px 4px; text-align: center; font-size: 8pt; }
             .print-overall-table th { background: #eef; }
+            .print-report-area h1 { font-size: 14pt; margin: 0 0 4px; }
+            .print-report-area h2 { font-size: 12pt; margin: 0 0 4px; }
+            .print-report-area .subhead { font-size: 8pt; margin-bottom: 6px; }
+            @page { size: A4 portrait; margin: 8mm 6mm; }
         }
         .print-report-area { display: none; }
     </style>
@@ -404,17 +408,14 @@
                     let code = row.team_code;
                     if (code === 'YB') code = 'УБ';
                     if (!newTeams[code]) newTeams[code] = { teamRawSeconds: null, teamPenalties: {}, participant1Name: "", participant2Name: "" };
-                    // используем только participant_number = 1 как основную запись
                     if (row.participant_number === 1) {
                         newTeams[code].teamRawSeconds = row.raw_seconds;
                         newTeams[code].teamPenalties = row.penalties || {};
-                        // разбираем JSON из поля name (если есть)
                         try {
                             const names = JSON.parse(row.name || '{}');
                             newTeams[code].participant1Name = names.participant1 || "";
                             newTeams[code].participant2Name = names.participant2 || "";
                         } catch {
-                            // если не JSON, считаем, что там только имя первого участника
                             newTeams[code].participant1Name = row.name || "";
                             newTeams[code].participant2Name = "";
                         }
@@ -485,7 +486,6 @@
             html += '</div>';
             penaltiesContainer.innerHTML = html;
 
-            // чекбоксы
             for (let p of regular) {
                 const cb = document.getElementById(`chk_${p.id}`);
                 if (cb) cb.onchange = () => {
@@ -496,7 +496,6 @@
                     updateStageBadge();
                 };
             }
-            // счётчики
             for (let counter of counters) {
                 const decBtn = penaltiesContainer.querySelector(`.counter-dec[data-id="${counter.id}"]`);
                 const incBtn = penaltiesContainer.querySelector(`.counter-inc[data-id="${counter.id}"]`);
@@ -524,7 +523,6 @@
         function updateSummary() {
             if (!currentTeam) return;
             const team = teamsData[currentTeam];
-            // объединяем сохранённые и временные штрафы для текущего этапа
             let merged = { ...team.teamPenalties };
             const stagePenalties = penaltiesLibrary.filter(p => p.category === currentStage);
             for (let p of stagePenalties) delete merged[p.id];
@@ -756,10 +754,9 @@
             container.innerHTML = '';
         }
 
-        // ===== Печать итогового протокола (все команды) =====
+        // ===== Печать итогового протокола (все команды) с компактным шрифтом =====
         async function printOverallReport() {
             await loadAllFromSupabase();
-            // Собрать все команды
             let rows = [];
             for (let code of teamCodes) {
                 const team = teamsData[code];
@@ -799,35 +796,47 @@
             }
 
             const printHtml = `
-                <div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px;">
-                    <h1 style="text-align: center; margin-bottom: 8px;">🏆 ИТОГОВЫЙ ПРОТОКОЛ</h1>
-                    <h2 style="text-align: center; margin-top: 0; color: #1e3a5f;">Командный триатлон</h2>
-                    <div style="text-align: center; margin-bottom: 24px; color: #2c3e66;">Дата формирования: ${now}</div>
-                    <table class="print-overall-table" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                <div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1200px; margin: 0 auto; padding: 5mm 3mm;">
+                    <style>
+                        @page { size: A4 portrait; margin: 8mm 5mm; }
+                        .print-overall-table { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
+                        .print-overall-table th, .print-overall-table td { border: 1px solid #555; padding: 2px 3px; text-align: center; }
+                        .print-overall-table th { background: #eef; font-weight: 600; }
+                        .print-report-area h1 { font-size: 13pt; margin: 0 0 2px; text-align: center; }
+                        .print-report-area h2 { font-size: 11pt; margin: 0 0 2px; text-align: center; color: #1e3a5f; }
+                        .print-subhead { text-align: center; font-size: 7pt; margin-bottom: 6px; color: #2c3e66; }
+                        .print-sign-line { margin-top: 15px; border-top: 1px dashed #aaa; padding-top: 10px; }
+                        .print-sign-line div { font-size: 8pt; }
+                        .print-footer { margin-top: 10px; font-size: 7pt; text-align: center; color: #6c757d; }
+                    </style>
+                    <h1>🏆 ИТОГОВЫЙ ПРОТОКОЛ</h1>
+                    <h2>Командный триатлон</h2>
+                    <div class="print-subhead">Дата формирования: ${now}</div>
+                    <table class="print-overall-table">
                         <thead>
-                            <tr style="background: #eef2ff;">
-                                <th style="border: 1px solid #aaa; padding: 8px;">Место</th>
-                                <th style="border: 1px solid #aaa; padding: 8px;">Команда</th>
-                                <th style="border: 1px solid #aaa; padding: 8px;">Участник 1</th>
-                                <th style="border: 1px solid #aaa; padding: 8px;">Участник 2</th>
-                                <th style="border: 1px solid #aaa; padding: 8px;">Чистое время</th>
-                                <th style="border: 1px solid #aaa; padding: 8px;">Штраф (сек)</th>
-                                <th style="border: 1px solid #aaa; padding: 8px;">Итог</th>
+                            <tr>
+                                <th>Место</th>
+                                <th>Команда</th>
+                                <th>Участник 1</th>
+                                <th>Участник 2</th>
+                                <th>Чистое время</th>
+                                <th>Штраф (сек)</th>
+                                <th>Итог</th>
                             </tr>
                         </thead>
                         <tbody>
                             ${tableRows}
                         </tbody>
                     </table>
-                    <div class="print-sign-line" style="margin-top: 48px; border-top: 1px dashed #aaa; padding-top: 24px;">
-                        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px;">
-                            <div style="min-width: 200px;"><strong>Главный судья:</strong> __________________</div>
-                            <div style="min-width: 200px;"><strong>Секретарь:</strong> __________________</div>
+                    <div class="print-sign-line">
+                        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+                            <div style="min-width: 150px;"><strong>Главный судья:</strong> __________________</div>
+                            <div style="min-width: 150px;"><strong>Секретарь:</strong> __________________</div>
                         </div>
-                        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                        <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
                             <div><strong>Дата:</strong> __________________</div>
                         </div>
-                        <div style="margin-top: 20px; font-size: 10px; color: #4b5563; text-align: center;">Официальный протокол дисциплины "Командный триатлон"</div>
+                        <div class="print-footer">Официальный протокол дисциплины "Командный триатлон"</div>
                     </div>
                 </div>
             `;
