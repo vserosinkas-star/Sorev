@@ -25,7 +25,6 @@
             margin: 0 auto;
         }
 
-        /* ===== НОВАЯ ШАПКА (стиль из lots) ===== */
         .header {
             background: linear-gradient(135deg, #1e3a5f, #0f2b44);
             color: white;
@@ -70,15 +69,6 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.15);
         }
 
-        .gold-accent {
-            height: 3px;
-            background: linear-gradient(90deg, #f5b042, #f5e2a0, #f5b042);
-            width: 70px;
-            border-radius: 2px;
-            margin: 12px auto 0;
-        }
-
-        /* ===== ОСТАЛЬНЫЕ СТИЛИ (оригинал estafeta) ===== */
         .judge-panel {
             background: white;
             border-radius: 28px;
@@ -627,7 +617,9 @@
         { id: "obsh_ivr", category: "Общие штрафы", desc: "Неаккуратное обращение с ИВР (уронил ИВР на пол в СТС/на дорожное покрытие)", sec: 30 },
         { id: "obsh_tsd", category: "Общие штрафы", desc: "Неаккуратное обращение с ТСД/радиотерминалом (уронил на пол в СТС/на дорожное покрытие)", sec: 30 },
         { id: "obsh_gun", category: "Общие штрафы", desc: "Выпадение пистолета из кобуры", sec: 20 },
-        { id: "obsh_sts", category: "Общие штрафы", desc: "Выход из СТС/посадка в СТС не осуществлена в следующем порядке: инкассатор через заднюю правую дверь, водитель-инкассатор через левую переднюю дверь", sec: 20 }
+        { id: "obsh_sts", category: "Общие штрафы", desc: "Выход из СТС/посадка в СТС не осуществлена в следующем порядке: инкассатор через заднюю правую дверь, водитель-инкассатор через левую переднюю дверь", sec: 20 },
+        // НОВЫЙ ШТРАФ ЗА ОСПАРИВАНИЕ
+        { id: "obsh_osporivanie", category: "Общие штрафы", desc: "Оспаривание решения судьи (каждое)", sec: 5 }
     ];
 
     // ---------- СОСТОЯНИЕ ----------
@@ -778,27 +770,23 @@
         return data;
     }
     
-    // ===== НОВАЯ ФУНКЦИЯ ЗАГРУЗКИ С ГРУППИРОВКОЙ ПО КОМАНДАМ =====
+    // ===== ФУНКЦИЯ ЗАГРУЗКИ С ГРУППИРОВКОЙ ПО КОМАНДАМ =====
     async function loadAllResults() {
         try {
             let data = await fetchAllResults();
-            // Группируем по team_code
             let teamMap = {};
             for (let r of data) {
                 let code = r.team_code;
                 if (!teamMap[code]) {
                     teamMap[code] = { team: code, sumRaw: 0, sumPenalty: 0, hasRaw: false };
                 }
-                // Суммируем сырое время, если оно не null
                 if (r.raw_seconds !== null && r.raw_seconds !== undefined) {
                     teamMap[code].sumRaw += r.raw_seconds;
                     teamMap[code].hasRaw = true;
                 }
-                // Суммируем штраф
                 let pen = getPenaltySum(r.penalties);
                 teamMap[code].sumPenalty += pen;
             }
-            // Формируем массив строк
             let rows = [];
             for (let code in teamMap) {
                 let t = teamMap[code];
@@ -811,7 +799,6 @@
                     total: total
                 });
             }
-            // Сортировка по итоговому времени
             rows.sort((a,b) => {
                 if (a.total === null && b.total === null) return 0;
                 if (a.total === null) return 1;
@@ -843,7 +830,6 @@
                 showToast('Нет данных для формирования протокола.');
                 return;
             }
-            // Группируем
             let teamMap = {};
             for (let r of data) {
                 let code = r.team_code;
@@ -1000,14 +986,12 @@
                 const place = row["Итог"] !== "—" ? idx+1 : "—";
                 wsData.push([place, ...Object.values(row)]);
             });
-            // Используем SheetJS для нормального экспорта
             if (typeof XLSX !== 'undefined') {
                 const ws = XLSX.utils.aoa_to_sheet(wsData);
                 const wb = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(wb, ws, "Эстафета");
                 XLSX.writeFile(wb, `estafeta_results_${new Date().toISOString().slice(0,19)}.xlsx`);
             } else {
-                // fallback на HTML-экспорт
                 let html = `<html><head><meta charset="UTF-8"><title>Результаты эстафеты</title><style>th,td{border:1px solid #ccc;padding:6px;text-align:center;}</style></head><body><table>`;
                 html += `<tr>${wsData[0].map(h => `<th>${h}</th>`).join('')}</tr>`;
                 for (let i=1; i<wsData.length; i++) {
@@ -1360,7 +1344,7 @@
     
     function resetTemp() { refreshCurrentTeamData(); }
     
-    // ===== ПЕЧАТЬ ОТЧЁТА ПО ОДНОЙ КОМАНДЕ (без изменений) =====
+    // ===== ПЕЧАТЬ ОТЧЁТА ПО ОДНОЙ КОМАНДЕ =====
     async function printFullReport() {
         if (!currentDirection || !currentTeam) {
             showToast('Сначала выберите направление и команду!');
