@@ -121,11 +121,11 @@
             .print-sign-line { margin-top: 20px; border-top: 1px dashed #aaa; padding-top: 10px; }
             .print-footer { margin-top: 15px; font-size: 8pt; text-align: center; }
             .print-overall-table { width: 100%; border-collapse: collapse; }
-            .print-overall-table th, .print-overall-table td { border: 1px solid #888; padding: 3px 4px; text-align: center; font-size: 8pt; }
+            .print-overall-table th, .print-overall-table td { border: 1px solid #888; padding: 3px 4px; text-align: center; font-size: 8.5pt; }
             .print-overall-table th { background: #eef; }
             .print-report-area h1 { font-size: 14pt; margin: 0 0 4px; }
             .print-report-area h2 { font-size: 12pt; margin: 0 0 4px; }
-            .print-report-area .subhead { font-size: 8pt; margin-bottom: 6px; }
+            .print-report-area .subhead { font-size: 8.5pt; margin-bottom: 6px; }
             @page { size: A4 portrait; margin: 8mm 6mm; }
         }
         .print-report-area { display: none; }
@@ -754,7 +754,7 @@
             container.innerHTML = '';
         }
 
-        // ===== Печать итогового протокола (все команды) с компактным шрифтом =====
+        // ===== Печать итогового протокола (все команды) с увеличенным шрифтом =====
         async function printOverallReport() {
             await loadAllFromSupabase();
             let rows = [];
@@ -796,18 +796,18 @@
             }
 
             const printHtml = `
-                <div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1200px; margin: 0 auto; padding: 5mm 3mm;">
+                <div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1200px; margin: 0 auto; padding: 5mm 4mm;">
                     <style>
-                        @page { size: A4 portrait; margin: 8mm 5mm; }
-                        .print-overall-table { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
-                        .print-overall-table th, .print-overall-table td { border: 1px solid #555; padding: 2px 3px; text-align: center; }
+                        @page { size: A4 portrait; margin: 8mm 6mm; }
+                        .print-overall-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+                        .print-overall-table th, .print-overall-table td { border: 1px solid #555; padding: 3px 4px; text-align: center; }
                         .print-overall-table th { background: #eef; font-weight: 600; }
-                        .print-report-area h1 { font-size: 13pt; margin: 0 0 2px; text-align: center; }
-                        .print-report-area h2 { font-size: 11pt; margin: 0 0 2px; text-align: center; color: #1e3a5f; }
-                        .print-subhead { text-align: center; font-size: 7pt; margin-bottom: 6px; color: #2c3e66; }
-                        .print-sign-line { margin-top: 15px; border-top: 1px dashed #aaa; padding-top: 10px; }
-                        .print-sign-line div { font-size: 8pt; }
-                        .print-footer { margin-top: 10px; font-size: 7pt; text-align: center; color: #6c757d; }
+                        .print-report-area h1 { font-size: 14pt; margin: 0 0 3px; text-align: center; }
+                        .print-report-area h2 { font-size: 12pt; margin: 0 0 3px; text-align: center; color: #1e3a5f; }
+                        .print-subhead { text-align: center; font-size: 8.5pt; margin-bottom: 6px; color: #2c3e66; }
+                        .print-sign-line { margin-top: 16px; border-top: 1px dashed #aaa; padding-top: 10px; }
+                        .print-sign-line div { font-size: 9pt; }
+                        .print-footer { margin-top: 10px; font-size: 8pt; text-align: center; color: #6c757d; }
                     </style>
                     <h1>🏆 ИТОГОВЫЙ ПРОТОКОЛ</h1>
                     <h2>Командный триатлон</h2>
