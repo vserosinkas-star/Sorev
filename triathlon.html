@@ -71,6 +71,8 @@
         .btn-warning { background: #f97316; }
         .print-btn { background: #2c5f2d; margin-left: auto; }
         .print-btn:hover { background: #1f4a20; }
+        .overall-print-btn { background: #1e4a6f; }
+        .overall-print-btn:hover { background: #143a55; }
         .excel-btn { background: #1e6f3f; margin-left: 12px; }
         .excel-btn:hover { background: #0f5a33; }
         .unsaved-badge { background: #fef3c7; color: #b45309; padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: bold; margin-left: 12px; }
@@ -86,6 +88,7 @@
         .flex-between { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; justify-content: space-between; margin-bottom: 15px; }
         .team-name-fields { display: flex; gap: 15px; flex-wrap: wrap; }
         .team-name-fields .control-group { flex: 1; min-width: 180px; }
+        .action-buttons { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
         @media (max-width: 700px) {
             body { padding: 12px; }
             .judge-panel { padding: 16px; }
@@ -94,7 +97,8 @@
             .counter-control button { padding: 2px 8px; }
             button { width: 100%; }
             .time-row { flex-direction: column; align-items: stretch; }
-            .print-btn, .excel-btn { margin-left: 0; margin-top: 8px; }
+            .action-buttons { flex-direction: column; align-items: stretch; }
+            .print-btn, .excel-btn, .overall-print-btn { margin-left: 0; margin-top: 8px; }
             .home-button {
                 position: static;
                 display: inline-flex;
@@ -112,10 +116,13 @@
         }
         @media print {
             .judge-panel, .results-table, .stage-buttons, .penalties-grid, .summary-bar, .unsaved-badge,
-            #printTriathlonReportBtn, #exportExcelBtn, .time-row button, .participant-card button, .header, .flex-between, .home-button { display: none !important; }
+            #printTriathlonReportBtn, #exportExcelBtn, #printOverallReportBtn, .time-row button, .participant-card button, .header, .flex-between, .home-button { display: none !important; }
             .print-report-area { display: block !important; margin: 0; padding: 20px; font-size: 12pt; }
             .print-sign-line { margin-top: 40px; border-top: 1px dashed #aaa; padding-top: 20px; }
             .print-footer { margin-top: 30px; font-size: 9pt; text-align: center; }
+            .print-overall-table { width: 100%; border-collapse: collapse; }
+            .print-overall-table th, .print-overall-table td { border: 1px solid #aaa; padding: 6px; text-align: center; }
+            .print-overall-table th { background: #eef; }
         }
         .print-report-area { display: none; }
     </style>
@@ -148,8 +155,9 @@
                     <option value="ВВБ">Волго-Вятский (ВВБ)</option>
                 </select>
             </div>
-            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
-                <button id="printTriathlonReportBtn" class="print-btn">🖨️ Печать отчета с подписями</button>
+            <div class="action-buttons">
+                <button id="printTriathlonReportBtn" class="print-btn">🖨️ Отчёт по команде</button>
+                <button id="printOverallReportBtn" class="overall-print-btn">📋 Итоговый протокол</button>
                 <button id="exportExcelBtn" class="excel-btn">📊 Выгрузить в Excel</button>
             </div>
         </div>
@@ -654,7 +662,7 @@
             XLSX.writeFile(wb, `triathlon_results_${new Date().toISOString().slice(0,19)}.xlsx`);
         }
 
-        // ===== Печать отчета =====
+        // ===== Печать отчета по одной команде =====
         async function printFullReport() {
             if (!currentTeam) { alert('Сначала выберите команду!'); return; }
             const team = teamsData[currentTeam];
@@ -748,6 +756,89 @@
             container.innerHTML = '';
         }
 
+        // ===== Печать итогового протокола (все команды) =====
+        async function printOverallReport() {
+            await loadAllFromSupabase();
+            // Собрать все команды
+            let rows = [];
+            for (let code of teamCodes) {
+                const team = teamsData[code];
+                if (!team) continue;
+                const raw = team.teamRawSeconds;
+                const pen = getPenaltySum(team.teamPenalties);
+                const total = raw !== null ? raw + pen : null;
+                rows.push({
+                    code,
+                    name: teamNames[code],
+                    p1: team.participant1Name || "—",
+                    p2: team.participant2Name || "—",
+                    raw,
+                    pen,
+                    total
+                });
+            }
+            rows.sort((a,b) => (a.total || Infinity) - (b.total || Infinity));
+
+            const now = new Date().toLocaleString('ru-RU');
+            let tableRows = '';
+            let rank = 1;
+            for (let r of rows) {
+                const place = r.total !== null ? rank++ : '—';
+                tableRows += `<tr>
+                    <td>${place}</td>
+                    <td><strong>${r.name}</strong> (${r.code})</td>
+                    <td>${r.p1}</td>
+                    <td>${r.p2}</td>
+                    <td>${r.raw !== null ? formatTime(r.raw) : '—'}</td>
+                    <td>${r.pen}</td>
+                    <td><strong>${r.total !== null ? formatTime(r.total) : '—'}</strong></td>
+                </tr>`;
+            }
+            if (rows.length === 0 || rows.every(r => r.total === null)) {
+                tableRows = `<tr><td colspan="7">Нет данных.</td></tr>`;
+            }
+
+            const printHtml = `
+                <div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px;">
+                    <h1 style="text-align: center; margin-bottom: 8px;">🏆 ИТОГОВЫЙ ПРОТОКОЛ</h1>
+                    <h2 style="text-align: center; margin-top: 0; color: #1e3a5f;">Командный триатлон</h2>
+                    <div style="text-align: center; margin-bottom: 24px; color: #2c3e66;">Дата формирования: ${now}</div>
+                    <table class="print-overall-table" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                        <thead>
+                            <tr style="background: #eef2ff;">
+                                <th style="border: 1px solid #aaa; padding: 8px;">Место</th>
+                                <th style="border: 1px solid #aaa; padding: 8px;">Команда</th>
+                                <th style="border: 1px solid #aaa; padding: 8px;">Участник 1</th>
+                                <th style="border: 1px solid #aaa; padding: 8px;">Участник 2</th>
+                                <th style="border: 1px solid #aaa; padding: 8px;">Чистое время</th>
+                                <th style="border: 1px solid #aaa; padding: 8px;">Штраф (сек)</th>
+                                <th style="border: 1px solid #aaa; padding: 8px;">Итог</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                    <div class="print-sign-line" style="margin-top: 48px; border-top: 1px dashed #aaa; padding-top: 24px;">
+                        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px;">
+                            <div style="min-width: 200px;"><strong>Главный судья:</strong> __________________</div>
+                            <div style="min-width: 200px;"><strong>Секретарь:</strong> __________________</div>
+                        </div>
+                        <div style="margin-top: 20px; display: flex; justify-content: flex-end;">
+                            <div><strong>Дата:</strong> __________________</div>
+                        </div>
+                        <div style="margin-top: 20px; font-size: 10px; color: #4b5563; text-align: center;">Официальный протокол дисциплины "Командный триатлон"</div>
+                    </div>
+                </div>
+            `;
+            const container = document.getElementById('printReportContainer');
+            container.innerHTML = printHtml;
+            container.style.display = 'block';
+            window.print();
+            container.style.display = 'none';
+            container.innerHTML = '';
+        }
+
         // ===== Event listeners =====
         teamSelect.addEventListener('change', async () => {
             currentTeam = teamSelect.value || null;
@@ -773,6 +864,7 @@
         resetStageBtn.addEventListener('click', resetStage);
         saveTeamTimeBtn.addEventListener('click', saveRawTime);
         document.getElementById('printTriathlonReportBtn').addEventListener('click', printFullReport);
+        document.getElementById('printOverallReportBtn').addEventListener('click', printOverallReport);
         exportExcelBtn.addEventListener('click', exportToExcel);
 
         // ===== Init =====
