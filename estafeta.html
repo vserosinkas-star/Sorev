@@ -133,6 +133,8 @@
         .print-btn:hover { background: #1f4a20; }
         .excel-btn { background: #0f766e; }
         .excel-btn:hover { background: #0d5a54; }
+        .overall-print-btn { background: #1e4a6f; }
+        .overall-print-btn:hover { background: #143a55; }
 
         .stage-info {
             background: #eef2ff;
@@ -297,10 +299,17 @@
             body { background: white; padding: 0; margin: 0; }
             .judge-panel, .results-table, .stage-buttons, .stage-info, .judge-controls, .penalties-grid, .summary-bar, .unsaved-badge,
             #printReportBtn, #saveRawTimeBtn, #resetTeamBtn, #saveStageBtn, #resetStageBtn, .stage-btn, .control-group button,
-            select, input, .unsaved-badge, #connectionStatus, .home-button, #excelExportBtn { display: none !important; }
-            .print-report-area { display: block !important; margin: 0; padding: 20px; font-size: 12pt; }
-            .print-sign-line { margin-top: 40px; border-top: 1px dashed #aaa; padding-top: 20px; }
-            .print-footer { margin-top: 30px; font-size: 9pt; text-align: center; }
+            select, input, .unsaved-badge, #connectionStatus, .home-button, #excelExportBtn, #printOverallReportBtn { display: none !important; }
+            .print-report-area { display: block !important; margin: 0; padding: 5mm; font-size: 9pt; }
+            .print-sign-line { margin-top: 20px; border-top: 1px dashed #aaa; padding-top: 10px; }
+            .print-footer { margin-top: 15px; font-size: 8pt; text-align: center; }
+            .print-overall-table { width: 100%; border-collapse: collapse; }
+            .print-overall-table th, .print-overall-table td { border: 1px solid #888; padding: 3px 4px; text-align: center; font-size: 8.5pt; }
+            .print-overall-table th { background: #eef; }
+            .print-report-area h1 { font-size: 14pt; margin: 0 0 4px; }
+            .print-report-area h2 { font-size: 12pt; margin: 0 0 4px; }
+            .print-report-area .subhead { font-size: 8.5pt; margin-bottom: 6px; }
+            @page { size: A4 portrait; margin: 8mm 6mm; }
         }
         .print-report-area { display: none; }
     </style>
@@ -310,7 +319,6 @@
     <div class="header">
         <button id="homeBtn" class="home-button">🏠 На главную</button>
         <h1>Эстафета</h1>
-        
     </div>
 
     <div class="judge-panel">
@@ -343,7 +351,8 @@
                 </select>
             </div>
             <button id="excelExportBtn" class="excel-btn">📊 Выгрузить в Excel</button>
-            <button id="printReportBtn" class="print-btn">🖨️ Печать отчета с подписями</button>
+            <button id="printReportBtn" class="print-btn">🖨️ Отчёт по команде</button>
+            <button id="printOverallReportBtn" class="overall-print-btn">📋 Итоговый протокол</button>
         </div>
         <div id="stageButtonsContainer" class="stage-buttons"></div>
         <div class="judge-controls" style="margin-top: 0;">
@@ -366,7 +375,6 @@
         </div>
         <div class="summary-bar">
             <span><strong>⚖️ Штраф (сек):</strong> <span id="totalPenaltyDisplay">0</span> сек</span>
-            <!-- НОВЫЙ ЭЛЕМЕНТ: штраф по текущему этапу -->
             <span><strong>📋 Штраф этапа:</strong> <span id="stagePenaltyDisplay">0</span> сек</span>
             <span><strong>⏱️ Чистое время:</strong> <span id="rawTimeDisplay">—</span></span>
             <span class="total-time"><strong>ИТОГО:</strong> <span id="totalTimeDisplay">—</span></span>
@@ -403,13 +411,11 @@
         "Инкассация объекта", "Вооруженный преступник", "Наручники", "Общие штрафы"
     ];
     
-    // === ИЗМЕНЕНИЕ 1: добавили новые id в counterPenaltyIds ===
     const counterPenaltyIds = [
         'puncture_helper', 'us_cassette_dropped', 'us_jam_search', 'us_jam_bad_fix',
         'us_not_kas', 'us_left_property', 'fire_bad_sk', 'obsh_svyaz',
         'obsh_ivr', 'obsh_tsd', 'obsh_gun', 'obsh_sts',
-        'us_code_not_set',          // теперь счетчик
-        'us_module_damage'          // новый штраф
+        'us_code_not_set', 'us_module_damage'
     ];
     
     const greenHighlightIds = [
@@ -432,8 +438,7 @@
     
     const SHOOT_PM_MISS_ID = 'shoot_pm_misses';
     const SHOOT_SAIGA_HITS_ID = 'shoot_saiga_hits';
-    // ИЗМЕНЕНИЕ: штраф за промах ПМ изменён с 30 на 15 секунд
-    const PENALTY_PER_MISS_PM = 15;   // было 30
+    const PENALTY_PER_MISS_PM = 15;
     const SAIGA_BONUS_PER_HIT = 10;
     
     // ================= ПОЛНАЯ БИБЛИОТЕКА ШТРАФОВ =================
@@ -515,14 +520,13 @@
         { id: "us_not_kas", category: "Обслуживание УС", desc: "Кассеты не установлены в соответствии с маркировкой слотов (при этом реджект кассета не установлена в свой слот)", sec: 30 },
         { id: "us_no_check", category: "Обслуживание УС", desc: "Старший бригады не проверил правильность установки кассет в УС инкассатором", sec: 30 },
         { id: "us_helper_pack", category: "Обслуживание УС", desc: "Старший бригады оказывает помощь инкассатору в укладке кассет УС в сумку-баул", sec: 30 },
-        { id: "us_code_not_set", category: "Обслуживание УС", desc: "Инкассатор не сбил код замка и не закрыл сейф УС", sec: 30 }, // теперь счетчик
+        { id: "us_code_not_set", category: "Обслуживание УС", desc: "Инкассатор не сбил код замка и не закрыл сейф УС", sec: 30 },
         { id: "us_left_property", category: "Обслуживание УС", desc: "Оставление имущества (ключ от УС/кассета(ы)/сумка-баул/сейф-пакет)", sec: 30 },
         { id: "us_senior_first_seat", category: "Обслуживание УС", desc: "Первым сел в СТС старший бригады", sec: 30 },
         { id: "us_simultaneous_seat", category: "Обслуживание УС", desc: "Старший бригады и инкассатор одновременно сели в СТС", sec: 30 },
         { id: "us_nakop_load", category: "Обслуживание УС", desc: "Не заложены банковские ценности в накопитель (перед началом движения СТС)", sec: 50 },
         { id: "us_nakop_door", category: "Обслуживание УС", desc: "Не была закрыта дверь устройства накопителя", sec: 30 },
         { id: "us_broken_key", category: "Обслуживание УС", desc: "Инкассатор при обслуживании УС сломал/погнул/потерял ключ от УС ", sec: 30 },
-        // === ИЗМЕНЕНИЕ 2: новый штраф ===
         { id: "us_module_damage", category: "Обслуживание УС", desc: "Повреждение модуля УС в процессе устранения замятий (поломка роликов, фиксаторов, загиб направляющих, повреждение пластика)", sec: 50 },
         { id: "us_belt1", category: "Обслуживание УС", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
         { id: "vsp_belt", category: "Обслуживание ВСП", desc: "Бригада не пристегнута ремнями безопасности при движении СТС", sec: 30 },
@@ -767,10 +771,17 @@
             if (error) throw error;
         }).catch(err => console.error(err));
     }
+    
+    // Новая функция для получения всех данных (для итогового протокола)
+    async function fetchAllResults() {
+        let { data, error } = await supabaseClient.from('estafeta_results').select('direction, team_code, raw_seconds, penalties');
+        if (error) throw error;
+        return data;
+    }
+    
     async function loadAllResults() {
         try {
-            let { data, error } = await supabaseClient.from('estafeta_results').select('direction, team_code, raw_seconds, penalties');
-            if (error) throw error;
+            let data = await fetchAllResults();
             let rows = [];
             for (let r of data) {
                 let raw = r.raw_seconds;
@@ -1070,7 +1081,6 @@
         }
         let totalDisplay = getPenaltySum(merged);
         document.getElementById('totalPenaltyDisplay').innerText = totalDisplay;
-        // Вычисляем штраф по текущему этапу (только tempPenalties)
         let stageSum = getPenaltySum(tempPenalties);
         document.getElementById('stagePenaltyDisplay').innerText = stageSum;
         let raw = data?.raw_seconds ?? null;
@@ -1136,7 +1146,7 @@
     
     function resetTemp() { refreshCurrentTeamData(); }
     
-    // ===== ИСПРАВЛЕННАЯ ФУНКЦИЯ ПЕЧАТИ =====
+    // ===== ПЕЧАТЬ ОТЧЁТА ПО ОДНОЙ КОМАНДЕ =====
     async function printFullReport() {
         if (!currentDirection || !currentTeam) {
             showToast('Сначала выберите направление и команду!');
@@ -1242,15 +1252,12 @@
         container.innerHTML = printHtml;
         container.style.display = 'block';
 
-        // Очистка после завершения печати
         const onAfterPrint = () => {
             container.style.display = 'none';
             container.innerHTML = '';
             window.removeEventListener('afterprint', onAfterPrint);
         };
         window.addEventListener('afterprint', onAfterPrint);
-
-        // Защитный таймаут (для браузеров, где событие не срабатывает)
         setTimeout(() => {
             if (container.style.display !== 'none') {
                 container.style.display = 'none';
@@ -1260,6 +1267,128 @@
         }, 5000);
 
         window.print();
+    }
+    
+    // ===== ПЕЧАТЬ ИТОГОВОГО ПРОТОКОЛА (все команды) =====
+    async function printOverallReport() {
+        try {
+            const data = await fetchAllResults();
+            if (!data || data.length === 0) {
+                showToast('Нет данных для формирования протокола.');
+                return;
+            }
+
+            // Преобразуем данные
+            let rows = [];
+            for (let r of data) {
+                const raw = r.raw_seconds;
+                const penalty = getPenaltySum(r.penalties);
+                const total = raw !== null ? raw + penalty : null;
+                rows.push({
+                    team: r.team_code,
+                    name: teamNames[r.team_code] || r.team_code,
+                    dir: r.direction,
+                    raw,
+                    penalty,
+                    total
+                });
+            }
+
+            // Сортируем по итоговому времени
+            rows.sort((a,b) => {
+                if (a.total === null && b.total === null) return 0;
+                if (a.total === null) return 1;
+                if (b.total === null) return -1;
+                return a.total - b.total;
+            });
+
+            const now = new Date().toLocaleString('ru-RU');
+            let tableRows = '';
+            let rank = 1;
+            for (let r of rows) {
+                const place = r.total !== null ? rank++ : '—';
+                tableRows += `<tr>
+                    <td>${place}</td>
+                    <td><strong>${r.name}</strong> (${r.team})</td>
+                    <td>${r.dir}</td>
+                    <td>${r.raw !== null ? formatTime(r.raw) : '—'}</td>
+                    <td>${r.penalty}</td>
+                    <td><strong>${r.total !== null ? formatTime(r.total) : '—'}</strong></td>
+                </tr>`;
+            }
+
+            if (tableRows === '') {
+                tableRows = `<tr><td colspan="6">Нет данных.</td></tr>`;
+            }
+
+            const printHtml = `
+                <div style="font-family: 'Segoe UI', system-ui, sans-serif; max-width: 1200px; margin: 0 auto; padding: 5mm 4mm;">
+                    <style>
+                        @page { size: A4 portrait; margin: 8mm 6mm; }
+                        .print-overall-table { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+                        .print-overall-table th, .print-overall-table td { border: 1px solid #555; padding: 3px 4px; text-align: center; }
+                        .print-overall-table th { background: #eef; font-weight: 600; }
+                        .print-report-area h1 { font-size: 14pt; margin: 0 0 3px; text-align: center; }
+                        .print-report-area h2 { font-size: 12pt; margin: 0 0 3px; text-align: center; color: #1e3a5f; }
+                        .print-subhead { text-align: center; font-size: 8.5pt; margin-bottom: 6px; color: #2c3e66; }
+                        .print-sign-line { margin-top: 16px; border-top: 1px dashed #aaa; padding-top: 10px; }
+                        .print-sign-line div { font-size: 9pt; }
+                        .print-footer { margin-top: 10px; font-size: 8pt; text-align: center; color: #6c757d; }
+                    </style>
+                    <h1>🏆 ИТОГОВЫЙ ПРОТОКОЛ</h1>
+                    <h2>Эстафета</h2>
+                    <div class="print-subhead">Дата формирования: ${now}</div>
+                    <table class="print-overall-table">
+                        <thead>
+                            <tr>
+                                <th>Место</th>
+                                <th>Команда</th>
+                                <th>Напр.</th>
+                                <th>Чистое время</th>
+                                <th>Штраф (сек)</th>
+                                <th>Итог</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                    <div class="print-sign-line">
+                        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+                            <div style="min-width: 150px;"><strong>Главный судья:</strong> __________________</div>
+                            <div style="min-width: 150px;"><strong>Секретарь:</strong> __________________</div>
+                        </div>
+                        <div style="margin-top: 10px; display: flex; justify-content: flex-end;">
+                            <div><strong>Дата:</strong> __________________</div>
+                        </div>
+                        <div class="print-footer">Официальный протокол дисциплины "Эстафета"</div>
+                    </div>
+                </div>
+            `;
+
+            const container = document.getElementById('printReportContainer');
+            container.innerHTML = printHtml;
+            container.style.display = 'block';
+
+            const onAfterPrint = () => {
+                container.style.display = 'none';
+                container.innerHTML = '';
+                window.removeEventListener('afterprint', onAfterPrint);
+            };
+            window.addEventListener('afterprint', onAfterPrint);
+            setTimeout(() => {
+                if (container.style.display !== 'none') {
+                    container.style.display = 'none';
+                    container.innerHTML = '';
+                    window.removeEventListener('afterprint', onAfterPrint);
+                }
+            }, 5000);
+
+            window.print();
+        } catch (err) {
+            console.error(err);
+            showToast('Ошибка при формировании протокола: ' + err.message);
+        }
     }
     
     function renderStageButtons() {
@@ -1360,6 +1489,7 @@
         document.getElementById('saveRawTimeBtn').addEventListener('click', saveRawTime);
         document.getElementById('resetTeamBtn').addEventListener('click', resetAllPenalties);
         document.getElementById('printReportBtn').addEventListener('click', printFullReport);
+        document.getElementById('printOverallReportBtn').addEventListener('click', printOverallReport);
         document.getElementById('excelExportBtn').addEventListener('click', exportToExcel);
         document.getElementById('homeBtn').addEventListener('click', goHome);
         onSelectionChange();
