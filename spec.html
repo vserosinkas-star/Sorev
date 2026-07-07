@@ -205,6 +205,19 @@
         .action-btn.danger:hover {
             background: #d94a3a;
         }
+        .timer-display {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a3a5c;
+            background: #e9edf4;
+            padding: 6px 14px;
+            border-radius: 30px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 44px;
+        }
         .question-card {
             background: #fff;
             border-radius: 18px;
@@ -432,7 +445,6 @@
             white-space: nowrap;
         }
 
-        /* Мобильная адаптация */
         @media (max-width: 640px) {
             body {
                 padding: 10px;
@@ -486,6 +498,10 @@
                 min-height: 48px;
                 padding: 12px;
                 font-size: 15px;
+            }
+            .timer-display {
+                justify-content: center;
+                width: 100%;
             }
             .question-card {
                 padding: 16px 14px;
@@ -580,6 +596,10 @@
                 min-height: 44px;
                 font-size: 13px;
             }
+            .timer-display {
+                font-size: 14px;
+                padding: 4px 12px;
+            }
         }
     </style>
 </head>
@@ -620,6 +640,7 @@
             <button class="action-btn secondary" id="resetBtn">🔄 Сброс</button>
             <button class="action-btn secondary" id="showCorrectBtn">👁️ Показать</button>
             <button class="action-btn secondary" id="newSetBtn">🎲 Новая</button>
+            <span class="timer-display" id="timer">⏱️ 00:00</span>
             <span style="margin-left:auto;font-size:14px;color:#5a6e85;" id="progressText">0 / 0</span>
             <span class="info-badge" id="sampleInfo">Выборка: 55</span>
         </div>
@@ -2044,6 +2065,44 @@
         let currentFilter = 'all';
         let isChecked = false;
 
+        // ---- Таймер ----
+        let timerSeconds = 0;
+        let timerInterval = null;
+
+        function formatTime(sec) {
+            const m = Math.floor(sec / 60);
+            const s = sec % 60;
+            return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        }
+
+        function updateTimerDisplay() {
+            document.getElementById('timer').innerHTML = `⏱️ ${formatTime(timerSeconds)}`;
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                updateTimerDisplay();
+            }, 1000);
+            updateTimerDisplay();
+        }
+
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function resetTimer() {
+            stopTimer();
+            timerSeconds = 0;
+            updateTimerDisplay();
+            startTimer();
+        }
+        // ---- Конец таймера ----
+
         function getTopics() {
             const set = new Set();
             questions.forEach(q => set.add(q.topic));
@@ -2240,6 +2299,7 @@
             document.getElementById('resultSummary').style.display = 'none';
             renderQuestions();
             updateStats();
+            // Таймер не сбрасываем
         }
 
         function showCorrect() {
@@ -2260,6 +2320,7 @@
             renderTopicNav();
             renderQuestions();
             updateStats();
+            resetTimer(); // сброс таймера
         }
 
         function applyFilter() {
@@ -2286,6 +2347,7 @@
             renderTopicNav();
             renderQuestions();
             updateStats();
+            startTimer(); // запуск таймера
 
             document.getElementById('filterStatus').addEventListener('change', applyFilter);
             document.getElementById('checkBtn').addEventListener('click', checkAnswers);
