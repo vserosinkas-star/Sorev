@@ -1,0 +1,2304 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
+    <title>Тест по специальной подготовке — 55 вопросов</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+            background: #f0f4f8;
+            color: #1a2332;
+            padding: 16px;
+            font-size: 15px;
+            line-height: 1.5;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        .header {
+            background: linear-gradient(135deg, #0b1a33, #1a3a5c);
+            color: #fff;
+            padding: 24px 20px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 24px rgba(0, 20, 50, 0.25);
+        }
+        .header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+        }
+        .header p {
+            opacity: 0.8;
+            margin-top: 6px;
+            font-size: 14px;
+        }
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 24px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+            font-size: 13px;
+        }
+        .stats span {
+            opacity: 0.85;
+        }
+        .stats strong {
+            font-weight: 600;
+            opacity: 1;
+        }
+        .topic-nav {
+            display: flex;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            gap: 8px;
+            margin-bottom: 16px;
+            background: #fff;
+            padding: 12px 16px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+        .topic-nav::-webkit-scrollbar {
+            height: 4px;
+        }
+        .topic-nav::-webkit-scrollbar-thumb {
+            background: #b0c4dd;
+            border-radius: 8px;
+        }
+        .topic-btn {
+            flex: 0 0 auto;
+            background: #e9edf4;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #1a3a5c;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            touch-action: manipulation;
+        }
+        .topic-btn:hover {
+            background: #d0d9e8;
+        }
+        .topic-btn:active {
+            transform: scale(0.96);
+        }
+        .topic-btn.active {
+            background: #1a3a5c;
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(26, 58, 92, 0.3);
+        }
+        .topic-btn .count {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.08);
+            border-radius: 20px;
+            padding: 0 8px;
+            font-size: 11px;
+            margin-left: 6px;
+        }
+        .topic-btn.active .count {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 16px;
+            align-items: center;
+            margin-bottom: 16px;
+            background: #fff;
+            padding: 12px 16px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+        .filter-bar label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #3a4e68;
+        }
+        .filter-bar select {
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid #d0d8e4;
+            font-size: 14px;
+            background: #fafcff;
+            color: #1a2332;
+            min-height: 44px;
+        }
+        .filter-bar .result-badge {
+            margin-left: auto;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a3a5c;
+            white-space: nowrap;
+        }
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 14px 16px;
+            border-radius: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            align-items: center;
+        }
+        .action-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            touch-action: manipulation;
+            text-align: center;
+            flex: 1 1 auto;
+            min-height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .action-btn:active {
+            transform: scale(0.96);
+        }
+        .action-btn.primary {
+            background: #1a3a5c;
+            color: #fff;
+        }
+        .action-btn.primary:hover {
+            background: #2a5a7c;
+            box-shadow: 0 4px 12px rgba(26, 58, 92, 0.3);
+        }
+        .action-btn.secondary {
+            background: #e9edf4;
+            color: #1a3a5c;
+        }
+        .action-btn.secondary:hover {
+            background: #d0d9e8;
+        }
+        .action-btn.success {
+            background: #2b8c4a;
+            color: #fff;
+        }
+        .action-btn.success:hover {
+            background: #3a9c5a;
+            box-shadow: 0 4px 12px rgba(43, 140, 74, 0.3);
+        }
+        .action-btn.danger {
+            background: #c0392b;
+            color: #fff;
+        }
+        .action-btn.danger:hover {
+            background: #d94a3a;
+        }
+        .question-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 20px 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.2s;
+            border-left: 4px solid transparent;
+        }
+        .question-card.answered-correct {
+            border-left-color: #2b8c4a;
+        }
+        .question-card.answered-wrong {
+            border-left-color: #c0392b;
+        }
+        .question-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 8px 12px;
+            margin-bottom: 12px;
+        }
+        .q-number {
+            font-weight: 700;
+            color: #1a3a5c;
+            background: #e9edf4;
+            padding: 2px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+        .q-topic {
+            font-size: 12px;
+            color: #5a6e85;
+            background: #f0f4fa;
+            padding: 2px 14px;
+            border-radius: 20px;
+        }
+        .q-type {
+            font-size: 11px;
+            color: #7a8ea5;
+            background: #f5f7fa;
+            padding: 2px 12px;
+            border-radius: 20px;
+            border: 1px solid #e0e6ee;
+        }
+        .q-status {
+            margin-left: auto;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 12px;
+            border-radius: 20px;
+            background: #f0f4fa;
+        }
+        .q-status.correct {
+            background: #d4edda;
+            color: #155724;
+        }
+        .q-status.wrong {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .q-status.unanswered {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .q-text {
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.5;
+            margin-bottom: 14px;
+            color: #0b1a33;
+        }
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .option {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: #f8faff;
+            border: 2px solid #e8edf5;
+            transition: all 0.15s;
+            cursor: pointer;
+            touch-action: manipulation;
+            min-height: 48px;
+        }
+        .option:active {
+            transform: scale(0.98);
+        }
+        .option.disabled {
+            cursor: default;
+            opacity: 0.7;
+        }
+        .option .marker {
+            flex-shrink: 0;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: 2px solid #bcc8da;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            margin-top: 1px;
+            background: #fff;
+            transition: all 0.15s;
+        }
+        .option.multiple .marker {
+            border-radius: 4px;
+        }
+        .option .text {
+            font-size: 15px;
+            line-height: 1.4;
+            color: #1a2332;
+            flex: 1;
+        }
+        .option .badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 20px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .badge-correct {
+            background: #d4edda;
+            color: #155724;
+        }
+        .badge-wrong {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .badge-selected {
+            background: #cce5ff;
+            color: #004085;
+        }
+        .option.selected {
+            border-color: #1a5a8c;
+            background: #e3edf7;
+        }
+        .option.correct-reveal {
+            border-color: #2b8c4a;
+            background: #e6f7ed;
+        }
+        .option.wrong-reveal {
+            border-color: #c0392b;
+            background: #fde8ea;
+        }
+        .option.correct-reveal .marker {
+            border-color: #2b8c4a;
+            background: #2b8c4a;
+            color: #fff;
+        }
+        .option.wrong-reveal .marker {
+            border-color: #c0392b;
+            background: #c0392b;
+            color: #fff;
+        }
+        .option.selected .marker {
+            border-color: #1a5a8c;
+            background: #1a5a8c;
+            color: #fff;
+        }
+        .option.correct-reveal.selected .marker {
+            border-color: #2b8c4a;
+            background: #2b8c4a;
+            color: #fff;
+        }
+        .option.wrong-reveal.selected .marker {
+            border-color: #c0392b;
+            background: #c0392b;
+            color: #fff;
+        }
+        .no-questions {
+            text-align: center;
+            padding: 48px 20px;
+            color: #5a6e85;
+            font-size: 16px;
+        }
+        .footer {
+            text-align: center;
+            padding: 24px 0 12px;
+            color: #7a8ea5;
+            font-size: 13px;
+            border-top: 1px solid #e0e6ee;
+            margin-top: 20px;
+        }
+        .result-summary {
+            background: #fff;
+            padding: 16px 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 24px;
+            align-items: center;
+        }
+        .result-summary .score {
+            color: #1a3a5c;
+        }
+        .result-summary .score strong {
+            font-size: 20px;
+        }
+        .result-summary .score .correct-count {
+            color: #2b8c4a;
+        }
+        .result-summary .score .wrong-count {
+            color: #c0392b;
+        }
+        .info-badge {
+            background: #e9edf4;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #1a3a5c;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        /* Мобильная адаптация */
+        @media (max-width: 640px) {
+            body {
+                padding: 10px;
+                font-size: 15px;
+            }
+            .header {
+                padding: 18px 16px;
+                border-radius: 16px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .header p {
+                font-size: 13px;
+            }
+            .stats {
+                font-size: 12px;
+                gap: 8px 16px;
+            }
+            .topic-nav {
+                padding: 10px 12px;
+                gap: 6px;
+                margin-bottom: 12px;
+            }
+            .topic-btn {
+                font-size: 12px;
+                padding: 8px 14px;
+            }
+            .filter-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                padding: 12px;
+            }
+            .filter-bar .result-badge {
+                margin-left: 0;
+                text-align: center;
+            }
+            .filter-bar select {
+                width: 100%;
+                min-height: 48px;
+            }
+            .action-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+                padding: 12px;
+            }
+            .action-btn {
+                width: 100%;
+                min-height: 48px;
+                padding: 12px;
+                font-size: 15px;
+            }
+            .question-card {
+                padding: 16px 14px;
+                border-radius: 14px;
+            }
+            .q-text {
+                font-size: 15px;
+            }
+            .option {
+                padding: 12px 12px;
+                gap: 10px;
+                min-height: 48px;
+                border-radius: 10px;
+            }
+            .option .text {
+                font-size: 14px;
+            }
+            .option .marker {
+                width: 24px;
+                height: 24px;
+                font-size: 13px;
+            }
+            .result-summary {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+                padding: 14px 16px;
+                gap: 8px;
+            }
+            .result-summary .score strong {
+                font-size: 18px;
+            }
+            .info-badge {
+                font-size: 12px;
+                padding: 3px 12px;
+            }
+            .q-number {
+                font-size: 12px;
+            }
+            .q-topic {
+                font-size: 11px;
+            }
+            .q-type {
+                font-size: 10px;
+            }
+            .q-status {
+                font-size: 11px;
+                padding: 1px 10px;
+            }
+            .footer {
+                font-size: 12px;
+                padding: 16px 0 8px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            body {
+                padding: 6px;
+                font-size: 14px;
+            }
+            .header h1 {
+                font-size: 18px;
+            }
+            .question-card {
+                padding: 12px 10px;
+            }
+            .q-text {
+                font-size: 14px;
+            }
+            .option {
+                padding: 10px 10px;
+                gap: 8px;
+            }
+            .option .text {
+                font-size: 13px;
+            }
+            .option .marker {
+                width: 22px;
+                height: 22px;
+                font-size: 12px;
+            }
+            .action-btn {
+                font-size: 14px;
+                min-height: 44px;
+                padding: 10px;
+            }
+            .topic-btn {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+            .filter-bar select {
+                min-height: 44px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="app">
+        <!-- Header -->
+        <div class="header">
+            <h1>📋 Тест по специальной подготовке</h1>
+            <p>Случайная выборка 55 вопросов из базы. Выберите ответы, затем нажмите «Проверить».</p>
+            <div class="stats">
+                <span><strong id="totalQuestions">0</strong> вопросов</span>
+                <span><strong id="totalTopics">0</strong> тем</span>
+                <span><strong id="answeredCount">0</strong> отвечено</span>
+                <span><strong id="correctCount">0</strong> верно</span>
+                <span><strong id="wrongCount">0</strong> неверно</span>
+            </div>
+        </div>
+
+        <!-- Topic navigation -->
+        <div class="topic-nav" id="topicNav"></div>
+
+        <!-- Filter bar -->
+        <div class="filter-bar" id="filterBar">
+            <label for="filterStatus">Фильтр:</label>
+            <select id="filterStatus">
+                <option value="all">Все вопросы</option>
+                <option value="answered">Отвеченные</option>
+                <option value="unanswered">Без ответа</option>
+                <option value="correct">Верно</option>
+                <option value="wrong">Неверно</option>
+            </select>
+            <span class="result-badge">Показано: <strong id="visibleCount">0</strong></span>
+        </div>
+
+        <!-- Action bar -->
+        <div class="action-bar">
+            <button class="action-btn primary" id="checkBtn">✅ Проверить</button>
+            <button class="action-btn secondary" id="resetBtn">🔄 Сброс</button>
+            <button class="action-btn secondary" id="showCorrectBtn">👁️ Показать</button>
+            <button class="action-btn secondary" id="newSetBtn">🎲 Новая</button>
+            <span style="margin-left:auto;font-size:14px;color:#5a6e85;" id="progressText">0 / 0</span>
+            <span class="info-badge" id="sampleInfo">Выборка: 55</span>
+        </div>
+
+        <!-- Result summary -->
+        <div id="resultSummary" class="result-summary" style="display:none;">
+            <span class="score">Результат: <strong><span class="correct-count" id="resultCorrect">0</span> / <span id="resultTotal">0</span></strong> (<span id="resultPercent">0</span>%)</span>
+            <span>✅ Верно: <strong id="resultCorrectCount">0</strong></span>
+            <span>❌ Неверно: <strong id="resultWrongCount">0</strong></span>
+            <span>⬜ Без ответа: <strong id="resultUnansweredCount">0</strong></span>
+        </div>
+
+        <!-- Questions container -->
+        <div id="questionsContainer"></div>
+
+        <div class="footer">
+            Интерактивный тест по специальной подготовке &bull; 55 случайных вопросов
+        </div>
+    </div>
+
+    <script>
+        // ======================================================================
+        // ПОЛНАЯ БАЗА ВОПРОСОВ (все вопросы из файла)
+        // ======================================================================
+        const fullQuestions = [{
+            "question": "Допускается ли присутствие сотрудника охраны при выемке пакетов из сейфов для хранения денежной наличности и ценностей под ответственностью инкассаторов?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 1,
+            "options": [
+                { "text": "Допускается, если пост охраны расположен рядом с сейфовой комнатой", "correct": false },
+                { "text": "Не допускается", "correct": true },
+                { "text": "Допускается, по указанию руководителя подразделения охраны", "correct": false }
+            ]
+        }, {
+            "question": "Может ли дежурный инкассатор выдать документы, оружие, имущество и материальные средства инкассаторскому работнику, который по наряду-распоряжению НЕ работает в этот день?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 2,
+            "options": [
+                { "text": "Нет", "correct": true },
+                { "text": "Да", "correct": false }
+            ]
+        }, {
+            "question": "Где на маршруте должны храниться денежная наличность и ценности в спецавтомобиле?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 3,
+            "options": [
+                { "text": "В зависимости от ситуации", "correct": false },
+                { "text": "В салоне спецавтомобиля", "correct": false },
+                { "text": "В устройстве накопителе", "correct": true }
+            ]
+        }, {
+            "question": "Как должны действовать инкассаторские работники при движении от/в спецавтомобиля(ль) до/от объекта инкассации?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 4,
+            "options": [
+                { "text": "Во время движения инкассаторские работники обязаны обращать внимание на особенности планировки здания объекта, из-за которых может произойти нападение (смежные коридоры, открытые и приоткрытые двери, лестничные марши и т.д.), и постоянно анализировать ситуацию.",
+                    "correct": false },
+                { "text": "Во время движения инкассаторские работники обязаны не отвлекаться во время движения на разговоры, и целенаправленно двигаться к помещению по приему-выдаче денежной наличности и ценностей, быть внимательными, осуществлять постоянный контроль за обстановкой, за действиями окружающих лиц, отслеживать ситуацию по ходу движения;",
+                    "correct": false },
+                { "text": "Все перечисленные условия", "correct": true }
+            ]
+        }, {
+            "question": "Что относится к НЕстандартным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 5,
+            "options": [
+                { "text": "Дорожно-транспортные происшествия с участием СТС инкассации", "correct": true },
+                { "text": "Угон спецавтомобиля", "correct": false },
+                { "text": "Дорожно-транспортные происшествия с тяжкими последствиями с участием спецавтомобилей инкассации, повлекшие гибель людей",
+                    "correct": false },
+                { "text": "Нарушение правил обращения с оружием, в результате которого произошел несанкционированный выстрел",
+                    "correct": true },
+                { "text": "Происшествия с работниками при исполнении трудовых обязанностей, повлёкшие травмы",
+                    "correct": true },
+                { "text": "Утрата (хищение) денежной наличности и ценностей", "correct": false }
+            ]
+        }, {
+            "question": "При осуществлении хранения ценностей под ответственностью инкассаторов, допускается ли вложение пакетов с проинкассированной денежной наличностью, доставленной разными бригадами инкассаторов, в один сейф?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 6,
+            "options": [
+                { "text": "Да, пакеты с денежной наличностью вкладываются в один сейф, но на разные полки с составлением раздельных описей",
+                    "correct": false },
+                { "text": "Да, пакеты с денежной наличностью вкладываются в один сейф с составлением общей описи и указанием в ней принадлежности пакетов к разным маршрутам",
+                    "correct": false },
+                { "text": "Нет, пакеты с денежной наличностью вкладываются в отдельные сейфы", "correct": true }
+            ]
+        }, {
+            "question": "Вы перевозите денежную наличность и ценности железнодорожным транспортом. Во время движения на транспорте, старшим бригады инкассаторов установлено дежурство. Какие действия должны производить инкассаторы при смене дежурства?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 7,
+            "options": [
+                { "text": "При каждой смене дежурства инкассаторы проверяют количество мест с денежной наличностью и ценностями, целостность их упаковки, а также наличие сопроводительных документов",
+                    "correct": true },
+                { "text": "При каждой смене дежурства инкассаторы проверяют количество мест с денежной наличностью и ценностями, а также наличие сопроводительных документов",
+                    "correct": false },
+                { "text": "При каждой смене дежурства инкассаторы проверяют количество мест с денежной наличностью и ценностями, целостность их упаковки",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Что относится к НЕстандартным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 8,
+            "options": [
+                { "text": "Слежка за СТС инкассации", "correct": true },
+                { "text": "Нецелевое использование СТС", "correct": true },
+                { "text": "Угон спецавтомобиля", "correct": false },
+                { "text": "Несчастные случаи с работниками при исполнении трудовых обязанностей, повлекшие их смерть",
+                    "correct": false },
+                { "text": "Нарушения трудовой дисциплины, связанные с употреблением алкоголя и наркотических средств",
+                    "correct": true },
+                { "text": "Нападение на инкассаторских работников/СТС", "correct": false }
+            ]
+        }, {
+            "question": "Что относится к чрезвычайным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 9,
+            "options": [
+                { "text": "Слежка за СТС инкассации", "correct": false },
+                { "text": "Нападение с целью причинения вреда жизни, здоровью персонала и клиентов Банка (на объектах и прилегающей территории)",
+                    "correct": true },
+                { "text": "Вооруженный захват персонала и клиентов банка", "correct": true },
+                { "text": "Выявление фактов установки скиммингового оборудования на банкоматы, задержание лиц, участвующих в его установке",
+                    "correct": false },
+                { "text": "Нападение на инкассаторских работников/СТС", "correct": true },
+                { "text": "Самопроизвольная активация спецконтейнера, в результате которой банкноты приведены в неплатежеспособное состояние",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Какое имущество получает инкассатор от дежурного инкассатора (в случае хранения указанного имущества в ПИ) для обслуживания устройств самообслуживания?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 10,
+            "options": [
+                { "text": "Конверты с кодами", "correct": false },
+                { "text": "Кассеты устройств самообслуживания", "correct": false },
+                { "text": "Ключи, необходимые для обслуживания устройств самообслуживания", "correct": true }
+            ]
+        }, {
+            "question": "НЕстандартные ситуации на маршруте инкассации связаны c:",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 11,
+            "options": [
+                { "text": "непосредственной угрозой для жизни и здоровья членов бригады инкассаторов, их ранением или гибелью, повреждением, утратой или хищением денежной наличности и ценностей, оружия и патронов, угоном спецавтомобиля",
+                    "correct": false },
+                { "text": "непредвиденным изменением условий работы бригады инкассаторов на маршруте, которые могут оказать негативное воздействие на совершение операций инкассации, обеспечение безопасности бригады и сохранность перевозимых ею наличных денег и ценностей",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Старший бригады инкассаторов, при движении по загородному маршруту заметил превышение скорости водителем-инкассатором. Какие его действия правильные?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 12,
+            "options": [
+                { "text": "Не предпринимать никаких действий, т.к. за безопасность движения спецавтомобиля на маршруте отвечает водитель-инкассатор",
+                    "correct": false },
+                { "text": "Немедленно дать указание водителю-инкассатору снизить скорость", "correct": true },
+                { "text": "Немедленно сообщить об этом дежурному инкассатору", "correct": false }
+            ]
+        }, {
+            "question": "При приеме денежной наличности в кассе учреждения Банка России инкассатор принял решение о полистном пересчете банкнот. Является ли это нарушением?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 13,
+            "options": [
+                { "text": "Нет, т.к. инкассатор имеет право пересчитать полистно банкноты, упакованные в полные и неполные пачки, и поштучно монету, упакованную в мешки, под наблюдением контролирующего работника учреждения Банка России в помещении для клиентов",
+                    "correct": true },
+                { "text": "Да, инкассатор принимает денежную наличность только в упаковке УБР или предприятий Гознака.",
+                    "correct": false },
+                { "text": "Да, инкассатор исключительно должен проверить полные и неполные пачки по количеству пачек и корешков в них, правильность и целость упаковки, наличие четких и целых оттисков пломб (клише), правильность оформления реквизитов",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Что относится к чрезвычайным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 14,
+            "options": [
+                { "text": "Вооруженный захват персонала и клиентов Банка", "correct": true },
+                { "text": "Утрата/хищение наличных денег и ценностей, оружия и патронов, угон СТС, произошедшие в результате умышленных действий/ошибок инкассаторских работников",
+                    "correct": true },
+                { "text": "Самопроизвольная активация спецконтейнера, в результате которой банкноты приведены в неплатежеспособное состояние",
+                    "correct": false },
+                { "text": "Отсутствие связи между дежурным инкассатором/центром мониторинга и бригадой инкассаторов (в том числе посредством мониторинга)",
+                    "correct": false },
+                { "text": "Преследование СТС автомобилем (автомобилями)", "correct": false },
+                { "text": "Дорожно-транспортные происшествия с участием СТС инкассации с тяжкими последствиями, повлекшие гибель людей",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Какой документ содержит описание функций, прав и обязанностей инкассаторских работников, выполняющих роль дежурных?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 15,
+            "options": [
+                { "text": "Приказ, распоряжение руководителя Банка/филиала Банка", "correct": false },
+                { "text": "Функциональные обязанности", "correct": false },
+                { "text": "Должностная инструкция", "correct": true }
+            ]
+        }, {
+            "question": "При совершении операции по приему денежной наличности от кассира организации, инкассатор обнаружил нарушение целости пакета и наличие индикаторной надписи на защитном клапане. Какие действия должен предпринять инкассатор (состав бригады из 2-х человек)?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 16,
+            "options": [
+                { "text": "Прием денежной наличности прекращается, кассир вносит запись в ТСД/явочную карточку о неготовности организации к инкассации. Данную информацию старший бригады сообщает дежурному инкассатору, для установления времени повторного заезда в организацию",
+                    "correct": false },
+                { "text": "Инкассатор сообщает старшему бригады и, по его указанию, принимает пакет с указанным повреждением с составлением акта",
+                    "correct": false },
+                { "text": "Инкассатор сообщает старшему бригады и ждет устранения нарушений кассиром. Бригада инкассаторов ожидает устранения лишь тех ошибок и дефектов, исправление которых не нарушает график ее работы на маршруте",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Во время проведения операции загрузки/выгрузки, инкассатор обнаружил денежную наличность вне кассет внутри устройства самообслуживания. Какие действия он должен предпринять?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 17,
+            "options": [
+                { "text": "Сообщает об инциденте дежурному инкассатору и, в случае если банкноты, обнаруженные вне кассет УС, можно извлечь, не нарушая их целостности, извлекает из механизмов УС и вкладывает в пакет",
+                    "correct": true },
+                { "text": "Извлекает денежную наличность из сейфовой части и механизмов УС, вкладывает ее в пакет и осуществляет плановую загрузку устройства самообслуживания",
+                    "correct": false },
+                { "text": "Прекращает выполнение операции загрузки/выгрузки, сообщает о данном факте дежурному инкассатору и в дальнейшем действует по его указаниям",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Что относится к чрезвычайным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 18,
+            "options": [
+                { "text": "Невозможность продолжения движения по маршруту согласно утвержденному графику заездов (в том числе в результате ДТП)",
+                    "correct": false },
+                { "text": "Преследование СТС автомобилем (автомобилями)", "correct": false },
+                { "text": "Отсутствие связи между дежурным инкассатором/центром мониторинга и бригадой инкассаторов (в том числе посредством мониторинга)",
+                    "correct": false },
+                { "text": "Нападение на инкассаторских работников/СТС", "correct": true },
+                { "text": "Утрата/хищение наличных денег и ценностей, оружия и патронов, угон СТС, произошедшие в результате умышленных действий/ошибок инкассаторских работников",
+                    "correct": true },
+                { "text": "Несчастные случаи с работниками при исполнении трудовых обязанностей, повлекшие их смерть",
+                    "correct": true }
+            ]
+        }, {
+            "question": "В каких случаях инкассаторам разрешается не пристегиваться ремнями безопасности?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 19,
+            "options": [
+                { "text": "Все члены бригады всегда должны быть пристегнуты ремнями безопасности", "correct": true },
+                { "text": "Водителю-инкассатору во время движения на АЗС для заправки спецавтомобиля топливом",
+                    "correct": false },
+                { "text": "Только при работе на городских маршрутах инкассации", "correct": false },
+                { "text": "В случае, если от одного объекта инкассации до другого расстояние составляет не более 100 метров",
+                    "correct": false }
+            ]
+        }, {
+            "question": "При поступлении на работу каждый инкассаторский работник ПИ КИЦ дает письменное обязательство о соблюдении требований конфиденциальности информации. При этом условие о соблюдении конфиденциальности распространяется",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 20,
+            "options": [
+                { "text": "На всю защищаемую информацию, доверенную работнику или ставшую ему известной в процессе выполнения им своих служебных обязанностей",
+                    "correct": true },
+                { "text": "На всю защищаемую информацию, согласно договора о соблюдении требований конфиденциальности информации",
+                    "correct": false },
+                { "text": "Только на информацию, ставшую ему известной в процессе выполнения им своих служебных обязанностей",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Резервная бригада в соответствие с нарядом-распоряжением выехала для совершения операций инкассации в две организации. Есть ли нарушение в действиях бригады инкассаторов?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 21,
+            "options": [
+                { "text": "Да, резервная бригада не может привлекаться к совершению операций инкассации, так как формируется на случай возникновения на маршрутах инкассации чрезвычайных или нестандартных ситуаций с целью оказания содействия бригадам инкассаторов в защите жизни и здоровья",
+                    "correct": false },
+                { "text": "Нет, количество объектов для обслуживания резервной бригадой определяется по указанию начальника отдела инкассации",
+                    "correct": false },
+                { "text": "Нет, резервная бригада может привлекаться к совершению операций инкассации при условии обслуживания незначительного количества объектов или для сопровождения бригады инкассаторов при перевозке наличных денег и ценностей в пределах населенного пункта, в котором дислоцируется ПИ ОО КИЦ, а также для охраны и перевозки оружия и боеприпасов к/от месту(а) проведения стрельб.",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Какой документ подтверждает сдачу инкассаторами денежной наличности в учреждение Банка России?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 22,
+            "options": [
+                { "text": "Квитанция к объявлению на взнос наличными/ПКО ф. 0402008", "correct": true },
+                { "text": "Ордер к объявлению на взнос наличными, мемориальный ордер ф.ф. 203/277", "correct": false },
+                { "text": "Кассовый ордер ф. № 54", "correct": false },
+                { "text": "Все перечисленные выше документы", "correct": false }
+            ]
+        }, {
+            "question": "Какие сопроводительные документы вместе с доставленной «сумкой возврата» предъявляются инкассатором работнику кассового подразделения Банка/филиала Банка?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 23,
+            "options": [
+                { "text": "Первый экземпляр маршрутного листа и второй экземпляр описи", "correct": false },
+                { "text": "Первый и третий экземпляры описи ф.270 и два экземпляра маршрутного листа", "correct": true },
+                { "text": "Два экземпляра маршрутного листа и первый экземпляр описи", "correct": false }
+            ]
+        }, {
+            "question": "Какой документ разрешает при инкассации/доставке наличных денег использование кредитными организациями специальных устройств в случае несанкционированного вскрытия которых происходит окрашивание банкнот Банка России специальной краской?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 24,
+            "options": [
+                { "text": "Положение Банка России «О порядке ведения кассовых операций и правилах хранения, перевозки и инкассации банкнот и монеты Банка России в кредитных организациях на территории Российской Федерации» от 29.01.2018 г. №630-П",
+                    "correct": true },
+                { "text": "«Внутренний стандарт организации работы подразделений инкассации ПАО Сбербанк» от 22.05.2017 №4547",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Разрешается ли нахождение инкассаторских работников без индивидуальных средств защиты (бронежилетов) в КИЦ/РКЦ при выполнении операций по приему/сдаче банковских ценностей, а также их погрузке/выгрузки в/из спецавтомобиль/я в охраняемых изолированных зонах, в которые исключен доступ посторонних лиц.",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 25,
+            "options": [
+                { "text": "Да, так как они находятся в изолированных и охраняемых помещениях", "correct": true },
+                { "text": "Нет, инкассаторские работники должны быть экипированы в индивидуальные средства защиты (бронежилеты) на протяжении всего времени, в течение которого они выполняют свои служебные обязанности",
+                    "correct": false },
+                { "text": "Да, но только на основании Распорядительного документа Банка/ТБ, в котором должен быть определен порядок выполнения вышеуказанных действий",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Чрезвычайные ситуации на маршруте инкассации связанны с (Выберите все правильные ответы.):",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 26,
+            "options": [
+                { "text": "угоном спецавтомобиля", "correct": true },
+                { "text": "непосредственной угрозой для жизни и здоровья членов бригады инкассаторов, их ранением или гибелью",
+                    "correct": true },
+                { "text": "непредвиденным изменением условий работы бригады инкассаторов на маршруте, которые могут оказать негативное воздействие на совершение операций инкассации,обеспечением безопасности бригады и сохранностью перевозимых ею денежной наличности и ценностей",
+                    "correct": false },
+                { "text": "повреждением, утратой или хищением денежной наличности и ценностей, оружия и патронов",
+                    "correct": true }
+            ]
+        }, {
+            "question": "С какого возраста допускаются граждане Российской Федерации к работе в подразделениях инкассации Банка?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 27,
+            "options": [
+                { "text": "Лицо, достигшее 18 лет", "correct": true },
+                { "text": "С любого возраста, после службы в Вооруженных силах Российской Федерации", "correct": false },
+                { "text": "Лицо, достигшее 21 года", "correct": false }
+            ]
+        }, {
+            "question": "Что относится к НЕстандартным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 28,
+            "options": [
+                { "text": "Нападение с целью причинения вреда жизни и здоровью персонала и клиентов Банка (на объектах и прилегающей территории)",
+                    "correct": false },
+                { "text": "Отсутствие связи между дежурным инкассатором/центром мониторинга и бригадой инкассаторов (в том числе посредством мониторинга)",
+                    "correct": true },
+                { "text": "Наблюдение за работой инкассаторов, в т.ч. с использованием аппаратуры фото- и видеофиксации",
+                    "correct": true },
+                { "text": "Пожар в СТС или его поломка на маршруте инкассации", "correct": true },
+                { "text": "Вооруженный захват персонала и клиентов банка", "correct": false },
+                { "text": "Задержание работников ПИ КИЦ правоохранительными органами", "correct": false }
+            ]
+        }, {
+            "question": "На основании какого документа дежурный выдает инкассаторским работникам оружие, патроны и документы на право совершения операций инкассации?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 29,
+            "options": [
+                { "text": "График работы", "correct": false },
+                { "text": "Наряд-распоряжение", "correct": true },
+                { "text": "Маршрутный лист", "correct": false },
+                { "text": "Приказ о закреплении за работником боевого оружия и патронов", "correct": false }
+            ]
+        }, {
+            "question": "Что относится к НЕстандартным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 30,
+            "options": [
+                { "text": "Самопроизвольная активация спецконтейнера, в результате которой банкноты приведены в неплатежеспособное состояние",
+                    "correct": true },
+                { "text": "Нарушение правил обращения с оружием, в результате которого произошел несанкционированный выстрел",
+                    "correct": true },
+                { "text": "Дорожно-транспортные происшествия с участием СТС инкассации с тяжкими последствиями, повлекшие гибель людей",
+                    "correct": false },
+                { "text": "Наблюдение за работой инкассаторов, в т.ч. с использованием аппаратуры фото- и видеофиксации",
+                    "correct": true },
+                { "text": "Нарушение правил обращения с оружием, повлёкшие человеческие жертвы/ранения",
+                    "correct": false },
+                { "text": "Нападение на инкассаторских работников или СТС", "correct": false }
+            ]
+        }, {
+            "question": "Завершение работы с ТСД на маршруте должно осуществляться.",
+            "topic": "МАИС-мобильная автоматизированная инкассаторская система",
+            "type": "Единственный выбор",
+            "number": 31,
+            "options": [
+                { "text": "Дежурным инкассатором по факту сдачи бригадой ценностей в кассовое подразделение.",
+                    "correct": false },
+                { "text": "Самим инкассаторским работником по факту сдачи бригадой банковских ценностей в кассовое подразделение.",
+                    "correct": true },
+                { "text": "Дежурным инкассатором по факту прибытия бригады с заезда.", "correct": false }
+            ]
+        }, {
+            "question": "При работе на маршруте с ТСД во время обслуживания банкомата инкассаторским работником были обнаружены денежные купюры вне кассет.",
+            "topic": "МАИС-мобильная автоматизированная инкассаторская система",
+            "type": "Единственный выбор",
+            "number": 32,
+            "options": [
+                { "text": "Денежные купюры извлекаются, упаковываются и доставляются в кассовое подразделение установленным порядком без отражения информации в ТСД.",
+                    "correct": false },
+                { "text": "Денежные купюры извлекаются, упаковываются и доставляются в кассовое подразделение установленным порядком с отражением в ТСД информации о факте изъятия денежных средств без проставления номера сейф-пакета.",
+                    "correct": false },
+                { "text": "Денежные купюры извлекаются, упаковываются и доставляются в кассовое подразделение установленным порядком с отражением в ТСД номера сейф-пакета.",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Какие действия инкассаторского работника при отсутствии нужного профиля в списке пользователей при работе с ТСД.",
+            "topic": "МАИС-мобильная автоматизированная инкассаторская система",
+            "type": "Единственный выбор",
+            "number": 33,
+            "options": [
+                { "text": "Продолжить работу без использования ТСД.", "correct": false },
+                { "text": "Создать профиль в ручном режиме.", "correct": false },
+                { "text": "Создать профиль путём считывания QR-кода.", "correct": true }
+            ]
+        }, {
+            "question": "Действия обороняющегося лица, если это лицо вследствие неожиданности посягательства не могло объективно оценить степень и характер опасности нападения:",
+            "topic": "Правовая подготовка",
+            "type": "Единственный выбор",
+            "number": 34,
+            "options": [
+                { "text": "Считаются превышением пределов необходимой обороны.", "correct": false },
+                { "text": "Не являются превышением пределов необходимой обороны.", "correct": true },
+                { "text": "Квалифицируются как преступление, совершенное по неосторожности.", "correct": false }
+            ]
+        }, {
+            "question": "В соответствии с действующим законодательством холодное оружие это:",
+            "topic": "Правовая подготовка",
+            "type": "Единственный выбор",
+            "number": 35,
+            "options": [
+                { "text": "Оружие, предназначенное для поражения цели при помощи мускульной силы человека при непосредственном контакте с объектом поражения.",
+                    "correct": true },
+                { "text": "Оружие, предназначенное для поражения цели при помощи механического устройства при непосредственном контакте с объектом поражения.",
+                    "correct": false },
+                { "text": "Оружие, предназначенное для поражения цели на расстоянии снарядом, получающим направленное движение при помощи мускульной силы человека.",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Причинение вреда, менее значительного, чем предотвращенный вред, является обязательным условием правомерности действий:",
+            "topic": "Правовая подготовка",
+            "type": "Единственный выбор",
+            "number": 36,
+            "options": [
+                { "text": "В состоянии крайней необходимости.", "correct": true },
+                { "text": "В состоянии необходимой обороны.", "correct": false },
+                { "text": "Как в состоянии необходимой обороны, так и в состоянии крайней необходимости.",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Допускается ли причинение вреда третьим лицам в состоянии необходимой обороны?",
+            "topic": "Правовая подготовка",
+            "type": "Единственный выбор",
+            "number": 37,
+            "options": [
+                { "text": "Причинение вреда третьим лицам в состоянии необходимой обороны не допускается.",
+                    "correct": true },
+                { "text": "Допускается при групповом нападении.", "correct": false },
+                { "text": "Допускается при вооруженном нападении.", "correct": false }
+            ]
+        }, {
+            "question": "Тактика действий при наличии на траектории стрельбы третьих лиц, не участвующих в нападении:",
+            "topic": "Правовая подготовка",
+            "type": "Единственный выбор",
+            "number": 38,
+            "options": [
+                { "text": "Обороняющийся, сам оставаясь в неподвижности, ожидает изменения ситуации (подавая третьим лицам соответствующие команды голосом).",
+                    "correct": false },
+                { "text": "Обороняющийся перемещается в направлении (влево, вправо, вниз или вверх), обеспечивающем безопасную для третьих лиц траекторию выстрела.",
+                    "correct": true },
+                { "text": "Обороняющийся не отвлекается на действия, направленные на обеспечение безопасности третьих лиц.",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Применение специальных средств в отношении женщин с видимыми признаками беременности, а также лиц с явными признаками инвалидности и малолетних допускается в случае, когда указанные лица",
+            "topic": "Федеральный закон № 77",
+            "type": "Единственный выбор",
+            "number": 39,
+            "options": [
+                { "text": "Применение специальных средств в отношении указанных лиц не допускается ни при каких обстоятельствах",
+                    "correct": false },
+                { "text": "При оказании противодействия работникам ведомственной охраны при доставлении задержанных лиц в служебное помещение ведомственной охраны или орган внутренних дел",
+                    "correct": false },
+                { "text": "Оказывают вооруженное сопротивление, совершают нападение, угрожающего жизни или здоровью работников ведомственной охраны либо лиц, находящихся на охраняемых объектах.",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Любой вред, причиняемый работником ведомственной охраны при применении физической силы, специальных средств или огнестрельного оружия должен быть",
+            "topic": "Федеральный закон № 77",
+            "type": "Единственный выбор",
+            "number": 40,
+            "options": [
+                { "text": "Соответствовать больше предотвращённого", "correct": false },
+                { "text": "Полностью исключать риски причинения вреда жизни и/или здоровью нападающих",
+                    "correct": false },
+                { "text": "Минимальным", "correct": true },
+                { "text": "Соответствовать предотвращённому", "correct": false }
+            ]
+        }, {
+            "question": "Разрешается ли применение оружия работникам ведомственной охраны в отношении женщин, лиц с явными признаками инвалидности и несовершеннолетних, когда их возраст очевиден или известен?",
+            "topic": "Федеральный закон № 77",
+            "type": "Единственный выбор",
+            "number": 41,
+            "options": [
+                { "text": "Разрешается если они оказывают вооруженное или групповое сопротивление работникам ведомственной охраны",
+                    "correct": true },
+                { "text": "Запрещается независимо от обстоятельств", "correct": false },
+                { "text": "Разрешается независимо от обстоятельств", "correct": false }
+            ]
+        }, {
+            "question": "Применение оружия в отношении женщин, лиц с явными признаками инвалидности и несовершеннолетних, когда их возраст очевиден или известен работникам ведомственной охраны допускается в случае, когда указанные лица",
+            "topic": "Федеральный закон № 77",
+            "type": "Единственный выбор",
+            "number": 42,
+            "options": [
+                { "text": "Применение оружия в отношении указанных лиц не допускается ни при каких обстоятельствах",
+                    "correct": false },
+                { "text": "Оказывают вооруженное или групповое сопротивление работникам ведомственной охраны",
+                    "correct": true },
+                { "text": "При оказании противодействия работникам ведомственной охраны при доставлении задержанных лиц в служебное помещение ведомственной охраны или орган внутренних дел",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Укажите установленный порядок хранения и выдачи возимых и носимых радиостанций.",
+            "topic": "РАДИОСВЯЗЬ",
+            "type": "Единственный выбор",
+            "number": 43,
+            "options": [
+                { "text": "Возимые радиостанции в нерабочее время находятся в спецавтомобилях в выключенном состоянии на штатных местах. Носимые радиостанции хранятся в комнате дежурного инкассатора (руководителя или другом помещении подразделения с ограниченным доступом сотрудников) в закрываемом шкафу, ящике или сейфе. Выдача инкассаторам радиосредств осуществляется под роспись в “Журнале учета выдачи на маршрут (заезд) и обратного приема после маршрута (заезда) документов и имущества” только на время работы на маршруте.",
+                    "correct": true },
+                { "text": "Автомобильные радиостанции в нерабочее время отключаются от цепи бортового питания и автомобильной антенны, снимаются со спецавтомобиля и передаются на хранение дежурному инкассатору. Возимые и носимые радиостанции хранятся в комнате дежурного инкассатора (руководителя или другом помещении подразделения с ограниченным доступом сотрудников) в закрываемом шкафу, ящике или сейфе. Выдача инкассаторам радиосредств осуществляется под роспись в “Журнале учета выдачи на маршрут (заезд) и обратного приема после маршрута (заезда) документов и имущества” только на время работы на маршруте.",
+                    "correct": false },
+                { "text": "Возимые радиостанции в нерабочее время находятся в спецавтомобилях выключенными. Носимые радиостанции хранятся в комнате дежурного инкассатора в зарядных устройствах в местах, доступных для свободного доступа к ним инкассаторских работников, убывающих на маршрут (прибывших с маршрута) с целью поддержания аккумуляторных батарей носимых радиостанций в заряженном состоянии.",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Что из перечисленного являются техническим средством безопасности, которые повышают личную безопасность инкассаторского работника и сохранность банковских ценностей на маршруте. (Выберите правильные ответы)",
+            "topic": "РАДИОСВЯЗЬ",
+            "type": "Множественный выбор",
+            "number": 44,
+            "options": [
+                { "text": "Спецконтейнер", "correct": true },
+                { "text": "Радиостанция", "correct": true },
+                { "text": "Охранно-сервисная система Pandora", "correct": true },
+                { "text": "Система видеонаблюдения спецавтомобиля", "correct": true },
+                { "text": "Ключи от устройства самообслуживания", "correct": false }
+            ]
+        }, {
+            "question": "Действия старшего бригады инкассаторов при неисправности автомобильной радиостанции во время работы на маршруте?",
+            "topic": "РАДИОСВЯЗЬ",
+            "type": "Единственный выбор",
+            "number": 45,
+            "options": [
+                { "text": "Продолжить работу на маршруте, а по прибытии доложить дежурному инкассатору о неисправности радиостанции.",
+                    "correct": false },
+                { "text": "Прекратить работу на маршруте и возвратиться для замены радиостанции.", "correct": false },
+                { "text": "Сообщить о неисправности автомобильной радиостанции используя мобильный телефон или стационарный телефон с ближайшего из обслуживаемых объектов дежурному инкассатору (руководителю подразделения инкассации). Получить инструкцию о порядоке дальнейшей связи на маршруте.",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Каким образом сейф-пакет(ы) с денежной наличностью должны укладываться в СК",
+            "topic": "Спец.контейнеры",
+            "type": "Единственный выбор",
+            "number": 46,
+            "options": [
+                { "text": "При укладке, вложенная в сейф-пакет денежная наличность должна располагаться вдоль корпуса СК, торцевой частью к панелям окрашивания",
+                    "correct": true },
+                { "text": "Денежная наличность укладывается кассиром произвольно, главное, чтобы объем вложенных пакетов в СК не препятствует надежной фиксации крышки СК",
+                    "correct": false },
+                { "text": "Положение денежной наличности в сейф-пакете не имеет значения, необходимо только прижать подвижную панель окрашивания к денежным средствам и закрепить лентой",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Переноска инкассаторами пакетов с денежной наличностью в валюте Российской Федерации от обслуживаемых объектов до спецавтомобиля осуществляется только с использованием СК?",
+            "topic": "Спец.контейнеры",
+            "type": "Единственный выбор",
+            "number": 47,
+            "options": [
+                { "text": "Да, за исключением случая активации механизма окрашивания СК на маршруте", "correct": true },
+                { "text": "Да, во всех случаях без исключения", "correct": false },
+                { "text": "Нет", "correct": false }
+            ]
+        }, {
+            "question": "Какое из перечисленных кровотечений является наиболее опасным для жизни человека?",
+            "topic": "Медицина",
+            "type": "Единственный выбор",
+            "number": 48,
+            "options": [
+                { "text": "Артериальное кровотечение.", "correct": true },
+                { "text": "Капиллярное кровотечение.", "correct": false },
+                { "text": "Венозное кровотечение.", "correct": false }
+            ]
+        }, {
+            "question": "Во время нападения пострадал инкассатор – пуля попала в бронепластину бронежилета в области правой половины живота. Пострадавший в сознании, жалуется на сильные боли в животе. Ваши действия по оказанию первой помощи?",
+            "topic": "Медицина",
+            "type": "Единственный выбор",
+            "number": 49,
+            "options": [
+                { "text": "Уложить на спину, снять бронежилет, осмотреть место ранения, положить (по возможности) холод на живот.",
+                    "correct": true },
+                { "text": "Уложить на спину, снять бронежилет, дать обезболивающее средство, обеспечить госпитализацию в положении лежа на боку",
+                    "correct": false },
+                { "text": "Не прикасаться к пострадавшему во избежание нанесения вреда.", "correct": false }
+            ]
+        }, {
+            "question": "Какое из перечисленных кровотечений является наиболее опасным для жизни человека?",
+            "topic": "Медицина",
+            "type": "Единственный выбор",
+            "number": 50,
+            "options": [
+                { "text": "Паренхиматозное кровотечение.", "correct": true },
+                { "text": "Венозное кровотечение.", "correct": false },
+                { "text": "Капиллярное кровотечение.", "correct": false }
+            ]
+        }, {
+            "question": "Что такое рана?",
+            "topic": "Медицина",
+            "type": "Единственный выбор",
+            "number": 51,
+            "options": [
+                { "text": "Рана это - повреждение тканей организма вследствие механического воздействия, сопровождающегося нарушением целостности кожи, слизистых оболочек и глубоких полостей.",
+                    "correct": false },
+                { "text": "Рана это – повреждение тканей организма вследствие механического воздействия, сопровождающегося нарушением слизистых оболочек, а также внутренних органов.",
+                    "correct": false },
+                { "text": "Рана это – нарушение целостности кожи, слизистых оболочек с повреждением различных тканей и органов, вызванное механическим воздействием, сопровождающее зиянием и кровотечением.",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Для чего необходимо отсканировать QR-код на УС перед началом обслуживания?",
+            "topic": "Обслуживание устройств самообслуживания",
+            "type": "Единственный выбор",
+            "number": 52,
+            "options": [
+                { "text": "Для проверки сертификата безопасности УС", "correct": false },
+                { "text": "Для идентификация обслуживаемого УС и исключения инцидентов, связанных с установкой комплекта кассет от другого устройства",
+                    "correct": true },
+                { "text": "Для проверки работоспособности УС и передачи информации о состоянии УС в ЦУРУС",
+                    "correct": false }
+            ]
+        }, {
+            "question": "В какой момент нажимается кнопка \"Начать\" при выборе заявки в МАИС на ТСД?",
+            "topic": "Обслуживание устройств самообслуживания",
+            "type": "Единственный выбор",
+            "number": 53,
+            "options": [
+                { "text": "В СТС перед выходом к УС", "correct": false },
+                { "text": "В СТС после остановки около объекта", "correct": false },
+                { "text": "Непосредственно около УС", "correct": true }
+            ]
+        }, {
+            "question": "Для чего предназначена вертикальная метка над циферблатом механического кодового замка?",
+            "topic": "Обслуживание устройств самообслуживания",
+            "type": "Единственный выбор",
+            "number": 54,
+            "options": [
+                { "text": "Для смены кодовой комбинации.", "correct": false },
+                { "text": "Для открытия замка", "correct": true }
+            ]
+        }, {
+            "question": "Как называется устройство, которое инкассатор использует на маршруте?",
+            "topic": "Обслуживание устройств самообслуживания",
+            "type": "Единственный выбор",
+            "number": 55,
+            "options": [
+                { "text": "ТСД", "correct": true },
+                { "text": "ЦФС", "correct": false },
+                { "text": "ПЦП", "correct": false },
+                { "text": "МАИС", "correct": false }
+            ]
+        }, {
+            "question": "В каких случаях инкассаторам разрешается не пристегиваться ремнями безопасности?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 1,
+            "options": [
+                { "text": "Все члены бригады всегда должны быть пристегнуты ремнями безопасности", "correct": true },
+                { "text": "Водителю-инкассатору во время движения на АЗС для заправки спецавтомобиля топливом",
+                    "correct": false },
+                { "text": "Только при работе на городских маршрутах инкассации", "correct": false },
+                { "text": "В случае, если от одного объекта инкассации до другого расстояние составляет не более 100 метров",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Что относится к чрезвычайным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 2,
+            "options": [
+                { "text": "Вооруженный захват персонала и клиентов Банка", "correct": true },
+                { "text": "Утрата/хищение наличных денег и ценностей, оружия и патронов, угон СТС, произошедшие в результате умышленных действий/ошибок инкассаторских работников",
+                    "correct": true },
+                { "text": "Самопроизвольная активация спецконтейнера, в результате которой банкноты приведены в неплатежеспособное состояние",
+                    "correct": false },
+                { "text": "Отсутствие связи между дежурным инкассатором/центром мониторинга и бригадой инкассаторов (в том числе посредством мониторинга)",
+                    "correct": false },
+                { "text": "Преследование СТС автомобилем (автомобилями)", "correct": false },
+                { "text": "Дорожно-транспортные происшествия с участием СТС инкассации с тяжкими последствиями, повлекшие гибель людей",
+                    "correct": true }
+            ]
+        }, {
+            "question": "На основании какого документа дежурный выдает инкассаторским работникам оружие, патроны и документы на право совершения операций инкассации?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 3,
+            "options": [
+                { "text": "График работы", "correct": false },
+                { "text": "Наряд-распоряжение", "correct": true },
+                { "text": "Маршрутный лист", "correct": false },
+                { "text": "Приказ о закреплении за работником боевого оружия и патронов", "correct": false }
+            ]
+        }, {
+            "question": "Во время проведения операции загрузки/выгрузки, инкассатор обнаружил денежную наличность вне кассет внутри устройства самообслуживания. Какие действия он должен предпринять?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 4,
+            "options": [
+                { "text": "Сообщает об инциденте дежурному инкассатору и, в случае если банкноты, обнаруженные вне кассет УС, можно извлечь, не нарушая их целостности, извлекает из механизмов УС и вкладывает в пакет",
+                    "correct": true },
+                { "text": "Извлекает денежную наличность из сейфовой части и механизмов УС, вкладывает ее в пакет и осуществляет плановую загрузку устройства самообслуживания",
+                    "correct": false },
+                { "text": "Прекращает выполнение операции загрузки/выгрузки, сообщает о данном факте дежурному инкассатору и в дальнейшем действует по его указаниям",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Чрезвычайные ситуации на маршруте инкассации связанны с (Выберите все правильные ответы.):",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 5,
+            "options": [
+                { "text": "угоном спецавтомобиля", "correct": true },
+                { "text": "непосредственной угрозой для жизни и здоровья членов бригады инкассаторов, их ранением или гибелью",
+                    "correct": true },
+                { "text": "непредвиденным изменением условий работы бригады инкассаторов на маршруте, которые могут оказать негативное воздействие на совершение операций инкассации,обеспечением безопасности бригады и сохранностью перевозимых ею денежной наличности и ценностей",
+                    "correct": false },
+                { "text": "повреждением, утратой или хищением денежной наличности и ценностей, оружия и патронов",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Какой документ разрешает при инкассации/доставке наличных денег использование кредитными организациями специальных устройств в случае несанкционированного вскрытия которых происходит окрашивание банкнот Банка России специальной краской?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 6,
+            "options": [
+                { "text": "Положение Банка России «О порядке ведения кассовых операций и правилах хранения, перевозки и инкассации банкнот и монеты Банка России в кредитных организациях на территории Российской Федерации» от 29.01.2018 г. №630-П",
+                    "correct": true },
+                { "text": "«Внутренний стандарт организации работы подразделений инкассации ПАО Сбербанк» от 22.05.2017 №4547",
+                    "correct": false }
+            ]
+        }, {
+            "question": "При приеме денежной наличности, доставленной инкассаторами, кассиром организации обнаружена недостача. Какие действия должен предпринять инкассатор?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 7,
+            "options": [
+                { "text": "Инкассатор сообщает о недостаче старшему бригады. По указанию старшего бригады составляется акт произвольной формы, кассир организации продолжает прием и расписывается за фактически доставленную сумму.   Недостающая сумма денежной наличности доставляется в организацию в тот же день",
+                    "correct": false },
+                { "text": "Операция по доставке прекращается. Инкассатор забирает денежную наличность, два экземпляра акта, пакет, упаковочный материал денежной наличности (верхние и нижние накладки от пачек, бандероли от всех корешков (полной величины) пачки, обрезки с пломбой (полиэтиленовый рукав с оттиском клише), разрезанный шпагат с пломбой, ярлык и доставляют все в Банк, филиал Банка",
+                    "correct": true },
+                { "text": "Операция по доставке прекращается. Инкассатор забирает денежную наличность и доставляет ее в Банк, филиал Банка",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Что обязаны проверить в СТС перед выездом на маршрут, после получения имущества у дежурного инкассатора, но до начала получения ценностей в кассовом подразделении КИЦ, члены бригады инкассаторов (не менее 2-х человек)? (Выберите правильные ответы)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 8,
+            "options": [
+                { "text": "Исправность замков СТС и устройства-накопителя", "correct": true },
+                { "text": "Исправность крепления сидений СТС", "correct": false },
+                { "text": "Исправность дверей", "correct": true },
+                { "text": "Исправность ремней безопасности", "correct": true },
+                { "text": "Исправность тормозов", "correct": false },
+                { "text": "Исправность звукового сигнала", "correct": false },
+                { "text": "Наличие аптечки и огнетушителя", "correct": true }
+            ]
+        }, {
+            "question": "Какие сопроводительные документы вместе с доставленной «сумкой возврата» предъявляются инкассатором работнику кассового подразделения Банка/филиала Банка?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 9,
+            "options": [
+                { "text": "Первый экземпляр маршрутного листа и второй экземпляр описи", "correct": false },
+                { "text": "Первый и третий экземпляры описи ф.270 и два экземпляра маршрутного листа", "correct": true },
+                { "text": "Два экземпляра маршрутного листа и первый экземпляр описи", "correct": false }
+            ]
+        }, {
+            "question": "Какие документы предъявляет инкассатор бухгалтерскому работнику учреждения Банка России при получении денежной наличности?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 10,
+            "options": [
+                { "text": "Паспорт/денежный чек/контрольную марку", "correct": true },
+                { "text": "Доверенность на прием и доставку денежной наличности, служебное удостоверение, денежный чек",
+                    "correct": false },
+                { "text": "Служебное удостоверение, денежный чек", "correct": false }
+            ]
+        }, {
+            "question": "Кто из членов бригады инкассаторов наделен полномочиями принятия ответственных решений при обслуживании объектов, в том числе о приостановлении выполнения операций инкассации в случае обнаружения на объекте (около объекта) нарушений безопасных условий работы и/или несоблюдения клиентом договорных обязательств по проведению операции инкассации?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 11,
+            "options": [
+                { "text": "Старший бригады и инкассатор", "correct": false },
+                { "text": "Все члены бригады", "correct": false },
+                { "text": "Старший бригады", "correct": true }
+            ]
+        }, {
+            "question": "Что относится к НЕстандартным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 12,
+            "options": [
+                { "text": "Дорожно-транспортные происшествия с участием СТС инкассации", "correct": true },
+                { "text": "Угон спецавтомобиля", "correct": false },
+                { "text": "Дорожно-транспортные происшествия с тяжкими последствиями с участием спецавтомобилей инкассации, повлекшие гибель людей",
+                    "correct": false },
+                { "text": "Нарушение правил обращения с оружием, в результате которого произошел несанкционированный выстрел",
+                    "correct": true },
+                { "text": "Происшествия с работниками при исполнении трудовых обязанностей, повлёкшие травмы",
+                    "correct": true },
+                { "text": "Утрата (хищение) денежной наличности и ценностей", "correct": false }
+            ]
+        }, {
+            "question": "Что относится к чрезвычайным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 13,
+            "options": [
+                { "text": "Задержание работников ПИ КИЦ правоохранительными органами", "correct": true },
+                { "text": "Дорожно-транспортные происшествия с участием СТС инкассации с тяжкими последствиями, повлекшие гибель людей",
+                    "correct": true },
+                { "text": "Преследование СТС автомобилем (автомобилями)", "correct": false },
+                { "text": "Отсутствие связи между дежурным инкассатором/центром мониторинга и бригадой инкассаторов (в том числе посредством мониторинга)",
+                    "correct": false },
+                { "text": "Нецелевое использование СТС", "correct": false },
+                { "text": "Нарушение правил обращения с оружием, повлёкшее человеческие жертвы/ранения",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Где на маршруте должны храниться денежная наличность и ценности в спецавтомобиле?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 14,
+            "options": [
+                { "text": "В зависимости от ситуации", "correct": false },
+                { "text": "В салоне спецавтомобиля", "correct": false },
+                { "text": "В устройстве накопителе", "correct": true }
+            ]
+        }, {
+            "question": "НЕстандартные ситуации на маршруте инкассации связаны c:",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 15,
+            "options": [
+                { "text": "непосредственной угрозой для жизни и здоровья членов бригады инкассаторов, их ранением или гибелью, повреждением, утратой или хищением денежной наличности и ценностей, оружия и патронов, угоном спецавтомобиля",
+                    "correct": false },
+                { "text": "непредвиденным изменением условий работы бригады инкассаторов на маршруте, которые могут оказать негативное воздействие на совершение операций инкассации, обеспечение безопасности бригады и сохранность перевозимых ею наличных денег и ценностей",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Какое имущество получает инкассатор от дежурного инкассатора (в случае хранения указанного имущества в ПИ) для обслуживания устройств самообслуживания?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 16,
+            "options": [
+                { "text": "Конверты с кодами", "correct": false },
+                { "text": "Кассеты устройств самообслуживания", "correct": false },
+                { "text": "Ключи, необходимые для обслуживания устройств самообслуживания", "correct": true }
+            ]
+        }, {
+            "question": "Кого можно допустить в спецавтомобиль членам бригады при работе на маршруте инкассации?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 17,
+            "options": [
+                { "text": "Лиц, не являющимися членами бригады", "correct": false },
+                { "text": "Работников Банка, осуществляющих контрольные функции за работой бригады на маршруте инкассации",
+                    "correct": false },
+                { "text": "Бригаду инкассаторов филиалов Банка в случае сопровождения до/от аэропорта (морского/речного порта, железнодорожного вокзала)",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Может ли дежурный инкассатор выдать документы, оружие, имущество и материальные средства инкассаторскому работнику, который по наряду-распоряжению НЕ работает в этот день?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 18,
+            "options": [
+                { "text": "Нет", "correct": true },
+                { "text": "Да", "correct": false }
+            ]
+        }, {
+            "question": "Что относится к НЕстандартным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 19,
+            "options": [
+                { "text": "Нападение с целью причинения вреда жизни и здоровью персонала и клиентов Банка (на объектах и прилегающей территории)",
+                    "correct": false },
+                { "text": "Отсутствие связи между дежурным инкассатором/центром мониторинга и бригадой инкассаторов (в том числе посредством мониторинга)",
+                    "correct": true },
+                { "text": "Наблюдение за работой инкассаторов, в т.ч. с использованием аппаратуры фото- и видеофиксации",
+                    "correct": true },
+                { "text": "Пожар в СТС или его поломка на маршруте инкассации", "correct": true },
+                { "text": "Вооруженный захват персонала и клиентов банка", "correct": false },
+                { "text": "Задержание работников ПИ КИЦ правоохранительными органами", "correct": false }
+            ]
+        }, {
+            "question": "Резервная бригада в соответствие с нарядом-распоряжением выехала для совершения операций инкассации в две организации. Есть ли нарушение в действиях бригады инкассаторов?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 20,
+            "options": [
+                { "text": "Да, резервная бригада не может привлекаться к совершению операций инкассации, так как формируется на случай возникновения на маршрутах инкассации чрезвычайных или нестандартных ситуаций с целью оказания содействия бригадам инкассаторов в защите жизни и здоровья",
+                    "correct": false },
+                { "text": "Нет, количество объектов для обслуживания резервной бригадой определяется по указанию начальника отдела инкассации",
+                    "correct": false },
+                { "text": "Нет, резервная бригада может привлекаться к совершению операций инкассации при условии обслуживания незначительного количества объектов или для сопровождения бригады инкассаторов при перевозке наличных денег и ценностей в пределах населенного пункта, в котором дислоцируется ПИ ОО КИЦ, а также для охраны и перевозки оружия и боеприпасов к/от месту(а) проведения стрельб.",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Инкассатор в присутствии старшего бригады вложил пакеты с денежной наличностью после первого заезда в сейф под ответственность инкассаторов. Приехав со второго заезда, данные лица вложили дополнительное количество пакетов в указанный сейф. Какой порядок действий инкассаторских работников, при дополнительном вложении пакетов с денежной наличностью является правильным?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 21,
+            "options": [
+                { "text": "Перед вложением сумок в сейф, инкассатор сверяет фактическое количество пакетов, находящихся в сейфе, с данными сопроводительных документов и описи. После чего составляет акт приема-передачи на дополнительно вложенные пакеты и сопроводительные документы. Инкассатор производит закрытие сейфа и сдачу его дежурному инкассатору (охраннику) после последнего вложения пакетов в сейф",
+                    "correct": false },
+                { "text": "Перед вложением пакетов в сейф, инкассатор в присутствии старшего бригады сверяет фактическое количество пакетов, находящихся в сейфе, с данными сопроводительных документов и описи. После чего составляется акт приема-передачи на дополнительно вложенные пакеты и сопроводительные документы, который также вкладывают вместе с ними в сейф. Инкассаторские работники производят закрытие сейфа и сдачу его дежурному инкассатору (охраннику) после каждого вложения пакетов в сейф",
+                    "correct": true },
+                { "text": "Перед вложением пакетов в сейф, инкассатор в присутствии старшего бригады сверяет фактическое количество пакетов, находящихся в сейфе, с данными сопроводительных документов и описи. Инкассаторские работники производят закрытие сейфа и сдачу его дежурному инкассатору (охраннику) после каждого вложения (изъятия) пакетов из сейфа",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Что относится к чрезвычайным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 22,
+            "options": [
+                { "text": "Невозможность продолжения движения по маршруту согласно утвержденному графику заездов (в том числе в результате ДТП)",
+                    "correct": false },
+                { "text": "Преследование СТС автомобилем (автомобилями)", "correct": false },
+                { "text": "Отсутствие связи между дежурным инкассатором/центром мониторинга и бригадой инкассаторов (в том числе посредством мониторинга)",
+                    "correct": false },
+                { "text": "Нападение на инкассаторских работников/СТС", "correct": true },
+                { "text": "Утрата/хищение наличных денег и ценностей, оружия и патронов, угон СТС, произошедшие в результате умышленных действий/ошибок инкассаторских работников",
+                    "correct": true },
+                { "text": "Несчастные случаи с работниками при исполнении трудовых обязанностей, повлекшие их смерть",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Старший бригады инкассаторов, при движении по загородному маршруту заметил превышение скорости водителем-инкассатором. Какие его действия правильные?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 23,
+            "options": [
+                { "text": "Не предпринимать никаких действий, т.к. за безопасность движения спецавтомобиля на маршруте отвечает водитель-инкассатор",
+                    "correct": false },
+                { "text": "Немедленно дать указание водителю-инкассатору снизить скорость", "correct": true },
+                { "text": "Немедленно сообщить об этом дежурному инкассатору", "correct": false }
+            ]
+        }, {
+            "question": "Какой подтверждающий документ выдает кассир приходной кассы учреждения Банка России инкассатору при соответствии фактически принятой суммы денежной наличности сумме, указанной в объявлении на взнос наличными/электронной заявке?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 24,
+            "options": [
+                { "text": "Расходный кассовый ордер 0402008", "correct": false },
+                { "text": "Кассовый ордер ф. № 54", "correct": false },
+                { "text": "Квитанцию объявления на взнос наличными/ ПКО ф. 0402008", "correct": true },
+                { "text": "Все перечисленные выше документы", "correct": false }
+            ]
+        }, {
+            "question": "Допускается ли в подразделении инкассации работа за пределами установленной продолжительности рабочего времени?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 25,
+            "options": [
+                { "text": "Допускается, без ограничения количества часов", "correct": false },
+                { "text": "Допускается, но не более 120 часов в год", "correct": true },
+                { "text": "Не допускается", "correct": false }
+            ]
+        }, {
+            "question": "Что запрещается делать членам бригады на маршруте? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 26,
+            "options": [
+                { "text": "Использовать не по назначению СТС, радиостанции (радиотелефоны), имущество и другие технические средства",
+                    "correct": true },
+                { "text": "Осуществлять контроль сохранности имущества, денежной наличности и ценностей",
+                    "correct": false },
+                { "text": "Осуществлять переговоры со специалистом центра мониторинга", "correct": false },
+                { "text": "Отключать устройства видеонаблюдения и видеорегистрации, установленные в СТС/изменять их настройки, а также направление необходимого угла записи устройства видеофиксации",
+                    "correct": true },
+                { "text": "Наблюдать за окружающей обстановкой", "correct": false },
+                { "text": "Выполнять посторонние поручения/несвойственные функции, а также любым иным образом отвлекаться от выполнения прямых обязанностей по инкассации и перевозке наличных денег и ценностей",
+                    "correct": true }
+            ]
+        }, {
+            "question": "На маршруте инкассации произошло ДТП в результате, которого инкассаторские работники получили незначительные ранения, выслан резервный спецавтомобиль. Какие действия осуществляет резервная бригада по прибытию на место происшествия?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 27,
+            "options": [
+                { "text": "Оказывает содействие бригаде инкассаторов по обеспечению ее безопасности, охране денежной наличности, ценностей и оружия, оказанию помощи пострадавшим, ликвидации последствий происшествия. Старший резервной бригады принимает от пострадавшей бригады пакеты с денежной наличностью и ценностями, сопроводительные документы к ним, ТСД, печать маршрута, оружие и патроны с составлением акта приема-передачи ф. № 401. После чего, резервная бригада приступает к работе на маршруте",
+                    "correct": false },
+                { "text": "Оказывает содействие бригаде инкассаторов по обеспечению ее безопасности, охране ценностей и оружия, оказанию помощи пострадавшим, ликвидации последствий происшествия. Старший резервной бригады принимает решение о перемещении ценностей в резервный спецавтомобиль. Инкассатор принимает от пострадавшей бригады пакеты с денежной наличностью и ценностями, сопроводительные документы к ним, ТСД, печать маршрута.  После чего, резервная бригада приступает к работе на маршруте",
+                    "correct": false },
+                { "text": "Оказывает содействие бригаде инкассаторов по обеспечению ее безопасности, охране денежной наличности, ценностей и оружия, оказанию помощи пострадавшим, ликвидации последствий происшествия. В том числе: старший резервной бригады сообщает о сложившейся ситуации на месте происшествия дежурному инкассатору, по его указанию и под контролем старшего бригады инкассатор принимает от пострадавшей бригады пакеты с денежной наличностью и ценностями, сопроводительные документы к ним, ТСД, печать маршрута, оружие и патроны с составлением акта приема-передачи ф. № 401. После чего, резервная бригада приступает к работе на маршруте",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Что относится к НЕстандартным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 28,
+            "options": [
+                { "text": "Самопроизвольная активация спецконтейнера, в результате которой банкноты приведены в неплатежеспособное состояние",
+                    "correct": true },
+                { "text": "Нарушение правил обращения с оружием, в результате которого произошел несанкционированный выстрел",
+                    "correct": true },
+                { "text": "Дорожно-транспортные происшествия с участием СТС инкассации с тяжкими последствиями, повлекшие гибель людей",
+                    "correct": false },
+                { "text": "Наблюдение за работой инкассаторов, в т.ч. с использованием аппаратуры фото- и видеофиксации",
+                    "correct": true },
+                { "text": "Нарушение правил обращения с оружием, повлёкшие человеческие жертвы/ранения",
+                    "correct": false },
+                { "text": "Нападение на инкассаторских работников или СТС", "correct": false }
+            ]
+        }, {
+            "question": "В соответствии с внутренним стандартом организации работы подразделений инкассации ПАО Сбербанк от 22.05.2017 N 4547 «Инкассация наличных денег и ценностей» включает в себя (Выберите правильные ответы)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 29,
+            "options": [
+                { "text": "Сбор и последующую транспортировку инкассаторскими работниками наличных денег и ценностей клиентов в кассовые центры ОО КИЦ",
+                    "correct": true },
+                { "text": "Доставку наличных денег при проведении операций по загрузке/выгрузке банкоматов",
+                    "correct": false },
+                { "text": "Транспортировку наличных денег и ценностей из кассы клиента в ЦБ", "correct": false },
+                { "text": "Сбор и последующую транспортировку инкассаторскими работниками наличных денег и ценностей клиентов в другие кредитные организации",
+                    "correct": true },
+                { "text": "Доставку ценностей в ВСП", "correct": false },
+                { "text": "Транспортировку инкассаторскими работниками наличных денег и ценностей в кассу клиента",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Какие документы предъявляет инкассатор бухгалтерскому работнику учреждения Банка России при получении денежной наличности?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 30,
+            "options": [
+                { "text": "Паспорт/денежный чек/контрольную марку", "correct": true },
+                { "text": "Доверенность на прием и доставку денежной наличности, служебное удостоверение, денежный чек",
+                    "correct": false },
+                { "text": "Служебное удостоверение, денежный чек", "correct": false }
+            ]
+        }, {
+            "question": "Что относится к НЕстандартным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 1,
+            "options": [
+                { "text": "Слежка за СТС инкассации", "correct": true },
+                { "text": "Нецелевое использование СТС", "correct": true },
+                { "text": "Угон спецавтомобиля", "correct": false },
+                { "text": "Несчастные случаи с работниками при исполнении трудовых обязанностей, повлекшие их смерть",
+                    "correct": false },
+                { "text": "Нарушения трудовой дисциплины, связанные с употреблением алкоголя и наркотических средств",
+                    "correct": true },
+                { "text": "Нападение на инкассаторских работников/СТС", "correct": false }
+            ]
+        }, {
+            "question": "Допускается ли в подразделении инкассации работа за пределами установленной продолжительности рабочего времени?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 2,
+            "options": [
+                { "text": "Допускается, без ограничения количества часов", "correct": false },
+                { "text": "Допускается, но не более 120 часов в год", "correct": true },
+                { "text": "Не допускается", "correct": false }
+            ]
+        }, {
+            "question": "В соответствии с внутренним стандартом организации работы подразделений инкассации ПАО Сбербанк от 22.05.2017 N 4547 «Инкассация наличных денег и ценностей» включает в себя (Выберите правильные ответы)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 3,
+            "options": [
+                { "text": "Сбор и последующую транспортировку инкассаторскими работниками наличных денег и ценностей клиентов в кассовые центры ОО КИЦ",
+                    "correct": true },
+                { "text": "Доставку наличных денег при проведении операций по загрузке/выгрузке банкоматов",
+                    "correct": false },
+                { "text": "Транспортировку наличных денег и ценностей из кассы клиента в ЦБ", "correct": false },
+                { "text": "Сбор и последующую транспортировку инкассаторскими работниками наличных денег и ценностей клиентов в другие кредитные организации",
+                    "correct": true },
+                { "text": "Доставку ценностей в ВСП", "correct": false },
+                { "text": "Транспортировку инкассаторскими работниками наличных денег и ценностей в кассу клиента",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Что относится к чрезвычайным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 4,
+            "options": [
+                { "text": "Невозможность продолжения движения по маршруту согласно утвержденному графику заездов (в том числе в результате ДТП)",
+                    "correct": false },
+                { "text": "Преследование СТС автомобилем (автомобилями)", "correct": false },
+                { "text": "Отсутствие связи между дежурным инкассатором/центром мониторинга и бригадой инкассаторов (в том числе посредством мониторинга)",
+                    "correct": false },
+                { "text": "Нападение на инкассаторских работников/СТС", "correct": true },
+                { "text": "Утрата/хищение наличных денег и ценностей, оружия и патронов, угон СТС, произошедшие в результате умышленных действий/ошибок инкассаторских работников",
+                    "correct": true },
+                { "text": "Несчастные случаи с работниками при исполнении трудовых обязанностей, повлекшие их смерть",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Что относится к чрезвычайным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 5,
+            "options": [
+                { "text": "Вооруженный захват персонала и клиентов Банка", "correct": true },
+                { "text": "Утрата/хищение наличных денег и ценностей, оружия и патронов, угон СТС, произошедшие в результате умышленных действий/ошибок инкассаторских работников",
+                    "correct": true },
+                { "text": "Самопроизвольная активация спецконтейнера, в результате которой банкноты приведены в неплатежеспособное состояние",
+                    "correct": false },
+                { "text": "Отсутствие связи между дежурным инкассатором/центром мониторинга и бригадой инкассаторов (в том числе посредством мониторинга)",
+                    "correct": false },
+                { "text": "Преследование СТС автомобилем (автомобилями)", "correct": false },
+                { "text": "Дорожно-транспортные происшествия с участием СТС инкассации с тяжкими последствиями, повлекшие гибель людей",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Что относится к НЕстандартным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 6,
+            "options": [
+                { "text": "Нападение с целью причинения вреда жизни и здоровью персонала и клиентов Банка (на объектах и прилегающей территории)",
+                    "correct": false },
+                { "text": "Отсутствие связи между дежурным инкассатором/центром мониторинга и бригадой инкассаторов (в том числе посредством мониторинга)",
+                    "correct": true },
+                { "text": "Наблюдение за работой инкассаторов, в т.ч. с использованием аппаратуры фото- и видеофиксации",
+                    "correct": true },
+                { "text": "Пожар в СТС или его поломка на маршруте инкассации", "correct": true },
+                { "text": "Вооруженный захват персонала и клиентов банка", "correct": false },
+                { "text": "Задержание работников ПИ КИЦ правоохранительными органами", "correct": false }
+            ]
+        }, {
+            "question": "Может ли дежурный инкассатор выдать документы, оружие, имущество и материальные средства инкассаторскому работнику, который по наряду-распоряжению НЕ работает в этот день?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 7,
+            "options": [
+                { "text": "Нет", "correct": true },
+                { "text": "Да", "correct": false }
+            ]
+        }, {
+            "question": "В каких случаях допускается переноска денежной наличности и ценностей без использования сумок-баулов? (Выберите правильные ответы)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 8,
+            "options": [
+                { "text": "При переноске пакетов с банкнотами Банка России с использованием спецконтейнеров",
+                    "correct": true },
+                { "text": "Переноска денежной наличности и ценностей без использования сумок-баулов не допускается",
+                    "correct": false },
+                { "text": "При переносе монеты в упаковке Банка России", "correct": true },
+                { "text": "При переноске одной сумки, с условием, что расстояние от спецавтомобиля до входа в объект минимальное",
+                    "correct": false }
+            ]
+        }, {
+            "question": "На основании какого документа дежурный выдает инкассаторским работникам оружие, патроны и документы на право совершения операций инкассации?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 9,
+            "options": [
+                { "text": "График работы", "correct": false },
+                { "text": "Наряд-распоряжение", "correct": true },
+                { "text": "Маршрутный лист", "correct": false },
+                { "text": "Приказ о закреплении за работником боевого оружия и патронов", "correct": false }
+            ]
+        }, {
+            "question": "Кого можно допустить в спецавтомобиль членам бригады при работе на маршруте инкассации?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 10,
+            "options": [
+                { "text": "Лиц, не являющимися членами бригады", "correct": false },
+                { "text": "Работников Банка, осуществляющих контрольные функции за работой бригады на маршруте инкассации",
+                    "correct": false },
+                { "text": "Бригаду инкассаторов филиалов Банка в случае сопровождения до/от аэропорта (морского/речного порта, железнодорожного вокзала)",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Какой подтверждающий документ выдает кассир приходной кассы учреждения Банка России инкассатору при соответствии фактически принятой суммы денежной наличности сумме, указанной в объявлении на взнос наличными/электронной заявке?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 11,
+            "options": [
+                { "text": "Расходный кассовый ордер 0402008", "correct": false },
+                { "text": "Кассовый ордер ф. № 54", "correct": false },
+                { "text": "Квитанцию объявления на взнос наличными/ ПКО ф. 0402008", "correct": true },
+                { "text": "Все перечисленные выше документы", "correct": false }
+            ]
+        }, {
+            "question": "При осуществлении хранения ценностей под ответственностью инкассаторов, допускается ли вложение пакетов с проинкассированной денежной наличностью, доставленной разными бригадами инкассаторов, в один сейф?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 12,
+            "options": [
+                { "text": "Да, пакеты с денежной наличностью вкладываются в один сейф, но на разные полки с составлением раздельных описей",
+                    "correct": false },
+                { "text": "Да, пакеты с денежной наличностью вкладываются в один сейф с составлением общей описи и указанием в ней принадлежности пакетов к разным маршрутам",
+                    "correct": false },
+                { "text": "Нет, пакеты с денежной наличностью вкладываются в отдельные сейфы", "correct": true }
+            ]
+        }, {
+            "question": "При приеме денежной наличности в кассе учреждения Банка России инкассатор принял решение о полистном пересчете банкнот. Является ли это нарушением?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 13,
+            "options": [
+                { "text": "Нет, т.к. инкассатор имеет право пересчитать полистно банкноты, упакованные в полные и неполные пачки, и поштучно монету, упакованную в мешки, под наблюдением контролирующего работника учреждения Банка России в помещении для клиентов",
+                    "correct": true },
+                { "text": "Да, инкассатор принимает денежную наличность только в упаковке УБР или предприятий Гознака.",
+                    "correct": false },
+                { "text": "Да, инкассатор исключительно должен проверить полные и неполные пачки по количеству пачек и корешков в них, правильность и целость упаковки, наличие четких и целых оттисков пломб (клише), правильность оформления реквизитов",
+                    "correct": false }
+            ]
+        }, {
+            "question": "Допускается ли присутствие сотрудника охраны при выемке пакетов из сейфов для хранения денежной наличности и ценностей под ответственностью инкассаторов?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 14,
+            "options": [
+                { "text": "Допускается, если пост охраны расположен рядом с сейфовой комнатой", "correct": false },
+                { "text": "Не допускается", "correct": true },
+                { "text": "Допускается, по указанию руководителя подразделения охраны", "correct": false }
+            ]
+        }, {
+            "question": "НЕстандартные ситуации на маршруте инкассации связаны c:",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 15,
+            "options": [
+                { "text": "непосредственной угрозой для жизни и здоровья членов бригады инкассаторов, их ранением или гибелью, повреждением, утратой или хищением денежной наличности и ценностей, оружия и патронов, угоном спецавтомобиля",
+                    "correct": false },
+                { "text": "непредвиденным изменением условий работы бригады инкассаторов на маршруте, которые могут оказать негативное воздействие на совершение операций инкассации, обеспечение безопасности бригады и сохранность перевозимых ею наличных денег и ценностей",
+                    "correct": true }
+            ]
+        }, {
+            "question": "С какого возраста допускаются граждане Российской Федерации к работе в подразделениях инкассации Банка?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 16,
+            "options": [
+                { "text": "Лицо, достигшее 18 лет", "correct": true },
+                { "text": "С любого возраста, после службы в Вооруженных силах Российской Федерации", "correct": false },
+                { "text": "Лицо, достигшее 21 года", "correct": false }
+            ]
+        }, {
+            "question": "На маршруте инкассации произошло ДТП в результате, которого инкассаторские работники получили незначительные ранения, выслан резервный спецавтомобиль. Какие действия осуществляет резервная бригада по прибытию на место происшествия?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 17,
+            "options": [
+                { "text": "Оказывает содействие бригаде инкассаторов по обеспечению ее безопасности, охране денежной наличности, ценностей и оружия, оказанию помощи пострадавшим, ликвидации последствий происшествия. Старший резервной бригады принимает от пострадавшей бригады пакеты с денежной наличностью и ценностями, сопроводительные документы к ним, ТСД, печать маршрута, оружие и патроны с составлением акта приема-передачи ф. № 401. После чего, резервная бригада приступает к работе на маршруте",
+                    "correct": false },
+                { "text": "Оказывает содействие бригаде инкассаторов по обеспечению ее безопасности, охране ценностей и оружия, оказанию помощи пострадавшим, ликвидации последствий происшествия. Старший резервной бригады принимает решение о перемещении ценностей в резервный спецавтомобиль. Инкассатор принимает от пострадавшей бригады пакеты с денежной наличностью и ценностями, сопроводительные документы к ним, ТСД, печать маршрута.  После чего, резервная бригада приступает к работе на маршруте",
+                    "correct": false },
+                { "text": "Оказывает содействие бригаде инкассаторов по обеспечению ее безопасности, охране денежной наличности, ценностей и оружия, оказанию помощи пострадавшим, ликвидации последствий происшествия. В том числе: старший резервной бригады сообщает о сложившейся ситуации на месте происшествия дежурному инкассатору, по его указанию и под контролем старшего бригады инкассатор принимает от пострадавшей бригады пакеты с денежной наличностью и ценностями, сопроводительные документы к ним, ТСД, печать маршрута, оружие и патроны с составлением акта приема-передачи ф. № 401. После чего, резервная бригада приступает к работе на маршруте",
+                    "correct": true }
+            ]
+        }, {
+            "question": "Кто из членов бригады инкассаторов наделен полномочиями принятия ответственных решений при обслуживании объектов, в том числе о приостановлении выполнения операций инкассации в случае обнаружения на объекте (около объекта) нарушений безопасных условий работы и/или несоблюдения клиентом договорных обязательств по проведению операции инкассации?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 18,
+            "options": [
+                { "text": "Старший бригады и инкассатор", "correct": false },
+                { "text": "Все члены бригады", "correct": false },
+                { "text": "Старший бригады", "correct": true }
+            ]
+        }, {
+            "question": "Что запрещается делать членам бригады на маршруте? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 19,
+            "options": [
+                { "text": "Осуществлять переговоры со специалистом центра мониторинга", "correct": false },
+                { "text": "Осуществлять контроль сохранности имущества, денежной наличности и ценностей",
+                    "correct": false },
+                { "text": "Выполнять работу, не предусмотренную ВНД", "correct": true },
+                { "text": "Наблюдать за окружающей обстановкой", "correct": false },
+                { "text": "Оставлять вверенные наличные деньги и ценности, оружие, патроны, имущество, выдаваемое на маршрут/заезд без личного присмотра",
+                    "correct": true },
+                { "text": "Курить в спецавтомобиле", "correct": true }
+            ]
+        }, {
+            "question": "Какой документ подтверждает сдачу инкассаторами денежной наличности в учреждение Банка России?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 20,
+            "options": [
+                { "text": "Квитанция к объявлению на взнос наличными/ПКО ф. 0402008", "correct": true },
+                { "text": "Ордер к объявлению на взнос наличными, мемориальный ордер ф.ф. 203/277", "correct": false },
+                { "text": "Кассовый ордер ф. № 54", "correct": false },
+                { "text": "Все перечисленные выше документы", "correct": false }
+            ]
+        }, {
+            "question": "При приеме денежной наличности, доставленной инкассаторами, кассиром организации обнаружена недостача. Какие действия должен предпринять инкассатор?",
+            "topic": "ВНД",
+            "type": "Единственный выбор",
+            "number": 21,
+            "options": [
+                { "text": "Инкассатор сообщает о недостаче старшему бригады. По указанию старшего бригады составляется акт произвольной формы, кассир организации продолжает прием и расписывается за фактически доставленную сумму.   Недостающая сумма денежной наличности доставляется в организацию в тот же день",
+                    "correct": false },
+                { "text": "Операция по доставке прекращается. Инкассатор забирает денежную наличность, два экземпляра акта, пакет, упаковочный материал денежной наличности (верхние и нижние накладки от пачек, бандероли от всех корешков (полной величины) пачки, обрезки с пломбой (полиэтиленовый рукав с оттиском клише), разрезанный шпагат с пломбой, ярлык и доставляют все в Банк, филиал Банка",
+                    "correct": true },
+                { "text": "Операция по доставке прекращается. Инкассатор забирает денежную наличность и доставляет ее в Банк, филиал Банка",
+                    "correct": false }
+            ]
+        }, {
+            "question": "В соответствии с внутренним стандартом организации работы подразделений инкассации ПАО Сбербанк от 22.05.2017 N 4547 подразделения инкассации ОО КИЦ предоставляют следующие виды услуг (Выберите правильные ответы)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 22,
+            "options": [
+                { "text": "Перевозка наличных денег и ценностей", "correct": true },
+                { "text": "Перевозка денежных ценностей", "correct": false },
+                { "text": "Инкассация наличных денег и ценностей", "correct": true },
+                { "text": "Отправка наличных денег и ценностей", "correct": false },
+                { "text": "Сопровождение наличных денег и ценностей", "correct": false },
+                { "text": "Транспортировка оружия и патронов", "correct": false }
+            ]
+        }, {
+            "question": "Что относится к НЕстандартным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 23,
+            "options": [
+                { "text": "Самопроизвольная активация спецконтейнера, в результате которой банкноты приведены в неплатежеспособное состояние",
+                    "correct": true },
+                { "text": "Нарушение правил обращения с оружием, в результате которого произошел несанкционированный выстрел",
+                    "correct": true },
+                { "text": "Дорожно-транспортные происшествия с участием СТС инкассации с тяжкими последствиями, повлекшие гибель людей",
+                    "correct": false },
+                { "text": "Наблюдение за работой инкассаторов, в т.ч. с использованием аппаратуры фото- и видеофиксации",
+                    "correct": true },
+                { "text": "Нарушение правил обращения с оружием, повлёкшие человеческие жертвы/ранения",
+                    "correct": false },
+                { "text": "Нападение на инкассаторских работников или СТС", "correct": false }
+            ]
+        }, {
+            "question": "Что относится к НЕстандартным ситуациям? (Выберите все правильные ответы.)",
+            "topic": "ВНД",
+            "type": "Множественный выбор",
+            "number": 24,
+            "options": [
+                { "text": "Самопроизвольная активация спецконтейнера, в результате которой банкноты приведены в неплатежеспособное состояние",
+                    "correct": true },
+                { "text": "Отсутствие связи между дежурным инкассатором/центром мониторинга и бригадой инкассаторов (в том числе посредством мониторинга)",
+                    "correct": true },
+                { "text": "Выявление фактов установки скиммингового оборудования на банкоматы, задержание лиц, участвующих в его установке",
+                    "correct": true },
+                { "text": "Нападение на инкассаторских работников/СТС", "correct": false },
+                { "text": "Несчастные случаи с работниками при исполнении трудовых обязанностей, повлекшие их смерть",
+                    "correct": false },
+                { "text": "Нарушение правил обращения с оружием, повлёкшие человеческие жертвы/ранения",
+                    "correct": false }
+            ]
+        }];
+
+        // ======================================================================
+        // ПРИЛОЖЕНИЕ
+        // ======================================================================
+
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function getRandomQuestions(count = 55) {
+            const shuffled = shuffleArray([...fullQuestions]);
+            return shuffled.slice(0, count).map(q => ({
+                ...q,
+                options: q.options.map(o => ({ ...o, user: false }))
+            }));
+        }
+
+        let questions = getRandomQuestions(55);
+        let currentTopic = 'all';
+        let currentFilter = 'all';
+        let isChecked = false;
+
+        function getTopics() {
+            const set = new Set();
+            questions.forEach(q => set.add(q.topic));
+            return ['all', ...Array.from(set)];
+        }
+
+        function getFilteredQuestions() {
+            let list = questions;
+            if (currentTopic !== 'all') {
+                list = list.filter(q => q.topic === currentTopic);
+            }
+            if (currentFilter === 'answered') {
+                list = list.filter(q => q.options.some(o => o.user === true));
+            } else if (currentFilter === 'unanswered') {
+                list = list.filter(q => q.options.every(o => o.user === false));
+            } else if (currentFilter === 'correct') {
+                list = list.filter(q => {
+                    const allCorrect = q.options.every(o => o.correct === o.user);
+                    return allCorrect && q.options.some(o => o.user === true);
+                });
+            } else if (currentFilter === 'wrong') {
+                list = list.filter(q => {
+                    const allCorrect = q.options.every(o => o.correct === o.user);
+                    return !allCorrect && q.options.some(o => o.user === true);
+                });
+            }
+            return list;
+        }
+
+        function updateStats() {
+            const total = questions.length;
+            document.getElementById('totalQuestions').textContent = total;
+            const topics = getTopics();
+            document.getElementById('totalTopics').textContent = topics.length - 1;
+
+            let answered = 0,
+                correct = 0,
+                wrong = 0;
+            questions.forEach(q => {
+                const anySelected = q.options.some(o => o.user === true);
+                if (anySelected) answered++;
+                const allCorrect = q.options.every(o => o.correct === o.user);
+                if (allCorrect && anySelected) correct++;
+                else if (anySelected && !allCorrect) wrong++;
+            });
+            document.getElementById('answeredCount').textContent = answered;
+            document.getElementById('correctCount').textContent = correct;
+            document.getElementById('wrongCount').textContent = wrong;
+            document.getElementById('progressText').textContent = `${answered} / ${total}`;
+            document.getElementById('sampleInfo').textContent = `Выборка: ${total}`;
+        }
+
+        function renderTopicNav() {
+            const nav = document.getElementById('topicNav');
+            const topics = getTopics();
+            nav.innerHTML = topics.map(t => {
+                const count = questions.filter(q => q.topic === t).length;
+                const active = t === currentTopic ? 'active' : '';
+                const label = t === 'all' ? 'Все темы' : t;
+                return `<button class="topic-btn ${active}" data-topic="${t}">${label} <span class="count">${count}</span></button>`;
+            }).join('');
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            const filtered = getFilteredQuestions();
+
+            document.getElementById('visibleCount').textContent = filtered.length;
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="no-questions">Нет вопросов, соответствующих выбранным фильтрам.</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map((q, idx) => {
+                const isSingle = q.type === 'Единственный выбор';
+                const anySelected = q.options.some(o => o.user === true);
+                const allCorrect = q.options.every(o => o.correct === o.user);
+                let statusClass = 'unanswered';
+                let statusText = 'Без ответа';
+                if (anySelected && allCorrect) { statusClass = 'correct';
+                    statusText = '✅ Верно'; } else if (anySelected && !allCorrect) { statusClass = 'wrong';
+                    statusText = '❌ Неверно'; }
+
+                const optionsHtml = q.options.map((o, oi) => {
+                    let cls = 'option';
+                    if (!isSingle) cls += ' multiple';
+                    if (o.user) cls += ' selected';
+
+                    if (isChecked) {
+                        if (o.correct) cls += ' correct-reveal';
+                        if (o.user && !o.correct) cls += ' wrong-reveal';
+                        if (o.correct && !o.user) cls += ' correct-reveal';
+                    }
+
+                    let badge = '';
+                    if (isChecked) {
+                        if (o.correct && o.user) {
+                            badge = `<span class="badge badge-correct">✓ верно</span>`;
+                        } else if (o.correct && !o.user) {
+                            badge = `<span class="badge badge-correct">✓ правильный</span>`;
+                        } else if (!o.correct && o.user) {
+                            badge = `<span class="badge badge-wrong">✗ ваш выбор</span>`;
+                        }
+                    } else {
+                        if (o.user) {
+                            badge = `<span class="badge badge-selected">выбрано</span>`;
+                        }
+                    }
+
+                    const marker = isSingle ? (oi + 1) : '☐';
+                    return `<div class="${cls}" data-qidx="${idx}" data-optidx="${oi}">
+                                <div class="marker">${marker}</div>
+                                <div class="text">${o.text}</div>
+                                ${badge}
+                            </div>`;
+                }).join('');
+
+                const displayNum = filtered.indexOf(q) + 1;
+
+                return `<div class="question-card">
+                            <div class="question-header">
+                                <span class="q-number">Вопрос ${displayNum}</span>
+                                <span class="q-topic">${q.topic}</span>
+                                <span class="q-type">${q.type}</span>
+                                <span class="q-status ${statusClass}">${statusText}</span>
+                            </div>
+                            <div class="q-text">${q.question}</div>
+                            <div class="options">${optionsHtml}</div>
+                        </div>`;
+            }).join('');
+
+            document.querySelectorAll('.option').forEach(el => {
+                el.addEventListener('click', onOptionClick);
+            });
+        }
+
+        function onOptionClick(e) {
+            if (isChecked) return;
+
+            const el = e.currentTarget;
+            const qIdx = parseInt(el.dataset.qidx);
+            const optIdx = parseInt(el.dataset.optidx);
+            const question = getFilteredQuestions()[qIdx];
+            if (!question) return;
+
+            const isSingle = question.type === 'Единственный выбор';
+
+            if (isSingle) {
+                question.options.forEach((o, i) => {
+                    o.user = (i === optIdx);
+                });
+            } else {
+                question.options[optIdx].user = !question.options[optIdx].user;
+            }
+
+            renderQuestions();
+            updateStats();
+            document.getElementById('resultSummary').style.display = 'none';
+            isChecked = false;
+        }
+
+        function checkAnswers() {
+            isChecked = true;
+            let total = questions.length;
+            let correct = 0,
+                wrong = 0,
+                unanswered = 0;
+            questions.forEach(q => {
+                const anySelected = q.options.some(o => o.user === true);
+                const allCorrect = q.options.every(o => o.correct === o.user);
+                if (!anySelected) unanswered++;
+                else if (allCorrect) correct++;
+                else wrong++;
+            });
+
+            document.getElementById('resultCorrect').textContent = correct;
+            document.getElementById('resultTotal').textContent = total;
+            document.getElementById('resultPercent').textContent = Math.round((correct / total) * 100);
+            document.getElementById('resultCorrectCount').textContent = correct;
+            document.getElementById('resultWrongCount').textContent = wrong;
+            document.getElementById('resultUnansweredCount').textContent = unanswered;
+            document.getElementById('resultSummary').style.display = 'flex';
+
+            renderQuestions();
+            updateStats();
+        }
+
+        function resetAll() {
+            questions.forEach(q => {
+                q.options.forEach(o => o.user = false);
+            });
+            isChecked = false;
+            document.getElementById('resultSummary').style.display = 'none';
+            renderQuestions();
+            updateStats();
+        }
+
+        function showCorrect() {
+            isChecked = true;
+            renderQuestions();
+            document.getElementById('resultSummary').style.display = 'none';
+        }
+
+        function newSample() {
+            questions = getRandomQuestions(55);
+            currentTopic = 'all';
+            currentFilter = 'all';
+            isChecked = false;
+            document.getElementById('resultSummary').style.display = 'none';
+            document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
+            document.querySelector('.topic-btn[data-topic="all"]')?.classList.add('active');
+            document.getElementById('filterStatus').value = 'all';
+            renderTopicNav();
+            renderQuestions();
+            updateStats();
+        }
+
+        function applyFilter() {
+            currentFilter = document.getElementById('filterStatus').value;
+            renderQuestions();
+            updateStats();
+        }
+
+        function setupTopicNav() {
+            document.getElementById('topicNav').addEventListener('click', (e) => {
+                const btn = e.target.closest('.topic-btn');
+                if (!btn) return;
+                currentTopic = btn.dataset.topic;
+                document.querySelectorAll('.topic-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                renderQuestions();
+                updateStats();
+                document.getElementById('resultSummary').style.display = 'none';
+                isChecked = false;
+            });
+        }
+
+        function init() {
+            renderTopicNav();
+            renderQuestions();
+            updateStats();
+
+            document.getElementById('filterStatus').addEventListener('change', applyFilter);
+            document.getElementById('checkBtn').addEventListener('click', checkAnswers);
+            document.getElementById('resetBtn').addEventListener('click', resetAll);
+            document.getElementById('showCorrectBtn').addEventListener('click', showCorrect);
+            document.getElementById('newSetBtn').addEventListener('click', newSample);
+
+            setupTopicNav();
+
+            document.querySelector('.topic-btn[data-topic="all"]')?.classList.add('active');
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
