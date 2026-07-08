@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Лучший инкассатор 2026 – судейская панель</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, 'Segoe UI', Roboto, sans-serif; }
+        body { background: #f0f4f8; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            background: linear-gradient(135deg, #1e3a5f, #0f2b44);
+            color: white;
+            padding: 20px;
+            border-radius: 28px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .title-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        .title-logo {
+            height: 60px;
+            width: auto;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+            background: rgba(255,255,255,0.1);
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+        .header h1 { font-size: 1.8rem; line-height: 1.2; }
+        .header p { opacity: 0.9; font-size: 1rem; }
+        .team-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 16px 0 8px;
+        }
+        .team-selector select {
+            padding: 8px 16px;
+            border-radius: 40px;
+            border: none;
+            font-size: 1rem;
+            background: white;
+            color: #1e293b;
+            cursor: pointer;
+            min-width: 200px;
+        }
+        .team-selector label {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .header-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+        .header-actions button {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.9rem;
+        }
+        .header-actions button:hover { background: rgba(255,255,255,0.35); }
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+        .tab-btn {
+            background: #e2e8f0;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            color: #1e293b;
+            transition: 0.2s;
+        }
+        .tab-btn.active { background: #1e3a5f; color: white; }
+        .tab-pane { display: none; animation: fadeIn 0.3s ease; }
+        .tab-pane.active-pane { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .section {
+            background: white;
+            border-radius: 28px;
+            padding: 24px 20px;
+            margin-bottom: 32px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.05);
+        }
+        .section h2 {
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+            color: #0f2b44;
+            border-left: 6px solid #dc2626;
+            padding-left: 18px;
+        }
+        .section h3 {
+            font-size: 1.2rem;
+            margin: 16px 0 10px;
+            color: #1e3a5f;
+        }
+        .table-wrapper { overflow-x: auto; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 10px 6px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th { background: #f8fafc; font-weight: 700; }
+        .rank-1 { background-color: #ffd966 !important; font-weight: bold; }
+        .rank-2 { background-color: #e0e0e0 !important; font-weight: bold; }
+        .rank-3 { background-color: #f7d9b5 !important; font-weight: bold; }
+        .medal-icon { font-size: 1.2rem; margin-right: 4px; }
+        .place-number { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
+        .subnote { margin-top: 12px; font-size: 0.75rem; color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 10px; text-align: right; }
+        .penalty-block {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 20px;
+            border: 1px solid #e2e8f0;
+        }
+        .penalty-block .row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
+        }
+        .penalty-block label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        .penalty-block input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; }
+        .penalty-block input[type="number"] {
+            width: 60px;
+            padding: 4px 6px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        .calc-row {
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .calc-row label { font-weight: 600; }
+        .calc-row input[type="number"] {
+            width: 120px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+        }
+        .calc-row button {
+            background: #1e3a5f;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .calc-row button:hover { background: #0f2b44; }
+        .result {
+            margin-top: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0f2b44;
+        }
+        .result span { background: #e2e8f0; padding: 4px 12px; border-radius: 20px; }
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 12px 0;
+        }
+        .action-buttons button {
+            padding: 8px 18px;
+            border-radius: 30px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .btn-save { background: #1e3a5f; color: white; }
+        .btn-save:hover { background: #0f2b44; }
+        .btn-reset { background: #f97316; color: white; }
+        .btn-reset:hover { background: #ea580c; }
+        .btn-print { background: #2c5f2d; color: white; }
+        .btn-print:hover { background: #1f4a20; }
+        .btn-excel { background: #1e6f3f; color: white; }
+        .btn-excel:hover { background: #0f5a33; }
+        .btn-overall { background: #1e4a6f; color: white; }
+        .btn-overall:hover { background: #143a55; }
+        .unsaved-badge {
+            background: #fef3c7;
+            color: #b45309;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .summary-bar {
+            background: #f1f5f9;
+            border-radius: 20px;
+            padding: 14px;
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            font-weight: 600;
+        }
+        .status-ok { background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 30px; display: inline-block; }
+        .status-error { background: #fee2e2; color: #991b1b; padding: 4px 12px; border-radius: 30px; display: inline-block; }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #5c6f87;
+            font-size: 0.75rem;
+        }
+        @media (max-width: 700px) {
+            th, td { padding: 6px 4px; font-size: 0.8rem; }
+            .section h2 { font-size: 1.3rem; }
+            .tab-btn { padding: 8px 16px; font-size: 0.9rem; }
+            .title-logo { height: 40px; }
+            .header h1 { font-size: 1.4rem; }
+            .penalty-block .row { gap: 6px; }
+            .action-buttons button { width: 100%; }
+        }
+        @media print {
+            body { background: white; padding: 0; margin: 0; }
+            .container { max-width: 100%; padding: 10px; }
+            .header { background: #1e3a5f !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; border-radius: 0; margin-bottom: 15px; }
+            .header-actions, .tabs, .tab-btn, .action-buttons, .penalty-block, .calc-row, .team-selector { display: none !important; }
+            .tab-pane { display: none !important; }
+            .tab-pane.active-pane { display: block !important; }
+            .section { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; padding: 15px; border-radius: 8px; }
+            .rank-1, .rank-2, .rank-3 { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .print-report-area { display: block !important; }
+        }
+        .print-report-area { display: none; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="title-wrapper">
+            <img src="https://raw.githubusercontent.com/vserosinkas-star/Sorev/main/sheet.png" alt="Эмблема" class="title-logo" loading="lazy" onerror="this.style.display='none'">
+            <h1>Конкурс «Лучший по профессии 2026»<br>Номинация «Лучший инкассатор»</h1>
+        </div>
+        <p>Финальный этап – г. Уфа, 07–09 октября 2026</p>
+        <div class="team-selector">
+            <label for="teamSelect">🏦 Территориальный банк:</label>
+            <select id="teamSelect">
+                <option value="">-- выбрать --</option>
+                <option value="УБ">Уральский (УБ)</option>
+                <option value="ДВБ">Дальневосточный (ДВБ)</option>
+                <option value="ББ">Байкальский (ББ)</option>
+                <option value="МРД">ПЦП МРД ЦУНДО (МРД)</option>
+                <option value="ЦЧБ">Центрально-Черноземный (ЦЧБ)</option>
+                <option value="ЮЗБ">Юго-Западный (ЮЗБ)</option>
+                <option value="ПВБ">Поволжский (ПВБ)</option>
+                <option value="СИБ">Сибирский (СИБ)</option>
+                <option value="СРБ">Среднерусский (СРБ)</option>
+                <option value="СЗБ">Северо-Западный (СЗБ)</option>
+                <option value="ВВБ">Волго-Вятский (ВВБ)</option>
+            </select>
+        </div>
+        <div class="header-actions">
+            <button class="btn-print" id="printTeamReportBtn">🖨️ Отчёт по команде</button>
+            <button class="btn-overall" id="printOverallReportBtn">📋 Итоговый протокол</button>
+            <button class="btn-excel" id="exportExcelBtn">📊 Выгрузить в Excel</button>
+        </div>
+    </div>
+
+    <div class="tabs" id="tabsContainer">
+        <button class="tab-btn active" data-tab="special">📘 Спецподготовка</button>
+        <button class="tab-btn" data-tab="fire">🔫 Огневая</button>
+        <button class="tab-btn" data-tab="physical">💪 Физподготовка</button>
+        <button class="tab-btn" data-tab="estafeta">🚛 Эстафета</button>
+        <button class="tab-btn" data-tab="business">🧠 Деловая игра</button>
+        <button class="tab-btn" data-tab="results">🏆 Итоги</button>
+    </div>
+
+    <!-- Панели дисциплин будут вставлены скриптом динамически -->
+    <div id="panelsContainer"></div>
+
+    <footer class="footer">
+        © Сбербанк, Центр управления наличным денежным обращением, Департамент безопасности<br>
+        Финальный этап конкурса «Лучший инкассатор 2026» – г. Уфа, 07–09 октября
+    </footer>
+</div>
+
+<div id="printReportContainer" class="print-report-area"></div>
+
+<script>
+(function() {
+    // ===== КОНФИГУРАЦИЯ =====
+    const DISCIPLINES = ['special', 'fire', 'physical', 'estafeta', 'business'];
+    const DISCIPLINE_LABELS = {
+        special: 'Специальная подготовка',
+        fire: 'Огневая подготовка',
+        physical: 'Специальная физическая подготовка',
+        estafeta: 'Инкассаторская эстафета',
+        business: 'Деловая игра'
+    };
+    const TEAM_CODES = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
+    const TEAM_NAMES = {
+        "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","МРД":"Московский",
+        "ЦЧБ":"Центрально-Черноземный","ЮЗБ":"Юго-Западный","ПВБ":"Поволжский",
+        "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
+    };
+
+    // ===== БИБЛИОТЕКИ ШТРАФОВ ПО ДИСЦИПЛИНАМ =====
+    const penaltiesLibrary = {
+        special: [
+            { id: "spec_test_error", desc: "Ошибка в тесте (каждая)", sec: 5, isCounter: true, maxCount: 10 },
+            { id: "spec_practice_error", desc: "Неправильное выполнение практического упражнения", sec: 10 },
+            { id: "spec_time_over", desc: "Превышение времени (10 мин) – +20 сек за каждые 10 сек перебора", sec: 20, isCounter: true, maxCount: 10 }
+        ],
+        fire: [
+            { id: "fire_miss", desc: "Промах (мишень не поражена)", sec: 5, isCounter: true, maxCount: 7 },
+            { id: "fire_danger", desc: "Нарушение безопасного направления оружия", sec: 10 },
+            { id: "fire_late", desc: "Несвоевременное извлечение оружия", sec: 3 },
+            { id: "fire_mag_empty", desc: "Неполное снаряжение магазина", sec: 2, isCounter: true, maxCount: 8 }
+        ],
+        physical: [
+            { id: "phys_dips", desc: "Ошибка при отжиманиях на брусьях (каждая)", sec: 2, isCounter: true, maxCount: 20 },
+            { id: "phys_squat", desc: "Ошибка при приседаниях (каждая)", sec: 2, isCounter: true, maxCount: 20 },
+            { id: "phys_abs", desc: "Ошибка при упражнении «пресс» (каждая)", sec: 2, isCounter: true, maxCount: 20 },
+            { id: "phys_run_fall", desc: "Падение во время бега", sec: 5 },
+            { id: "phys_selfdef", desc: "Неправильное выполнение приёма самообороны (каждый)", sec: 5, isCounter: true, maxCount: 5 }
+        ],
+        estafeta: [
+            // Все 55 пунктов из Приложения 7
+            { id: "e1", desc: "участник не одел бронежилет", sec: 180 },
+            { id: "e2", desc: "участник не получил документы", sec: 10 },
+            { id: "e3", desc: "участник не получил СК (c ИК-ключа желтого цвета)", sec: 10 },
+            { id: "e4", desc: "не проведена проверка СК / не открыт СК / не имитация открытия", sec: 10, per: "за каждое" },
+            { id: "e5", desc: "участник не получил радиостанцию", sec: 10 },
+            { id: "e6", desc: "участник не проверил радиостанцию", sec: 10 },
+            { id: "e7", desc: "участник не получил ИВР", sec: 10 },
+            { id: "e8", desc: "участник не получил ключ для перекодирования", sec: 10 },
+            { id: "e9", desc: "участник не получил ТСД/радиотерминал", sec: 10 },
+            { id: "e10", desc: "некорректное обращение с пистолетом/патронами (падение, поломка)", sec: 10 },
+            { id: "e11", desc: "не положен пистолет предохранителем вверх", sec: 10 },
+            { id: "e12", desc: "при разборке пистолет не на затворной задержке", sec: 10 },
+            { id: "e13", desc: "не проверена правильность сборки пистолета", sec: 10 },
+            { id: "e14", desc: "не полностью снаряжен/расснаряжен магазин", sec: 10, isCounter: true, maxCount: 8 },
+            { id: "e15", desc: "не разрезана пломба ножницами", sec: 10 },
+            { id: "e16", desc: "не произведено сканирование/имитация сейф-пакета при изъятии", sec: 10 },
+            { id: "e17", desc: "некорректное обращение с сейф-пакетом (порван, уронил)", sec: 10 },
+            { id: "e18", desc: "не открыт с помощью ИК-ключа спецконтейнер", sec: 10 },
+            { id: "e19", desc: "не заложен сейф-пакет в спецконтейнер", sec: 10 },
+            { id: "e20", desc: "при переносе спецконтейнера поддерживается верхняя крышка", sec: 10 },
+            { id: "e21", desc: "оставлен ИК-ключ желтого цвета от спецконтейнера", sec: 10 },
+            { id: "e22", desc: "участник не открыл самостоятельно сейф (пришлось к судье)", sec: 10 },
+            { id: "e23", desc: "не проведена проверка при смене пароля (2 проверки)", sec: 10, isCounter: true, maxCount: 2 },
+            { id: "e24", desc: "некорректно осуществлена смена пароля (выставлен другой код)", sec: 10 },
+            { id: "e25", desc: "не осуществлена смена пароля / применен неверный алгоритм / сломан замок", sec: 30 },
+            { id: "e26", desc: "замок оставлен открытым / не сбит лимб", sec: 10 },
+            { id: "e27", desc: "не осуществлен поиск и устранение замятия в BRM модуле", sec: 30, isCounter: true, maxCount: 3 },
+            { id: "e28", desc: "не корректное устранение замятия (нарушение Памятки 404)", sec: 30, isCounter: true, maxCount: 3 },
+            { id: "e29", desc: "извлеченные купюры не уложены в сейф-пакет", sec: 10 },
+            { id: "e30", desc: "сейф-пакет не заклеен", sec: 10 },
+            { id: "e31", desc: "не отсканирован сейф-пакет", sec: 10 },
+            { id: "e32", desc: "сейф-пакет не убран в спецконтейнер", sec: 10 },
+            { id: "e33", desc: "не осуществлена посадка в СТС через заднюю дверь", sec: 10 },
+            { id: "e34", desc: "при переносе спецконтейнера поддерживается крышка", sec: 10 },
+            { id: "e35", desc: "не открыт ИК-ключом спецконтейнер", sec: 10 },
+            { id: "e36", desc: "в СТС не выложены два сейф-пакета из спецконтейнера", sec: 10, isCounter: true, maxCount: 2 },
+            { id: "e37", desc: "в СТС не заложены два сейф-пакета в накопитель", sec: 10, isCounter: true, maxCount: 2 },
+            { id: "e38", desc: "в СТС из накопителя не взят другой сейф-пакет", sec: 10 },
+            { id: "e39", desc: "в СТС сейф-пакет не уложен в спецконтейнер", sec: 10 },
+            { id: "e40", desc: "спецконтейнер не закрыт", sec: 10 },
+            { id: "e41", desc: "в СТС не закрыта дверь накопителя", sec: 10 },
+            { id: "e42", desc: "не закрыта дверь СТС", sec: 10 },
+            { id: "e43", desc: "при переносе спецконтейнера поддерживается крышка", sec: 10 },
+            { id: "e44", desc: "не открыт ИК-ключом спецконтейнер (КП)", sec: 10 },
+            { id: "e45", desc: "не произведено сканирование/имитация при вложении в тележку (КП)", sec: 10 },
+            { id: "e46", desc: "не вложен сейф-пакет в тележку (КП)", sec: 10 },
+            { id: "e47", desc: "не закрыта тележка с сейф-пакетом одноразовой пломбой", sec: 10 },
+            { id: "e48", desc: "не оставлен СК с закрытой крышкой и ИК-ключи", sec: 10 },
+            { id: "e49", desc: "не полностью фиксирован / соскальзывание турникета", sec: 10 },
+            { id: "e50", desc: "не зафиксировано время наложения турникета", sec: 10 },
+            { id: "e51", desc: "не выполнено упражнение медицина на партнере (пульсометр)", sec: 10 },
+            { id: "e52", desc: "перенос мешков с мелочью двумя руками", sec: 10, isCounter: true, maxCount: 6 },
+            { id: "e53", desc: "некорректное обращение с мешком (уронил, кинул)", sec: 10, isCounter: true, maxCount: 6 },
+            { id: "e54", desc: "некорректное обращение с имуществом/ценностями", sec: 10, isCounter: true, maxCount: 5 },
+            { id: "e55", desc: "не выполнение (пропуск) любого упражнения", sec: 180, isCounter: true, maxCount: 5 }
+        ],
+        business: [
+            { id: "biz_time_over", desc: "Превышение времени выступления", sec: 10 },
+            { id: "biz_incomplete", desc: "Неполное раскрытие темы", sec: 15 },
+            { id: "biz_interrupt", desc: "Нарушение регламента (перебивание, выход за рамки)", sec: 5, isCounter: true, maxCount: 5 },
+            { id: "biz_refuse", desc: "Отказ от участия в обсуждении", sec: 20 }
+        ]
+    };
+
+    // ===== ГЛОБАЛЬНОЕ СОСТОЯНИЕ =====
+    let teamsData = {};  // { teamCode: { participant1Name, participant2Name, disciplines: { special: { rawSeconds, penalties }, ... } } }
+    let currentTeam = null;
+    let currentDiscipline = 'special';
+    let tempPenalties = {};  // временные изменения штрафов для текущей дисциплины и команды
+    let unsaved = false;
+
+    // DOM
+    const teamSelect = document.getElementById('teamSelect');
+    const panelsContainer = document.getElementById('panelsContainer');
+    const tabsContainer = document.getElementById('tabsContainer');
+
+    // ===== ХЕЛПЕРЫ =====
+    function formatTime(sec) {
+        if (sec === null || isNaN(sec)) return "—";
+        let m = Math.floor(sec / 60);
+        let s = (sec % 60).toFixed(2);
+        return `${m}:${s.toString().padStart(5, '0')}`;
+    }
+
+    function parseTime(str) {
+        if (!str.trim()) return null;
+        let parts = str.split(':');
+        let m = 0, s = 0;
+        if (parts.length === 2) { m = parseInt(parts[0]); s = parseFloat(parts[1]); }
+        else if (parts.length === 3) { m = parseInt(parts[0])*60 + parseInt(parts[1]); s = parseFloat(parts[2]); }
+        else if (parts.length === 1) { s = parseFloat(parts[0]); }
+        else return null;
+        if (isNaN(m) || isNaN(s)) return null;
+        return m * 60 + s;
+    }
+
+    function getPenaltySum(penObj) {
+        let sum = 0;
+        for (let id in penObj) {
+            const val = penObj[id];
+            const p = penaltiesLibrary[currentDiscipline]?.find(p => p.id === id);
+            if (p) {
+                if (typeof val === 'number' && p.isCounter) sum += val * p.sec;
+                else if (val === true || val === 1) sum += p.sec;
+                else if (typeof val === 'number') sum += val * p.sec;
+            }
+        }
+        return sum;
+    }
+
+    function getCounterValue(penObj, counterId) {
+        const val = penObj[counterId];
+        if (typeof val === 'number') return val;
+        if (val === true) return 1;
+        return 0;
+    }
+
+    function setCounterValue(penObj, counterId, value) {
+        if (value <= 0) delete penObj[counterId];
+        else penObj[counterId] = value;
+    }
+
+    function getTeamDisciplineData(teamCode, discipline) {
+        if (!teamsData[teamCode]) {
+            teamsData[teamCode] = { participant1Name: "", participant2Name: "", disciplines: {} };
+        }
+        if (!teamsData[teamCode].disciplines[discipline]) {
+            teamsData[teamCode].disciplines[discipline] = { rawSeconds: null, penalties: {} };
+        }
+        return teamsData[teamCode].disciplines[discipline];
+    }
+
+    function getTeamNames(teamCode) {
+        if (!teamsData[teamCode]) return { p1: "", p2: "" };
+        return { p1: teamsData[teamCode].participant1Name || "", p2: teamsData[teamCode].participant2Name || "" };
+    }
+
+    function setTeamNames(teamCode, p1, p2) {
+        if (!teamsData[teamCode]) teamsData[teamCode] = { participant1Name: "", participant2Name: "", disciplines: {} };
+        teamsData[teamCode].participant1Name = p1;
+        teamsData[teamCode].participant2Name = p2;
+        saveAllData();
+    }
+
+    // ===== ЗАГРУЗКА / СОХРАНЕНИЕ ДАННЫХ (localStorage) =====
+    function loadAllData() {
+        const stored = localStorage.getItem('incassator_all_data');
+        if (stored) {
+            try { teamsData = JSON.parse(stored); } catch(e) { teamsData = {}; }
+        }
+        // Инициализация отсутствующих команд и дисциплин
+        for (let code of TEAM_CODES) {
+            if (!teamsData[code]) teamsData[code] = { participant1Name: "", participant2Name: "", disciplines: {} };
+            for (let d of DISCIPLINES) {
+                if (!teamsData[code].disciplines[d]) teamsData[code].disciplines[d] = { rawSeconds: null, penalties: {} };
+            }
+        }
+    }
+
+    function saveAllData() {
+        localStorage.setItem('incassator_all_data', JSON.stringify(teamsData));
+    }
+
+    // ===== ПОСТРОЕНИЕ UI ДЛЯ ВКЛАДКИ =====
+    function buildPanel(discipline) {
+        const label = DISCIPLINE_LABELS[discipline] || discipline;
+        const penalties = penaltiesLibrary[discipline] || [];
+        const isEstafeta = discipline === 'estafeta';
+        let html = `<div id="panel-${discipline}" class="tab-pane">`;
+        html += `<div class="section">`;
+        html += `<h2>${label}</h2>`;
+        html += `<div class="table-wrapper"><table id="overallTable-${discipline}"><thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Участник 2</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead><tbody id="overallBody-${discipline}"><tr><td colspan="7">Загрузка...</td></tr></tbody></table></div>`;
+
+        html += `<div class="penalty-block" id="penaltyBlock-${discipline}">`;
+        html += `<h3>⚖️ Штрафные секунды</h3>`;
+        html += `<div class="row"><label>Чистое время команды (мм:сс.сс): <input type="text" id="rawTime-${discipline}" placeholder="например 14:39.57"></label>`;
+        html += `<button class="btn-save" id="saveRawTime-${discipline}">Сохранить время</button></div>`;
+
+        // Поля для имён участников
+        html += `<div class="row" style="margin-top:10px;"><label>Участник 1 (ФИО): <input type="text" id="p1name-${discipline}" placeholder="ФИО первого"></label>`;
+        html += `<label>Участник 2 (ФИО): <input type="text" id="p2name-${discipline}" placeholder="ФИО второго"></label></div>`;
+
+        // Список штрафов
+        html += `<div id="penaltiesList-${discipline}" style="margin-top:12px;">`;
+        for (let p of penalties) {
+            const isCounter = p.isCounter === true;
+            if (isCounter) {
+                html += `<div class="row"><label>${p.desc} – +${p.sec} сек (макс. ${p.maxCount||10})</label>`;
+                html += `<div class="counter-control" style="display:flex; align-items:center; gap:4px; background:white; border-radius:40px; padding:2px 10px; border:1px solid #ccc;">`;
+                html += `<button class="counter-dec" data-id="${p.id}" data-disc="${discipline}">−</button>`;
+                html += `<span class="counter-count" data-id="${p.id}" data-disc="${discipline}">0</span>`;
+                html += `<button class="counter-inc" data-id="${p.id}" data-disc="${discipline}">+</button>`;
+                html += `</div><span style="font-size:0.75rem; margin-left:6px;">Штраф: <span class="counter-total" data-id="${p.id}">0</span> сек</span></div>`;
+            } else {
+                html += `<div class="row"><input type="checkbox" class="penalty-chk" data-id="${p.id}" data-disc="${discipline}">`;
+                html += `<label>${p.desc} – +${p.sec} сек</label></div>`;
+            }
+        }
+        html += `</div>`;
+
+        html += `<div class="action-buttons">`;
+        html += `<button class="btn-save" id="saveStage-${discipline}">💾 Сохранить ошибки этапа</button>`;
+        html += `<button class="btn-reset" id="resetStage-${discipline}">🗑️ Сбросить этап</button>`;
+        html += `</div>`;
+
+        html += `<div class="summary-bar">`;
+        html += `<span>Штраф: <span id="penaltySum-${discipline}">0</span> сек</span>`;
+        html += `<span>Чистое время: <span id="rawDisplay-${discipline}">—</span></span>`;
+        html += `<span>Итого команды: <strong id="totalDisplay-${discipline}">—</strong></span>`;
+        html += `</div>`;
+        html += `</div>`;
+        html += `</div></div>`;
+        return html;
+    }
+
+    function buildPanels() {
+        let html = '';
+        for (let d of DISCIPLINES) {
+            html += buildPanel(d);
+        }
+        // Вкладка Итоги (отдельно)
+        html += `<div id="panel-results" class="tab-pane">`;
+        html += `<div class="section"><h2>🏆 Итоговый протокол (сумма мест по 5 дисциплинам)</h2>`;
+        html += `<div class="table-wrapper"><table><thead><tr><th>Итоговое место</th><th>Команда</th><th>Спецподготовка</th><th>Огневая</th><th>Физподготовка</th><th>Эстафета</th><th>Деловая игра</th><th>Сумма мест</th></tr></thead><tbody id="resultsOverallBody"><tr><td colspan="8">Загрузка...</td></tr></tbody></table></div>`;
+        html += `<div class="subnote">* При равных суммах мест преимущество у участника с лучшим местом в эстафете, затем – в огневой подготовке.</div>`;
+        html += `</div></div>`;
+        panelsContainer.innerHTML = html;
+    }
+
+    // ===== ОБНОВЛЕНИЕ UI ДЛЯ ТЕКУЩЕЙ ДИСЦИПЛИНЫ И КОМАНДЫ =====
+    function refreshUI() {
+        if (!currentTeam || !currentDiscipline) {
+            // скрыть всё или показать пустые
+            return;
+        }
+        const disc = currentDiscipline;
+        const team = teamsData[currentTeam];
+        if (!team) return;
+        const discData = getTeamDisciplineData(currentTeam, disc);
+        const penObj = discData.penalties || {};
+
+        // Имена
+        const p1 = document.getElementById(`p1name-${disc}`);
+        const p2 = document.getElementById(`p2name-${disc}`);
+        if (p1) p1.value = team.participant1Name || "";
+        if (p2) p2.value = team.participant2Name || "";
+
+        // Время
+        const rawInput = document.getElementById(`rawTime-${disc}`);
+        if (rawInput) rawInput.value = discData.rawSeconds !== null ? formatTime(discData.rawSeconds) : "";
+
+        // Штрафы: загружаем в tempPenalties
+        tempPenalties = {};
+        const disciplinePenalties = penaltiesLibrary[disc] || [];
+        for (let p of disciplinePenalties) {
+            if (penObj[p.id] !== undefined) tempPenalties[p.id] = penObj[p.id];
+        }
+        unsaved = false;
+
+        // Обновить вид штрафов
+        updatePenaltiesUI(disc);
+        updateSummary(disc);
+        updateStageBadge(disc);
+        renderOverallTable(disc);
+    }
+
+    function updatePenaltiesUI(disc) {
+        const container = document.getElementById(`penaltiesList-${disc}`);
+        if (!container) return;
+        const disciplinePenalties = penaltiesLibrary[disc] || [];
+        for (let p of disciplinePenalties) {
+            if (p.isCounter) {
+                const countSpan = container.querySelector(`.counter-count[data-id="${p.id}"]`);
+                const totalSpan = container.querySelector(`.counter-total[data-id="${p.id}"]`);
+                const val = getCounterValue(tempPenalties, p.id);
+                if (countSpan) countSpan.innerText = val;
+                if (totalSpan) totalSpan.innerText = val * p.sec;
+            } else {
+                const chk = container.querySelector(`.penalty-chk[data-id="${p.id}"]`);
+                if (chk) chk.checked = tempPenalties[p.id] === true;
+            }
+        }
+    }
+
+    function updateSummary(disc) {
+        const sumSpan = document.getElementById(`penaltySum-${disc}`);
+        const rawSpan = document.getElementById(`rawDisplay-${disc}`);
+        const totalSpan = document.getElementById(`totalDisplay-${disc}`);
+        if (!sumSpan || !rawSpan || !totalSpan) return;
+
+        const team = teamsData[currentTeam];
+        if (!team) { sumSpan.innerText = '0'; rawSpan.innerText = '—'; totalSpan.innerText = '—'; return; }
+        const discData = getTeamDisciplineData(currentTeam, disc);
+        const raw = discData.rawSeconds;
+        // Сумма штрафов: постоянные + временные
+        let merged = { ...discData.penalties };
+        const discPen = penaltiesLibrary[disc] || [];
+        for (let p of discPen) delete merged[p.id];
+        for (let id in tempPenalties) merged[id] = tempPenalties[id];
+        const penSum = getPenaltySum(merged);
+        const total = raw !== null ? raw + penSum : null;
+
+        sumSpan.innerText = penSum;
+        rawSpan.innerText = raw !== null ? formatTime(raw) : '—';
+        totalSpan.innerText = total !== null ? formatTime(total) : '—';
+    }
+
+    function updateStageBadge(disc) {
+        const block = document.getElementById(`penaltyBlock-${disc}`);
+        if (!block) return;
+        let badge = block.querySelector('.unsaved-badge');
+        if (unsaved && currentTeam) {
+            if (!badge) {
+                badge = document.createElement('span');
+                badge.className = 'unsaved-badge';
+                badge.innerText = '⚠️ есть изменения';
+                block.querySelector('.action-buttons')?.appendChild(badge);
+            }
+        } else if (badge) badge.remove();
+    }
+
+    // ===== ТАБЛИЦА ОБЩЕГО ЗАЧЁТА ПО ДИСЦИПЛИНЕ =====
+    function renderOverallTable(disc) {
+        const tbody = document.getElementById(`overallBody-${disc}`);
+        if (!tbody) return;
+        let rows = [];
+        for (let code of TEAM_CODES) {
+            const team = teamsData[code];
+            if (!team) continue;
+            const discData = getTeamDisciplineData(code, disc);
+            const raw = discData.rawSeconds;
+            const pen = getPenaltySum(discData.penalties);
+            const total = raw !== null ? raw + pen : null;
+            const names = getTeamNames(code);
+            rows.push({
+                code,
+                name: TEAM_NAMES[code] || code,
+                p1: names.p1 || "—",
+                p2: names.p2 || "—",
+                raw,
+                pen,
+                total
+            });
+        }
+        rows.sort((a,b) => (a.total ?? Infinity) - (b.total ?? Infinity));
+        let rank = 1;
+        let html = '';
+        for (let r of rows) {
+            const place = r.total !== null ? rank++ : '—';
+            let cls = '';
+            if (r.total !== null && rank-1 === 1) cls = 'rank-1';
+            else if (r.total !== null && rank-1 === 2) cls = 'rank-2';
+            else if (r.total !== null && rank-1 === 3) cls = 'rank-3';
+            const placeHtml = (r.total !== null && parseInt(place) <= 3) ?
+                `<span class="place-number"><span class="medal-icon">${place===1?'🥇':place===2?'🥈':'🥉'}</span> ${place}</span>` :
+                place;
+            html += `<tr class="${cls}"><td>${placeHtml}</td><td><strong>${r.name}</strong> (${r.code})</td><td>${r.p1}</td><td>${r.p2}</td><td>${r.raw !== null ? formatTime(r.raw) : '—'}</td><td>${r.pen}</td><td><strong>${r.total !== null ? formatTime(r.total) : '—'}</strong></td></tr>`;
+        }
+        if (!rows.length || rows.every(r => r.total === null)) html = '<tr><td colspan="7">Нет данных. Внесите результаты.</td></tr>';
+        tbody.innerHTML = html;
+    }
+
+    // ===== ОБНОВЛЕНИЕ ВКЛАДКИ ИТОГИ =====
+    function renderOverallResults() {
+        const tbody = document.getElementById('resultsOverallBody');
+        if (!tbody) return;
+        // Для каждой команды считаем сумму мест по каждой дисциплине
+        let summary = [];
+        for (let code of TEAM_CODES) {
+            const team = teamsData[code];
+            if (!team) continue;
+            let places = {};
+            let totalSum = 0;
+            let hasData = false;
+            for (let d of DISCIPLINES) {
+                const discData = getTeamDisciplineData(code, d);
+                const raw = discData.rawSeconds;
+                const pen = getPenaltySum(discData.penalties);
+                const total = raw !== null ? raw + pen : null;
+                // Вычисляем место среди всех команд для этой дисциплины
+                let place = 12; // по умолчанию
+                if (total !== null) {
+                    // Собираем все тоталы по этой дисциплине
+                    let totals = [];
+                    for (let c of TEAM_CODES) {
+                        const dData = getTeamDisciplineData(c, d);
+                        const r = dData.rawSeconds;
+                        const p = getPenaltySum(dData.penalties);
+                        const t = r !== null ? r + p : null;
+                        if (t !== null) totals.push({ code: c, total: t });
+                    }
+                    totals.sort((a,b) => a.total - b.total);
+                    let rank = 1;
+                    for (let item of totals) {
+                        if (item.code === code) { place = rank; break; }
+                        rank++;
+                    }
+                    hasData = true;
+                }
+                places[d] = place;
+                totalSum += place;
+            }
+            if (hasData) {
+                summary.push({
+                    code,
+                    name: TEAM_NAMES[code] || code,
+                    places,
+                    totalSum,
+                    // для разрешения споров: места в эстафете и огневой
+                    estafetaPlace: places.estafeta || 12,
+                    firePlace: places.fire || 12
+                });
+            }
+        }
+        // Сортировка: по сумме мест, затем по эстафете, затем по огневой
+        summary.sort((a,b) => {
+            if (a.totalSum !== b.totalSum) return a.totalSum - b.totalSum;
+            if (a.estafetaPlace !== b.estafetaPlace) return a.estafetaPlace - b.estafetaPlace;
+            return a.firePlace - b.firePlace;
+        });
+
+        let rank = 1;
+        let html = '';
+        for (let s of summary) {
+            const place = rank++;
+            let cls = '';
+            if (place === 1) cls = 'rank-1';
+            else if (place === 2) cls = 'rank-2';
+            else if (place === 3) cls = 'rank-3';
+            const placeHtml = place <= 3 ? `<span class="place-number"><span class="medal-icon">${place===1?'🥇':place===2?'🥈':'🥉'}</span> ${place}</span>` : place;
+            html += `<tr class="${cls}"><td>${placeHtml}</td><td><strong>${s.name}</strong> (${s.code})</td>`;
+            for (let d of DISCIPLINES) {
+                html += `<td>${s.places[d] || '—'}</td>`;
+            }
+            html += `<td><strong>${s.totalSum}</strong></td></tr>`;
+        }
+        if (!summary.length) html = '<tr><td colspan="8">Нет данных.</td></tr>';
+        tbody.innerHTML = html;
+    }
+
+    // ===== СОХРАНЕНИЕ ШТРАФОВ ЭТАПА =====
+    function saveStage(disc) {
+        if (!currentTeam) { alert('Выберите команду'); return; }
+        const discData = getTeamDisciplineData(currentTeam, disc);
+        // Сохраняем tempPenalties в постоянные
+        const disciplinePenalties = penaltiesLibrary[disc] || [];
+        for (let p of disciplinePenalties) {
+            if (tempPenalties[p.id] !== undefined) discData.penalties[p.id] = tempPenalties[p.id];
+            else delete discData.penalties[p.id];
+        }
+        unsaved = false;
+        saveAllData();
+        updateStageBadge(disc);
+        updateSummary(disc);
+        renderOverallTable(disc);
+        renderOverallResults();
+        alert('Ошибки этапа сохранены для команды ' + currentTeam);
+    }
+
+    function resetStage(disc) {
+        if (!currentTeam) return;
+        const disciplinePenalties = penaltiesLibrary[disc] || [];
+        for (let p of disciplinePenalties) {
+            delete tempPenalties[p.id];
+        }
+        unsaved = false;
+        updatePenaltiesUI(disc);
+        updateSummary(disc);
+        updateStageBadge(disc);
+    }
+
+    function saveRawTime(disc) {
+        if (!currentTeam) { alert('Выберите команду'); return; }
+        const rawInput = document.getElementById(`rawTime-${disc}`);
+        const rawStr = rawInput.value.trim();
+        let seconds = rawStr === "" ? null : parseTime(rawStr);
+        if (rawStr !== "" && seconds === null) { alert('Неверный формат времени (мм:сс.сс)'); return; }
+        const discData = getTeamDisciplineData(currentTeam, disc);
+        discData.rawSeconds = seconds;
+        saveAllData();
+        updateSummary(disc);
+        renderOverallTable(disc);
+        renderOverallResults();
+        alert('Время сохранено');
+    }
+
+    function saveNames(disc) {
+        if (!currentTeam) return;
+        const p1 = document.getElementById(`p1name-${disc}`);
+        const p2 = document.getElementById(`p2name-${disc}`);
+        if (p1) setTeamNames(currentTeam, p1.value, p2 ? p2.value : "");
+        renderOverallTable(disc);
+        renderOverallResults();
+    }
+
+    // ===== ПЕЧАТЬ ОТЧЁТОВ =====
+    function printTeamReport() {
+        if (!currentTeam) { alert('Выберите команду'); return; }
+        const disc = currentDiscipline;
+        const team = teamsData[currentTeam];
+        if (!team) return;
+        const discData = getTeamDisciplineData(currentTeam, disc);
+        const penObj = discData.penalties || {};
+        const raw = discData.rawSeconds;
+        const penSum = getPenaltySum(penObj);
+        const total = raw !== null ? raw + penSum : null;
+
+        // Собираем список нарушений с расшифровкой
+        let violations = [];
+        for (let id in penObj) {
+            const val = penObj[id];
+            const p = penaltiesLibrary[disc]?.find(p => p.id === id);
+            if (p) {
+                if (p.isCounter && typeof val === 'number' && val > 0) {
+                    for (let i=0; i<val; i++) violations.push({ desc: p.desc + ` (${i+1}-й раз)`, sec: p.sec });
+                } else if (val === true || val === 1) violations.push({ desc: p.desc, sec: p.sec });
+                else if (typeof val === 'number' && val > 0 && !p.isCounter) {
+                    for (let i=0; i<val; i++) violations.push({ desc: p.desc + ` (${i+1}-й раз)`, sec: p.sec });
+                }
+            }
+        }
+        const now = new Date().toLocaleString('ru-RU');
+        let tableRows = violations.length ? violations.map(v => `<tr><td>${v.desc}</td><td>+${v.sec}</td></tr>`).join('') : '<tr><td colspan="2">✅ Штрафные нарушения отсутствуют</td></tr>';
+
+        const html = `
+            <div style="font-family: 'Segoe UI', sans-serif; max-width: 1000px; margin:0 auto; padding:20px;">
+                <h1 style="text-align:center;">🏁 ОТЧЕТ О ПРОХОЖДЕНИИ</h1>
+                <h2 style="text-align:center;">${DISCIPLINE_LABELS[disc]}</h2>
+                <div style="text-align:center; color:#2c3e66; margin-bottom:20px;">Дата формирования: ${now}</div>
+                <div style="background:#f8fafc; padding:16px; border-radius:16px; margin-bottom:20px;">
+                    <div><strong>Команда:</strong> ${TEAM_NAMES[currentTeam]} (${currentTeam})</div>
+                    <div><strong>Участник 1:</strong> ${team.participant1Name || '—'}</div>
+                    <div><strong>Участник 2:</strong> ${team.participant2Name || '—'}</div>
+                    <div><strong>Чистое время:</strong> ${raw !== null ? formatTime(raw) : '—'}</div>
+                    <div><strong>Общий штраф:</strong> ${penSum} сек</div>
+                    <div><strong>Итоговое время:</strong> ${total !== null ? formatTime(total) : '—'}</div>
+                </div>
+                <h3>📋 Детализация нарушений</h3>
+                <table style="width:100%; border-collapse:collapse; margin-top:8px;">
+                    <thead><tr style="background:#e2e8f0;"><th style="padding:6px; text-align:left;">Нарушение</th><th style="padding:6px; width:100px;">Штраф (сек)</th></tr></thead>
+                    <tbody>${tableRows}</tbody>
+                </table>
+                <div style="margin-top:40px; border-top:1px dashed #aaa; padding-top:20px;">
+                    <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px;">
+                        <div><strong>Представитель команды:</strong> __________________</div>
+                        <div><strong>Главный судья:</strong> __________________</div>
+                    </div>
+                    <div style="margin-top:16px; display:flex; justify-content:flex-end;">
+                        <div><strong>Дата:</strong> __________________</div>
+                    </div>
+                    <div style="margin-top:20px; font-size:10px; color:#4b5563; text-align:center;">Подпись представителя команды подтверждает согласие с результатами.</div>
+                </div>
+                <div style="margin-top:30px; font-size:9pt; text-align:center; color:#6c757d;">Официальный протокол дисциплины "${DISCIPLINE_LABELS[disc]}"</div>
+            </div>
+        `;
+        const container = document.getElementById('printReportContainer');
+        container.innerHTML = html;
+        container.style.display = 'block';
+        window.print();
+        container.style.display = 'none';
+        container.innerHTML = '';
+    }
+
+    function printOverallReport() {
+        const disc = currentDiscipline;
+        // Собрать данные по всем командам
+        let rows = [];
+        for (let code of TEAM_CODES) {
+            const team = teamsData[code];
+            if (!team) continue;
+            const discData = getTeamDisciplineData(code, disc);
+            const raw = discData.rawSeconds;
+            const pen = getPenaltySum(discData.penalties);
+            const total = raw !== null ? raw + pen : null;
+            const names = getTeamNames(code);
+            rows.push({
+                code,
+                name: TEAM_NAMES[code] || code,
+                p1: names.p1 || "—",
+                p2: names.p2 || "—",
+                raw,
+                pen,
+                total
+            });
+        }
+        rows.sort((a,b) => (a.total ?? Infinity) - (b.total ?? Infinity));
+        let rank = 1;
+        let tableRows = '';
+        for (let r of rows) {
+            const place = r.total !== null ? rank++ : '—';
+            tableRows += `<tr><td>${place}</td><td><strong>${r.name}</strong> (${r.code})</td><td>${r.p1}</td><td>${r.p2}</td><td>${r.raw !== null ? formatTime(r.raw) : '—'}</td><td>${r.pen}</td><td><strong>${r.total !== null ? formatTime(r.total) : '—'}</strong></td></tr>`;
+        }
+        if (!rows.length || rows.every(r => r.total === null)) tableRows = '<tr><td colspan="7">Нет данных</td></tr>';
+
+        const now = new Date().toLocaleString('ru-RU');
+        const html = `
+            <div style="font-family: 'Segoe UI', sans-serif; max-width: 1100px; margin:0 auto; padding:5mm 4mm;">
+                <style>@page { size: A4 portrait; margin: 8mm 6mm; }</style>
+                <h1 style="text-align:center; font-size:14pt;">🏆 ИТОГОВЫЙ ПРОТОКОЛ</h1>
+                <h2 style="text-align:center; font-size:12pt; color:#1e3a5f;">${DISCIPLINE_LABELS[disc]}</h2>
+                <div style="text-align:center; font-size:8.5pt; margin-bottom:8px;">Дата формирования: ${now}</div>
+                <table style="width:100%; border-collapse:collapse; font-size:8.5pt;">
+                    <thead><tr style="background:#eef;"><th>Место</th><th>Команда</th><th>Участник 1</th><th>Участник 2</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead>
+                    <tbody>${tableRows}</tbody>
+                </table>
+                <div style="margin-top:16px; border-top:1px dashed #aaa; padding-top:10px;">
+                    <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px;">
+                        <div><strong>Главный судья:</strong> __________________</div>
+                        <div><strong>Секретарь:</strong> __________________</div>
+                    </div>
+                    <div style="margin-top:10px; display:flex; justify-content:flex-end;">
+                        <div><strong>Дата:</strong> __________________</div>
+                    </div>
+                    <div style="margin-top:10px; font-size:8pt; text-align:center; color:#6c757d;">Официальный протокол</div>
+                </div>
+            </div>
+        `;
+        const container = document.getElementById('printReportContainer');
+        container.innerHTML = html;
+        container.style.display = 'block';
+        window.print();
+        container.style.display = 'none';
+        container.innerHTML = '';
+    }
+
+    // ===== ЭКСПОРТ В EXCEL =====
+    function exportExcel() {
+        const disc = currentDiscipline;
+        let rows = [];
+        for (let code of TEAM_CODES) {
+            const team = teamsData[code];
+            if (!team) continue;
+            const discData = getTeamDisciplineData(code, disc);
+            const raw = discData.rawSeconds;
+            const pen = getPenaltySum(discData.penalties);
+            const total = raw !== null ? raw + pen : null;
+            const names = getTeamNames(code);
+            rows.push({
+                "Команда": `${TEAM_NAMES[code]} (${code})`,
+                "Участник 1": names.p1 || "—",
+                "Участник 2": names.p2 || "—",
+                "Чистое время": raw !== null ? formatTime(raw) : "—",
+                "Штраф (сек)": pen,
+                "Итог": total !== null ? formatTime(total) : "—"
+            });
+        }
+        rows.sort((a,b) => {
+            const tA = a["Итог"] === "—" ? Infinity : parseTime(a["Итог"]);
+            const tB = b["Итог"] === "—" ? Infinity : parseTime(b["Итог"]);
+            return tA - tB;
+        });
+        const wsData = [["Место", ...Object.keys(rows[0] || {})]];
+        rows.forEach((row, idx) => {
+            const place = row["Итог"] !== "—" ? idx+1 : "—";
+            wsData.push([place, ...Object.values(row)]);
+        });
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, DISCIPLINE_LABELS[disc]);
+        XLSX.writeFile(wb, `incassator_${disc}_${new Date().toISOString().slice(0,10)}.xlsx`);
+    }
+
+    // ===== ИНИЦИАЛИЗАЦИЯ =====
+    function init() {
+        loadAllData();
+        buildPanels();
+
+        // Переключение вкладок
+        const tabBtns = tabsContainer.querySelectorAll('.tab-btn');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                const tabId = this.getAttribute('data-tab');
+                tabBtns.forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active-pane'));
+                const panel = document.getElementById(`panel-${tabId}`);
+                if (panel) panel.classList.add('active-pane');
+                if (tabId === 'results') {
+                    renderOverallResults();
+                } else {
+                    currentDiscipline = tabId;
+                    if (currentTeam) {
+                        refreshUI();
+                    } else {
+                        // показать пустые
+                    }
+                }
+            });
+        });
+        // Активировать первую вкладку
+        document.querySelector('.tab-btn[data-tab="special"]').click();
+
+        // Выбор команды
+        teamSelect.addEventListener('change', function() {
+            currentTeam = this.value || null;
+            if (currentTeam) {
+                // Загрузить данные для текущей дисциплины
+                refreshUI();
+                // также обновить итоги
+                renderOverallResults();
+            } else {
+                // очистить UI
+                document.querySelectorAll('.tab-pane .section').forEach(s => {
+                    const disc = s.closest('.tab-pane')?.id.replace('panel-', '');
+                    if (disc && DISCIPLINES.includes(disc)) {
+                        const summary = document.getElementById(`summary-${disc}`);
+                        if (summary) summary.innerHTML = '';
+                    }
+                });
+            }
+        });
+
+        // Навесить обработчики на кнопки в панелях (делегирование)
+        panelsContainer.addEventListener('click', function(e) {
+            const target = e.target;
+            const disc = target.getAttribute('data-disc') || target.closest('.tab-pane')?.id.replace('panel-', '');
+            if (!disc || !DISCIPLINES.includes(disc)) return;
+
+            if (target.id === `saveStage-${disc}`) { saveStage(disc); return; }
+            if (target.id === `resetStage-${disc}`) { resetStage(disc); return; }
+            if (target.id === `saveRawTime-${disc}`) { saveRawTime(disc); return; }
+
+            if (target.classList.contains('counter-inc') || target.classList.contains('counter-dec')) {
+                const id = target.getAttribute('data-id');
+                const discAttr = target.getAttribute('data-disc');
+                if (!id || discAttr !== disc) return;
+                const p = penaltiesLibrary[disc]?.find(p => p.id === id);
+                if (!p || !p.isCounter) return;
+                const delta = target.classList.contains('counter-inc') ? 1 : -1;
+                const max = p.maxCount || 10;
+                let val = getCounterValue(tempPenalties, id) + delta;
+                val = Math.min(max, Math.max(0, val));
+                setCounterValue(tempPenalties, id, val);
+                unsaved = true;
+                updatePenaltiesUI(disc);
+                updateSummary(disc);
+                updateStageBadge(disc);
+                return;
+            }
+
+            if (target.classList.contains('penalty-chk')) {
+                const id = target.getAttribute('data-id');
+                const discAttr = target.getAttribute('data-disc');
+                if (!id || discAttr !== disc) return;
+                if (target.checked) tempPenalties[id] = true;
+                else delete tempPenalties[id];
+                unsaved = true;
+                updateSummary(disc);
+                updateStageBadge(disc);
+                return;
+            }
+        });
+
+        // Изменение имён участников
+        panelsContainer.addEventListener('change', function(e) {
+            const target = e.target;
+            if (target.id && target.id.startsWith('p1name-') || target.id.startsWith('p2name-')) {
+                const disc = target.id.replace('p1name-', '').replace('p2name-', '');
+                if (DISCIPLINES.includes(disc)) {
+                    saveNames(disc);
+                }
+            }
+        });
+
+        // Глобальные кнопки
+        document.getElementById('printTeamReportBtn').addEventListener('click', printTeamReport);
+        document.getElementById('printOverallReportBtn').addEventListener('click', printOverallReport);
+        document.getElementById('exportExcelBtn').addEventListener('click', exportExcel);
+
+        // При загрузке, если есть сохранённая команда, выбрать её
+        if (teamSelect.value) {
+            currentTeam = teamSelect.value;
+            refreshUI();
+            renderOverallResults();
+        }
+        // Первоначальный рендер итогов
+        renderOverallResults();
+    }
+
+    // Запуск
+    document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+</body>
+</html>
