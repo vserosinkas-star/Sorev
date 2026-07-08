@@ -427,10 +427,10 @@
     };
 
     // ===== ГЛОБАЛЬНОЕ СОСТОЯНИЕ =====
-    let teamsData = {};  // { teamCode: { participant1Name, participant2Name, disciplines: { special: { rawSeconds, penalties }, ... } } }
+    let teamsData = {};
     let currentTeam = null;
     let currentDiscipline = 'special';
-    let tempPenalties = {};  // временные изменения штрафов для текущей дисциплины и команды
+    let tempPenalties = {};
     let unsaved = false;
 
     // DOM
@@ -458,11 +458,12 @@
         return m * 60 + s;
     }
 
-    function getPenaltySum(penObj) {
+    function getPenaltySum(penObj, disc) {
         let sum = 0;
+        const lib = penaltiesLibrary[disc] || [];
         for (let id in penObj) {
             const val = penObj[id];
-            const p = penaltiesLibrary[currentDiscipline]?.find(p => p.id === id);
+            const p = lib.find(p => p.id === id);
             if (p) {
                 if (typeof val === 'number' && p.isCounter) sum += val * p.sec;
                 else if (val === true || val === 1) sum += p.sec;
@@ -512,7 +513,6 @@
         if (stored) {
             try { teamsData = JSON.parse(stored); } catch(e) { teamsData = {}; }
         }
-        // Инициализация отсутствующих команд и дисциплин
         for (let code of TEAM_CODES) {
             if (!teamsData[code]) teamsData[code] = { participant1Name: "", participant2Name: "", disciplines: {} };
             for (let d of DISCIPLINES) {
@@ -529,7 +529,6 @@
     function buildPanel(discipline) {
         const label = DISCIPLINE_LABELS[discipline] || discipline;
         const penalties = penaltiesLibrary[discipline] || [];
-        const isEstafeta = discipline === 'estafeta';
         let html = `<div id="panel-${discipline}" class="tab-pane">`;
         html += `<div class="section">`;
         html += `<h2>${label}</h2>`;
@@ -540,11 +539,9 @@
         html += `<div class="row"><label>Чистое время команды (мм:сс.сс): <input type="text" id="rawTime-${discipline}" placeholder="например 14:39.57"></label>`;
         html += `<button class="btn-save" id="saveRawTime-${discipline}">Сохранить время</button></div>`;
 
-        // Поля для имён участников
         html += `<div class="row" style="margin-top:10px;"><label>Участник 1 (ФИО): <input type="text" id="p1name-${discipline}" placeholder="ФИО первого"></label>`;
         html += `<label>Участник 2 (ФИО): <input type="text" id="p2name-${discipline}" placeholder="ФИО второго"></label></div>`;
 
-        // Список штрафов
         html += `<div id="penaltiesList-${discipline}" style="margin-top:12px;">`;
         for (let p of penalties) {
             const isCounter = p.isCounter === true;
@@ -582,7 +579,7 @@
         for (let d of DISCIPLINES) {
             html += buildPanel(d);
         }
-        // Вкладка Итоги (отдельно)
+        // Вкладка Итоги
         html += `<div id="panel-results" class="tab-pane">`;
         html += `<div class="section"><h2>🏆 Итоговый протокол (сумма мест по 5 дисциплинам)</h2>`;
         html += `<div class="table-wrapper"><table><thead><tr><th>Итоговое место</th><th>Команда</th><th>Спецподготовка</th><th>Огневая</th><th>Физподготовка</th><th>Эстафета</th><th>Деловая игра</th><th>Сумма мест</th></tr></thead><tbody id="resultsOverallBody"><tr><td colspan="8">Загрузка...</td></tr></tbody></table></div>`;
@@ -593,10 +590,7 @@
 
     // ===== ОБНОВЛЕНИЕ UI ДЛЯ ТЕКУЩЕЙ ДИСЦИПЛИНЫ И КОМАНДЫ =====
     function refreshUI() {
-        if (!currentTeam || !currentDiscipline) {
-            // скрыть всё или показать пустые
-            return;
-        }
+        if (!currentTeam || !currentDiscipline) return;
         const disc = currentDiscipline;
         const team = teamsData[currentTeam];
         if (!team) return;
@@ -661,7 +655,7 @@
         const discPen = penaltiesLibrary[disc] || [];
         for (let p of discPen) delete merged[p.id];
         for (let id in tempPenalties) merged[id] = tempPenalties[id];
-        const penSum = getPenaltySum(merged);
+        const penSum = getPenaltySum(merged, disc);
         const total = raw !== null ? raw + penSum : null;
 
         sumSpan.innerText = penSum;
@@ -693,7 +687,7 @@
             if (!team) continue;
             const discData = getTeamDisciplineData(code, disc);
             const raw = discData.rawSeconds;
-            const pen = getPenaltySum(discData.penalties);
+            const pen = getPenaltySum(discData.penalties, disc);
             const total = raw !== null ? raw + pen : null;
             const names = getTeamNames(code);
             rows.push({
@@ -728,7 +722,6 @@
     function renderOverallResults() {
         const tbody = document.getElementById('resultsOverallBody');
         if (!tbody) return;
-        // Для каждой команды считаем сумму мест по каждой дисциплине
         let summary = [];
         for (let code of TEAM_CODES) {
             const team = teamsData[code];
@@ -739,17 +732,15 @@
             for (let d of DISCIPLINES) {
                 const discData = getTeamDisciplineData(code, d);
                 const raw = discData.rawSeconds;
-                const pen = getPenaltySum(discData.penalties);
+                const pen = getPenaltySum(discData.penalties, d);
                 const total = raw !== null ? raw + pen : null;
-                // Вычисляем место среди всех команд для этой дисциплины
-                let place = 12; // по умолчанию
+                let place = 12;
                 if (total !== null) {
-                    // Собираем все тоталы по этой дисциплине
                     let totals = [];
                     for (let c of TEAM_CODES) {
                         const dData = getTeamDisciplineData(c, d);
                         const r = dData.rawSeconds;
-                        const p = getPenaltySum(dData.penalties);
+                        const p = getPenaltySum(dData.penalties, d);
                         const t = r !== null ? r + p : null;
                         if (t !== null) totals.push({ code: c, total: t });
                     }
@@ -770,13 +761,11 @@
                     name: TEAM_NAMES[code] || code,
                     places,
                     totalSum,
-                    // для разрешения споров: места в эстафете и огневой
                     estafetaPlace: places.estafeta || 12,
                     firePlace: places.fire || 12
                 });
             }
         }
-        // Сортировка: по сумме мест, затем по эстафете, затем по огневой
         summary.sort((a,b) => {
             if (a.totalSum !== b.totalSum) return a.totalSum - b.totalSum;
             if (a.estafetaPlace !== b.estafetaPlace) return a.estafetaPlace - b.estafetaPlace;
@@ -802,11 +791,10 @@
         tbody.innerHTML = html;
     }
 
-    // ===== СОХРАНЕНИЕ ШТРАФОВ ЭТАПА =====
+    // ===== ОБРАБОТЧИКИ СОХРАНЕНИЯ =====
     function saveStage(disc) {
         if (!currentTeam) { alert('Выберите команду'); return; }
         const discData = getTeamDisciplineData(currentTeam, disc);
-        // Сохраняем tempPenalties в постоянные
         const disciplinePenalties = penaltiesLibrary[disc] || [];
         for (let p of disciplinePenalties) {
             if (tempPenalties[p.id] !== undefined) discData.penalties[p.id] = tempPenalties[p.id];
@@ -857,7 +845,7 @@
         renderOverallResults();
     }
 
-    // ===== ПЕЧАТЬ ОТЧЁТОВ =====
+    // ===== ПЕЧАТЬ =====
     function printTeamReport() {
         if (!currentTeam) { alert('Выберите команду'); return; }
         const disc = currentDiscipline;
@@ -866,10 +854,9 @@
         const discData = getTeamDisciplineData(currentTeam, disc);
         const penObj = discData.penalties || {};
         const raw = discData.rawSeconds;
-        const penSum = getPenaltySum(penObj);
+        const penSum = getPenaltySum(penObj, disc);
         const total = raw !== null ? raw + penSum : null;
 
-        // Собираем список нарушений с расшифровкой
         let violations = [];
         for (let id in penObj) {
             const val = penObj[id];
@@ -927,14 +914,13 @@
 
     function printOverallReport() {
         const disc = currentDiscipline;
-        // Собрать данные по всем командам
         let rows = [];
         for (let code of TEAM_CODES) {
             const team = teamsData[code];
             if (!team) continue;
             const discData = getTeamDisciplineData(code, disc);
             const raw = discData.rawSeconds;
-            const pen = getPenaltySum(discData.penalties);
+            const pen = getPenaltySum(discData.penalties, disc);
             const total = raw !== null ? raw + pen : null;
             const names = getTeamNames(code);
             rows.push({
@@ -996,7 +982,7 @@
             if (!team) continue;
             const discData = getTeamDisciplineData(code, disc);
             const raw = discData.rawSeconds;
-            const pen = getPenaltySum(discData.penalties);
+            const pen = getPenaltySum(discData.penalties, disc);
             const total = raw !== null ? raw + pen : null;
             const names = getTeamNames(code);
             rows.push({
@@ -1024,10 +1010,89 @@
         XLSX.writeFile(wb, `incassator_${disc}_${new Date().toISOString().slice(0,10)}.xlsx`);
     }
 
+    // ===== ПРИВЯЗКА ОБРАБОТЧИКОВ К ЭЛЕМЕНТАМ =====
+    function attachEventListenersForDiscipline(disc) {
+        const saveStageBtn = document.getElementById(`saveStage-${disc}`);
+        if (saveStageBtn) saveStageBtn.addEventListener('click', () => saveStage(disc));
+
+        const resetStageBtn = document.getElementById(`resetStage-${disc}`);
+        if (resetStageBtn) resetStageBtn.addEventListener('click', () => resetStage(disc));
+
+        const saveRawBtn = document.getElementById(`saveRawTime-${disc}`);
+        if (saveRawBtn) saveRawBtn.addEventListener('click', () => saveRawTime(disc));
+
+        const rawInput = document.getElementById(`rawTime-${disc}`);
+        if (rawInput) rawInput.addEventListener('change', () => saveRawTime(disc));
+
+        const p1 = document.getElementById(`p1name-${disc}`);
+        const p2 = document.getElementById(`p2name-${disc}`);
+        if (p1) p1.addEventListener('change', () => saveNames(disc));
+        if (p2) p2.addEventListener('change', () => saveNames(disc));
+
+        // Обработчики для счётчиков и чекбоксов
+        const container = document.getElementById(`penaltiesList-${disc}`);
+        if (container) {
+            container.querySelectorAll('.counter-inc').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = this.getAttribute('data-id');
+                    const discAttr = this.getAttribute('data-disc');
+                    if (discAttr !== disc) return;
+                    const p = penaltiesLibrary[disc]?.find(p => p.id === id);
+                    if (!p || !p.isCounter) return;
+                    const max = p.maxCount || 10;
+                    let val = getCounterValue(tempPenalties, id) + 1;
+                    if (val > max) val = max;
+                    setCounterValue(tempPenalties, id, val);
+                    unsaved = true;
+                    updatePenaltiesUI(disc);
+                    updateSummary(disc);
+                    updateStageBadge(disc);
+                });
+            });
+            container.querySelectorAll('.counter-dec').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const id = this.getAttribute('data-id');
+                    const discAttr = this.getAttribute('data-disc');
+                    if (discAttr !== disc) return;
+                    const p = penaltiesLibrary[disc]?.find(p => p.id === id);
+                    if (!p || !p.isCounter) return;
+                    let val = getCounterValue(tempPenalties, id) - 1;
+                    if (val < 0) val = 0;
+                    setCounterValue(tempPenalties, id, val);
+                    unsaved = true;
+                    updatePenaltiesUI(disc);
+                    updateSummary(disc);
+                    updateStageBadge(disc);
+                });
+            });
+            container.querySelectorAll('.penalty-chk').forEach(chk => {
+                chk.addEventListener('change', function() {
+                    const id = this.getAttribute('data-id');
+                    const discAttr = this.getAttribute('data-disc');
+                    if (discAttr !== disc) return;
+                    if (this.checked) tempPenalties[id] = true;
+                    else delete tempPenalties[id];
+                    unsaved = true;
+                    updateSummary(disc);
+                    updateStageBadge(disc);
+                });
+            });
+        }
+    }
+
+    function attachAllEventListeners() {
+        for (let d of DISCIPLINES) {
+            attachEventListenersForDiscipline(d);
+        }
+    }
+
     // ===== ИНИЦИАЛИЗАЦИЯ =====
     function init() {
         loadAllData();
         buildPanels();
+        attachAllEventListeners();
 
         // Переключение вкладок
         const tabBtns = tabsContainer.querySelectorAll('.tab-btn');
@@ -1045,8 +1110,6 @@
                     currentDiscipline = tabId;
                     if (currentTeam) {
                         refreshUI();
-                    } else {
-                        // показать пустые
                     }
                 }
             });
@@ -1058,71 +1121,19 @@
         teamSelect.addEventListener('change', function() {
             currentTeam = this.value || null;
             if (currentTeam) {
-                // Загрузить данные для текущей дисциплины
                 refreshUI();
-                // также обновить итоги
                 renderOverallResults();
             } else {
                 // очистить UI
-                document.querySelectorAll('.tab-pane .section').forEach(s => {
-                    const disc = s.closest('.tab-pane')?.id.replace('panel-', '');
-                    if (disc && DISCIPLINES.includes(disc)) {
-                        const summary = document.getElementById(`summary-${disc}`);
-                        if (summary) summary.innerHTML = '';
-                    }
-                });
-            }
-        });
-
-        // Навесить обработчики на кнопки в панелях (делегирование)
-        panelsContainer.addEventListener('click', function(e) {
-            const target = e.target;
-            const disc = target.getAttribute('data-disc') || target.closest('.tab-pane')?.id.replace('panel-', '');
-            if (!disc || !DISCIPLINES.includes(disc)) return;
-
-            if (target.id === `saveStage-${disc}`) { saveStage(disc); return; }
-            if (target.id === `resetStage-${disc}`) { resetStage(disc); return; }
-            if (target.id === `saveRawTime-${disc}`) { saveRawTime(disc); return; }
-
-            if (target.classList.contains('counter-inc') || target.classList.contains('counter-dec')) {
-                const id = target.getAttribute('data-id');
-                const discAttr = target.getAttribute('data-disc');
-                if (!id || discAttr !== disc) return;
-                const p = penaltiesLibrary[disc]?.find(p => p.id === id);
-                if (!p || !p.isCounter) return;
-                const delta = target.classList.contains('counter-inc') ? 1 : -1;
-                const max = p.maxCount || 10;
-                let val = getCounterValue(tempPenalties, id) + delta;
-                val = Math.min(max, Math.max(0, val));
-                setCounterValue(tempPenalties, id, val);
-                unsaved = true;
-                updatePenaltiesUI(disc);
-                updateSummary(disc);
-                updateStageBadge(disc);
-                return;
-            }
-
-            if (target.classList.contains('penalty-chk')) {
-                const id = target.getAttribute('data-id');
-                const discAttr = target.getAttribute('data-disc');
-                if (!id || discAttr !== disc) return;
-                if (target.checked) tempPenalties[id] = true;
-                else delete tempPenalties[id];
-                unsaved = true;
-                updateSummary(disc);
-                updateStageBadge(disc);
-                return;
-            }
-        });
-
-        // Изменение имён участников
-        panelsContainer.addEventListener('change', function(e) {
-            const target = e.target;
-            if (target.id && target.id.startsWith('p1name-') || target.id.startsWith('p2name-')) {
-                const disc = target.id.replace('p1name-', '').replace('p2name-', '');
-                if (DISCIPLINES.includes(disc)) {
-                    saveNames(disc);
+                for (let d of DISCIPLINES) {
+                    const sumSpan = document.getElementById(`penaltySum-${d}`);
+                    if (sumSpan) sumSpan.innerText = '0';
+                    const rawSpan = document.getElementById(`rawDisplay-${d}`);
+                    if (rawSpan) rawSpan.innerText = '—';
+                    const totalSpan = document.getElementById(`totalDisplay-${d}`);
+                    if (totalSpan) totalSpan.innerText = '—';
                 }
+                renderOverallResults();
             }
         });
 
@@ -1131,17 +1142,15 @@
         document.getElementById('printOverallReportBtn').addEventListener('click', printOverallReport);
         document.getElementById('exportExcelBtn').addEventListener('click', exportExcel);
 
-        // При загрузке, если есть сохранённая команда, выбрать её
+        // Если команда уже выбрана в селекте, загрузить данные
         if (teamSelect.value) {
             currentTeam = teamSelect.value;
             refreshUI();
             renderOverallResults();
         }
-        // Первоначальный рендер итогов
         renderOverallResults();
     }
 
-    // Запуск
     document.addEventListener('DOMContentLoaded', init);
 })();
 </script>
