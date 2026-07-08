@@ -230,8 +230,6 @@
             color: #5c6f87;
             font-size: 0.75rem;
         }
-
-        /* ===== НОВЫЕ СТИЛИ ДЛЯ ВРЕМЕНИ И СЧЁТЧИКА ===== */
         .time-row {
             display: flex;
             flex-direction: column;
@@ -266,8 +264,6 @@
             font-weight: 400;
             font-size: 0.95rem;
         }
-
-        /* Счётчик */
         .counter-control {
             display: inline-flex;
             align-items: center;
@@ -317,12 +313,6 @@
             color: #334155;
             margin-left: 8px;
         }
-        /* Для компактного отображения штрафа рядом со счётчиком */
-        .penalty-card .counter-penalty-label {
-            font-size: 0.85rem;
-            font-weight: 500;
-        }
-
         @media (max-width: 700px) {
             th, td { padding: 6px 4px; font-size: 0.8rem; }
             .section h2 { font-size: 1.3rem; }
@@ -421,7 +411,144 @@
         "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
     };
 
-    // ===== БИБЛИОТЕКИ ШТРАФОВ (без изменений) =====
+    // ===== ЭТАПЫ И ШТРАФЫ ДЛЯ ЭСТАФЕТЫ =====
+    const ESTAFETA_STAGES = [
+        {
+            id: 'vr',
+            label: 'VR-тренажер',
+            penalties: [
+                { id: 'vr_not_done', desc: 'Не выполнено упражнение «VR-тренажер»', sec: 180 }
+            ]
+        },
+        {
+            id: 'barrier',
+            label: 'Барьер',
+            penalties: [
+                { id: 'barrier_not_done', desc: 'Не выполнено упражнение «Барьер»', sec: 180 }
+            ]
+        },
+        {
+            id: 'equip',
+            label: 'Бронежилет. Получение имущества',
+            penalties: [
+                { id: 'e_no_armor', desc: 'участник не одел бронежилет', sec: 180 },
+                { id: 'e_no_docs', desc: 'участник не получил документы', sec: 10 },
+                { id: 'e_no_sk', desc: 'участник не получил СК (c ИК-ключа желтого цвета)', sec: 10 },
+                { id: 'e_sk_check', desc: 'не проведена проверка СК/не открыт СК/не имитация открытия', sec: 10, isCounter: true, maxCount: 3 },
+                { id: 'e_no_radio', desc: 'участник не получил радиостанцию', sec: 10 },
+                { id: 'e_radio_check', desc: 'не проверил радиостанцию (включить и проверить зарядку)', sec: 10 },
+                { id: 'e_no_ivr', desc: 'участник не получил ИВР', sec: 10 },
+                { id: 'e_no_key', desc: 'не получил ключ "кочерга"', sec: 10 },
+                { id: 'e_no_tsd', desc: 'не получил ТСД/радиотерминал', sec: 10 }
+            ]
+        },
+        {
+            id: 'disassembly',
+            label: 'Разборка ПМ/Снаряжение магазинов',
+            penalties: [
+                { id: 'e_gun_mishandle', desc: 'некорректное обращение с пистолетом/патронами (падение, поломка)', sec: 10 },
+                { id: 'e_gun_position', desc: 'не положен пистолет предохранителем вверх', sec: 10 },
+                { id: 'e_gun_slide', desc: 'при разборке не поставлен на затворную задержку', sec: 10 },
+                { id: 'e_gun_assembly', desc: 'не проверена правильность сборки', sec: 10 },
+                { id: 'e_mag_load', desc: 'не полностью снаряжен/расснаряжен магазин', sec: 10, isCounter: true, maxCount: 8 }
+            ]
+        },
+        {
+            id: 'bc_receive',
+            label: 'Получение БЦ (сейф-пакет)',
+            penalties: [
+                { id: 'e_plomb_cut', desc: 'не разрезана пломба ножницами', sec: 10 },
+                { id: 'e_scan_remove', desc: 'не произведено сканирование/имитация при изъятии из тележки', sec: 10 },
+                { id: 'e_packet_damage', desc: 'некорректное обращение с сейф-пакетом (порван, уронил)', sec: 10 },
+                { id: 'e_container_open', desc: 'не открыт с помощью ИК-ключа спецконтейнер', sec: 10 },
+                { id: 'e_packet_place', desc: 'не заложен сейф-пакет в спецконтейнер', sec: 10 },
+                { id: 'e_container_carry', desc: 'при переносе спецконтейнера поддерживается верхняя крышка', sec: 10 },
+                { id: 'e_key_left', desc: 'оставлен ИК-ключ желтого цвета от спецконтейнера', sec: 10 }
+            ]
+        },
+        {
+            id: 'us_service',
+            label: 'Обслуживание УС',
+            penalties: [
+                { id: 'e_us_not_open', desc: 'не открыл самостоятельно сейф (пришлось к судье)', sec: 10 },
+                { id: 'e_us_code_check', desc: 'не проведена проверка при смене пароля (2 проверки)', sec: 10, isCounter: true, maxCount: 2 },
+                { id: 'e_us_code_wrong', desc: 'некорректно осуществлена смена пароля (выставлен другой код)', sec: 10 },
+                { id: 'e_us_code_fail', desc: 'не осуществлена смена пароля / применен неверный алгоритм / сломан замок', sec: 30 },
+                { id: 'e_us_code_open', desc: 'замок оставлен открытым / не сбит лимб', sec: 10 },
+                { id: 'e_us_jam_search', desc: 'не осуществлен поиск и устранение замятия в BRM модуле', sec: 30, isCounter: true, maxCount: 3 },
+                { id: 'e_us_jam_fix', desc: 'не корректное устранение замятия (нарушение Памятки 404)', sec: 30, isCounter: true, maxCount: 3 },
+                { id: 'e_us_cash_not_placed', desc: 'извлеченные купюры не уложены в сейф-пакет', sec: 10 }
+            ]
+        },
+        {
+            id: 'sts',
+            label: 'СТС',
+            penalties: [
+                { id: 'e_sts_scan', desc: 'с помощью ТСД не отсканирован сейф-пакет', sec: 10 },
+                { id: 'e_sts_packet_not_in', desc: 'сейф-пакет не убран в спецконтейнер', sec: 10 },
+                { id: 'e_sts_boarding', desc: 'не осуществлена посадка через заднюю пассажирскую дверь', sec: 10 },
+                { id: 'e_sts_container_carry', desc: 'при переносе спецконтейнера поддерживается верхняя крышка', sec: 10 },
+                { id: 'e_sts_container_open', desc: 'не открыт с помощью ИК-ключа спецконтейнер', sec: 10 },
+                { id: 'e_sts_packets_out', desc: 'в СТС не выложены два сейф-пакета из спецконтейнера', sec: 10, isCounter: true, maxCount: 2 },
+                { id: 'e_sts_packets_in', desc: 'в СТС не заложены два сейф-пакета в накопитель', sec: 10, isCounter: true, maxCount: 2 },
+                { id: 'e_sts_other_packet', desc: 'в СТС из накопителя не взят другой сейф-пакет', sec: 10 },
+                { id: 'e_sts_packet_in_container', desc: 'в СТС сейф-пакет не уложен в спецконтейнер', sec: 10 },
+                { id: 'e_sts_container_closed', desc: 'спецконтейнер не закрыт', sec: 10 },
+                { id: 'e_sts_nakop_door', desc: 'в СТС не закрыта дверь накопителя', sec: 10 },
+                { id: 'e_sts_car_door', desc: 'не осуществлено закрытие двери СТС', sec: 10 }
+            ]
+        },
+        {
+            id: 'kp',
+            label: 'Кассовое подразделение',
+            penalties: [
+                { id: 'e_kp_container_carry', desc: 'при переносе спецконтейнера поддерживается верхняя крышка', sec: 10 },
+                { id: 'e_kp_container_open', desc: 'не открыт с помощью ИК-ключа желтого цвета спецконтейнер (КП)', sec: 10 },
+                { id: 'e_kp_scan', desc: 'не произведено сканирование/имитация при вложении в тележку (КП)', sec: 10 },
+                { id: 'e_kp_packet_place', desc: 'не вложен сейф-пакет в тележку (КП)', sec: 10 },
+                { id: 'e_kp_plomb', desc: 'не закрыта тележка с сейф-пакетом одноразовой пломбой', sec: 10 },
+                { id: 'e_kp_sk_left', desc: 'не оставлен СК с закрытой крышкой и ИК-ключи', sec: 10 }
+            ]
+        },
+        {
+            id: 'med',
+            label: 'Медицина',
+            penalties: [
+                { id: 'e_med_tourniquet_slip', desc: 'не полностью фиксирован / соскальзывание турникета', sec: 10 },
+                { id: 'e_med_time', desc: 'не зафиксировано время наложения турникета', sec: 10 },
+                { id: 'e_med_pulse', desc: 'не выполнено упражнение медицина на партнере (пульсометр)', sec: 10 }
+            ]
+        },
+        {
+            id: 'assembly',
+            label: 'Сборка ПМ/расснаряжение магазинов',
+            penalties: [
+                { id: 'e_gun_mishandle2', desc: 'некорректное обращение с пистолетом/патронами (падение, поломка)', sec: 10 },
+                { id: 'e_gun_position2', desc: 'не положен пистолет предохранителем вверх', sec: 10 },
+                { id: 'e_gun_slide2', desc: 'при разборке не поставлен на затворную задержку', sec: 10 },
+                { id: 'e_gun_assembly2', desc: 'не проверена правильность сборки', sec: 10 },
+                { id: 'e_mag_load2', desc: 'не полностью снаряжен/расснаряжен магазин', sec: 10, isCounter: true, maxCount: 8 }
+            ]
+        },
+        {
+            id: 'hill',
+            label: 'Горка',
+            penalties: [
+                { id: 'hill_not_done', desc: 'Не выполнено упражнение «Горка»', sec: 180 }
+            ]
+        },
+        {
+            id: 'coins',
+            label: 'Мешки с мелочью',
+            penalties: [
+                { id: 'e_coins_two_hands', desc: 'перенос мешков с мелочью двумя руками (помощь второй рукой)', sec: 10, isCounter: true, maxCount: 6 },
+                { id: 'e_coins_drop', desc: 'некорректное обращение с мешком (уронил, кинул)', sec: 10, isCounter: true, maxCount: 6 },
+                { id: 'e_coins_other', desc: 'некорректное обращение с имуществом/банковскими ценностями (уронил, кинул)', sec: 10, isCounter: true, maxCount: 5 }
+            ]
+        }
+    ];
+
+    // ===== БИБЛИОТЕКИ ШТРАФОВ ДЛЯ ОСТАЛЬНЫХ ДИСЦИПЛИН =====
     const penaltiesLibrary = {
         special: {
             practice: [
@@ -446,63 +573,6 @@
             { id: "phys_run_fall", desc: "Падение во время бега", sec: 5 },
             { id: "phys_selfdef", desc: "Неправильное выполнение приёма самообороны (каждый)", sec: 5, isCounter: true, maxCount: 5 }
         ],
-        estafeta: [
-            { id: "e1", desc: "участник не одел бронежилет", sec: 180 },
-            { id: "e2", desc: "участник не получил документы", sec: 10 },
-            { id: "e3", desc: "участник не получил СК (c ИК-ключа желтого цвета)", sec: 10 },
-            { id: "e4", desc: "не проведена проверка СК / не открыт СК / не имитация открытия", sec: 10 },
-            { id: "e5", desc: "участник не получил радиостанцию", sec: 10 },
-            { id: "e6", desc: "участник не проверил радиостанцию", sec: 10 },
-            { id: "e7", desc: "участник не получил ИВР", sec: 10 },
-            { id: "e8", desc: "участник не получил ключ для перекодирования", sec: 10 },
-            { id: "e9", desc: "участник не получил ТСД/радиотерминал", sec: 10 },
-            { id: "e10", desc: "некорректное обращение с пистолетом/патронами (падение, поломка)", sec: 10 },
-            { id: "e11", desc: "не положен пистолет предохранителем вверх", sec: 10 },
-            { id: "e12", desc: "при разборке пистолет не на затворной задержке", sec: 10 },
-            { id: "e13", desc: "не проверена правильность сборки пистолета", sec: 10 },
-            { id: "e14", desc: "не полностью снаряжен/расснаряжен магазин", sec: 10, isCounter: true, maxCount: 8 },
-            { id: "e15", desc: "не разрезана пломба ножницами", sec: 10 },
-            { id: "e16", desc: "не произведено сканирование/имитация сейф-пакета при изъятии", sec: 10 },
-            { id: "e17", desc: "некорректное обращение с сейф-пакетом (порван, уронил)", sec: 10 },
-            { id: "e18", desc: "не открыт с помощью ИК-ключа спецконтейнер", sec: 10 },
-            { id: "e19", desc: "не заложен сейф-пакет в спецконтейнер", sec: 10 },
-            { id: "e20", desc: "при переносе спецконтейнера поддерживается верхняя крышка", sec: 10 },
-            { id: "e21", desc: "оставлен ИК-ключ желтого цвета от спецконтейнера", sec: 10 },
-            { id: "e22", desc: "участник не открыл самостоятельно сейф (пришлось к судье)", sec: 10 },
-            { id: "e23", desc: "не проведена проверка при смене пароля (2 проверки)", sec: 10, isCounter: true, maxCount: 2 },
-            { id: "e24", desc: "некорректно осуществлена смена пароля (выставлен другой код)", sec: 10 },
-            { id: "e25", desc: "не осуществлена смена пароля / применен неверный алгоритм / сломан замок", sec: 30 },
-            { id: "e26", desc: "замок оставлен открытым / не сбит лимб", sec: 10 },
-            { id: "e27", desc: "не осуществлен поиск и устранение замятия в BRM модуле", sec: 30, isCounter: true, maxCount: 3 },
-            { id: "e28", desc: "не корректное устранение замятия (нарушение Памятки 404)", sec: 30, isCounter: true, maxCount: 3 },
-            { id: "e29", desc: "извлеченные купюры не уложены в сейф-пакет", sec: 10 },
-            { id: "e30", desc: "сейф-пакет не заклеен", sec: 10 },
-            { id: "e31", desc: "не отсканирован сейф-пакет", sec: 10 },
-            { id: "e32", desc: "сейф-пакет не убран в спецконтейнер", sec: 10 },
-            { id: "e33", desc: "не осуществлена посадка в СТС через заднюю дверь", sec: 10 },
-            { id: "e34", desc: "при переносе спецконтейнера поддерживается крышка", sec: 10 },
-            { id: "e35", desc: "не открыт ИК-ключом спецконтейнер", sec: 10 },
-            { id: "e36", desc: "в СТС не выложены два сейф-пакета из спецконтейнера", sec: 10, isCounter: true, maxCount: 2 },
-            { id: "e37", desc: "в СТС не заложены два сейф-пакета в накопитель", sec: 10, isCounter: true, maxCount: 2 },
-            { id: "e38", desc: "в СТС из накопителя не взят другой сейф-пакет", sec: 10 },
-            { id: "e39", desc: "в СТС сейф-пакет не уложен в спецконтейнер", sec: 10 },
-            { id: "e40", desc: "спецконтейнер не закрыт", sec: 10 },
-            { id: "e41", desc: "в СТС не закрыта дверь накопителя", sec: 10 },
-            { id: "e42", desc: "не закрыта дверь СТС", sec: 10 },
-            { id: "e43", desc: "при переносе спецконтейнера поддерживается крышка", sec: 10 },
-            { id: "e44", desc: "не открыт ИК-ключом спецконтейнер (КП)", sec: 10 },
-            { id: "e45", desc: "не произведено сканирование/имитация при вложении в тележку (КП)", sec: 10 },
-            { id: "e46", desc: "не вложен сейф-пакет в тележку (КП)", sec: 10 },
-            { id: "e47", desc: "не закрыта тележка с сейф-пакетом одноразовой пломбой", sec: 10 },
-            { id: "e48", desc: "не оставлен СК с закрытой крышкой и ИК-ключи", sec: 10 },
-            { id: "e49", desc: "не полностью фиксирован / соскальзывание турникета", sec: 10 },
-            { id: "e50", desc: "не зафиксировано время наложения турникета", sec: 10 },
-            { id: "e51", desc: "не выполнено упражнение медицина на партнере (пульсометр)", sec: 10 },
-            { id: "e52", desc: "перенос мешков с мелочью двумя руками", sec: 10, isCounter: true, maxCount: 6 },
-            { id: "e53", desc: "некорректное обращение с мешком (уронил, кинул)", sec: 10, isCounter: true, maxCount: 6 },
-            { id: "e54", desc: "некорректное обращение с имуществом/ценностями", sec: 10, isCounter: true, maxCount: 5 },
-            { id: "e55", desc: "не выполнение (пропуск) любого упражнения", sec: 180, isCounter: true, maxCount: 5 }
-        ],
         business: [
             { id: "biz_time_over", desc: "Превышение времени выступления", sec: 10 },
             { id: "biz_incomplete", desc: "Неполное раскрытие темы", sec: 15 },
@@ -515,7 +585,7 @@
     let teamsData = {};
     let currentTeam = null;
     let currentDiscipline = 'special';
-    let tempPenalties = {};
+    let tempPenalties = {}; // { discipline: { stageId: { id: value } } }
     let unsaved = false;
 
     // DOM
@@ -548,6 +618,10 @@
         let lib;
         if (disc === 'special' && stage) {
             lib = penaltiesLibrary.special[stage] || [];
+        } else if (disc === 'estafeta' && stage) {
+            const stageData = ESTAFETA_STAGES.find(s => s.id === stage);
+            if (stageData) lib = stageData.penalties;
+            else return 0;
         } else {
             lib = penaltiesLibrary[disc] || [];
         }
@@ -585,11 +659,34 @@
                     practice: { rawSeconds: null, penalties: {} },
                     test: { rawSeconds: null, penalties: {} }
                 };
+            } else if (discipline === 'estafeta') {
+                const stages = {};
+                for (let s of ESTAFETA_STAGES) {
+                    stages[s.id] = { penalties: {} };
+                }
+                teamsData[teamCode].disciplines[discipline] = {
+                    rawSeconds: null,
+                    stages: stages
+                };
             } else {
                 teamsData[teamCode].disciplines[discipline] = { rawSeconds: null, penalties: {} };
             }
         }
         return teamsData[teamCode].disciplines[discipline];
+    }
+
+    function getEstafetaStageData(teamCode, stageId) {
+        const discData = getTeamDisciplineData(teamCode, 'estafeta');
+        if (!discData.stages) {
+            discData.stages = {};
+            for (let s of ESTAFETA_STAGES) {
+                discData.stages[s.id] = { penalties: {} };
+            }
+        }
+        if (!discData.stages[stageId]) {
+            discData.stages[stageId] = { penalties: {} };
+        }
+        return discData.stages[stageId];
     }
 
     function getSpecialStageData(teamCode, stage) {
@@ -622,6 +719,29 @@
                         if (!teamsData[code].disciplines[d].practice) teamsData[code].disciplines[d].practice = { rawSeconds: null, penalties: {} };
                         if (!teamsData[code].disciplines[d].test) teamsData[code].disciplines[d].test = { rawSeconds: null, penalties: {} };
                     }
+                } else if (d === 'estafeta') {
+                    if (!teamsData[code].disciplines[d]) {
+                        const stages = {};
+                        for (let s of ESTAFETA_STAGES) {
+                            stages[s.id] = { penalties: {} };
+                        }
+                        teamsData[code].disciplines[d] = { rawSeconds: null, stages: stages };
+                    } else {
+                        if (!teamsData[code].disciplines[d].stages) {
+                            const stages = {};
+                            for (let s of ESTAFETA_STAGES) {
+                                stages[s.id] = { penalties: {} };
+                            }
+                            teamsData[code].disciplines[d].stages = stages;
+                        } else {
+                            for (let s of ESTAFETA_STAGES) {
+                                if (!teamsData[code].disciplines[d].stages[s.id]) {
+                                    teamsData[code].disciplines[d].stages[s.id] = { penalties: {} };
+                                }
+                            }
+                        }
+                        if (teamsData[code].disciplines[d].rawSeconds === undefined) teamsData[code].disciplines[d].rawSeconds = null;
+                    }
                 } else {
                     if (!teamsData[code].disciplines[d]) teamsData[code].disciplines[d] = { rawSeconds: null, penalties: {} };
                 }
@@ -631,9 +751,8 @@
 
     // ===== ПОСТРОЕНИЕ UI =====
     function buildPanel(discipline) {
-        if (discipline === 'special') {
-            return buildSpecialPanel();
-        }
+        if (discipline === 'special') return buildSpecialPanel();
+        if (discipline === 'estafeta') return buildEstafetaPanel();
         const label = DISCIPLINE_LABELS[discipline] || discipline;
         const penalties = penaltiesLibrary[discipline] || [];
         let html = `<div id="panel-${discipline}" class="tab-pane">`;
@@ -643,11 +762,7 @@
 
         html += `<div class="penalty-block" id="penaltyBlock-${discipline}">`;
         html += `<h3>⚖️ Штрафные секунды</h3>`;
-        // Новое поле времени
-        html += `<div class="time-row">`;
-        html += `<label>Общее чистое время команды (мм:сс.сс)</label>`;
-        html += `<input type="text" id="rawTime-${discipline}" class="time-input" placeholder="например 14:39.57" value="">`;
-        html += `</div>`;
+        html += `<div class="time-row"><label>Общее чистое время команды (мм:сс.сс)</label><input type="text" id="rawTime-${discipline}" class="time-input" placeholder="например 14:39.57" value=""></div>`;
 
         html += `<div id="penaltiesList-${discipline}" style="margin-top:12px;">`;
         for (let p of penalties) {
@@ -695,11 +810,7 @@
             const penalties = penaltiesLibrary.special[stage] || [];
             html += `<div class="penalty-block" id="penaltyBlock-special-${stage}" style="margin-top:20px;">`;
             html += `<h3>${stageLabel}</h3>`;
-            // Поле времени для этапа
-            html += `<div class="time-row">`;
-            html += `<label>Чистое время этапа (мм:сс.сс)</label>`;
-            html += `<input type="text" id="rawTime-special-${stage}" class="time-input" placeholder="например 14:39.57" value="">`;
-            html += `</div>`;
+            html += `<div class="time-row"><label>Чистое время этапа (мм:сс.сс)</label><input type="text" id="rawTime-special-${stage}" class="time-input" placeholder="например 14:39.57" value=""></div>`;
 
             html += `<div id="penaltiesList-special-${stage}" style="margin-top:12px;">`;
             for (let p of penalties) {
@@ -743,6 +854,63 @@
         return html;
     }
 
+    function buildEstafetaPanel() {
+        let html = `<div id="panel-estafeta" class="tab-pane">`;
+        html += `<div class="section">`;
+        html += `<h2>Инкассаторская эстафета (12 этапов)</h2>`;
+        html += `<div class="table-wrapper"><table id="overallTable-estafeta"><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th><th>Общий штраф</th><th>Итог</th></tr></thead><tbody id="overallBody-estafeta"><tr><td colspan="5">Загрузка...</td></tr></tbody></table></div>`;
+
+        // Общее время для эстафеты
+        html += `<div class="penalty-block" style="margin-top:0; border:1px solid #cbd5e1; background:#f8fafc;">`;
+        html += `<div class="time-row"><label>Общее чистое время команды (мм:сс.сс)</label><input type="text" id="rawTime-estafeta" class="time-input" placeholder="например 14:39.57" value=""></div>`;
+        html += `</div>`;
+
+        // Блоки по этапам
+        for (let stage of ESTAFETA_STAGES) {
+            const penalties = stage.penalties;
+            html += `<div class="penalty-block" id="penaltyBlock-estafeta-${stage.id}" style="margin-top:20px;">`;
+            html += `<h3>${stage.label}</h3>`;
+            html += `<div id="penaltiesList-estafeta-${stage.id}" style="margin-top:12px;">`;
+            for (let p of penalties) {
+                const isCounter = p.isCounter === true;
+                if (isCounter) {
+                    html += `<div class="row" style="flex-wrap: nowrap;">`;
+                    html += `<span style="flex:1;">${p.desc} – +${p.sec} сек (макс. ${p.maxCount||10})</span>`;
+                    html += `<div class="counter-control">`;
+                    html += `<button class="counter-dec" data-id="${p.id}" data-disc="estafeta" data-stage="${stage.id}">−</button>`;
+                    html += `<span class="counter-count" data-id="${p.id}" data-disc="estafeta" data-stage="${stage.id}">0</span>`;
+                    html += `<button class="counter-inc" data-id="${p.id}" data-disc="estafeta" data-stage="${stage.id}">+</button>`;
+                    html += `</div>`;
+                    html += `<span class="counter-penalty-label">Штраф: <span class="counter-total" data-id="${p.id}" data-stage="${stage.id}">0</span> сек</span>`;
+                    html += `</div>`;
+                } else {
+                    html += `<div class="row"><input type="checkbox" class="penalty-chk" data-id="${p.id}" data-disc="estafeta" data-stage="${stage.id}">`;
+                    html += `<label>${p.desc} – +${p.sec} сек</label></div>`;
+                }
+            }
+            html += `</div>`;
+
+            html += `<div class="action-buttons">`;
+            html += `<button class="btn-save" id="saveStage-estafeta-${stage.id}">💾 Сохранить ошибки этапа</button>`;
+            html += `<button class="btn-reset" id="resetStage-estafeta-${stage.id}">🗑️ Сбросить этап</button>`;
+            html += `</div>`;
+
+            html += `<div class="stage-summary">`;
+            html += `<span>Штраф этапа: <span id="penaltySum-estafeta-${stage.id}">0</span> сек</span>`;
+            html += `</div>`;
+            html += `</div>`;
+        }
+
+        // Общая сводка по эстафете
+        html += `<div class="summary-bar" style="margin-top:20px;">`;
+        html += `<span>Общий штраф: <span id="penaltySum-estafeta">0</span> сек</span>`;
+        html += `<span>Общее чистое время: <span id="rawDisplay-estafeta">—</span></span>`;
+        html += `<span>Общий итог: <strong id="totalDisplay-estafeta">—</strong></span>`;
+        html += `</div>`;
+        html += `</div></div>`;
+        return html;
+    }
+
     function buildPanels() {
         let html = '';
         for (let d of DISCIPLINES) {
@@ -760,19 +928,14 @@
     // ===== ОБНОВЛЕНИЕ UI =====
     function refreshUI() {
         if (!currentTeam || !currentDiscipline) return;
-        if (currentDiscipline === 'special') {
-            refreshSpecialUI();
-        } else {
-            refreshDisciplineUI(currentDiscipline);
-        }
+        if (currentDiscipline === 'special') refreshSpecialUI();
+        else if (currentDiscipline === 'estafeta') refreshEstafetaUI();
+        else refreshDisciplineUI(currentDiscipline);
     }
 
     function refreshDisciplineUI(disc) {
-        const team = teamsData[currentTeam];
-        if (!team) return;
         const discData = getTeamDisciplineData(currentTeam, disc);
         const penObj = discData.penalties || {};
-
         const rawInput = document.getElementById(`rawTime-${disc}`);
         if (rawInput) rawInput.value = discData.rawSeconds !== null ? formatTime(discData.rawSeconds) : "";
 
@@ -784,7 +947,6 @@
             else delete discTemp[p.id];
         }
         unsaved = false;
-
         updatePenaltiesUI(disc);
         updateSummary(disc);
         updateStageBadge(disc);
@@ -792,8 +954,6 @@
     }
 
     function refreshSpecialUI() {
-        const team = teamsData[currentTeam];
-        if (!team) return;
         for (let stage of SPECIAL_STAGES) {
             const stageData = getSpecialStageData(currentTeam, stage);
             const penObj = stageData.penalties || {};
@@ -814,6 +974,29 @@
         updateSpecialSummary();
         updateSpecialBadge();
         renderOverallTable('special');
+    }
+
+    function refreshEstafetaUI() {
+        const discData = getTeamDisciplineData(currentTeam, 'estafeta');
+        const rawInput = document.getElementById(`rawTime-estafeta`);
+        if (rawInput) rawInput.value = discData.rawSeconds !== null ? formatTime(discData.rawSeconds) : "";
+
+        if (!tempPenalties['estafeta']) tempPenalties['estafeta'] = {};
+        for (let stage of ESTAFETA_STAGES) {
+            const stageData = getEstafetaStageData(currentTeam, stage.id);
+            const penObj = stageData.penalties || {};
+            if (!tempPenalties['estafeta'][stage.id]) tempPenalties['estafeta'][stage.id] = {};
+            const stageTemp = tempPenalties['estafeta'][stage.id];
+            for (let p of stage.penalties) {
+                if (penObj[p.id] !== undefined) stageTemp[p.id] = penObj[p.id];
+                else delete stageTemp[p.id];
+            }
+        }
+        unsaved = false;
+        updateEstafetaPenaltiesUI();
+        updateEstafetaSummary();
+        updateEstafetaBadge();
+        renderOverallTable('estafeta');
     }
 
     function updatePenaltiesUI(disc) {
@@ -856,6 +1039,26 @@
         }
     }
 
+    function updateEstafetaPenaltiesUI() {
+        for (let stage of ESTAFETA_STAGES) {
+            const container = document.getElementById(`penaltiesList-estafeta-${stage.id}`);
+            if (!container) continue;
+            const stageTemp = tempPenalties['estafeta']?.[stage.id] || {};
+            for (let p of stage.penalties) {
+                if (p.isCounter) {
+                    const countSpan = container.querySelector(`.counter-count[data-id="${p.id}"]`);
+                    const totalSpan = container.querySelector(`.counter-total[data-id="${p.id}"]`);
+                    const val = getCounterValue(stageTemp, p.id);
+                    if (countSpan) countSpan.innerText = val;
+                    if (totalSpan) totalSpan.innerText = val * p.sec;
+                } else {
+                    const chk = container.querySelector(`.penalty-chk[data-id="${p.id}"]`);
+                    if (chk) chk.checked = stageTemp[p.id] === true;
+                }
+            }
+        }
+    }
+
     function updateSummary(disc) {
         const sumSpan = document.getElementById(`penaltySum-${disc}`);
         const rawSpan = document.getElementById(`rawDisplay-${disc}`);
@@ -878,9 +1081,7 @@
     }
 
     function updateSpecialSummary() {
-        let totalRaw = 0;
-        let totalPen = 0;
-        let hasData = false;
+        let totalRaw = 0, totalPen = 0, hasData = false;
         for (let stage of SPECIAL_STAGES) {
             const stageData = getSpecialStageData(currentTeam, stage);
             const raw = stageData.rawSeconds;
@@ -899,19 +1100,40 @@
             if (rawSpan) rawSpan.innerText = raw !== null ? formatTime(raw) : '—';
             if (totalSpan) totalSpan.innerText = total !== null ? formatTime(total) : '—';
 
-            if (raw !== null) {
-                totalRaw += raw;
-                totalPen += penSum;
-                hasData = true;
-            }
+            if (raw !== null) { totalRaw += raw; totalPen += penSum; hasData = true; }
         }
-
         const overallSum = document.getElementById(`penaltySum-special`);
         const overallRaw = document.getElementById(`rawDisplay-special`);
         const overallTotal = document.getElementById(`totalDisplay-special`);
         if (overallSum) overallSum.innerText = totalPen;
         if (overallRaw) overallRaw.innerText = hasData ? formatTime(totalRaw) : '—';
         if (overallTotal) overallTotal.innerText = hasData ? formatTime(totalRaw + totalPen) : '—';
+    }
+
+    function updateEstafetaSummary() {
+        let totalPen = 0;
+        let hasData = false;
+        for (let stage of ESTAFETA_STAGES) {
+            const stageData = getEstafetaStageData(currentTeam, stage.id);
+            const stageTemp = tempPenalties['estafeta']?.[stage.id] || {};
+            let merged = { ...stageData.penalties };
+            for (let p of stage.penalties) delete merged[p.id];
+            for (let id in stageTemp) merged[id] = stageTemp[id];
+            const penSum = getPenaltySum(merged, 'estafeta', stage.id);
+            totalPen += penSum;
+
+            const sumSpan = document.getElementById(`penaltySum-estafeta-${stage.id}`);
+            if (sumSpan) sumSpan.innerText = penSum;
+        }
+
+        const discData = getTeamDisciplineData(currentTeam, 'estafeta');
+        const raw = discData.rawSeconds;
+        const overallSum = document.getElementById(`penaltySum-estafeta`);
+        const overallRaw = document.getElementById(`rawDisplay-estafeta`);
+        const overallTotal = document.getElementById(`totalDisplay-estafeta`);
+        if (overallSum) overallSum.innerText = totalPen;
+        if (overallRaw) overallRaw.innerText = raw !== null ? formatTime(raw) : '—';
+        if (overallTotal) overallTotal.innerText = raw !== null ? formatTime(raw + totalPen) : '—';
     }
 
     function updateStageBadge(disc) {
@@ -944,6 +1166,22 @@
         }
     }
 
+    function updateEstafetaBadge() {
+        for (let stage of ESTAFETA_STAGES) {
+            const block = document.getElementById(`penaltyBlock-estafeta-${stage.id}`);
+            if (!block) continue;
+            let badge = block.querySelector('.unsaved-badge');
+            if (unsaved && currentTeam) {
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'unsaved-badge';
+                    badge.innerText = '⚠️ есть изменения';
+                    block.querySelector('.action-buttons')?.appendChild(badge);
+                }
+            } else if (badge) badge.remove();
+        }
+    }
+
     // ===== ТАБЛИЦА ОБЩЕГО ЗАЧЁТА =====
     function renderOverallTable(disc) {
         const tbody = document.getElementById(`overallBody-${disc}`);
@@ -959,13 +1197,19 @@
                     const stageData = getSpecialStageData(code, stage);
                     const r = stageData.rawSeconds;
                     const p = getPenaltySum(stageData.penalties, 'special', stage);
-                    if (r !== null) {
-                        totalRaw += r;
-                        totalPen += p;
-                        has = true;
-                    }
+                    if (r !== null) { totalRaw += r; totalPen += p; has = true; }
                 }
                 raw = has ? totalRaw : null;
+                pen = totalPen;
+                total = raw !== null ? raw + pen : null;
+            } else if (disc === 'estafeta') {
+                const discData = getTeamDisciplineData(code, 'estafeta');
+                let totalPen = 0;
+                for (let stage of ESTAFETA_STAGES) {
+                    const stageData = getEstafetaStageData(code, stage.id);
+                    totalPen += getPenaltySum(stageData.penalties, 'estafeta', stage.id);
+                }
+                raw = discData.rawSeconds;
                 pen = totalPen;
                 total = raw !== null ? raw + pen : null;
             } else {
@@ -974,13 +1218,7 @@
                 pen = getPenaltySum(discData.penalties, disc);
                 total = raw !== null ? raw + pen : null;
             }
-            rows.push({
-                code,
-                name: TEAM_NAMES[code] || code,
-                raw,
-                pen,
-                total
-            });
+            rows.push({ code, name: TEAM_NAMES[code] || code, raw, pen, total });
         }
         rows.sort((a,b) => (a.total ?? Infinity) - (b.total ?? Infinity));
         let rank = 1;
@@ -1019,13 +1257,18 @@
                         const stageData = getSpecialStageData(code, stage);
                         const r = stageData.rawSeconds;
                         const p = getPenaltySum(stageData.penalties, 'special', stage);
-                        if (r !== null) {
-                            totalRaw += r;
-                            totalPen += p;
-                            has = true;
-                        }
+                        if (r !== null) { totalRaw += r; totalPen += p; has = true; }
                     }
                     totalVal = has ? totalRaw + totalPen : null;
+                } else if (d === 'estafeta') {
+                    const discData = getTeamDisciplineData(code, 'estafeta');
+                    let totalPen = 0;
+                    for (let stage of ESTAFETA_STAGES) {
+                        const stageData = getEstafetaStageData(code, stage.id);
+                        totalPen += getPenaltySum(stageData.penalties, 'estafeta', stage.id);
+                    }
+                    const raw = discData.rawSeconds;
+                    totalVal = raw !== null ? raw + totalPen : null;
                 } else {
                     const discData = getTeamDisciplineData(code, d);
                     const raw = discData.rawSeconds;
@@ -1046,6 +1289,14 @@
                                 if (r !== null) { tr += r; tp += p; h = true; }
                             }
                             val = h ? tr + tp : null;
+                        } else if (d === 'estafeta') {
+                            const discData2 = getTeamDisciplineData(c, 'estafeta');
+                            let totalPen2 = 0;
+                            for (let stage of ESTAFETA_STAGES) {
+                                const stageData = getEstafetaStageData(c, stage.id);
+                                totalPen2 += getPenaltySum(stageData.penalties, 'estafeta', stage.id);
+                            }
+                            val = discData2.rawSeconds !== null ? discData2.rawSeconds + totalPen2 : null;
                         } else {
                             const dd = getTeamDisciplineData(c, d);
                             const r = dd.rawSeconds;
@@ -1101,41 +1352,39 @@
         tbody.innerHTML = html;
     }
 
-    // ===== СОХРАНЕНИЕ ВРЕМЕНИ (авто) =====
+    // ===== АВТОСОХРАНЕНИЕ ВРЕМЕНИ =====
     function autoSaveRawTime(disc, stage) {
         if (!currentTeam) return;
         let rawInput;
         if (disc === 'special' && stage) {
             rawInput = document.getElementById(`rawTime-special-${stage}`);
+        } else if (disc === 'estafeta') {
+            rawInput = document.getElementById(`rawTime-estafeta`);
         } else {
             rawInput = document.getElementById(`rawTime-${disc}`);
         }
         if (!rawInput) return;
         const rawStr = rawInput.value.trim();
         let seconds = rawStr === "" ? null : parseTime(rawStr);
-        if (rawStr !== "" && seconds === null) {
-            // Неверный формат – можно показать предупреждение, но не будем мешать
-            return;
-        }
+        if (rawStr !== "" && seconds === null) return;
         if (disc === 'special' && stage) {
             const stageData = getSpecialStageData(currentTeam, stage);
             stageData.rawSeconds = seconds;
+        } else if (disc === 'estafeta') {
+            const discData = getTeamDisciplineData(currentTeam, 'estafeta');
+            discData.rawSeconds = seconds;
         } else {
             const discData = getTeamDisciplineData(currentTeam, disc);
             discData.rawSeconds = seconds;
         }
         saveAllData();
-        if (disc === 'special') {
-            updateSpecialSummary();
-            renderOverallTable('special');
-        } else {
-            updateSummary(disc);
-            renderOverallTable(disc);
-        }
+        if (disc === 'special') { updateSpecialSummary(); renderOverallTable('special'); }
+        else if (disc === 'estafeta') { updateEstafetaSummary(); renderOverallTable('estafeta'); }
+        else { updateSummary(disc); renderOverallTable(disc); }
         renderOverallResults();
     }
 
-    // ===== ОБРАБОТЧИКИ СОХРАНЕНИЯ ШТРАФОВ =====
+    // ===== СОХРАНЕНИЕ ШТРАФОВ =====
     function saveStage(disc) {
         if (!currentTeam) { alert('Выберите команду'); return; }
         const discData = getTeamDisciplineData(currentTeam, disc);
@@ -1158,9 +1407,7 @@
         if (!currentTeam) return;
         const discTemp = tempPenalties[disc] || {};
         const disciplinePenalties = penaltiesLibrary[disc] || [];
-        for (let p of disciplinePenalties) {
-            delete discTemp[p.id];
-        }
+        for (let p of disciplinePenalties) delete discTemp[p.id];
         unsaved = false;
         updatePenaltiesUI(disc);
         updateSummary(disc);
@@ -1189,13 +1436,42 @@
         if (!currentTeam) return;
         const stageTemp = tempPenalties['special']?.[stage] || {};
         const penalties = penaltiesLibrary.special[stage] || [];
-        for (let p of penalties) {
-            delete stageTemp[p.id];
-        }
+        for (let p of penalties) delete stageTemp[p.id];
         unsaved = false;
         updateSpecialPenaltiesUI();
         updateSpecialSummary();
         updateSpecialBadge();
+    }
+
+    function saveEstafetaStage(stageId) {
+        if (!currentTeam) { alert('Выберите команду'); return; }
+        const stageData = getEstafetaStageData(currentTeam, stageId);
+        const stageTemp = tempPenalties['estafeta']?.[stageId] || {};
+        const stageDef = ESTAFETA_STAGES.find(s => s.id === stageId);
+        if (!stageDef) return;
+        for (let p of stageDef.penalties) {
+            if (stageTemp[p.id] !== undefined) stageData.penalties[p.id] = stageTemp[p.id];
+            else delete stageData.penalties[p.id];
+        }
+        unsaved = false;
+        saveAllData();
+        updateEstafetaBadge();
+        updateEstafetaSummary();
+        renderOverallTable('estafeta');
+        renderOverallResults();
+        alert('Ошибки этапа "' + stageDef.label + '" сохранены для команды ' + currentTeam);
+    }
+
+    function resetEstafetaStage(stageId) {
+        if (!currentTeam) return;
+        const stageTemp = tempPenalties['estafeta']?.[stageId] || {};
+        const stageDef = ESTAFETA_STAGES.find(s => s.id === stageId);
+        if (!stageDef) return;
+        for (let p of stageDef.penalties) delete stageTemp[p.id];
+        unsaved = false;
+        updateEstafetaPenaltiesUI();
+        updateEstafetaSummary();
+        updateEstafetaBadge();
     }
 
     // ===== ПЕЧАТЬ =====
@@ -1228,6 +1504,29 @@
                 }
             }
             raw = has ? totalRaw : null;
+            penSum = totalPen;
+            total = raw !== null ? raw + penSum : null;
+        } else if (disc === 'estafeta') {
+            const discData = getTeamDisciplineData(currentTeam, 'estafeta');
+            let totalPen = 0;
+            for (let stage of ESTAFETA_STAGES) {
+                const stageData = getEstafetaStageData(currentTeam, stage.id);
+                totalPen += getPenaltySum(stageData.penalties, 'estafeta', stage.id);
+                const penObj = stageData.penalties || {};
+                for (let id in penObj) {
+                    const val = penObj[id];
+                    const pLib = stage.penalties.find(p => p.id === id);
+                    if (pLib) {
+                        if (pLib.isCounter && typeof val === 'number' && val > 0) {
+                            for (let i=0; i<val; i++) violations.push({ desc: pLib.desc + ` (${i+1}-й раз, этап ${stage.label})`, sec: pLib.sec });
+                        } else if (val === true || val === 1) violations.push({ desc: pLib.desc + ` (этап ${stage.label})`, sec: pLib.sec });
+                        else if (typeof val === 'number' && val > 0 && !pLib.isCounter) {
+                            for (let i=0; i<val; i++) violations.push({ desc: pLib.desc + ` (${i+1}-й раз, этап ${stage.label})`, sec: pLib.sec });
+                        }
+                    }
+                }
+            }
+            raw = discData.rawSeconds;
             penSum = totalPen;
             total = raw !== null ? raw + penSum : null;
         } else {
@@ -1309,6 +1608,16 @@
                 raw = has ? totalRaw : null;
                 pen = totalPen;
                 total = raw !== null ? raw + pen : null;
+            } else if (disc === 'estafeta') {
+                const discData = getTeamDisciplineData(code, 'estafeta');
+                let totalPen = 0;
+                for (let stage of ESTAFETA_STAGES) {
+                    const stageData = getEstafetaStageData(code, stage.id);
+                    totalPen += getPenaltySum(stageData.penalties, 'estafeta', stage.id);
+                }
+                raw = discData.rawSeconds;
+                pen = totalPen;
+                total = raw !== null ? raw + pen : null;
             } else {
                 const discData = getTeamDisciplineData(code, disc);
                 raw = discData.rawSeconds;
@@ -1376,6 +1685,16 @@
                 raw = has ? totalRaw : null;
                 pen = totalPen;
                 total = raw !== null ? raw + pen : null;
+            } else if (disc === 'estafeta') {
+                const discData = getTeamDisciplineData(code, 'estafeta');
+                let totalPen = 0;
+                for (let stage of ESTAFETA_STAGES) {
+                    const stageData = getEstafetaStageData(code, stage.id);
+                    totalPen += getPenaltySum(stageData.penalties, 'estafeta', stage.id);
+                }
+                raw = discData.rawSeconds;
+                pen = totalPen;
+                total = raw !== null ? raw + pen : null;
             } else {
                 const discData = getTeamDisciplineData(code, disc);
                 raw = discData.rawSeconds;
@@ -1406,171 +1725,221 @@
     }
 
     // ===== ПРИВЯЗКА ОБРАБОТЧИКОВ =====
-    function attachEventListenersForDiscipline(disc) {
-        if (disc === 'special') {
-            for (let stage of SPECIAL_STAGES) {
-                const saveBtn = document.getElementById(`saveStage-special-${stage}`);
-                if (saveBtn) saveBtn.addEventListener('click', () => saveSpecialStage(stage));
-                const resetBtn = document.getElementById(`resetStage-special-${stage}`);
-                if (resetBtn) resetBtn.addEventListener('click', () => resetSpecialStage(stage));
-
-                // Автосохранение времени
-                const rawInput = document.getElementById(`rawTime-special-${stage}`);
-                if (rawInput) {
-                    rawInput.addEventListener('blur', () => autoSaveRawTime('special', stage));
-                    rawInput.addEventListener('keydown', (e) => {
-                        if (e.key === 'Enter') {
-                            e.preventDefault();
-                            autoSaveRawTime('special', stage);
-                            rawInput.blur();
-                        }
-                    });
-                }
-
-                const container = document.getElementById(`penaltiesList-special-${stage}`);
-                if (container) {
-                    container.querySelectorAll('.counter-inc').forEach(btn => {
-                        btn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            const id = this.getAttribute('data-id');
-                            const stageAttr = this.getAttribute('data-stage');
-                            if (stageAttr !== stage) return;
-                            const p = penaltiesLibrary.special[stage]?.find(p => p.id === id);
-                            if (!p || !p.isCounter) return;
-                            const max = p.maxCount || 10;
-                            if (!tempPenalties['special']) tempPenalties['special'] = {};
-                            if (!tempPenalties['special'][stage]) tempPenalties['special'][stage] = {};
-                            const stageTemp = tempPenalties['special'][stage];
-                            let val = getCounterValue(stageTemp, id) + 1;
-                            if (val > max) val = max;
-                            setCounterValue(stageTemp, id, val);
-                            unsaved = true;
-                            updateSpecialPenaltiesUI();
-                            updateSpecialSummary();
-                            updateSpecialBadge();
-                        });
-                    });
-                    container.querySelectorAll('.counter-dec').forEach(btn => {
-                        btn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            const id = this.getAttribute('data-id');
-                            const stageAttr = this.getAttribute('data-stage');
-                            if (stageAttr !== stage) return;
-                            const p = penaltiesLibrary.special[stage]?.find(p => p.id === id);
-                            if (!p || !p.isCounter) return;
-                            if (!tempPenalties['special']) tempPenalties['special'] = {};
-                            if (!tempPenalties['special'][stage]) tempPenalties['special'][stage] = {};
-                            const stageTemp = tempPenalties['special'][stage];
-                            let val = getCounterValue(stageTemp, id) - 1;
-                            if (val < 0) val = 0;
-                            setCounterValue(stageTemp, id, val);
-                            unsaved = true;
-                            updateSpecialPenaltiesUI();
-                            updateSpecialSummary();
-                            updateSpecialBadge();
-                        });
-                    });
-                    container.querySelectorAll('.penalty-chk').forEach(chk => {
-                        chk.addEventListener('change', function() {
-                            const id = this.getAttribute('data-id');
-                            const stageAttr = this.getAttribute('data-stage');
-                            if (stageAttr !== stage) return;
-                            if (!tempPenalties['special']) tempPenalties['special'] = {};
-                            if (!tempPenalties['special'][stage]) tempPenalties['special'][stage] = {};
-                            const stageTemp = tempPenalties['special'][stage];
-                            if (this.checked) stageTemp[id] = true;
-                            else delete stageTemp[id];
-                            unsaved = true;
-                            updateSpecialSummary();
-                            updateSpecialBadge();
-                        });
-                    });
-                }
+    function attachEventListeners() {
+        // Special
+        for (let stage of SPECIAL_STAGES) {
+            const saveBtn = document.getElementById(`saveStage-special-${stage}`);
+            if (saveBtn) saveBtn.addEventListener('click', () => saveSpecialStage(stage));
+            const resetBtn = document.getElementById(`resetStage-special-${stage}`);
+            if (resetBtn) resetBtn.addEventListener('click', () => resetSpecialStage(stage));
+            const rawInput = document.getElementById(`rawTime-special-${stage}`);
+            if (rawInput) {
+                rawInput.addEventListener('blur', () => autoSaveRawTime('special', stage));
+                rawInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); autoSaveRawTime('special', stage); rawInput.blur(); } });
             }
-            return;
+            const container = document.getElementById(`penaltiesList-special-${stage}`);
+            if (container) {
+                container.querySelectorAll('.counter-inc').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = this.getAttribute('data-id');
+                        const stageAttr = this.getAttribute('data-stage');
+                        if (stageAttr !== stage) return;
+                        const p = penaltiesLibrary.special[stage]?.find(p => p.id === id);
+                        if (!p || !p.isCounter) return;
+                        const max = p.maxCount || 10;
+                        if (!tempPenalties['special']) tempPenalties['special'] = {};
+                        if (!tempPenalties['special'][stage]) tempPenalties['special'][stage] = {};
+                        const stageTemp = tempPenalties['special'][stage];
+                        let val = getCounterValue(stageTemp, id) + 1;
+                        if (val > max) val = max;
+                        setCounterValue(stageTemp, id, val);
+                        unsaved = true;
+                        updateSpecialPenaltiesUI();
+                        updateSpecialSummary();
+                        updateSpecialBadge();
+                    });
+                });
+                container.querySelectorAll('.counter-dec').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = this.getAttribute('data-id');
+                        const stageAttr = this.getAttribute('data-stage');
+                        if (stageAttr !== stage) return;
+                        const p = penaltiesLibrary.special[stage]?.find(p => p.id === id);
+                        if (!p || !p.isCounter) return;
+                        if (!tempPenalties['special']) tempPenalties['special'] = {};
+                        if (!tempPenalties['special'][stage]) tempPenalties['special'][stage] = {};
+                        const stageTemp = tempPenalties['special'][stage];
+                        let val = getCounterValue(stageTemp, id) - 1;
+                        if (val < 0) val = 0;
+                        setCounterValue(stageTemp, id, val);
+                        unsaved = true;
+                        updateSpecialPenaltiesUI();
+                        updateSpecialSummary();
+                        updateSpecialBadge();
+                    });
+                });
+                container.querySelectorAll('.penalty-chk').forEach(chk => {
+                    chk.addEventListener('change', function() {
+                        const id = this.getAttribute('data-id');
+                        const stageAttr = this.getAttribute('data-stage');
+                        if (stageAttr !== stage) return;
+                        if (!tempPenalties['special']) tempPenalties['special'] = {};
+                        if (!tempPenalties['special'][stage]) tempPenalties['special'][stage] = {};
+                        const stageTemp = tempPenalties['special'][stage];
+                        if (this.checked) stageTemp[id] = true;
+                        else delete stageTemp[id];
+                        unsaved = true;
+                        updateSpecialSummary();
+                        updateSpecialBadge();
+                    });
+                });
+            }
+        }
+
+        // Estafeta
+        for (let stage of ESTAFETA_STAGES) {
+            const saveBtn = document.getElementById(`saveStage-estafeta-${stage.id}`);
+            if (saveBtn) saveBtn.addEventListener('click', () => saveEstafetaStage(stage.id));
+            const resetBtn = document.getElementById(`resetStage-estafeta-${stage.id}`);
+            if (resetBtn) resetBtn.addEventListener('click', () => resetEstafetaStage(stage.id));
+            const container = document.getElementById(`penaltiesList-estafeta-${stage.id}`);
+            if (container) {
+                container.querySelectorAll('.counter-inc').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = this.getAttribute('data-id');
+                        const stageAttr = this.getAttribute('data-stage');
+                        if (stageAttr !== stage.id) return;
+                        const p = stage.penalties.find(p => p.id === id);
+                        if (!p || !p.isCounter) return;
+                        const max = p.maxCount || 10;
+                        if (!tempPenalties['estafeta']) tempPenalties['estafeta'] = {};
+                        if (!tempPenalties['estafeta'][stage.id]) tempPenalties['estafeta'][stage.id] = {};
+                        const stageTemp = tempPenalties['estafeta'][stage.id];
+                        let val = getCounterValue(stageTemp, id) + 1;
+                        if (val > max) val = max;
+                        setCounterValue(stageTemp, id, val);
+                        unsaved = true;
+                        updateEstafetaPenaltiesUI();
+                        updateEstafetaSummary();
+                        updateEstafetaBadge();
+                    });
+                });
+                container.querySelectorAll('.counter-dec').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = this.getAttribute('data-id');
+                        const stageAttr = this.getAttribute('data-stage');
+                        if (stageAttr !== stage.id) return;
+                        const p = stage.penalties.find(p => p.id === id);
+                        if (!p || !p.isCounter) return;
+                        if (!tempPenalties['estafeta']) tempPenalties['estafeta'] = {};
+                        if (!tempPenalties['estafeta'][stage.id]) tempPenalties['estafeta'][stage.id] = {};
+                        const stageTemp = tempPenalties['estafeta'][stage.id];
+                        let val = getCounterValue(stageTemp, id) - 1;
+                        if (val < 0) val = 0;
+                        setCounterValue(stageTemp, id, val);
+                        unsaved = true;
+                        updateEstafetaPenaltiesUI();
+                        updateEstafetaSummary();
+                        updateEstafetaBadge();
+                    });
+                });
+                container.querySelectorAll('.penalty-chk').forEach(chk => {
+                    chk.addEventListener('change', function() {
+                        const id = this.getAttribute('data-id');
+                        const stageAttr = this.getAttribute('data-stage');
+                        if (stageAttr !== stage.id) return;
+                        if (!tempPenalties['estafeta']) tempPenalties['estafeta'] = {};
+                        if (!tempPenalties['estafeta'][stage.id]) tempPenalties['estafeta'][stage.id] = {};
+                        const stageTemp = tempPenalties['estafeta'][stage.id];
+                        if (this.checked) stageTemp[id] = true;
+                        else delete stageTemp[id];
+                        unsaved = true;
+                        updateEstafetaSummary();
+                        updateEstafetaBadge();
+                    });
+                });
+            }
         }
 
         // Остальные дисциплины
-        const saveStageBtn = document.getElementById(`saveStage-${disc}`);
-        if (saveStageBtn) saveStageBtn.addEventListener('click', () => saveStage(disc));
-
-        const resetStageBtn = document.getElementById(`resetStage-${disc}`);
-        if (resetStageBtn) resetStageBtn.addEventListener('click', () => resetStage(disc));
-
-        // Автосохранение времени
-        const rawInput = document.getElementById(`rawTime-${disc}`);
-        if (rawInput) {
-            rawInput.addEventListener('blur', () => autoSaveRawTime(disc, null));
-            rawInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    autoSaveRawTime(disc, null);
-                    rawInput.blur();
-                }
-            });
+        for (let disc of DISCIPLINES) {
+            if (disc === 'special' || disc === 'estafeta') continue;
+            const saveBtn = document.getElementById(`saveStage-${disc}`);
+            if (saveBtn) saveBtn.addEventListener('click', () => saveStage(disc));
+            const resetBtn = document.getElementById(`resetStage-${disc}`);
+            if (resetBtn) resetBtn.addEventListener('click', () => resetStage(disc));
+            const rawInput = document.getElementById(`rawTime-${disc}`);
+            if (rawInput) {
+                rawInput.addEventListener('blur', () => autoSaveRawTime(disc, null));
+                rawInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); autoSaveRawTime(disc, null); rawInput.blur(); } });
+            }
+            const container = document.getElementById(`penaltiesList-${disc}`);
+            if (container) {
+                container.querySelectorAll('.counter-inc').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = this.getAttribute('data-id');
+                        const discAttr = this.getAttribute('data-disc');
+                        if (discAttr !== disc) return;
+                        const p = penaltiesLibrary[disc]?.find(p => p.id === id);
+                        if (!p || !p.isCounter) return;
+                        const max = p.maxCount || 10;
+                        if (!tempPenalties[disc]) tempPenalties[disc] = {};
+                        const discTemp = tempPenalties[disc];
+                        let val = getCounterValue(discTemp, id) + 1;
+                        if (val > max) val = max;
+                        setCounterValue(discTemp, id, val);
+                        unsaved = true;
+                        updatePenaltiesUI(disc);
+                        updateSummary(disc);
+                        updateStageBadge(disc);
+                    });
+                });
+                container.querySelectorAll('.counter-dec').forEach(btn => {
+                    btn.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const id = this.getAttribute('data-id');
+                        const discAttr = this.getAttribute('data-disc');
+                        if (discAttr !== disc) return;
+                        const p = penaltiesLibrary[disc]?.find(p => p.id === id);
+                        if (!p || !p.isCounter) return;
+                        if (!tempPenalties[disc]) tempPenalties[disc] = {};
+                        const discTemp = tempPenalties[disc];
+                        let val = getCounterValue(discTemp, id) - 1;
+                        if (val < 0) val = 0;
+                        setCounterValue(discTemp, id, val);
+                        unsaved = true;
+                        updatePenaltiesUI(disc);
+                        updateSummary(disc);
+                        updateStageBadge(disc);
+                    });
+                });
+                container.querySelectorAll('.penalty-chk').forEach(chk => {
+                    chk.addEventListener('change', function() {
+                        const id = this.getAttribute('data-id');
+                        const discAttr = this.getAttribute('data-disc');
+                        if (discAttr !== disc) return;
+                        if (!tempPenalties[disc]) tempPenalties[disc] = {};
+                        const discTemp = tempPenalties[disc];
+                        if (this.checked) discTemp[id] = true;
+                        else delete discTemp[id];
+                        unsaved = true;
+                        updateSummary(disc);
+                        updateStageBadge(disc);
+                    });
+                });
+            }
         }
 
-        const container = document.getElementById(`penaltiesList-${disc}`);
-        if (container) {
-            container.querySelectorAll('.counter-inc').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const id = this.getAttribute('data-id');
-                    const discAttr = this.getAttribute('data-disc');
-                    if (discAttr !== disc) return;
-                    const p = penaltiesLibrary[disc]?.find(p => p.id === id);
-                    if (!p || !p.isCounter) return;
-                    const max = p.maxCount || 10;
-                    if (!tempPenalties[disc]) tempPenalties[disc] = {};
-                    const discTemp = tempPenalties[disc];
-                    let val = getCounterValue(discTemp, id) + 1;
-                    if (val > max) val = max;
-                    setCounterValue(discTemp, id, val);
-                    unsaved = true;
-                    updatePenaltiesUI(disc);
-                    updateSummary(disc);
-                    updateStageBadge(disc);
-                });
-            });
-            container.querySelectorAll('.counter-dec').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const id = this.getAttribute('data-id');
-                    const discAttr = this.getAttribute('data-disc');
-                    if (discAttr !== disc) return;
-                    const p = penaltiesLibrary[disc]?.find(p => p.id === id);
-                    if (!p || !p.isCounter) return;
-                    if (!tempPenalties[disc]) tempPenalties[disc] = {};
-                    const discTemp = tempPenalties[disc];
-                    let val = getCounterValue(discTemp, id) - 1;
-                    if (val < 0) val = 0;
-                    setCounterValue(discTemp, id, val);
-                    unsaved = true;
-                    updatePenaltiesUI(disc);
-                    updateSummary(disc);
-                    updateStageBadge(disc);
-                });
-            });
-            container.querySelectorAll('.penalty-chk').forEach(chk => {
-                chk.addEventListener('change', function() {
-                    const id = this.getAttribute('data-id');
-                    const discAttr = this.getAttribute('data-disc');
-                    if (discAttr !== disc) return;
-                    if (!tempPenalties[disc]) tempPenalties[disc] = {};
-                    const discTemp = tempPenalties[disc];
-                    if (this.checked) discTemp[id] = true;
-                    else delete discTemp[id];
-                    unsaved = true;
-                    updateSummary(disc);
-                    updateStageBadge(disc);
-                });
-            });
-        }
-    }
-
-    function attachAllEventListeners() {
-        for (let d of DISCIPLINES) {
-            attachEventListenersForDiscipline(d);
+        // Общее время эстафеты
+        const estafetaRawInput = document.getElementById(`rawTime-estafeta`);
+        if (estafetaRawInput) {
+            estafetaRawInput.addEventListener('blur', () => autoSaveRawTime('estafeta', null));
+            estafetaRawInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); autoSaveRawTime('estafeta', null); estafetaRawInput.blur(); } });
         }
     }
 
@@ -1578,7 +1947,7 @@
     function init() {
         loadAllData();
         buildPanels();
-        attachAllEventListeners();
+        attachEventListeners();
 
         // Переключение вкладок
         const tabBtns = tabsContainer.querySelectorAll('.tab-btn');
@@ -1594,9 +1963,7 @@
                     renderOverallResults();
                 } else {
                     currentDiscipline = tabId;
-                    if (currentTeam) {
-                        refreshUI();
-                    }
+                    if (currentTeam) refreshUI();
                 }
             });
         });
@@ -1609,6 +1976,7 @@
                 refreshUI();
                 renderOverallResults();
             } else {
+                // Сброс отображения
                 for (let d of DISCIPLINES) {
                     if (d === 'special') {
                         for (let stage of SPECIAL_STAGES) {
@@ -1624,6 +1992,17 @@
                         const overallRaw = document.getElementById(`rawDisplay-special`);
                         if (overallRaw) overallRaw.innerText = '—';
                         const overallTotal = document.getElementById(`totalDisplay-special`);
+                        if (overallTotal) overallTotal.innerText = '—';
+                    } else if (d === 'estafeta') {
+                        for (let stage of ESTAFETA_STAGES) {
+                            const sumSpan = document.getElementById(`penaltySum-estafeta-${stage.id}`);
+                            if (sumSpan) sumSpan.innerText = '0';
+                        }
+                        const overallSum = document.getElementById(`penaltySum-estafeta`);
+                        if (overallSum) overallSum.innerText = '0';
+                        const overallRaw = document.getElementById(`rawDisplay-estafeta`);
+                        if (overallRaw) overallRaw.innerText = '—';
+                        const overallTotal = document.getElementById(`totalDisplay-estafeta`);
                         if (overallTotal) overallTotal.innerText = '—';
                     } else {
                         const sumSpan = document.getElementById(`penaltySum-${d}`);
