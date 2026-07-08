@@ -230,6 +230,99 @@
             color: #5c6f87;
             font-size: 0.75rem;
         }
+
+        /* ===== НОВЫЕ СТИЛИ ДЛЯ ВРЕМЕНИ И СЧЁТЧИКА ===== */
+        .time-row {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+        .time-row label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #1e293b;
+        }
+        .time-input {
+            width: 100%;
+            max-width: 280px;
+            padding: 12px 18px;
+            border-radius: 16px;
+            border: 1px solid #cbd5e1;
+            background: white;
+            font-size: 1.1rem;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+            color: #0f172a;
+        }
+        .time-input:focus {
+            border-color: #1e3a5f;
+            box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.15);
+        }
+        .time-input::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+            font-size: 0.95rem;
+        }
+
+        /* Счётчик */
+        .counter-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 0;
+            background: #eef2ff;
+            border-radius: 30px;
+            padding: 2px;
+            border: 1px solid #d1d9e6;
+        }
+        .counter-control button {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: #1e3a5f;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+            line-height: 1;
+        }
+        .counter-control button:hover {
+            background: rgba(30, 58, 95, 0.12);
+        }
+        .counter-control button:active {
+            background: rgba(30, 58, 95, 0.2);
+        }
+        .counter-control .counter-count {
+            min-width: 32px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #0f172a;
+            padding: 0 4px;
+        }
+        .counter-total {
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-left: 6px;
+        }
+        .counter-penalty-label {
+            font-size: 0.9rem;
+            color: #334155;
+            margin-left: 8px;
+        }
+        /* Для компактного отображения штрафа рядом со счётчиком */
+        .penalty-card .counter-penalty-label {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
         @media (max-width: 700px) {
             th, td { padding: 6px 4px; font-size: 0.8rem; }
             .section h2 { font-size: 1.3rem; }
@@ -238,6 +331,7 @@
             .header h1 { font-size: 1.4rem; }
             .penalty-block .row { gap: 6px; }
             .action-buttons button { width: 100%; }
+            .time-input { max-width: 100%; }
         }
         @media print {
             body { background: white; padding: 0; margin: 0; }
@@ -315,7 +409,6 @@
         estafeta: 'Инкассаторская эстафета',
         business: 'Деловая игра'
     };
-    // Для special этапы
     const SPECIAL_STAGES = ['practice', 'test'];
     const SPECIAL_STAGE_LABELS = {
         practice: 'Этап 1: Комплексное выполнение практического упражнения',
@@ -328,8 +421,7 @@
         "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
     };
 
-    // ===== БИБЛИОТЕКИ ШТРАФОВ =====
-    // Для special – два этапа
+    // ===== БИБЛИОТЕКИ ШТРАФОВ (без изменений) =====
     const penaltiesLibrary = {
         special: {
             practice: [
@@ -358,7 +450,7 @@
             { id: "e1", desc: "участник не одел бронежилет", sec: 180 },
             { id: "e2", desc: "участник не получил документы", sec: 10 },
             { id: "e3", desc: "участник не получил СК (c ИК-ключа желтого цвета)", sec: 10 },
-            { id: "e4", desc: "не проведена проверка СК / не открыт СК / не имитация открытия", sec: 10, per: "за каждое" },
+            { id: "e4", desc: "не проведена проверка СК / не открыт СК / не имитация открытия", sec: 10 },
             { id: "e5", desc: "участник не получил радиостанцию", sec: 10 },
             { id: "e6", desc: "участник не проверил радиостанцию", sec: 10 },
             { id: "e7", desc: "участник не получил ИВР", sec: 10 },
@@ -423,8 +515,7 @@
     let teamsData = {};
     let currentTeam = null;
     let currentDiscipline = 'special';
-    // Для special: временные штрафы отдельно для каждого этапа
-    let tempPenalties = {}; // { stage: { id: value } }
+    let tempPenalties = {};
     let unsaved = false;
 
     // DOM
@@ -484,7 +575,6 @@
         else penObj[counterId] = value;
     }
 
-    // Получить данные дисциплины (для всех, кроме special)
     function getTeamDisciplineData(teamCode, discipline) {
         if (!teamsData[teamCode]) {
             teamsData[teamCode] = { disciplines: {} };
@@ -502,7 +592,6 @@
         return teamsData[teamCode].disciplines[discipline];
     }
 
-    // Получить данные для special этапа
     function getSpecialStageData(teamCode, stage) {
         const discData = getTeamDisciplineData(teamCode, 'special');
         if (!discData[stage]) {
@@ -511,7 +600,6 @@
         return discData[stage];
     }
 
-    // Сохранить всё
     function saveAllData() {
         localStorage.setItem('incassator_all_data', JSON.stringify(teamsData));
     }
@@ -531,7 +619,6 @@
                             test: { rawSeconds: null, penalties: {} }
                         };
                     } else {
-                        // если уже есть, но без этапов
                         if (!teamsData[code].disciplines[d].practice) teamsData[code].disciplines[d].practice = { rawSeconds: null, penalties: {} };
                         if (!teamsData[code].disciplines[d].test) teamsData[code].disciplines[d].test = { rawSeconds: null, penalties: {} };
                     }
@@ -556,19 +643,25 @@
 
         html += `<div class="penalty-block" id="penaltyBlock-${discipline}">`;
         html += `<h3>⚖️ Штрафные секунды</h3>`;
-        html += `<div class="row"><label>Чистое время команды (мм:сс.сс): <input type="text" id="rawTime-${discipline}" placeholder="например 14:39.57"></label>`;
-        html += `<button class="btn-save" id="saveRawTime-${discipline}">Сохранить время</button></div>`;
+        // Новое поле времени
+        html += `<div class="time-row">`;
+        html += `<label>Общее чистое время команды (мм:сс.сс)</label>`;
+        html += `<input type="text" id="rawTime-${discipline}" class="time-input" placeholder="например 14:39.57" value="">`;
+        html += `</div>`;
 
         html += `<div id="penaltiesList-${discipline}" style="margin-top:12px;">`;
         for (let p of penalties) {
             const isCounter = p.isCounter === true;
             if (isCounter) {
-                html += `<div class="row"><label>${p.desc} – +${p.sec} сек (макс. ${p.maxCount||10})</label>`;
-                html += `<div class="counter-control" style="display:flex; align-items:center; gap:4px; background:white; border-radius:40px; padding:2px 10px; border:1px solid #ccc;">`;
+                html += `<div class="row" style="flex-wrap: nowrap;">`;
+                html += `<span style="flex:1;">${p.desc} – +${p.sec} сек (макс. ${p.maxCount||10})</span>`;
+                html += `<div class="counter-control">`;
                 html += `<button class="counter-dec" data-id="${p.id}" data-disc="${discipline}">−</button>`;
                 html += `<span class="counter-count" data-id="${p.id}" data-disc="${discipline}">0</span>`;
                 html += `<button class="counter-inc" data-id="${p.id}" data-disc="${discipline}">+</button>`;
-                html += `</div><span style="font-size:0.75rem; margin-left:6px;">Штраф: <span class="counter-total" data-id="${p.id}">0</span> сек</span></div>`;
+                html += `</div>`;
+                html += `<span class="counter-penalty-label">Штраф: <span class="counter-total" data-id="${p.id}">0</span> сек</span>`;
+                html += `</div>`;
             } else {
                 html += `<div class="row"><input type="checkbox" class="penalty-chk" data-id="${p.id}" data-disc="${discipline}">`;
                 html += `<label>${p.desc} – +${p.sec} сек</label></div>`;
@@ -597,25 +690,30 @@
         html += `<h2>Специальная подготовка (2 этапа)</h2>`;
         html += `<div class="table-wrapper"><table id="overallTable-special"><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th><th>Общий штраф</th><th>Итог</th></tr></thead><tbody id="overallBody-special"><tr><td colspan="5">Загрузка...</td></tr></tbody></table></div>`;
 
-        // Два блока для этапов
         for (let stage of SPECIAL_STAGES) {
             const stageLabel = SPECIAL_STAGE_LABELS[stage];
             const penalties = penaltiesLibrary.special[stage] || [];
             html += `<div class="penalty-block" id="penaltyBlock-special-${stage}" style="margin-top:20px;">`;
             html += `<h3>${stageLabel}</h3>`;
-            html += `<div class="row"><label>Чистое время (мм:сс.сс): <input type="text" id="rawTime-special-${stage}" placeholder="например 14:39.57"></label>`;
-            html += `<button class="btn-save" id="saveRawTime-special-${stage}">Сохранить время</button></div>`;
+            // Поле времени для этапа
+            html += `<div class="time-row">`;
+            html += `<label>Чистое время этапа (мм:сс.сс)</label>`;
+            html += `<input type="text" id="rawTime-special-${stage}" class="time-input" placeholder="например 14:39.57" value="">`;
+            html += `</div>`;
 
             html += `<div id="penaltiesList-special-${stage}" style="margin-top:12px;">`;
             for (let p of penalties) {
                 const isCounter = p.isCounter === true;
                 if (isCounter) {
-                    html += `<div class="row"><label>${p.desc} – +${p.sec} сек (макс. ${p.maxCount||10})</label>`;
-                    html += `<div class="counter-control" style="display:flex; align-items:center; gap:4px; background:white; border-radius:40px; padding:2px 10px; border:1px solid #ccc;">`;
+                    html += `<div class="row" style="flex-wrap: nowrap;">`;
+                    html += `<span style="flex:1;">${p.desc} – +${p.sec} сек (макс. ${p.maxCount||10})</span>`;
+                    html += `<div class="counter-control">`;
                     html += `<button class="counter-dec" data-id="${p.id}" data-disc="special" data-stage="${stage}">−</button>`;
                     html += `<span class="counter-count" data-id="${p.id}" data-disc="special" data-stage="${stage}">0</span>`;
                     html += `<button class="counter-inc" data-id="${p.id}" data-disc="special" data-stage="${stage}">+</button>`;
-                    html += `</div><span style="font-size:0.75rem; margin-left:6px;">Штраф: <span class="counter-total" data-id="${p.id}" data-stage="${stage}">0</span> сек</span></div>`;
+                    html += `</div>`;
+                    html += `<span class="counter-penalty-label">Штраф: <span class="counter-total" data-id="${p.id}" data-stage="${stage}">0</span> сек</span>`;
+                    html += `</div>`;
                 } else {
                     html += `<div class="row"><input type="checkbox" class="penalty-chk" data-id="${p.id}" data-disc="special" data-stage="${stage}">`;
                     html += `<label>${p.desc} – +${p.sec} сек</label></div>`;
@@ -628,7 +726,6 @@
             html += `<button class="btn-reset" id="resetStage-special-${stage}">🗑️ Сбросить этап</button>`;
             html += `</div>`;
 
-            // Сводка по этапу
             html += `<div class="stage-summary">`;
             html += `<span>Штраф: <span id="penaltySum-special-${stage}">0</span> сек</span>`;
             html += `<span>Чистое время: <span id="rawDisplay-special-${stage}">—</span></span>`;
@@ -637,7 +734,6 @@
             html += `</div>`;
         }
 
-        // Общая сводка по специальной подготовке
         html += `<div class="summary-bar" style="margin-top:20px;">`;
         html += `<span>Общий штраф: <span id="penaltySum-special">0</span> сек</span>`;
         html += `<span>Общее чистое время: <span id="rawDisplay-special">—</span></span>`;
@@ -680,16 +776,13 @@
         const rawInput = document.getElementById(`rawTime-${disc}`);
         if (rawInput) rawInput.value = discData.rawSeconds !== null ? formatTime(discData.rawSeconds) : "";
 
-        // tempPenalties для этой дисциплины (храним в глобальном объекте)
         if (!tempPenalties[disc]) tempPenalties[disc] = {};
-        const discTemp = tempPenalties[disc] || {};
-        // Загружаем из сохранённых
+        const discTemp = tempPenalties[disc];
         const disciplinePenalties = penaltiesLibrary[disc] || [];
         for (let p of disciplinePenalties) {
             if (penObj[p.id] !== undefined) discTemp[p.id] = penObj[p.id];
             else delete discTemp[p.id];
         }
-        tempPenalties[disc] = discTemp;
         unsaved = false;
 
         updatePenaltiesUI(disc);
@@ -701,7 +794,6 @@
     function refreshSpecialUI() {
         const team = teamsData[currentTeam];
         if (!team) return;
-        // Для каждого этапа
         for (let stage of SPECIAL_STAGES) {
             const stageData = getSpecialStageData(currentTeam, stage);
             const penObj = stageData.penalties || {};
@@ -800,7 +892,6 @@
             const penSum = getPenaltySum(merged, 'special', stage);
             const total = raw !== null ? raw + penSum : null;
 
-            // Обновляем сводку по этапу
             const sumSpan = document.getElementById(`penaltySum-special-${stage}`);
             const rawSpan = document.getElementById(`rawDisplay-special-${stage}`);
             const totalSpan = document.getElementById(`totalDisplay-special-${stage}`);
@@ -838,7 +929,6 @@
     }
 
     function updateSpecialBadge() {
-        // для каждого этапа отдельно
         for (let stage of SPECIAL_STAGES) {
             const block = document.getElementById(`penaltyBlock-special-${stage}`);
             if (!block) continue;
@@ -1011,7 +1101,41 @@
         tbody.innerHTML = html;
     }
 
-    // ===== ОБРАБОТЧИКИ СОХРАНЕНИЯ =====
+    // ===== СОХРАНЕНИЕ ВРЕМЕНИ (авто) =====
+    function autoSaveRawTime(disc, stage) {
+        if (!currentTeam) return;
+        let rawInput;
+        if (disc === 'special' && stage) {
+            rawInput = document.getElementById(`rawTime-special-${stage}`);
+        } else {
+            rawInput = document.getElementById(`rawTime-${disc}`);
+        }
+        if (!rawInput) return;
+        const rawStr = rawInput.value.trim();
+        let seconds = rawStr === "" ? null : parseTime(rawStr);
+        if (rawStr !== "" && seconds === null) {
+            // Неверный формат – можно показать предупреждение, но не будем мешать
+            return;
+        }
+        if (disc === 'special' && stage) {
+            const stageData = getSpecialStageData(currentTeam, stage);
+            stageData.rawSeconds = seconds;
+        } else {
+            const discData = getTeamDisciplineData(currentTeam, disc);
+            discData.rawSeconds = seconds;
+        }
+        saveAllData();
+        if (disc === 'special') {
+            updateSpecialSummary();
+            renderOverallTable('special');
+        } else {
+            updateSummary(disc);
+            renderOverallTable(disc);
+        }
+        renderOverallResults();
+    }
+
+    // ===== ОБРАБОТЧИКИ СОХРАНЕНИЯ ШТРАФОВ =====
     function saveStage(disc) {
         if (!currentTeam) { alert('Выберите команду'); return; }
         const discData = getTeamDisciplineData(currentTeam, disc);
@@ -1043,22 +1167,6 @@
         updateStageBadge(disc);
     }
 
-    function saveRawTime(disc) {
-        if (!currentTeam) { alert('Выберите команду'); return; }
-        const rawInput = document.getElementById(`rawTime-${disc}`);
-        const rawStr = rawInput.value.trim();
-        let seconds = rawStr === "" ? null : parseTime(rawStr);
-        if (rawStr !== "" && seconds === null) { alert('Неверный формат времени (мм:сс.сс)'); return; }
-        const discData = getTeamDisciplineData(currentTeam, disc);
-        discData.rawSeconds = seconds;
-        saveAllData();
-        updateSummary(disc);
-        renderOverallTable(disc);
-        renderOverallResults();
-        alert('Время сохранено');
-    }
-
-    // ===== СПЕЦИАЛЬНЫЕ ОБРАБОТЧИКИ ДЛЯ SPECIAL =====
     function saveSpecialStage(stage) {
         if (!currentTeam) { alert('Выберите команду'); return; }
         const stageData = getSpecialStageData(currentTeam, stage);
@@ -1090,21 +1198,6 @@
         updateSpecialBadge();
     }
 
-    function saveSpecialRawTime(stage) {
-        if (!currentTeam) { alert('Выберите команду'); return; }
-        const rawInput = document.getElementById(`rawTime-special-${stage}`);
-        const rawStr = rawInput.value.trim();
-        let seconds = rawStr === "" ? null : parseTime(rawStr);
-        if (rawStr !== "" && seconds === null) { alert('Неверный формат времени (мм:сс.сс)'); return; }
-        const stageData = getSpecialStageData(currentTeam, stage);
-        stageData.rawSeconds = seconds;
-        saveAllData();
-        updateSpecialSummary();
-        renderOverallTable('special');
-        renderOverallResults();
-        alert('Время для этапа "' + SPECIAL_STAGE_LABELS[stage] + '" сохранено');
-    }
-
     // ===== ПЕЧАТЬ =====
     function printTeamReport() {
         if (!currentTeam) { alert('Выберите команду'); return; }
@@ -1120,7 +1213,6 @@
                 const r = stageData.rawSeconds;
                 const p = getPenaltySum(stageData.penalties, 'special', stage);
                 if (r !== null) { totalRaw += r; totalPen += p; has = true; }
-                // нарушения по этапу
                 const penObj = stageData.penalties || {};
                 for (let id in penObj) {
                     const val = penObj[id];
@@ -1321,10 +1413,19 @@
                 if (saveBtn) saveBtn.addEventListener('click', () => saveSpecialStage(stage));
                 const resetBtn = document.getElementById(`resetStage-special-${stage}`);
                 if (resetBtn) resetBtn.addEventListener('click', () => resetSpecialStage(stage));
-                const saveRawBtn = document.getElementById(`saveRawTime-special-${stage}`);
-                if (saveRawBtn) saveRawBtn.addEventListener('click', () => saveSpecialRawTime(stage));
+
+                // Автосохранение времени
                 const rawInput = document.getElementById(`rawTime-special-${stage}`);
-                if (rawInput) rawInput.addEventListener('change', () => saveSpecialRawTime(stage));
+                if (rawInput) {
+                    rawInput.addEventListener('blur', () => autoSaveRawTime('special', stage));
+                    rawInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            autoSaveRawTime('special', stage);
+                            rawInput.blur();
+                        }
+                    });
+                }
 
                 const container = document.getElementById(`penaltiesList-special-${stage}`);
                 if (container) {
@@ -1389,18 +1490,25 @@
             return;
         }
 
-        // Для остальных дисциплин
+        // Остальные дисциплины
         const saveStageBtn = document.getElementById(`saveStage-${disc}`);
         if (saveStageBtn) saveStageBtn.addEventListener('click', () => saveStage(disc));
 
         const resetStageBtn = document.getElementById(`resetStage-${disc}`);
         if (resetStageBtn) resetStageBtn.addEventListener('click', () => resetStage(disc));
 
-        const saveRawBtn = document.getElementById(`saveRawTime-${disc}`);
-        if (saveRawBtn) saveRawBtn.addEventListener('click', () => saveRawTime(disc));
-
+        // Автосохранение времени
         const rawInput = document.getElementById(`rawTime-${disc}`);
-        if (rawInput) rawInput.addEventListener('change', () => saveRawTime(disc));
+        if (rawInput) {
+            rawInput.addEventListener('blur', () => autoSaveRawTime(disc, null));
+            rawInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    autoSaveRawTime(disc, null);
+                    rawInput.blur();
+                }
+            });
+        }
 
         const container = document.getElementById(`penaltiesList-${disc}`);
         if (container) {
