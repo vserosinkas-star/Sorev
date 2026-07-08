@@ -116,6 +116,13 @@
             margin: 16px 0 10px;
             color: #1e3a5f;
         }
+        .section h4 {
+            font-size: 1.1rem;
+            margin: 14px 0 8px;
+            color: #2c3e66;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 6px;
+        }
         .table-wrapper { overflow-x: auto; }
         table {
             width: 100%;
@@ -163,38 +170,6 @@
             border: 1px solid #ccc;
             text-align: center;
         }
-        .calc-row {
-            margin-top: 12px;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-        .calc-row label { font-weight: 600; }
-        .calc-row input[type="number"] {
-            width: 120px;
-            padding: 6px 10px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-        }
-        .calc-row button {
-            background: #1e3a5f;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 30px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .calc-row button:hover { background: #0f2b44; }
-        .result {
-            margin-top: 12px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: #0f2b44;
-        }
-        .result span { background: #e2e8f0; padding: 4px 12px; border-radius: 20px; }
         .action-buttons {
             display: flex;
             gap: 10px;
@@ -239,8 +214,16 @@
             gap: 12px;
             font-weight: 600;
         }
-        .status-ok { background: #dcfce7; color: #166534; padding: 4px 12px; border-radius: 30px; display: inline-block; }
-        .status-error { background: #fee2e2; color: #991b1b; padding: 4px 12px; border-radius: 30px; display: inline-block; }
+        .stage-summary {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+            background: #eef2ff;
+            padding: 8px 14px;
+            border-radius: 30px;
+            margin-top: 8px;
+        }
         .footer {
             text-align: center;
             margin-top: 30px;
@@ -260,7 +243,7 @@
             body { background: white; padding: 0; margin: 0; }
             .container { max-width: 100%; padding: 10px; }
             .header { background: #1e3a5f !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; border-radius: 0; margin-bottom: 15px; }
-            .header-actions, .tabs, .tab-btn, .action-buttons, .penalty-block, .calc-row, .team-selector { display: none !important; }
+            .header-actions, .tabs, .tab-btn, .action-buttons, .penalty-block, .team-selector { display: none !important; }
             .tab-pane { display: none !important; }
             .tab-pane.active-pane { display: block !important; }
             .section { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; padding: 15px; border-radius: 8px; }
@@ -311,7 +294,6 @@
         <button class="tab-btn" data-tab="results">🏆 Итоги</button>
     </div>
 
-    <!-- Панели дисциплин будут вставлены скриптом динамически -->
     <div id="panelsContainer"></div>
 
     <footer class="footer">
@@ -333,6 +315,12 @@
         estafeta: 'Инкассаторская эстафета',
         business: 'Деловая игра'
     };
+    // Для special этапы
+    const SPECIAL_STAGES = ['practice', 'test'];
+    const SPECIAL_STAGE_LABELS = {
+        practice: 'Этап 1: Комплексное выполнение практического упражнения',
+        test: 'Этап 2: Тест'
+    };
     const TEAM_CODES = ["УБ","ДВБ","ББ","МРД","ЦЧБ","ЮЗБ","ПВБ","СИБ","СРБ","СЗБ","ВВБ"];
     const TEAM_NAMES = {
         "УБ":"Уральский","ДВБ":"Дальневосточный","ББ":"Байкальский","МРД":"Московский",
@@ -340,13 +328,19 @@
         "СИБ":"Сибирский","СРБ":"Среднерусский","СЗБ":"Северо-Западный","ВВБ":"Волго-Вятский"
     };
 
-    // ===== БИБЛИОТЕКИ ШТРАФОВ ПО ДИСЦИПЛИНАМ =====
+    // ===== БИБЛИОТЕКИ ШТРАФОВ =====
+    // Для special – два этапа
     const penaltiesLibrary = {
-        special: [
-            { id: "spec_test_error", desc: "Ошибка в тесте (каждая)", sec: 5, isCounter: true, maxCount: 10 },
-            { id: "spec_practice_error", desc: "Неправильное выполнение практического упражнения", sec: 10 },
-            { id: "spec_time_over", desc: "Превышение времени (10 мин) – +20 сек за каждые 10 сек перебора", sec: 20, isCounter: true, maxCount: 10 }
-        ],
+        special: {
+            practice: [
+                { id: "spec_prac_error", desc: "Неправильное выполнение практического упражнения", sec: 10 },
+                { id: "spec_prac_time_over", desc: "Превышение времени (10 мин) – +20 сек за каждые 10 сек перебора", sec: 20, isCounter: true, maxCount: 10 }
+            ],
+            test: [
+                { id: "spec_test_error", desc: "Ошибка в тесте (каждая)", sec: 5, isCounter: true, maxCount: 10 },
+                { id: "spec_test_time_over", desc: "Превышение времени (10 мин) – +20 сек за каждые 10 сек перебора", sec: 20, isCounter: true, maxCount: 10 }
+            ]
+        },
         fire: [
             { id: "fire_miss", desc: "Промах (мишень не поражена)", sec: 5, isCounter: true, maxCount: 7 },
             { id: "fire_danger", desc: "Нарушение безопасного направления оружия", sec: 10 },
@@ -361,7 +355,6 @@
             { id: "phys_selfdef", desc: "Неправильное выполнение приёма самообороны (каждый)", sec: 5, isCounter: true, maxCount: 5 }
         ],
         estafeta: [
-            // Все 55 пунктов из Приложения 7
             { id: "e1", desc: "участник не одел бронежилет", sec: 180 },
             { id: "e2", desc: "участник не получил документы", sec: 10 },
             { id: "e3", desc: "участник не получил СК (c ИК-ключа желтого цвета)", sec: 10 },
@@ -430,7 +423,8 @@
     let teamsData = {};
     let currentTeam = null;
     let currentDiscipline = 'special';
-    let tempPenalties = {};
+    // Для special: временные штрафы отдельно для каждого этапа
+    let tempPenalties = {}; // { stage: { id: value } }
     let unsaved = false;
 
     // DOM
@@ -458,9 +452,14 @@
         return m * 60 + s;
     }
 
-    function getPenaltySum(penObj, disc) {
+    function getPenaltySum(penObj, disc, stage) {
         let sum = 0;
-        const lib = penaltiesLibrary[disc] || [];
+        let lib;
+        if (disc === 'special' && stage) {
+            lib = penaltiesLibrary.special[stage] || [];
+        } else {
+            lib = penaltiesLibrary[disc] || [];
+        }
         for (let id in penObj) {
             const val = penObj[id];
             const p = lib.find(p => p.id === id);
@@ -485,62 +484,80 @@
         else penObj[counterId] = value;
     }
 
+    // Получить данные дисциплины (для всех, кроме special)
     function getTeamDisciplineData(teamCode, discipline) {
         if (!teamsData[teamCode]) {
-            teamsData[teamCode] = { participant1Name: "", participant2Name: "", disciplines: {} };
+            teamsData[teamCode] = { disciplines: {} };
         }
         if (!teamsData[teamCode].disciplines[discipline]) {
-            teamsData[teamCode].disciplines[discipline] = { rawSeconds: null, penalties: {} };
+            if (discipline === 'special') {
+                teamsData[teamCode].disciplines[discipline] = {
+                    practice: { rawSeconds: null, penalties: {} },
+                    test: { rawSeconds: null, penalties: {} }
+                };
+            } else {
+                teamsData[teamCode].disciplines[discipline] = { rawSeconds: null, penalties: {} };
+            }
         }
         return teamsData[teamCode].disciplines[discipline];
     }
 
-    function getTeamNames(teamCode) {
-        if (!teamsData[teamCode]) return { p1: "", p2: "" };
-        return { p1: teamsData[teamCode].participant1Name || "", p2: teamsData[teamCode].participant2Name || "" };
+    // Получить данные для special этапа
+    function getSpecialStageData(teamCode, stage) {
+        const discData = getTeamDisciplineData(teamCode, 'special');
+        if (!discData[stage]) {
+            discData[stage] = { rawSeconds: null, penalties: {} };
+        }
+        return discData[stage];
     }
 
-    function setTeamNames(teamCode, p1, p2) {
-        if (!teamsData[teamCode]) teamsData[teamCode] = { participant1Name: "", participant2Name: "", disciplines: {} };
-        teamsData[teamCode].participant1Name = p1;
-        teamsData[teamCode].participant2Name = p2;
-        saveAllData();
+    // Сохранить всё
+    function saveAllData() {
+        localStorage.setItem('incassator_all_data', JSON.stringify(teamsData));
     }
 
-    // ===== ЗАГРУЗКА / СОХРАНЕНИЕ ДАННЫХ (localStorage) =====
     function loadAllData() {
         const stored = localStorage.getItem('incassator_all_data');
         if (stored) {
             try { teamsData = JSON.parse(stored); } catch(e) { teamsData = {}; }
         }
         for (let code of TEAM_CODES) {
-            if (!teamsData[code]) teamsData[code] = { participant1Name: "", participant2Name: "", disciplines: {} };
+            if (!teamsData[code]) teamsData[code] = { disciplines: {} };
             for (let d of DISCIPLINES) {
-                if (!teamsData[code].disciplines[d]) teamsData[code].disciplines[d] = { rawSeconds: null, penalties: {} };
+                if (d === 'special') {
+                    if (!teamsData[code].disciplines[d]) {
+                        teamsData[code].disciplines[d] = {
+                            practice: { rawSeconds: null, penalties: {} },
+                            test: { rawSeconds: null, penalties: {} }
+                        };
+                    } else {
+                        // если уже есть, но без этапов
+                        if (!teamsData[code].disciplines[d].practice) teamsData[code].disciplines[d].practice = { rawSeconds: null, penalties: {} };
+                        if (!teamsData[code].disciplines[d].test) teamsData[code].disciplines[d].test = { rawSeconds: null, penalties: {} };
+                    }
+                } else {
+                    if (!teamsData[code].disciplines[d]) teamsData[code].disciplines[d] = { rawSeconds: null, penalties: {} };
+                }
             }
         }
     }
 
-    function saveAllData() {
-        localStorage.setItem('incassator_all_data', JSON.stringify(teamsData));
-    }
-
-    // ===== ПОСТРОЕНИЕ UI ДЛЯ ВКЛАДКИ =====
+    // ===== ПОСТРОЕНИЕ UI =====
     function buildPanel(discipline) {
+        if (discipline === 'special') {
+            return buildSpecialPanel();
+        }
         const label = DISCIPLINE_LABELS[discipline] || discipline;
         const penalties = penaltiesLibrary[discipline] || [];
         let html = `<div id="panel-${discipline}" class="tab-pane">`;
         html += `<div class="section">`;
         html += `<h2>${label}</h2>`;
-        html += `<div class="table-wrapper"><table id="overallTable-${discipline}"><thead><tr><th>Место</th><th>Команда</th><th>Участник 1</th><th>Участник 2</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead><tbody id="overallBody-${discipline}"><tr><td colspan="7">Загрузка...</td></tr></tbody></table></div>`;
+        html += `<div class="table-wrapper"><table id="overallTable-${discipline}"><thead><tr><th>Место</th><th>Команда</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead><tbody id="overallBody-${discipline}"><tr><td colspan="5">Загрузка...</td></tr></tbody></table></div>`;
 
         html += `<div class="penalty-block" id="penaltyBlock-${discipline}">`;
         html += `<h3>⚖️ Штрафные секунды</h3>`;
         html += `<div class="row"><label>Чистое время команды (мм:сс.сс): <input type="text" id="rawTime-${discipline}" placeholder="например 14:39.57"></label>`;
         html += `<button class="btn-save" id="saveRawTime-${discipline}">Сохранить время</button></div>`;
-
-        html += `<div class="row" style="margin-top:10px;"><label>Участник 1 (ФИО): <input type="text" id="p1name-${discipline}" placeholder="ФИО первого"></label>`;
-        html += `<label>Участник 2 (ФИО): <input type="text" id="p2name-${discipline}" placeholder="ФИО второго"></label></div>`;
 
         html += `<div id="penaltiesList-${discipline}" style="margin-top:12px;">`;
         for (let p of penalties) {
@@ -574,6 +591,62 @@
         return html;
     }
 
+    function buildSpecialPanel() {
+        let html = `<div id="panel-special" class="tab-pane">`;
+        html += `<div class="section">`;
+        html += `<h2>Специальная подготовка (2 этапа)</h2>`;
+        html += `<div class="table-wrapper"><table id="overallTable-special"><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th><th>Общий штраф</th><th>Итог</th></tr></thead><tbody id="overallBody-special"><tr><td colspan="5">Загрузка...</td></tr></tbody></table></div>`;
+
+        // Два блока для этапов
+        for (let stage of SPECIAL_STAGES) {
+            const stageLabel = SPECIAL_STAGE_LABELS[stage];
+            const penalties = penaltiesLibrary.special[stage] || [];
+            html += `<div class="penalty-block" id="penaltyBlock-special-${stage}" style="margin-top:20px;">`;
+            html += `<h3>${stageLabel}</h3>`;
+            html += `<div class="row"><label>Чистое время (мм:сс.сс): <input type="text" id="rawTime-special-${stage}" placeholder="например 14:39.57"></label>`;
+            html += `<button class="btn-save" id="saveRawTime-special-${stage}">Сохранить время</button></div>`;
+
+            html += `<div id="penaltiesList-special-${stage}" style="margin-top:12px;">`;
+            for (let p of penalties) {
+                const isCounter = p.isCounter === true;
+                if (isCounter) {
+                    html += `<div class="row"><label>${p.desc} – +${p.sec} сек (макс. ${p.maxCount||10})</label>`;
+                    html += `<div class="counter-control" style="display:flex; align-items:center; gap:4px; background:white; border-radius:40px; padding:2px 10px; border:1px solid #ccc;">`;
+                    html += `<button class="counter-dec" data-id="${p.id}" data-disc="special" data-stage="${stage}">−</button>`;
+                    html += `<span class="counter-count" data-id="${p.id}" data-disc="special" data-stage="${stage}">0</span>`;
+                    html += `<button class="counter-inc" data-id="${p.id}" data-disc="special" data-stage="${stage}">+</button>`;
+                    html += `</div><span style="font-size:0.75rem; margin-left:6px;">Штраф: <span class="counter-total" data-id="${p.id}" data-stage="${stage}">0</span> сек</span></div>`;
+                } else {
+                    html += `<div class="row"><input type="checkbox" class="penalty-chk" data-id="${p.id}" data-disc="special" data-stage="${stage}">`;
+                    html += `<label>${p.desc} – +${p.sec} сек</label></div>`;
+                }
+            }
+            html += `</div>`;
+
+            html += `<div class="action-buttons">`;
+            html += `<button class="btn-save" id="saveStage-special-${stage}">💾 Сохранить ошибки этапа</button>`;
+            html += `<button class="btn-reset" id="resetStage-special-${stage}">🗑️ Сбросить этап</button>`;
+            html += `</div>`;
+
+            // Сводка по этапу
+            html += `<div class="stage-summary">`;
+            html += `<span>Штраф: <span id="penaltySum-special-${stage}">0</span> сек</span>`;
+            html += `<span>Чистое время: <span id="rawDisplay-special-${stage}">—</span></span>`;
+            html += `<span>Итого этапа: <strong id="totalDisplay-special-${stage}">—</strong></span>`;
+            html += `</div>`;
+            html += `</div>`;
+        }
+
+        // Общая сводка по специальной подготовке
+        html += `<div class="summary-bar" style="margin-top:20px;">`;
+        html += `<span>Общий штраф: <span id="penaltySum-special">0</span> сек</span>`;
+        html += `<span>Общее чистое время: <span id="rawDisplay-special">—</span></span>`;
+        html += `<span>Общий итог: <strong id="totalDisplay-special">—</strong></span>`;
+        html += `</div>`;
+        html += `</div></div>`;
+        return html;
+    }
+
     function buildPanels() {
         let html = '';
         for (let d of DISCIPLINES) {
@@ -588,54 +661,105 @@
         panelsContainer.innerHTML = html;
     }
 
-    // ===== ОБНОВЛЕНИЕ UI ДЛЯ ТЕКУЩЕЙ ДИСЦИПЛИНЫ И КОМАНДЫ =====
+    // ===== ОБНОВЛЕНИЕ UI =====
     function refreshUI() {
         if (!currentTeam || !currentDiscipline) return;
-        const disc = currentDiscipline;
+        if (currentDiscipline === 'special') {
+            refreshSpecialUI();
+        } else {
+            refreshDisciplineUI(currentDiscipline);
+        }
+    }
+
+    function refreshDisciplineUI(disc) {
         const team = teamsData[currentTeam];
         if (!team) return;
         const discData = getTeamDisciplineData(currentTeam, disc);
         const penObj = discData.penalties || {};
 
-        // Имена
-        const p1 = document.getElementById(`p1name-${disc}`);
-        const p2 = document.getElementById(`p2name-${disc}`);
-        if (p1) p1.value = team.participant1Name || "";
-        if (p2) p2.value = team.participant2Name || "";
-
-        // Время
         const rawInput = document.getElementById(`rawTime-${disc}`);
         if (rawInput) rawInput.value = discData.rawSeconds !== null ? formatTime(discData.rawSeconds) : "";
 
-        // Штрафы: загружаем в tempPenalties
-        tempPenalties = {};
+        // tempPenalties для этой дисциплины (храним в глобальном объекте)
+        if (!tempPenalties[disc]) tempPenalties[disc] = {};
+        const discTemp = tempPenalties[disc] || {};
+        // Загружаем из сохранённых
         const disciplinePenalties = penaltiesLibrary[disc] || [];
         for (let p of disciplinePenalties) {
-            if (penObj[p.id] !== undefined) tempPenalties[p.id] = penObj[p.id];
+            if (penObj[p.id] !== undefined) discTemp[p.id] = penObj[p.id];
+            else delete discTemp[p.id];
         }
+        tempPenalties[disc] = discTemp;
         unsaved = false;
 
-        // Обновить вид штрафов
         updatePenaltiesUI(disc);
         updateSummary(disc);
         updateStageBadge(disc);
         renderOverallTable(disc);
     }
 
+    function refreshSpecialUI() {
+        const team = teamsData[currentTeam];
+        if (!team) return;
+        // Для каждого этапа
+        for (let stage of SPECIAL_STAGES) {
+            const stageData = getSpecialStageData(currentTeam, stage);
+            const penObj = stageData.penalties || {};
+            const rawInput = document.getElementById(`rawTime-special-${stage}`);
+            if (rawInput) rawInput.value = stageData.rawSeconds !== null ? formatTime(stageData.rawSeconds) : "";
+
+            if (!tempPenalties['special']) tempPenalties['special'] = {};
+            if (!tempPenalties['special'][stage]) tempPenalties['special'][stage] = {};
+            const stageTemp = tempPenalties['special'][stage];
+            const penalties = penaltiesLibrary.special[stage] || [];
+            for (let p of penalties) {
+                if (penObj[p.id] !== undefined) stageTemp[p.id] = penObj[p.id];
+                else delete stageTemp[p.id];
+            }
+        }
+        unsaved = false;
+        updateSpecialPenaltiesUI();
+        updateSpecialSummary();
+        updateSpecialBadge();
+        renderOverallTable('special');
+    }
+
     function updatePenaltiesUI(disc) {
         const container = document.getElementById(`penaltiesList-${disc}`);
         if (!container) return;
         const disciplinePenalties = penaltiesLibrary[disc] || [];
+        const discTemp = tempPenalties[disc] || {};
         for (let p of disciplinePenalties) {
             if (p.isCounter) {
                 const countSpan = container.querySelector(`.counter-count[data-id="${p.id}"]`);
                 const totalSpan = container.querySelector(`.counter-total[data-id="${p.id}"]`);
-                const val = getCounterValue(tempPenalties, p.id);
+                const val = getCounterValue(discTemp, p.id);
                 if (countSpan) countSpan.innerText = val;
                 if (totalSpan) totalSpan.innerText = val * p.sec;
             } else {
                 const chk = container.querySelector(`.penalty-chk[data-id="${p.id}"]`);
-                if (chk) chk.checked = tempPenalties[p.id] === true;
+                if (chk) chk.checked = discTemp[p.id] === true;
+            }
+        }
+    }
+
+    function updateSpecialPenaltiesUI() {
+        for (let stage of SPECIAL_STAGES) {
+            const container = document.getElementById(`penaltiesList-special-${stage}`);
+            if (!container) continue;
+            const penalties = penaltiesLibrary.special[stage] || [];
+            const stageTemp = tempPenalties['special']?.[stage] || {};
+            for (let p of penalties) {
+                if (p.isCounter) {
+                    const countSpan = container.querySelector(`.counter-count[data-id="${p.id}"]`);
+                    const totalSpan = container.querySelector(`.counter-total[data-id="${p.id}"]`);
+                    const val = getCounterValue(stageTemp, p.id);
+                    if (countSpan) countSpan.innerText = val;
+                    if (totalSpan) totalSpan.innerText = val * p.sec;
+                } else {
+                    const chk = container.querySelector(`.penalty-chk[data-id="${p.id}"]`);
+                    if (chk) chk.checked = stageTemp[p.id] === true;
+                }
             }
         }
     }
@@ -646,21 +770,57 @@
         const totalSpan = document.getElementById(`totalDisplay-${disc}`);
         if (!sumSpan || !rawSpan || !totalSpan) return;
 
-        const team = teamsData[currentTeam];
-        if (!team) { sumSpan.innerText = '0'; rawSpan.innerText = '—'; totalSpan.innerText = '—'; return; }
         const discData = getTeamDisciplineData(currentTeam, disc);
         const raw = discData.rawSeconds;
-        // Сумма штрафов: постоянные + временные
+        const discTemp = tempPenalties[disc] || {};
         let merged = { ...discData.penalties };
         const discPen = penaltiesLibrary[disc] || [];
         for (let p of discPen) delete merged[p.id];
-        for (let id in tempPenalties) merged[id] = tempPenalties[id];
+        for (let id in discTemp) merged[id] = discTemp[id];
         const penSum = getPenaltySum(merged, disc);
         const total = raw !== null ? raw + penSum : null;
 
         sumSpan.innerText = penSum;
         rawSpan.innerText = raw !== null ? formatTime(raw) : '—';
         totalSpan.innerText = total !== null ? formatTime(total) : '—';
+    }
+
+    function updateSpecialSummary() {
+        let totalRaw = 0;
+        let totalPen = 0;
+        let hasData = false;
+        for (let stage of SPECIAL_STAGES) {
+            const stageData = getSpecialStageData(currentTeam, stage);
+            const raw = stageData.rawSeconds;
+            const stageTemp = tempPenalties['special']?.[stage] || {};
+            let merged = { ...stageData.penalties };
+            const penalties = penaltiesLibrary.special[stage] || [];
+            for (let p of penalties) delete merged[p.id];
+            for (let id in stageTemp) merged[id] = stageTemp[id];
+            const penSum = getPenaltySum(merged, 'special', stage);
+            const total = raw !== null ? raw + penSum : null;
+
+            // Обновляем сводку по этапу
+            const sumSpan = document.getElementById(`penaltySum-special-${stage}`);
+            const rawSpan = document.getElementById(`rawDisplay-special-${stage}`);
+            const totalSpan = document.getElementById(`totalDisplay-special-${stage}`);
+            if (sumSpan) sumSpan.innerText = penSum;
+            if (rawSpan) rawSpan.innerText = raw !== null ? formatTime(raw) : '—';
+            if (totalSpan) totalSpan.innerText = total !== null ? formatTime(total) : '—';
+
+            if (raw !== null) {
+                totalRaw += raw;
+                totalPen += penSum;
+                hasData = true;
+            }
+        }
+
+        const overallSum = document.getElementById(`penaltySum-special`);
+        const overallRaw = document.getElementById(`rawDisplay-special`);
+        const overallTotal = document.getElementById(`totalDisplay-special`);
+        if (overallSum) overallSum.innerText = totalPen;
+        if (overallRaw) overallRaw.innerText = hasData ? formatTime(totalRaw) : '—';
+        if (overallTotal) overallTotal.innerText = hasData ? formatTime(totalRaw + totalPen) : '—';
     }
 
     function updateStageBadge(disc) {
@@ -677,7 +837,24 @@
         } else if (badge) badge.remove();
     }
 
-    // ===== ТАБЛИЦА ОБЩЕГО ЗАЧЁТА ПО ДИСЦИПЛИНЕ =====
+    function updateSpecialBadge() {
+        // для каждого этапа отдельно
+        for (let stage of SPECIAL_STAGES) {
+            const block = document.getElementById(`penaltyBlock-special-${stage}`);
+            if (!block) continue;
+            let badge = block.querySelector('.unsaved-badge');
+            if (unsaved && currentTeam) {
+                if (!badge) {
+                    badge = document.createElement('span');
+                    badge.className = 'unsaved-badge';
+                    badge.innerText = '⚠️ есть изменения';
+                    block.querySelector('.action-buttons')?.appendChild(badge);
+                }
+            } else if (badge) badge.remove();
+        }
+    }
+
+    // ===== ТАБЛИЦА ОБЩЕГО ЗАЧЁТА =====
     function renderOverallTable(disc) {
         const tbody = document.getElementById(`overallBody-${disc}`);
         if (!tbody) return;
@@ -685,16 +862,31 @@
         for (let code of TEAM_CODES) {
             const team = teamsData[code];
             if (!team) continue;
-            const discData = getTeamDisciplineData(code, disc);
-            const raw = discData.rawSeconds;
-            const pen = getPenaltySum(discData.penalties, disc);
-            const total = raw !== null ? raw + pen : null;
-            const names = getTeamNames(code);
+            let raw, pen, total;
+            if (disc === 'special') {
+                let totalRaw = 0, totalPen = 0, has = false;
+                for (let stage of SPECIAL_STAGES) {
+                    const stageData = getSpecialStageData(code, stage);
+                    const r = stageData.rawSeconds;
+                    const p = getPenaltySum(stageData.penalties, 'special', stage);
+                    if (r !== null) {
+                        totalRaw += r;
+                        totalPen += p;
+                        has = true;
+                    }
+                }
+                raw = has ? totalRaw : null;
+                pen = totalPen;
+                total = raw !== null ? raw + pen : null;
+            } else {
+                const discData = getTeamDisciplineData(code, disc);
+                raw = discData.rawSeconds;
+                pen = getPenaltySum(discData.penalties, disc);
+                total = raw !== null ? raw + pen : null;
+            }
             rows.push({
                 code,
                 name: TEAM_NAMES[code] || code,
-                p1: names.p1 || "—",
-                p2: names.p2 || "—",
                 raw,
                 pen,
                 total
@@ -712,9 +904,9 @@
             const placeHtml = (r.total !== null && parseInt(place) <= 3) ?
                 `<span class="place-number"><span class="medal-icon">${place===1?'🥇':place===2?'🥈':'🥉'}</span> ${place}</span>` :
                 place;
-            html += `<tr class="${cls}"><td>${placeHtml}</td><td><strong>${r.name}</strong> (${r.code})</td><td>${r.p1}</td><td>${r.p2}</td><td>${r.raw !== null ? formatTime(r.raw) : '—'}</td><td>${r.pen}</td><td><strong>${r.total !== null ? formatTime(r.total) : '—'}</strong></td></tr>`;
+            html += `<tr class="${cls}"><td>${placeHtml}</td><td><strong>${r.name}</strong> (${r.code})</td><td>${r.raw !== null ? formatTime(r.raw) : '—'}</td><td>${r.pen}</td><td><strong>${r.total !== null ? formatTime(r.total) : '—'}</strong></td></tr>`;
         }
-        if (!rows.length || rows.every(r => r.total === null)) html = '<tr><td colspan="7">Нет данных. Внесите результаты.</td></tr>';
+        if (!rows.length || rows.every(r => r.total === null)) html = '<tr><td colspan="5">Нет данных. Внесите результаты.</td></tr>';
         tbody.innerHTML = html;
     }
 
@@ -730,19 +922,47 @@
             let totalSum = 0;
             let hasData = false;
             for (let d of DISCIPLINES) {
-                const discData = getTeamDisciplineData(code, d);
-                const raw = discData.rawSeconds;
-                const pen = getPenaltySum(discData.penalties, d);
-                const total = raw !== null ? raw + pen : null;
+                let totalVal = null;
+                if (d === 'special') {
+                    let totalRaw = 0, totalPen = 0, has = false;
+                    for (let stage of SPECIAL_STAGES) {
+                        const stageData = getSpecialStageData(code, stage);
+                        const r = stageData.rawSeconds;
+                        const p = getPenaltySum(stageData.penalties, 'special', stage);
+                        if (r !== null) {
+                            totalRaw += r;
+                            totalPen += p;
+                            has = true;
+                        }
+                    }
+                    totalVal = has ? totalRaw + totalPen : null;
+                } else {
+                    const discData = getTeamDisciplineData(code, d);
+                    const raw = discData.rawSeconds;
+                    const pen = getPenaltySum(discData.penalties, d);
+                    totalVal = raw !== null ? raw + pen : null;
+                }
                 let place = 12;
-                if (total !== null) {
+                if (totalVal !== null) {
                     let totals = [];
                     for (let c of TEAM_CODES) {
-                        const dData = getTeamDisciplineData(c, d);
-                        const r = dData.rawSeconds;
-                        const p = getPenaltySum(dData.penalties, d);
-                        const t = r !== null ? r + p : null;
-                        if (t !== null) totals.push({ code: c, total: t });
+                        let val = null;
+                        if (d === 'special') {
+                            let tr = 0, tp = 0, h = false;
+                            for (let stage of SPECIAL_STAGES) {
+                                const sd = getSpecialStageData(c, stage);
+                                const r = sd.rawSeconds;
+                                const p = getPenaltySum(sd.penalties, 'special', stage);
+                                if (r !== null) { tr += r; tp += p; h = true; }
+                            }
+                            val = h ? tr + tp : null;
+                        } else {
+                            const dd = getTeamDisciplineData(c, d);
+                            const r = dd.rawSeconds;
+                            const p = getPenaltySum(dd.penalties, d);
+                            val = r !== null ? r + p : null;
+                        }
+                        if (val !== null) totals.push({ code: c, total: val });
                     }
                     totals.sort((a,b) => a.total - b.total);
                     let rank = 1;
@@ -795,9 +1015,10 @@
     function saveStage(disc) {
         if (!currentTeam) { alert('Выберите команду'); return; }
         const discData = getTeamDisciplineData(currentTeam, disc);
+        const discTemp = tempPenalties[disc] || {};
         const disciplinePenalties = penaltiesLibrary[disc] || [];
         for (let p of disciplinePenalties) {
-            if (tempPenalties[p.id] !== undefined) discData.penalties[p.id] = tempPenalties[p.id];
+            if (discTemp[p.id] !== undefined) discData.penalties[p.id] = discTemp[p.id];
             else delete discData.penalties[p.id];
         }
         unsaved = false;
@@ -811,9 +1032,10 @@
 
     function resetStage(disc) {
         if (!currentTeam) return;
+        const discTemp = tempPenalties[disc] || {};
         const disciplinePenalties = penaltiesLibrary[disc] || [];
         for (let p of disciplinePenalties) {
-            delete tempPenalties[p.id];
+            delete discTemp[p.id];
         }
         unsaved = false;
         updatePenaltiesUI(disc);
@@ -836,13 +1058,51 @@
         alert('Время сохранено');
     }
 
-    function saveNames(disc) {
-        if (!currentTeam) return;
-        const p1 = document.getElementById(`p1name-${disc}`);
-        const p2 = document.getElementById(`p2name-${disc}`);
-        if (p1) setTeamNames(currentTeam, p1.value, p2 ? p2.value : "");
-        renderOverallTable(disc);
+    // ===== СПЕЦИАЛЬНЫЕ ОБРАБОТЧИКИ ДЛЯ SPECIAL =====
+    function saveSpecialStage(stage) {
+        if (!currentTeam) { alert('Выберите команду'); return; }
+        const stageData = getSpecialStageData(currentTeam, stage);
+        const stageTemp = tempPenalties['special']?.[stage] || {};
+        const penalties = penaltiesLibrary.special[stage] || [];
+        for (let p of penalties) {
+            if (stageTemp[p.id] !== undefined) stageData.penalties[p.id] = stageTemp[p.id];
+            else delete stageData.penalties[p.id];
+        }
+        unsaved = false;
+        saveAllData();
+        updateSpecialBadge();
+        updateSpecialSummary();
+        renderOverallTable('special');
         renderOverallResults();
+        alert('Ошибки этапа "' + SPECIAL_STAGE_LABELS[stage] + '" сохранены для команды ' + currentTeam);
+    }
+
+    function resetSpecialStage(stage) {
+        if (!currentTeam) return;
+        const stageTemp = tempPenalties['special']?.[stage] || {};
+        const penalties = penaltiesLibrary.special[stage] || [];
+        for (let p of penalties) {
+            delete stageTemp[p.id];
+        }
+        unsaved = false;
+        updateSpecialPenaltiesUI();
+        updateSpecialSummary();
+        updateSpecialBadge();
+    }
+
+    function saveSpecialRawTime(stage) {
+        if (!currentTeam) { alert('Выберите команду'); return; }
+        const rawInput = document.getElementById(`rawTime-special-${stage}`);
+        const rawStr = rawInput.value.trim();
+        let seconds = rawStr === "" ? null : parseTime(rawStr);
+        if (rawStr !== "" && seconds === null) { alert('Неверный формат времени (мм:сс.сс)'); return; }
+        const stageData = getSpecialStageData(currentTeam, stage);
+        stageData.rawSeconds = seconds;
+        saveAllData();
+        updateSpecialSummary();
+        renderOverallTable('special');
+        renderOverallResults();
+        alert('Время для этапа "' + SPECIAL_STAGE_LABELS[stage] + '" сохранено');
     }
 
     // ===== ПЕЧАТЬ =====
@@ -851,37 +1111,64 @@
         const disc = currentDiscipline;
         const team = teamsData[currentTeam];
         if (!team) return;
-        const discData = getTeamDisciplineData(currentTeam, disc);
-        const penObj = discData.penalties || {};
-        const raw = discData.rawSeconds;
-        const penSum = getPenaltySum(penObj, disc);
-        const total = raw !== null ? raw + penSum : null;
 
-        let violations = [];
-        for (let id in penObj) {
-            const val = penObj[id];
-            const p = penaltiesLibrary[disc]?.find(p => p.id === id);
-            if (p) {
-                if (p.isCounter && typeof val === 'number' && val > 0) {
-                    for (let i=0; i<val; i++) violations.push({ desc: p.desc + ` (${i+1}-й раз)`, sec: p.sec });
-                } else if (val === true || val === 1) violations.push({ desc: p.desc, sec: p.sec });
-                else if (typeof val === 'number' && val > 0 && !p.isCounter) {
-                    for (let i=0; i<val; i++) violations.push({ desc: p.desc + ` (${i+1}-й раз)`, sec: p.sec });
+        let raw, penSum, total, violations = [];
+        if (disc === 'special') {
+            let totalRaw = 0, totalPen = 0, has = false;
+            for (let stage of SPECIAL_STAGES) {
+                const stageData = getSpecialStageData(currentTeam, stage);
+                const r = stageData.rawSeconds;
+                const p = getPenaltySum(stageData.penalties, 'special', stage);
+                if (r !== null) { totalRaw += r; totalPen += p; has = true; }
+                // нарушения по этапу
+                const penObj = stageData.penalties || {};
+                for (let id in penObj) {
+                    const val = penObj[id];
+                    const pLib = penaltiesLibrary.special[stage]?.find(p => p.id === id);
+                    if (pLib) {
+                        if (pLib.isCounter && typeof val === 'number' && val > 0) {
+                            for (let i=0; i<val; i++) violations.push({ desc: pLib.desc + ` (${i+1}-й раз, этап ${stage})`, sec: pLib.sec });
+                        } else if (val === true || val === 1) violations.push({ desc: pLib.desc + ` (этап ${stage})`, sec: pLib.sec });
+                        else if (typeof val === 'number' && val > 0 && !pLib.isCounter) {
+                            for (let i=0; i<val; i++) violations.push({ desc: pLib.desc + ` (${i+1}-й раз, этап ${stage})`, sec: pLib.sec });
+                        }
+                    }
+                }
+            }
+            raw = has ? totalRaw : null;
+            penSum = totalPen;
+            total = raw !== null ? raw + penSum : null;
+        } else {
+            const discData = getTeamDisciplineData(currentTeam, disc);
+            raw = discData.rawSeconds;
+            penSum = getPenaltySum(discData.penalties, disc);
+            total = raw !== null ? raw + penSum : null;
+            const penObj = discData.penalties || {};
+            const lib = penaltiesLibrary[disc] || [];
+            for (let id in penObj) {
+                const val = penObj[id];
+                const p = lib.find(p => p.id === id);
+                if (p) {
+                    if (p.isCounter && typeof val === 'number' && val > 0) {
+                        for (let i=0; i<val; i++) violations.push({ desc: p.desc + ` (${i+1}-й раз)`, sec: p.sec });
+                    } else if (val === true || val === 1) violations.push({ desc: p.desc, sec: p.sec });
+                    else if (typeof val === 'number' && val > 0 && !p.isCounter) {
+                        for (let i=0; i<val; i++) violations.push({ desc: p.desc + ` (${i+1}-й раз)`, sec: p.sec });
+                    }
                 }
             }
         }
+
         const now = new Date().toLocaleString('ru-RU');
         let tableRows = violations.length ? violations.map(v => `<tr><td>${v.desc}</td><td>+${v.sec}</td></tr>`).join('') : '<tr><td colspan="2">✅ Штрафные нарушения отсутствуют</td></tr>';
 
         const html = `
             <div style="font-family: 'Segoe UI', sans-serif; max-width: 1000px; margin:0 auto; padding:20px;">
                 <h1 style="text-align:center;">🏁 ОТЧЕТ О ПРОХОЖДЕНИИ</h1>
-                <h2 style="text-align:center;">${DISCIPLINE_LABELS[disc]}</h2>
+                <h2 style="text-align:center;">${DISCIPLINE_LABELS[disc] || disc}</h2>
                 <div style="text-align:center; color:#2c3e66; margin-bottom:20px;">Дата формирования: ${now}</div>
                 <div style="background:#f8fafc; padding:16px; border-radius:16px; margin-bottom:20px;">
                     <div><strong>Команда:</strong> ${TEAM_NAMES[currentTeam]} (${currentTeam})</div>
-                    <div><strong>Участник 1:</strong> ${team.participant1Name || '—'}</div>
-                    <div><strong>Участник 2:</strong> ${team.participant2Name || '—'}</div>
                     <div><strong>Чистое время:</strong> ${raw !== null ? formatTime(raw) : '—'}</div>
                     <div><strong>Общий штраф:</strong> ${penSum} сек</div>
                     <div><strong>Итоговое время:</strong> ${total !== null ? formatTime(total) : '—'}</div>
@@ -901,7 +1188,7 @@
                     </div>
                     <div style="margin-top:20px; font-size:10px; color:#4b5563; text-align:center;">Подпись представителя команды подтверждает согласие с результатами.</div>
                 </div>
-                <div style="margin-top:30px; font-size:9pt; text-align:center; color:#6c757d;">Официальный протокол дисциплины "${DISCIPLINE_LABELS[disc]}"</div>
+                <div style="margin-top:30px; font-size:9pt; text-align:center; color:#6c757d;">Официальный протокол дисциплины "${DISCIPLINE_LABELS[disc] || disc}"</div>
             </div>
         `;
         const container = document.getElementById('printReportContainer');
@@ -918,39 +1205,44 @@
         for (let code of TEAM_CODES) {
             const team = teamsData[code];
             if (!team) continue;
-            const discData = getTeamDisciplineData(code, disc);
-            const raw = discData.rawSeconds;
-            const pen = getPenaltySum(discData.penalties, disc);
-            const total = raw !== null ? raw + pen : null;
-            const names = getTeamNames(code);
-            rows.push({
-                code,
-                name: TEAM_NAMES[code] || code,
-                p1: names.p1 || "—",
-                p2: names.p2 || "—",
-                raw,
-                pen,
-                total
-            });
+            let raw, pen, total;
+            if (disc === 'special') {
+                let totalRaw = 0, totalPen = 0, has = false;
+                for (let stage of SPECIAL_STAGES) {
+                    const stageData = getSpecialStageData(code, stage);
+                    const r = stageData.rawSeconds;
+                    const p = getPenaltySum(stageData.penalties, 'special', stage);
+                    if (r !== null) { totalRaw += r; totalPen += p; has = true; }
+                }
+                raw = has ? totalRaw : null;
+                pen = totalPen;
+                total = raw !== null ? raw + pen : null;
+            } else {
+                const discData = getTeamDisciplineData(code, disc);
+                raw = discData.rawSeconds;
+                pen = getPenaltySum(discData.penalties, disc);
+                total = raw !== null ? raw + pen : null;
+            }
+            rows.push({ code, name: TEAM_NAMES[code] || code, raw, pen, total });
         }
         rows.sort((a,b) => (a.total ?? Infinity) - (b.total ?? Infinity));
         let rank = 1;
         let tableRows = '';
         for (let r of rows) {
             const place = r.total !== null ? rank++ : '—';
-            tableRows += `<tr><td>${place}</td><td><strong>${r.name}</strong> (${r.code})</td><td>${r.p1}</td><td>${r.p2}</td><td>${r.raw !== null ? formatTime(r.raw) : '—'}</td><td>${r.pen}</td><td><strong>${r.total !== null ? formatTime(r.total) : '—'}</strong></td></tr>`;
+            tableRows += `<tr><td>${place}</td><td><strong>${r.name}</strong> (${r.code})</td><td>${r.raw !== null ? formatTime(r.raw) : '—'}</td><td>${r.pen}</td><td><strong>${r.total !== null ? formatTime(r.total) : '—'}</strong></td></tr>`;
         }
-        if (!rows.length || rows.every(r => r.total === null)) tableRows = '<tr><td colspan="7">Нет данных</td></tr>';
+        if (!rows.length || rows.every(r => r.total === null)) tableRows = '<tr><td colspan="5">Нет данных</td></tr>';
 
         const now = new Date().toLocaleString('ru-RU');
         const html = `
             <div style="font-family: 'Segoe UI', sans-serif; max-width: 1100px; margin:0 auto; padding:5mm 4mm;">
                 <style>@page { size: A4 portrait; margin: 8mm 6mm; }</style>
                 <h1 style="text-align:center; font-size:14pt;">🏆 ИТОГОВЫЙ ПРОТОКОЛ</h1>
-                <h2 style="text-align:center; font-size:12pt; color:#1e3a5f;">${DISCIPLINE_LABELS[disc]}</h2>
+                <h2 style="text-align:center; font-size:12pt; color:#1e3a5f;">${DISCIPLINE_LABELS[disc] || disc}</h2>
                 <div style="text-align:center; font-size:8.5pt; margin-bottom:8px;">Дата формирования: ${now}</div>
                 <table style="width:100%; border-collapse:collapse; font-size:8.5pt;">
-                    <thead><tr style="background:#eef;"><th>Место</th><th>Команда</th><th>Участник 1</th><th>Участник 2</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead>
+                    <thead><tr style="background:#eef;"><th>Место</th><th>Команда</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead>
                     <tbody>${tableRows}</tbody>
                 </table>
                 <div style="margin-top:16px; border-top:1px dashed #aaa; padding-top:10px;">
@@ -980,15 +1272,26 @@
         for (let code of TEAM_CODES) {
             const team = teamsData[code];
             if (!team) continue;
-            const discData = getTeamDisciplineData(code, disc);
-            const raw = discData.rawSeconds;
-            const pen = getPenaltySum(discData.penalties, disc);
-            const total = raw !== null ? raw + pen : null;
-            const names = getTeamNames(code);
+            let raw, pen, total;
+            if (disc === 'special') {
+                let totalRaw = 0, totalPen = 0, has = false;
+                for (let stage of SPECIAL_STAGES) {
+                    const stageData = getSpecialStageData(code, stage);
+                    const r = stageData.rawSeconds;
+                    const p = getPenaltySum(stageData.penalties, 'special', stage);
+                    if (r !== null) { totalRaw += r; totalPen += p; has = true; }
+                }
+                raw = has ? totalRaw : null;
+                pen = totalPen;
+                total = raw !== null ? raw + pen : null;
+            } else {
+                const discData = getTeamDisciplineData(code, disc);
+                raw = discData.rawSeconds;
+                pen = getPenaltySum(discData.penalties, disc);
+                total = raw !== null ? raw + pen : null;
+            }
             rows.push({
                 "Команда": `${TEAM_NAMES[code]} (${code})`,
-                "Участник 1": names.p1 || "—",
-                "Участник 2": names.p2 || "—",
                 "Чистое время": raw !== null ? formatTime(raw) : "—",
                 "Штраф (сек)": pen,
                 "Итог": total !== null ? formatTime(total) : "—"
@@ -1006,12 +1309,87 @@
         });
         const ws = XLSX.utils.aoa_to_sheet(wsData);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, DISCIPLINE_LABELS[disc]);
+        XLSX.utils.book_append_sheet(wb, ws, DISCIPLINE_LABELS[disc] || disc);
         XLSX.writeFile(wb, `incassator_${disc}_${new Date().toISOString().slice(0,10)}.xlsx`);
     }
 
-    // ===== ПРИВЯЗКА ОБРАБОТЧИКОВ К ЭЛЕМЕНТАМ =====
+    // ===== ПРИВЯЗКА ОБРАБОТЧИКОВ =====
     function attachEventListenersForDiscipline(disc) {
+        if (disc === 'special') {
+            for (let stage of SPECIAL_STAGES) {
+                const saveBtn = document.getElementById(`saveStage-special-${stage}`);
+                if (saveBtn) saveBtn.addEventListener('click', () => saveSpecialStage(stage));
+                const resetBtn = document.getElementById(`resetStage-special-${stage}`);
+                if (resetBtn) resetBtn.addEventListener('click', () => resetSpecialStage(stage));
+                const saveRawBtn = document.getElementById(`saveRawTime-special-${stage}`);
+                if (saveRawBtn) saveRawBtn.addEventListener('click', () => saveSpecialRawTime(stage));
+                const rawInput = document.getElementById(`rawTime-special-${stage}`);
+                if (rawInput) rawInput.addEventListener('change', () => saveSpecialRawTime(stage));
+
+                const container = document.getElementById(`penaltiesList-special-${stage}`);
+                if (container) {
+                    container.querySelectorAll('.counter-inc').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const id = this.getAttribute('data-id');
+                            const stageAttr = this.getAttribute('data-stage');
+                            if (stageAttr !== stage) return;
+                            const p = penaltiesLibrary.special[stage]?.find(p => p.id === id);
+                            if (!p || !p.isCounter) return;
+                            const max = p.maxCount || 10;
+                            if (!tempPenalties['special']) tempPenalties['special'] = {};
+                            if (!tempPenalties['special'][stage]) tempPenalties['special'][stage] = {};
+                            const stageTemp = tempPenalties['special'][stage];
+                            let val = getCounterValue(stageTemp, id) + 1;
+                            if (val > max) val = max;
+                            setCounterValue(stageTemp, id, val);
+                            unsaved = true;
+                            updateSpecialPenaltiesUI();
+                            updateSpecialSummary();
+                            updateSpecialBadge();
+                        });
+                    });
+                    container.querySelectorAll('.counter-dec').forEach(btn => {
+                        btn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            const id = this.getAttribute('data-id');
+                            const stageAttr = this.getAttribute('data-stage');
+                            if (stageAttr !== stage) return;
+                            const p = penaltiesLibrary.special[stage]?.find(p => p.id === id);
+                            if (!p || !p.isCounter) return;
+                            if (!tempPenalties['special']) tempPenalties['special'] = {};
+                            if (!tempPenalties['special'][stage]) tempPenalties['special'][stage] = {};
+                            const stageTemp = tempPenalties['special'][stage];
+                            let val = getCounterValue(stageTemp, id) - 1;
+                            if (val < 0) val = 0;
+                            setCounterValue(stageTemp, id, val);
+                            unsaved = true;
+                            updateSpecialPenaltiesUI();
+                            updateSpecialSummary();
+                            updateSpecialBadge();
+                        });
+                    });
+                    container.querySelectorAll('.penalty-chk').forEach(chk => {
+                        chk.addEventListener('change', function() {
+                            const id = this.getAttribute('data-id');
+                            const stageAttr = this.getAttribute('data-stage');
+                            if (stageAttr !== stage) return;
+                            if (!tempPenalties['special']) tempPenalties['special'] = {};
+                            if (!tempPenalties['special'][stage]) tempPenalties['special'][stage] = {};
+                            const stageTemp = tempPenalties['special'][stage];
+                            if (this.checked) stageTemp[id] = true;
+                            else delete stageTemp[id];
+                            unsaved = true;
+                            updateSpecialSummary();
+                            updateSpecialBadge();
+                        });
+                    });
+                }
+            }
+            return;
+        }
+
+        // Для остальных дисциплин
         const saveStageBtn = document.getElementById(`saveStage-${disc}`);
         if (saveStageBtn) saveStageBtn.addEventListener('click', () => saveStage(disc));
 
@@ -1024,12 +1402,6 @@
         const rawInput = document.getElementById(`rawTime-${disc}`);
         if (rawInput) rawInput.addEventListener('change', () => saveRawTime(disc));
 
-        const p1 = document.getElementById(`p1name-${disc}`);
-        const p2 = document.getElementById(`p2name-${disc}`);
-        if (p1) p1.addEventListener('change', () => saveNames(disc));
-        if (p2) p2.addEventListener('change', () => saveNames(disc));
-
-        // Обработчики для счётчиков и чекбоксов
         const container = document.getElementById(`penaltiesList-${disc}`);
         if (container) {
             container.querySelectorAll('.counter-inc').forEach(btn => {
@@ -1041,9 +1413,11 @@
                     const p = penaltiesLibrary[disc]?.find(p => p.id === id);
                     if (!p || !p.isCounter) return;
                     const max = p.maxCount || 10;
-                    let val = getCounterValue(tempPenalties, id) + 1;
+                    if (!tempPenalties[disc]) tempPenalties[disc] = {};
+                    const discTemp = tempPenalties[disc];
+                    let val = getCounterValue(discTemp, id) + 1;
                     if (val > max) val = max;
-                    setCounterValue(tempPenalties, id, val);
+                    setCounterValue(discTemp, id, val);
                     unsaved = true;
                     updatePenaltiesUI(disc);
                     updateSummary(disc);
@@ -1058,9 +1432,11 @@
                     if (discAttr !== disc) return;
                     const p = penaltiesLibrary[disc]?.find(p => p.id === id);
                     if (!p || !p.isCounter) return;
-                    let val = getCounterValue(tempPenalties, id) - 1;
+                    if (!tempPenalties[disc]) tempPenalties[disc] = {};
+                    const discTemp = tempPenalties[disc];
+                    let val = getCounterValue(discTemp, id) - 1;
                     if (val < 0) val = 0;
-                    setCounterValue(tempPenalties, id, val);
+                    setCounterValue(discTemp, id, val);
                     unsaved = true;
                     updatePenaltiesUI(disc);
                     updateSummary(disc);
@@ -1072,8 +1448,10 @@
                     const id = this.getAttribute('data-id');
                     const discAttr = this.getAttribute('data-disc');
                     if (discAttr !== disc) return;
-                    if (this.checked) tempPenalties[id] = true;
-                    else delete tempPenalties[id];
+                    if (!tempPenalties[disc]) tempPenalties[disc] = {};
+                    const discTemp = tempPenalties[disc];
+                    if (this.checked) discTemp[id] = true;
+                    else delete discTemp[id];
                     unsaved = true;
                     updateSummary(disc);
                     updateStageBadge(disc);
@@ -1114,7 +1492,6 @@
                 }
             });
         });
-        // Активировать первую вкладку
         document.querySelector('.tab-btn[data-tab="special"]').click();
 
         // Выбор команды
@@ -1124,25 +1501,39 @@
                 refreshUI();
                 renderOverallResults();
             } else {
-                // очистить UI
                 for (let d of DISCIPLINES) {
-                    const sumSpan = document.getElementById(`penaltySum-${d}`);
-                    if (sumSpan) sumSpan.innerText = '0';
-                    const rawSpan = document.getElementById(`rawDisplay-${d}`);
-                    if (rawSpan) rawSpan.innerText = '—';
-                    const totalSpan = document.getElementById(`totalDisplay-${d}`);
-                    if (totalSpan) totalSpan.innerText = '—';
+                    if (d === 'special') {
+                        for (let stage of SPECIAL_STAGES) {
+                            const sumSpan = document.getElementById(`penaltySum-special-${stage}`);
+                            if (sumSpan) sumSpan.innerText = '0';
+                            const rawSpan = document.getElementById(`rawDisplay-special-${stage}`);
+                            if (rawSpan) rawSpan.innerText = '—';
+                            const totalSpan = document.getElementById(`totalDisplay-special-${stage}`);
+                            if (totalSpan) totalSpan.innerText = '—';
+                        }
+                        const overallSum = document.getElementById(`penaltySum-special`);
+                        if (overallSum) overallSum.innerText = '0';
+                        const overallRaw = document.getElementById(`rawDisplay-special`);
+                        if (overallRaw) overallRaw.innerText = '—';
+                        const overallTotal = document.getElementById(`totalDisplay-special`);
+                        if (overallTotal) overallTotal.innerText = '—';
+                    } else {
+                        const sumSpan = document.getElementById(`penaltySum-${d}`);
+                        if (sumSpan) sumSpan.innerText = '0';
+                        const rawSpan = document.getElementById(`rawDisplay-${d}`);
+                        if (rawSpan) rawSpan.innerText = '—';
+                        const totalSpan = document.getElementById(`totalDisplay-${d}`);
+                        if (totalSpan) totalSpan.innerText = '—';
+                    }
                 }
                 renderOverallResults();
             }
         });
 
-        // Глобальные кнопки
         document.getElementById('printTeamReportBtn').addEventListener('click', printTeamReport);
         document.getElementById('printOverallReportBtn').addEventListener('click', printOverallReport);
         document.getElementById('exportExcelBtn').addEventListener('click', exportExcel);
 
-        // Если команда уже выбрана в селекте, загрузить данные
         if (teamSelect.value) {
             currentTeam = teamSelect.value;
             refreshUI();
