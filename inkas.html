@@ -326,13 +326,11 @@
         @media print {
             body { background: white; padding: 0; margin: 0; }
             .container { max-width: 100%; padding: 10px; }
-            /* Скрываем всё, кроме контейнера отчёта */
             .header, .footer, .team-selector, .header-actions, .tabs, .tab-btn,
             .action-buttons, .penalty-block, .summary-bar, .stage-summary,
-            .tab-pane, .section, .print-report-area { display: none !important; }
-            /* Показываем только контейнер отчёта */
+            .tab-pane, .section { display: none !important; }
             .print-report-area { display: block !important; }
-            .print-report-area * { display: revert; } /* восстановить отображение внутри отчёта */
+            .print-report-area * { display: revert; }
             .print-report-area table { border-collapse: collapse; }
             .print-report-area th, .print-report-area td { border: 1px solid #888; padding: 4px 6px; text-align: center; }
             .rank-1, .rank-2, .rank-3 { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -753,7 +751,7 @@
         }
     }
 
-    // ===== ПОСТРОЕНИЕ UI =====
+    // ===== ПОСТРОЕНИЕ UI (ПОРЯДОК ИЗМЕНЁН: СНАЧАЛА ШТРАФЫ, ПОТОМ ТАБЛИЦА) =====
     function buildPanel(discipline) {
         if (discipline === 'special') return buildSpecialPanel();
         if (discipline === 'estafeta') return buildEstafetaPanel();
@@ -762,8 +760,8 @@
         let html = `<div id="panel-${discipline}" class="tab-pane">`;
         html += `<div class="section">`;
         html += `<h2>${label}</h2>`;
-        html += `<div class="table-wrapper"><table id="overallTable-${discipline}"><thead><tr><th>Место</th><th>Команда</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead><tbody id="overallBody-${discipline}"><tr><td colspan="5">Загрузка...</td></tr></tbody></table></div>`;
 
+        // === Блок штрафов (сначала) ===
         html += `<div class="penalty-block" id="penaltyBlock-${discipline}">`;
         html += `<h3>⚖️ Штрафные секунды</h3>`;
         html += `<div class="time-row"><label>Общее чистое время команды (мм:сс.сс)</label><input type="text" id="rawTime-${discipline}" class="time-input" placeholder="например 14:39.57" value=""></div>`;
@@ -799,6 +797,11 @@
         html += `<span>Итого команды: <strong id="totalDisplay-${discipline}">—</strong></span>`;
         html += `</div>`;
         html += `</div>`;
+        // === Конец блока штрафов ===
+
+        // === Таблица (после штрафов) ===
+        html += `<div class="table-wrapper"><table id="overallTable-${discipline}"><thead><tr><th>Место</th><th>Команда</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead><tbody id="overallBody-${discipline}"><tr><td colspan="5">Загрузка...</td></tr></tbody></table></div>`;
+
         html += `</div></div>`;
         return html;
     }
@@ -807,8 +810,8 @@
         let html = `<div id="panel-special" class="tab-pane">`;
         html += `<div class="section">`;
         html += `<h2>Специальная подготовка (2 этапа)</h2>`;
-        html += `<div class="table-wrapper"><table id="overallTable-special"><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th><th>Общий штраф</th><th>Итог</th></tr></thead><tbody id="overallBody-special"><tr><td colspan="5">Загрузка...</td></tr></tbody></table></div>`;
 
+        // === Сначала блоки штрафов по этапам ===
         for (let stage of SPECIAL_STAGES) {
             const stageLabel = SPECIAL_STAGE_LABELS[stage];
             const penalties = penaltiesLibrary.special[stage] || [];
@@ -849,11 +852,16 @@
             html += `</div>`;
         }
 
+        // Общая сводка
         html += `<div class="summary-bar" style="margin-top:20px;">`;
         html += `<span>Общий штраф: <span id="penaltySum-special">0</span> сек</span>`;
         html += `<span>Общее чистое время: <span id="rawDisplay-special">—</span></span>`;
         html += `<span>Общий итог: <strong id="totalDisplay-special">—</strong></span>`;
         html += `</div>`;
+
+        // === Таблица (после всех штрафов) ===
+        html += `<div class="table-wrapper" style="margin-top:20px;"><table id="overallTable-special"><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th><th>Общий штраф</th><th>Итог</th></tr></thead><tbody id="overallBody-special"><tr><td colspan="5">Загрузка...</td></tr></tbody></table></div>`;
+
         html += `</div></div>`;
         return html;
     }
@@ -862,12 +870,13 @@
         let html = `<div id="panel-estafeta" class="tab-pane">`;
         html += `<div class="section">`;
         html += `<h2>Инкассаторская эстафета (12 этапов)</h2>`;
-        html += `<div class="table-wrapper"><table id="overallTable-estafeta"><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th><th>Общий штраф</th><th>Итог</th></tr></thead><tbody id="overallBody-estafeta"><tr><td colspan="5">Загрузка...</td></tr></tbody></table></div>`;
 
+        // === Блок общего времени (сверху) ===
         html += `<div class="penalty-block" style="margin-top:0; border:1px solid #cbd5e1; background:#f8fafc;">`;
         html += `<div class="time-row"><label>Общее чистое время команды (мм:сс.сс)</label><input type="text" id="rawTime-estafeta" class="time-input" placeholder="например 14:39.57" value=""></div>`;
         html += `</div>`;
 
+        // === Этапы со штрафами ===
         for (let stage of ESTAFETA_STAGES) {
             const penalties = stage.penalties;
             html += `<div class="penalty-block" id="penaltyBlock-estafeta-${stage.id}" style="margin-top:20px;">`;
@@ -903,11 +912,16 @@
             html += `</div>`;
         }
 
+        // Общая сводка
         html += `<div class="summary-bar" style="margin-top:20px;">`;
         html += `<span>Общий штраф: <span id="penaltySum-estafeta">0</span> сек</span>`;
         html += `<span>Общее чистое время: <span id="rawDisplay-estafeta">—</span></span>`;
         html += `<span>Общий итог: <strong id="totalDisplay-estafeta">—</strong></span>`;
         html += `</div>`;
+
+        // === Таблица (после всех штрафов) ===
+        html += `<div class="table-wrapper" style="margin-top:20px;"><table id="overallTable-estafeta"><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th><th>Общий штраф</th><th>Итог</th></tr></thead><tbody id="overallBody-estafeta"><tr><td colspan="5">Загрузка...</td></tr></tbody></table></div>`;
+
         html += `</div></div>`;
         return html;
     }
@@ -999,6 +1013,7 @@
         renderOverallTable('estafeta');
     }
 
+    // Функции обновления UI (без изменений, кроме порядка) – они работают с существующими элементами
     function updatePenaltiesUI(disc) {
         const container = document.getElementById(`penaltiesList-${disc}`);
         if (!container) return;
@@ -1473,7 +1488,7 @@
         updateEstafetaBadge();
     }
 
-    // ===== ПЕЧАТЬ ОТЧЁТА ПО КОМАНДЕ =====
+    // ===== ПЕЧАТЬ =====
     function printTeamReport() {
         if (!currentTeam) { alert('Выберите команду'); return; }
         const disc = currentDiscipline;
@@ -1589,7 +1604,6 @@
         container.innerHTML = '';
     }
 
-    // ===== ПЕЧАТЬ ИТОГОВОГО ПРОТОКОЛА =====
     function printOverallReport() {
         const disc = currentDiscipline;
         let rows = [];
@@ -1948,7 +1962,6 @@
         buildPanels();
         attachEventListeners();
 
-        // Переключение вкладок
         const tabBtns = tabsContainer.querySelectorAll('.tab-btn');
         tabBtns.forEach(btn => {
             btn.addEventListener('click', function() {
@@ -1968,7 +1981,6 @@
         });
         document.querySelector('.tab-btn[data-tab="special"]').click();
 
-        // Выбор команды
         teamSelect.addEventListener('change', function() {
             currentTeam = this.value || null;
             if (currentTeam) {
