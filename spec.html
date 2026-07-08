@@ -2299,7 +2299,8 @@
             document.getElementById('resultSummary').style.display = 'none';
             renderQuestions();
             updateStats();
-            // Таймер не сбрасываем
+            // Сбрасываем таймер при сбросе ответов
+            resetTimer();
         }
 
         function showCorrect() {
