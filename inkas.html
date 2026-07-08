@@ -326,13 +326,17 @@
         @media print {
             body { background: white; padding: 0; margin: 0; }
             .container { max-width: 100%; padding: 10px; }
-            .header { background: #1e3a5f !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; border-radius: 0; margin-bottom: 15px; }
-            .header-actions, .tabs, .tab-btn, .action-buttons, .penalty-block, .team-selector { display: none !important; }
-            .tab-pane { display: none !important; }
-            .tab-pane.active-pane { display: block !important; }
-            .section { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; page-break-inside: avoid; margin-bottom: 20px; padding: 15px; border-radius: 8px; }
-            .rank-1, .rank-2, .rank-3 { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            /* Скрываем всё, кроме контейнера отчёта */
+            .header, .footer, .team-selector, .header-actions, .tabs, .tab-btn,
+            .action-buttons, .penalty-block, .summary-bar, .stage-summary,
+            .tab-pane, .section, .print-report-area { display: none !important; }
+            /* Показываем только контейнер отчёта */
             .print-report-area { display: block !important; }
+            .print-report-area * { display: revert; } /* восстановить отображение внутри отчёта */
+            .print-report-area table { border-collapse: collapse; }
+            .print-report-area th, .print-report-area td { border: 1px solid #888; padding: 4px 6px; text-align: center; }
+            .rank-1, .rank-2, .rank-3 { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            @page { size: A4 portrait; margin: 8mm 6mm; }
         }
         .print-report-area { display: none; }
     </style>
@@ -585,7 +589,7 @@
     let teamsData = {};
     let currentTeam = null;
     let currentDiscipline = 'special';
-    let tempPenalties = {}; // { discipline: { stageId: { id: value } } }
+    let tempPenalties = {};
     let unsaved = false;
 
     // DOM
@@ -860,12 +864,10 @@
         html += `<h2>Инкассаторская эстафета (12 этапов)</h2>`;
         html += `<div class="table-wrapper"><table id="overallTable-estafeta"><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th><th>Общий штраф</th><th>Итог</th></tr></thead><tbody id="overallBody-estafeta"><tr><td colspan="5">Загрузка...</td></tr></tbody></table></div>`;
 
-        // Общее время для эстафеты
         html += `<div class="penalty-block" style="margin-top:0; border:1px solid #cbd5e1; background:#f8fafc;">`;
         html += `<div class="time-row"><label>Общее чистое время команды (мм:сс.сс)</label><input type="text" id="rawTime-estafeta" class="time-input" placeholder="например 14:39.57" value=""></div>`;
         html += `</div>`;
 
-        // Блоки по этапам
         for (let stage of ESTAFETA_STAGES) {
             const penalties = stage.penalties;
             html += `<div class="penalty-block" id="penaltyBlock-estafeta-${stage.id}" style="margin-top:20px;">`;
@@ -901,7 +903,6 @@
             html += `</div>`;
         }
 
-        // Общая сводка по эстафете
         html += `<div class="summary-bar" style="margin-top:20px;">`;
         html += `<span>Общий штраф: <span id="penaltySum-estafeta">0</span> сек</span>`;
         html += `<span>Общее чистое время: <span id="rawDisplay-estafeta">—</span></span>`;
@@ -916,7 +917,6 @@
         for (let d of DISCIPLINES) {
             html += buildPanel(d);
         }
-        // Вкладка Итоги
         html += `<div id="panel-results" class="tab-pane">`;
         html += `<div class="section"><h2>🏆 Итоговый протокол (сумма мест по 5 дисциплинам)</h2>`;
         html += `<div class="table-wrapper"><table><thead><tr><th>Итоговое место</th><th>Команда</th><th>Спецподготовка</th><th>Огневая</th><th>Физподготовка</th><th>Эстафета</th><th>Деловая игра</th><th>Сумма мест</th></tr></thead><tbody id="resultsOverallBody"><tr><td colspan="8">Загрузка...</td></tr></tbody></table></div>`;
@@ -1112,7 +1112,6 @@
 
     function updateEstafetaSummary() {
         let totalPen = 0;
-        let hasData = false;
         for (let stage of ESTAFETA_STAGES) {
             const stageData = getEstafetaStageData(currentTeam, stage.id);
             const stageTemp = tempPenalties['estafeta']?.[stage.id] || {};
@@ -1474,7 +1473,7 @@
         updateEstafetaBadge();
     }
 
-    // ===== ПЕЧАТЬ =====
+    // ===== ПЕЧАТЬ ОТЧЁТА ПО КОМАНДЕ =====
     function printTeamReport() {
         if (!currentTeam) { alert('Выберите команду'); return; }
         const disc = currentDiscipline;
@@ -1590,6 +1589,7 @@
         container.innerHTML = '';
     }
 
+    // ===== ПЕЧАТЬ ИТОГОВОГО ПРОТОКОЛА =====
     function printOverallReport() {
         const disc = currentDiscipline;
         let rows = [];
@@ -1638,7 +1638,6 @@
         const now = new Date().toLocaleString('ru-RU');
         const html = `
             <div style="font-family: 'Segoe UI', sans-serif; max-width: 1100px; margin:0 auto; padding:5mm 4mm;">
-                <style>@page { size: A4 portrait; margin: 8mm 6mm; }</style>
                 <h1 style="text-align:center; font-size:14pt;">🏆 ИТОГОВЫЙ ПРОТОКОЛ</h1>
                 <h2 style="text-align:center; font-size:12pt; color:#1e3a5f;">${DISCIPLINE_LABELS[disc] || disc}</h2>
                 <div style="text-align:center; font-size:8.5pt; margin-bottom:8px;">Дата формирования: ${now}</div>
