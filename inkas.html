@@ -280,8 +280,8 @@
             border: none;
             background: transparent;
             color: #1e3a5f;
-            font-size: 1.3rem;
-            font-weight: 700;
+            font-size: 1rem; /* теперь как у основного текста */
+            font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -298,8 +298,8 @@
         .counter-control .counter-count {
             min-width: 32px;
             text-align: center;
-            font-weight: 700;
-            font-size: 1.1rem;
+            font-weight: 400; /* убрали жирность */
+            font-size: 0.9rem; /* как у описаний */
             color: #0f172a;
             padding: 0 4px;
         }
@@ -392,7 +392,7 @@
 
 <script>
 (function() {
-    // ===== КОНФИГУРАЦИЯ =====
+    // ===== КОНФИГУРАЦИЯ (без изменений) =====
     const DISCIPLINES = ['special', 'fire', 'physical', 'estafeta', 'business'];
     const DISCIPLINE_LABELS = {
         special: 'Специальная подготовка',
@@ -595,7 +595,7 @@
     const panelsContainer = document.getElementById('panelsContainer');
     const tabsContainer = document.getElementById('tabsContainer');
 
-    // ===== ХЕЛПЕРЫ =====
+    // ===== ХЕЛПЕРЫ (без изменений) =====
     function formatTime(sec) {
         if (sec === null || isNaN(sec)) return "—";
         let m = Math.floor(sec / 60);
@@ -751,7 +751,7 @@
         }
     }
 
-    // ===== ПОСТРОЕНИЕ UI (ПОРЯДОК ИЗМЕНЁН: СНАЧАЛА ШТРАФЫ, ПОТОМ ТАБЛИЦА) =====
+    // ===== ПОСТРОЕНИЕ UI (порядок: штрафы → таблица) – без изменений =====
     function buildPanel(discipline) {
         if (discipline === 'special') return buildSpecialPanel();
         if (discipline === 'estafeta') return buildEstafetaPanel();
@@ -761,7 +761,6 @@
         html += `<div class="section">`;
         html += `<h2>${label}</h2>`;
 
-        // === Блок штрафов (сначала) ===
         html += `<div class="penalty-block" id="penaltyBlock-${discipline}">`;
         html += `<h3>⚖️ Штрафные секунды</h3>`;
         html += `<div class="time-row"><label>Общее чистое время команды (мм:сс.сс)</label><input type="text" id="rawTime-${discipline}" class="time-input" placeholder="например 14:39.57" value=""></div>`;
@@ -797,9 +796,7 @@
         html += `<span>Итого команды: <strong id="totalDisplay-${discipline}">—</strong></span>`;
         html += `</div>`;
         html += `</div>`;
-        // === Конец блока штрафов ===
 
-        // === Таблица (после штрафов) ===
         html += `<div class="table-wrapper"><table id="overallTable-${discipline}"><thead><tr><th>Место</th><th>Команда</th><th>Чистое время</th><th>Штраф (сек)</th><th>Итог</th></tr></thead><tbody id="overallBody-${discipline}"><tr><td colspan="5">Загрузка...</td></tr></tbody></table></div>`;
 
         html += `</div></div>`;
@@ -811,7 +808,6 @@
         html += `<div class="section">`;
         html += `<h2>Специальная подготовка (2 этапа)</h2>`;
 
-        // === Сначала блоки штрафов по этапам ===
         for (let stage of SPECIAL_STAGES) {
             const stageLabel = SPECIAL_STAGE_LABELS[stage];
             const penalties = penaltiesLibrary.special[stage] || [];
@@ -852,14 +848,12 @@
             html += `</div>`;
         }
 
-        // Общая сводка
         html += `<div class="summary-bar" style="margin-top:20px;">`;
         html += `<span>Общий штраф: <span id="penaltySum-special">0</span> сек</span>`;
         html += `<span>Общее чистое время: <span id="rawDisplay-special">—</span></span>`;
         html += `<span>Общий итог: <strong id="totalDisplay-special">—</strong></span>`;
         html += `</div>`;
 
-        // === Таблица (после всех штрафов) ===
         html += `<div class="table-wrapper" style="margin-top:20px;"><table id="overallTable-special"><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th><th>Общий штраф</th><th>Итог</th></tr></thead><tbody id="overallBody-special"><tr><td colspan="5">Загрузка...</td></tr></tbody></table></div>`;
 
         html += `</div></div>`;
@@ -871,12 +865,10 @@
         html += `<div class="section">`;
         html += `<h2>Инкассаторская эстафета (12 этапов)</h2>`;
 
-        // === Блок общего времени (сверху) ===
         html += `<div class="penalty-block" style="margin-top:0; border:1px solid #cbd5e1; background:#f8fafc;">`;
         html += `<div class="time-row"><label>Общее чистое время команды (мм:сс.сс)</label><input type="text" id="rawTime-estafeta" class="time-input" placeholder="например 14:39.57" value=""></div>`;
         html += `</div>`;
 
-        // === Этапы со штрафами ===
         for (let stage of ESTAFETA_STAGES) {
             const penalties = stage.penalties;
             html += `<div class="penalty-block" id="penaltyBlock-estafeta-${stage.id}" style="margin-top:20px;">`;
@@ -912,14 +904,12 @@
             html += `</div>`;
         }
 
-        // Общая сводка
         html += `<div class="summary-bar" style="margin-top:20px;">`;
         html += `<span>Общий штраф: <span id="penaltySum-estafeta">0</span> сек</span>`;
         html += `<span>Общее чистое время: <span id="rawDisplay-estafeta">—</span></span>`;
         html += `<span>Общий итог: <strong id="totalDisplay-estafeta">—</strong></span>`;
         html += `</div>`;
 
-        // === Таблица (после всех штрафов) ===
         html += `<div class="table-wrapper" style="margin-top:20px;"><table id="overallTable-estafeta"><thead><tr><th>Место</th><th>Команда</th><th>Итоговое время</th><th>Общий штраф</th><th>Итог</th></tr></thead><tbody id="overallBody-estafeta"><tr><td colspan="5">Загрузка...</td></tr></tbody></table></div>`;
 
         html += `</div></div>`;
@@ -939,7 +929,7 @@
         panelsContainer.innerHTML = html;
     }
 
-    // ===== ОБНОВЛЕНИЕ UI =====
+    // ===== ОБНОВЛЕНИЕ UI (без изменений) =====
     function refreshUI() {
         if (!currentTeam || !currentDiscipline) return;
         if (currentDiscipline === 'special') refreshSpecialUI();
@@ -1013,7 +1003,6 @@
         renderOverallTable('estafeta');
     }
 
-    // Функции обновления UI (без изменений, кроме порядка) – они работают с существующими элементами
     function updatePenaltiesUI(disc) {
         const container = document.getElementById(`penaltiesList-${disc}`);
         if (!container) return;
@@ -1737,7 +1726,7 @@
         XLSX.writeFile(wb, `incassator_${disc}_${new Date().toISOString().slice(0,10)}.xlsx`);
     }
 
-    // ===== ПРИВЯЗКА ОБРАБОТЧИКОВ =====
+    // ===== ПРИВЯЗКА ОБРАБОТЧИКОВ (без изменений) =====
     function attachEventListeners() {
         // Special
         for (let stage of SPECIAL_STAGES) {
@@ -1987,7 +1976,6 @@
                 refreshUI();
                 renderOverallResults();
             } else {
-                // Сброс отображения
                 for (let d of DISCIPLINES) {
                     if (d === 'special') {
                         for (let stage of SPECIAL_STAGES) {
